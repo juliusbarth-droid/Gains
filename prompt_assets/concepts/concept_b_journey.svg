@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="440" height="960" viewBox="0 0 440 960" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <style>
+    .fs { font-family: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif; }
+  </style>
+  <clipPath id="phoneClip"><rect x="0" y="0" width="440" height="960" rx="42"/></clipPath>
+  <linearGradient id="chartFill" x1="0%" y1="0%" x2="0%" y2="100%">
+    <stop offset="0%" stop-color="#D4E85C" stop-opacity="0.35"/>
+    <stop offset="100%" stop-color="#D4E85C" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+
+<g clip-path="url(#phoneClip)">
+<rect x="0" y="0" width="440" height="960" fill="#E8E6E0"/>
+
+<!-- Notch -->
+<rect x="180" y="0" width="80" height="22" rx="11" fill="#1A1A1A"/>
+
+<!-- Status bar -->
+<text x="40" y="48" class="fs" font-size="12" font-weight="500" fill="#1A1A1A">9:41</text>
+<rect x="382" y="40" width="22" height="11" rx="2" fill="none" stroke="#1A1A1A" stroke-width="1"/>
+<rect x="384" y="42" width="15" height="7" rx="1" fill="#1A1A1A"/>
+
+<!-- TOP NAV -->
+<rect x="40" y="72" width="36" height="36" rx="9" fill="#1A1A1A"/>
+<path d="M 68 83 A 12 12 0 1 0 68 97" fill="none" stroke="#F4F2EC" stroke-width="4.5"/>
+<rect x="60" y="87.5" width="10" height="5" fill="#F4F2EC"/>
+<circle cx="395" cy="90" r="16" fill="#1A1A1A"/>
+<text x="395" y="95" text-anchor="middle" class="fs" font-size="13" font-weight="500" fill="#D4E85C">J</text>
+
+<!-- Date slash -->
+<text x="40" y="136" class="fs" font-size="10" font-weight="500" fill="#999" letter-spacing="3">DI</text>
+<text x="62" y="136" class="fs" font-size="10" font-weight="500" fill="#D4E85C" letter-spacing="1">/</text>
+<text x="70" y="136" class="fs" font-size="10" font-weight="500" fill="#999" letter-spacing="3">19 MRZ</text>
+<text x="126" y="136" class="fs" font-size="10" font-weight="500" fill="#D4E85C" letter-spacing="1">/</text>
+<text x="134" y="136" class="fs" font-size="10" font-weight="500" fill="#999" letter-spacing="3">WK 12 · TAG 87</text>
+
+<!-- Greeting -->
+<text x="40" y="178" class="fs" font-size="26" font-weight="500" fill="#1A1A1A" letter-spacing="-0.02em">Du bewegst dich, Julius.</text>
+<text x="40" y="200" class="fs" font-size="13" font-weight="400" fill="#666">Seit 12 Wochen im Push. Hier ist dein echter Fortschritt.</text>
+
+<!-- ============================================= -->
+<!-- HERO PROGRESS CHART CARD -->
+<!-- ============================================= -->
+<rect x="40" y="220" width="360" height="258" rx="22" fill="#1A1A1A"/>
+
+<!-- Slash label -->
+<text x="60" y="250" class="fs" font-size="9" font-weight="500" fill="#D4E85C" letter-spacing="3">KRAFT</text>
+<text x="96" y="250" class="fs" font-size="9" font-weight="500" fill="#666" letter-spacing="1">/</text>
+<text x="104" y="250" class="fs" font-size="9" font-weight="500" fill="#999" letter-spacing="3">12 WOCHEN</text>
+<text x="180" y="250" class="fs" font-size="9" font-weight="500" fill="#666" letter-spacing="1">/</text>
+<text x="188" y="250" class="fs" font-size="9" font-weight="500" fill="#999" letter-spacing="3">BENCH 1RM</text>
+
+<!-- Big delta hero -->
+<text x="60" y="298" class="fs" font-size="48" font-weight="500" fill="#F4F2EC" letter-spacing="-0.04em" font-stretch="condensed">+ 18.5 kg</text>
+<text x="60" y="318" class="fs" font-size="11" font-weight="400" fill="#999">seit Start · 74 → 92.5 kg Bench</text>
+
+<!-- Growth pill -->
+<rect x="284" y="278" width="96" height="24" rx="12" fill="#D4E85C"/>
+<text x="332" y="294" text-anchor="middle" class="fs" font-size="11" font-weight="500" fill="#1A1A1A" letter-spacing="1.5">+ 25% KRAFT</text>
+
+<!-- Chart area -->
+<g transform="translate(60, 340)">
+  <!-- Y-axis labels -->
+  <text x="-2" y="8" text-anchor="end" class="fs" font-size="8" fill="#555">95</text>
+  <text x="-2" y="42" text-anchor="end" class="fs" font-size="8" fill="#555">85</text>
+  <text x="-2" y="76" text-anchor="end" class="fs" font-size="8" fill="#555">75</text>
+  <text x="-2" y="108" text-anchor="end" class="fs" font-size="8" fill="#555">65</text>
+
+  <!-- Horizontal grid lines -->
+  <line x1="6" y1="8" x2="316" y2="8" stroke="#2a2a2a" stroke-width="0.5" stroke-dasharray="2,3"/>
+  <line x1="6" y1="42" x2="316" y2="42" stroke="#2a2a2a" stroke-width="0.5" stroke-dasharray="2,3"/>
+  <line x1="6" y1="76" x2="316" y2="76" stroke="#2a2a2a" stroke-width="0.5" stroke-dasharray="2,3"/>
+  <line x1="6" y1="108" x2="316" y2="108" stroke="#2a2a2a" stroke-width="0.5" stroke-dasharray="2,3"/>
+
+  <!-- Chart fill (area) -->
+  <path d="M 6 102 L 32 96 L 58 90 L 84 88 L 110 75 L 136 72 L 162 65 L 188 54 L 214 48 L 240 42 L 266 30 L 292 18 L 316 14 L 316 110 L 6 110 Z"
+        fill="url(#chartFill)"/>
+
+  <!-- Chart line -->
+  <polyline points="6,102 32,96 58,90 84,88 110,75 136,72 162,65 188,54 214,48 240,42 266,30 292,18 316,14"
+            fill="none" stroke="#D4E85C" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- Current point -->
+  <circle cx="316" cy="14" r="6" fill="#D4E85C"/>
+  <circle cx="316" cy="14" r="3" fill="#1A1A1A"/>
+
+  <!-- PR markers -->
+  <circle cx="110" cy="75" r="3.5" fill="#F4F2EC"/>
+  <circle cx="188" cy="54" r="3.5" fill="#F4F2EC"/>
+  <circle cx="266" cy="30" r="3.5" fill="#F4F2EC"/>
+
+  <!-- X-axis labels -->
+  <text x="6" y="128" class="fs" font-size="8" fill="#666" letter-spacing="1">JAN</text>
+  <text x="84" y="128" class="fs" font-size="8" fill="#666" letter-spacing="1">FEB</text>
+  <text x="162" y="128" class="fs" font-size="8" fill="#666" letter-spacing="1">MRZ</text>
+  <text x="240" y="128" class="fs" font-size="8" fill="#666" letter-spacing="1">APR</text>
+  <text x="316" y="128" text-anchor="end" class="fs" font-size="8" fill="#D4E85C" letter-spacing="1">HEUTE</text>
+</g>
+
+<!-- Legend: PR dots -->
+<circle cx="68" cy="462" r="3" fill="#F4F2EC"/>
+<text x="76" y="465" class="fs" font-size="9" fill="#999">3 Personal Records</text>
+<circle cx="196" cy="462" r="3" fill="#D4E85C"/>
+<text x="204" y="465" class="fs" font-size="9" fill="#999">Aktuelles 1RM</text>
+<text x="380" y="465" text-anchor="end" class="fs" font-size="9" fill="#D4E85C" letter-spacing="1.5">DETAILS →</text>
+
+<!-- ============================================= -->
+<!-- MILESTONE CARD -->
+<!-- ============================================= -->
+<text x="40" y="512" class="fs" font-size="10" font-weight="500" fill="#1A1A1A" letter-spacing="3">MEILENSTEIN</text>
+<text x="132" y="512" class="fs" font-size="10" font-weight="500" fill="#D4E85C" letter-spacing="1">/</text>
+<text x="140" y="512" class="fs" font-size="10" font-weight="500" fill="#999" letter-spacing="3">NÄCHSTES ZIEL</text>
+
+<rect x="40" y="528" width="360" height="96" rx="18" fill="#F4F2EC"/>
+
+<!-- Left content -->
+<text x="60" y="552" class="fs" font-size="8" font-weight="500" fill="#999" letter-spacing="2.5">BENCH PRESS 1RM</text>
+<text x="60" y="588" class="fs" font-size="32" font-weight="500" fill="#1A1A1A" letter-spacing="-0.04em" font-stretch="condensed">100 kg</text>
+<text x="60" y="608" class="fs" font-size="11" font-weight="400" fill="#666">noch <tspan font-weight="500" fill="#1A1A1A">7.5 kg</tspan> · voraussichtlich in <tspan font-weight="500" fill="#1A1A1A">3 Wochen</tspan></text>
+
+<!-- Progress ring right -->
+<g transform="translate(328, 576)">
+  <circle cx="0" cy="0" r="32" fill="none" stroke="#c9c6be" stroke-width="6"/>
+  <!-- 92.5% arc (92.5% of 360 = 333°) -->
+  <path d="M 0 -32 A 32 32 0 1 1 -29.8 11.6" fill="none" stroke="#D4E85C" stroke-width="6" stroke-linecap="round"/>
+  <text x="0" y="2" text-anchor="middle" class="fs" font-size="16" font-weight="500" fill="#1A1A1A" letter-spacing="-0.04em">92</text>
+  <text x="0" y="14" text-anchor="middle" class="fs" font-size="8" font-weight="500" fill="#666" letter-spacing="1.5">% DONE</text>
+</g>
+
+<!-- ============================================= -->
+<!-- BODY COMPOSITION DELTA -->
+<!-- ============================================= -->
+<text x="40" y="652" class="fs" font-size="10" font-weight="500" fill="#1A1A1A" letter-spacing="3">KÖRPER</text>
+<text x="82" y="652" class="fs" font-size="10" font-weight="500" fill="#D4E85C" letter-spacing="1">/</text>
+<text x="90" y="652" class="fs" font-size="10" font-weight="500" fill="#999" letter-spacing="3">SEIT START</text>
+
+<!-- Card 1: Body fat -->
+<rect x="40" y="668" width="175" height="96" rx="16" fill="#D4E85C"/>
+<text x="56" y="690" class="fs" font-size="8" font-weight="500" fill="#4A5220" letter-spacing="2">KÖRPERFETT</text>
+<text x="56" y="724" class="fs" font-size="28" font-weight="500" fill="#1A1A1A" letter-spacing="-0.04em" font-stretch="condensed">− 2.4 %</text>
+<text x="56" y="740" class="fs" font-size="9" font-weight="400" fill="#4A5220">18.2 → 15.8 %</text>
+<!-- Mini trend -->
+<polyline points="56,752 70,750 84,748 98,747 112,745 126,744 140,742 154,740 168,740 182,739 196,738"
+          fill="none" stroke="#1A1A1A" stroke-width="1.5"/>
+
+<!-- Card 2: Muscle mass -->
+<rect x="225" y="668" width="175" height="96" rx="16" fill="#F4F2EC"/>
+<text x="241" y="690" class="fs" font-size="8" font-weight="500" fill="#999" letter-spacing="2">MUSKELMASSE</text>
+<text x="241" y="724" class="fs" font-size="28" font-weight="500" fill="#1A1A1A" letter-spacing="-0.04em" font-stretch="condensed">+ 3.1 kg</text>
+<text x="241" y="740" class="fs" font-size="9" font-weight="400" fill="#666">68.4 → 71.5 kg</text>
+<polyline points="241,752 255,750 269,746 283,744 297,740 311,735 325,730 339,726 353,722 367,719 381,717"
+          fill="none" stroke="#D4E85C" stroke-width="1.5"/>
+
+<!-- ============================================= -->
+<!-- QUICK-START WORKOUT (Sticky feel) -->
+<!-- ============================================= -->
+<rect x="40" y="784" width="360" height="100" rx="22" fill="#1A1A1A"/>
+<!-- Left content -->
+<text x="60" y="808" class="fs" font-size="9" font-weight="500" fill="#D4E85C" letter-spacing="3">HEUTE</text>
+<text x="96" y="808" class="fs" font-size="9" font-weight="500" fill="#666" letter-spacing="1">/</text>
+<text x="104" y="808" class="fs" font-size="9" font-weight="500" fill="#999" letter-spacing="3">PUSH · 45 MIN</text>
+<text x="60" y="840" class="fs" font-size="22" font-weight="500" fill="#F4F2EC" letter-spacing="-0.03em" font-stretch="condensed">PUSH DAY</text>
+<text x="60" y="862" class="fs" font-size="11" font-weight="400" fill="#999">Bench · Incline · Dips · Triceps · +1</text>
+
+<!-- START button -->
+<rect x="262" y="810" width="118" height="52" rx="26" fill="#D4E85C"/>
+<text x="312" y="840" text-anchor="middle" class="fs" font-size="12" font-weight="500" fill="#1A1A1A" letter-spacing="2">START</text>
+<text x="356" y="842" class="fs" font-size="14" font-weight="500" fill="#1A1A1A">→</text>
+
+<!-- Bottom tab bar -->
+<line x1="40" y1="934" x2="400" y2="934" stroke="#c9c6be" stroke-width="0.5"/>
+<rect x="52" y="943" width="50" height="32" rx="16" fill="#1A1A1A"/>
+<text x="77" y="961" text-anchor="middle" class="fs" font-size="9" font-weight="500" fill="#D4E85C" letter-spacing="1.5">HOME</text>
+<text x="155" y="961" text-anchor="middle" class="fs" font-size="9" font-weight="500" fill="#999" letter-spacing="1.5">LOG</text>
+<text x="235" y="961" text-anchor="middle" class="fs" font-size="9" font-weight="500" fill="#999" letter-spacing="1.5">STATS</text>
+<text x="315" y="961" text-anchor="middle" class="fs" font-size="9" font-weight="500" fill="#999" letter-spacing="1.5">DU</text>
+</g>
+</svg>

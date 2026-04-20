@@ -1,0 +1,285 @@
+import Foundation
+import HealthKit
+
+struct HealthSnapshot {
+  var stepsToday: Int
+  var activeEnergyToday: Int
+  var exerciseMinutesToday: Int
+  var distanceWalkingRunningKmToday: Double
+  var sleepHoursLastNight: Double?
+  var currentHeartRate: Double?
+  var restingHeartRate: Double?
+  var heartRateVariability: Double?
+  var vo2Max: Double?
+  var bodyMassKg: Double?
+  var lastSyncDate: Date
+}
+
+final class HealthKitManager {
+  static let shared = HealthKitManager()
+
+  private let healthStore = HKHealthStore()
+
+  private init() {}
+
+  var isAvailable: Bool {
+    HKHealthStore.isHealthDataAvailable()
+  }
+
+  func requestAuthorization(completion: @escaping (Bool, String?) -> Void) {
+    guard isAvailable else {
+      completion(false, "HealthKit ist auf diesem Gerät nicht verfügbar.")
+      return
+    }
+
+    guard
+      let stepType = HKObjectType.quantityType(forIdentifier: .stepCount),
+      let activeEnergyType = HKObjectType.quantityType(forIdentifier: .activeEnergyBurned),
+      let exerciseTimeType = HKObjectType.quantityType(forIdentifier: .appleExerciseTime),
+      let distanceType = HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning),
+      let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate),
+      let restingHeartRateType = HKObjectType.quantityType(forIdentifier: .restingHeartRate),
+      let hrvType = HKObjectType.quantityType(forIdentifier: .heartRateVariabilitySDNN),
+      let vo2MaxType = HKObjectType.quantityType(forIdentifier: .vo2Max),
+      let bodyMassType = HKObjectType.quantityType(forIdentifier: .bodyMass),
+      let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis)
+    else {
+      completion(false, "Einige Health-Datentypen konnten nicht geladen werden.")
+      return
+    }
+
+    let readTypes: Set<HKObjectType> = [
+      stepType,
+      activeEnergyType,
+      exerciseTimeType,
+      distanceType,
+      heartRateType,
+      restingHeartRateType,
+      hrvType,
+      vo2MaxType,
+      bodyMassType,
+      sleepType,
+      HKObjectType.workoutType(),
+    ]
+
+    healthStore.requestAuthorization(toShare: [], read: readTypes) { success, error in
+      DispatchQueue.main.async {
+        completion(success, error?.localizedDescription)
+      }
+    }
+  }
+
+  func loadSnapshot(completion: @escaping (Result<HealthSnapshot, Error>) -> Void) {
+    let group = DispatchGroup()
+
+    var stepsToday = 0
+    var activeEnergyToday = 0
+    var exerciseMinutesToday = 0
+    var distanceWalkingRunningKmToday = 0.0
+    var sleepHoursLastNight: Double?
+    var currentHeartRate: Double?
+    var restingHeartRate: Double?
+    var heartRateVariability: Double?
+    var vo2Max: Double?
+    var bodyMassKg: Double?
+    var firstError: Error?
+
+    func capture(_ error: Error?) {
+      guard firstError == nil, let error else { return }
+      firstError = error
+    }
+
+    group.enter()
+    sumQuantity(.stepCount, unit: HKUnit.count(), start: startOfDay, end: Date()) { result in
+      if case .success(let value) = result { stepsToday = Int(value.rounded()) }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    sumQuantity(.activeEnergyBurned, unit: .kilocalorie(), start: startOfDay, end: Date()) {
+      result in
+      if case .success(let value) = result { activeEnergyToday = Int(value.rounded()) }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    sumQuantity(.appleExerciseTime, unit: .minute(), start: startOfDay, end: Date()) { result in
+      if case .success(let value) = result { exerciseMinutesToday = Int(value.rounded()) }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    sumQuantity(
+      .distanceWalkingRunning, unit: .meterUnit(with: .kilo), start: startOfDay, end: Date()
+    ) { result in
+      if case .success(let value) = result { distanceWalkingRunningKmToday = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    fetchLatestQuantity(.heartRate, unit: HKUnit.count().unitDivided(by: .minute())) { result in
+      if case .success(let value) = result { currentHeartRate = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    fetchLatestQuantity(.restingHeartRate, unit: HKUnit.count().unitDivided(by: .minute())) {
+      result in
+      if case .success(let value) = result { restingHeartRate = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    fetchLatestQuantity(.heartRateVariabilitySDNN, unit: .secondUnit(with: .milli)) { result in
+      if case .success(let value) = result { heartRateVariability = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    fetchLatestQuantity(.vo2Max, unit: HKUnit(from: "ml/kg*min")) { result in
+      if case .success(let value) = result { vo2Max = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    fetchLatestQuantity(.bodyMass, unit: .gramUnit(with: .kilo)) { result in
+      if case .success(let value) = result { bodyMassKg = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.enter()
+    fetchSleepHours { result in
+      if case .success(let value) = result { sleepHoursLastNight = value }
+      if case .failure(let error) = result { capture(error) }
+      group.leave()
+    }
+
+    group.notify(queue: .main) {
+      if let firstError {
+        completion(.failure(firstError))
+        return
+      }
+
+      completion(
+        .success(
+          HealthSnapshot(
+            stepsToday: stepsToday,
+            activeEnergyToday: activeEnergyToday,
+            exerciseMinutesToday: exerciseMinutesToday,
+            distanceWalkingRunningKmToday: distanceWalkingRunningKmToday,
+            sleepHoursLastNight: sleepHoursLastNight,
+            currentHeartRate: currentHeartRate,
+            restingHeartRate: restingHeartRate,
+            heartRateVariability: heartRateVariability,
+            vo2Max: vo2Max,
+            bodyMassKg: bodyMassKg,
+            lastSyncDate: Date()
+          )
+        )
+      )
+    }
+  }
+
+  private var startOfDay: Date {
+    Calendar.current.startOfDay(for: Date())
+  }
+
+  private func sumQuantity(
+    _ identifier: HKQuantityTypeIdentifier,
+    unit: HKUnit,
+    start: Date,
+    end: Date,
+    completion: @escaping (Result<Double, Error>) -> Void
+  ) {
+    guard let quantityType = HKObjectType.quantityType(forIdentifier: identifier) else {
+      completion(.success(0))
+      return
+    }
+
+    let predicate = HKQuery.predicateForSamples(withStart: start, end: end)
+    let query = HKStatisticsQuery(
+      quantityType: quantityType, quantitySamplePredicate: predicate, options: .cumulativeSum
+    ) { _, statistics, error in
+      if let error {
+        completion(.failure(error))
+        return
+      }
+
+      let value = statistics?.sumQuantity()?.doubleValue(for: unit) ?? 0
+      completion(.success(value))
+    }
+    healthStore.execute(query)
+  }
+
+  private func fetchLatestQuantity(
+    _ identifier: HKQuantityTypeIdentifier,
+    unit: HKUnit,
+    completion: @escaping (Result<Double?, Error>) -> Void
+  ) {
+    guard let quantityType = HKObjectType.quantityType(forIdentifier: identifier) else {
+      completion(.success(nil))
+      return
+    }
+
+    let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+    let query = HKSampleQuery(
+      sampleType: quantityType, predicate: nil, limit: 1, sortDescriptors: [sortDescriptor]
+    ) { _, samples, error in
+      if let error {
+        completion(.failure(error))
+        return
+      }
+
+      let quantitySample = samples?.first as? HKQuantitySample
+      completion(.success(quantitySample?.quantity.doubleValue(for: unit)))
+    }
+    healthStore.execute(query)
+  }
+
+  private func fetchSleepHours(completion: @escaping (Result<Double?, Error>) -> Void) {
+    guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
+      completion(.success(nil))
+      return
+    }
+
+    let start = Calendar.current.date(byAdding: .day, value: -1, to: startOfDay) ?? startOfDay
+    let predicate = HKQuery.predicateForSamples(withStart: start, end: Date())
+    let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+    let query = HKSampleQuery(
+      sampleType: sleepType, predicate: predicate, limit: 20, sortDescriptors: [sortDescriptor]
+    ) { _, samples, error in
+      if let error {
+        completion(.failure(error))
+        return
+      }
+
+      let sleepSamples = (samples as? [HKCategorySample] ?? []).filter {
+        if #available(iOS 16.0, *) {
+          return $0.value == HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue
+            || $0.value == HKCategoryValueSleepAnalysis.asleepCore.rawValue
+            || $0.value == HKCategoryValueSleepAnalysis.asleepDeep.rawValue
+            || $0.value == HKCategoryValueSleepAnalysis.asleepREM.rawValue
+        } else {
+          return $0.value == HKCategoryValueSleepAnalysis.asleep.rawValue
+        }
+      }
+
+      let totalSeconds = sleepSamples.reduce(0.0) { partial, sample in
+        partial + sample.endDate.timeIntervalSince(sample.startDate)
+      }
+      let hours = totalSeconds > 0 ? totalSeconds / 3600 : nil
+      completion(.success(hours))
+    }
+    healthStore.execute(query)
+  }
+}
