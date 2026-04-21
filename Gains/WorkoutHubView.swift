@@ -173,6 +173,8 @@ struct WorkoutHubView: View {
           "Starte dein Gym-Workout, springe in Cardio oder öffne deinen Verlauf, ohne dich erst durch alle Bereiche zu kämpfen."
       )
 
+      quickTrainingSummaryRow
+
       HStack(spacing: 10) {
         quickStartCard(
           title: store.activeWorkout == nil ? "Gym starten" : "Workout fortsetzen",
@@ -192,7 +194,7 @@ struct WorkoutHubView: View {
           title: store.activeRun == nil ? "Run starten" : "Run fortsetzen",
           subtitle: store.activeRun == nil ? "Kardiotraining direkt öffnen" : "Live-Run öffnen",
           systemImage: "figure.run",
-          accent: GainsColor.card,
+          accent: GainsColor.moss,
           action: {
             navigation.preferredWorkoutWorkspace = .laufen
             selectedWorkspace = .laufen
@@ -204,15 +206,22 @@ struct WorkoutHubView: View {
   }
 
   private var workspaceHero: some View {
-    HStack(spacing: 10) {
-      Image(systemName: selectedWorkspace.systemImage)
-        .font(.system(size: 18, weight: .semibold))
-        .foregroundStyle(GainsColor.moss)
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(spacing: 10) {
+        Image(systemName: selectedWorkspace.systemImage)
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(GainsColor.moss)
 
-      Text(selectedWorkspace.title)
-        .font(GainsFont.title(26))
-        .foregroundStyle(GainsColor.ink)
-        .lineLimit(1)
+        Text(selectedWorkspace.title)
+          .font(GainsFont.title(26))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(1)
+      }
+
+      Text(workspaceSubtitle)
+        .font(GainsFont.body(14))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(2)
     }
     .padding(18)
     .gainsCardStyle()
@@ -373,6 +382,28 @@ struct WorkoutHubView: View {
       creationSection
       ownWorkoutsSection
       templateWorkoutsSection
+    }
+  }
+
+  private var quickTrainingSummaryRow: some View {
+    HStack(spacing: 10) {
+      plannerMetricCard(
+        title: "Heute", value: store.todayPlannedWorkout?.split ?? "Frei", subtitle: "Fokus")
+      plannerMetricCard(
+        title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)", subtitle: "Sessions")
+      plannerMetricCard(
+        title: "Läufe", value: "\(store.weeklyRunCount)", subtitle: "7 Tage")
+    }
+  }
+
+  private var workspaceSubtitle: String {
+    switch selectedWorkspace {
+    case .kraft:
+      return "Heute trainieren, Woche planen und Workouts klarer verwalten."
+    case .laufen:
+      return "Runs, Templates und Fortschritt kompakter und schneller erfassbar."
+    case .fortschritt:
+      return "Workouts und Läufe in einem Verlauf, ohne unnötigen Ballast."
     }
   }
 
@@ -764,17 +795,19 @@ struct WorkoutHubView: View {
         parts: ["PLANER", "STATUS"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: 10) {
         Text(store.plannerSummaryHeadline)
-          .font(GainsFont.title(20))
+          .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.ink)
+          .lineLimit(2)
 
         Text(store.plannerSummaryDescription)
           .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.onLimeSecondary)
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(3)
       }
       .padding(18)
-      .gainsCardStyle(GainsColor.lime.opacity(0.24))
+      .gainsCardStyle(GainsColor.lime.opacity(0.2))
     }
   }
 
@@ -949,43 +982,45 @@ struct WorkoutHubView: View {
   }
 
   private func savedWorkoutCard(_ plan: WorkoutPlan) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: 16) {
       HStack(alignment: .top, spacing: 12) {
-        VStack(alignment: .leading, spacing: 6) {
-          Text(plan.title.uppercased())
+        VStack(alignment: .leading, spacing: 8) {
+          Text(plan.title)
             .font(GainsFont.title(22))
             .foregroundStyle(GainsColor.ink)
+            .lineLimit(2)
 
           Text("\(plan.split) · \(plan.focus)")
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
         }
 
         Spacer()
 
-        VStack(alignment: .trailing, spacing: 6) {
+        VStack(alignment: .trailing, spacing: 8) {
           workoutSourceBadge(plan.source)
 
           Text("\(plan.exercises.count) Übungen")
             .font(GainsFont.label(10))
-            .tracking(1.8)
+            .tracking(1.4)
             .foregroundStyle(GainsColor.moss)
         }
+      }
+
+      HStack(spacing: 10) {
+        plannerMetricCard(
+          title: "Dauer", value: "\(plan.estimatedDurationMinutes) Min", subtitle: "Session")
+        plannerMetricCard(
+          title: "Übungen", value: "\(plan.exercises.count)", subtitle: "im Plan")
       }
 
       Text(exerciseSummary(for: plan))
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
-        .lineLimit(2)
+        .lineLimit(3)
 
       HStack(spacing: 10) {
-        Text("\(plan.estimatedDurationMinutes) Min")
-          .font(GainsFont.label(10))
-          .tracking(1.8)
-          .foregroundStyle(GainsColor.softInk)
-
-        Spacer()
-
         Menu {
           ForEach(store.scheduledPlannerDays) { day in
             Button("\(day.title) zuweisen") {
@@ -993,13 +1028,14 @@ struct WorkoutHubView: View {
             }
           }
         } label: {
-          Text("EINPLANEN")
+          Text("Einplanen")
             .font(GainsFont.label(10))
-            .tracking(1.6)
+            .tracking(1.3)
             .foregroundStyle(GainsColor.ink)
-            .frame(width: 108, height: 42)
+            .frame(maxWidth: .infinity)
+            .frame(height: 42)
             .background(GainsColor.lime)
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
 
         Button {
@@ -1007,16 +1043,17 @@ struct WorkoutHubView: View {
         } label: {
           Text(actionTitle(for: plan))
             .font(GainsFont.label(11))
-            .tracking(1.6)
+            .tracking(1.3)
             .foregroundStyle(
               isWorkoutButtonDisabled(for: plan) ? GainsColor.softInk : GainsColor.lime
             )
-            .frame(width: 118, height: 42)
+            .frame(maxWidth: .infinity)
+            .frame(height: 42)
             .background(
               isWorkoutButtonDisabled(for: plan)
                 ? GainsColor.background.opacity(0.7) : GainsColor.ink
             )
-            .clipShape(Capsule())
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(isWorkoutButtonDisabled(for: plan))
@@ -1120,10 +1157,15 @@ struct WorkoutHubView: View {
   }
 
   private func emptyWorkoutLibraryCard(title: String, description: String) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: 10) {
       Text(title)
         .font(GainsFont.title(20))
         .foregroundStyle(GainsColor.ink)
+
+      Text(description)
+        .font(GainsFont.body(14))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(3)
     }
     .padding(16)
     .gainsCardStyle()
