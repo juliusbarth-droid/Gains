@@ -15,6 +15,7 @@ struct HomeView: View {
   @State private var showsWeeklyInsights = false
   @State private var showsSupportTools = false
   @State private var showsWeeklyPlan = false
+  @State private var showsQuickActions = false
 
   var body: some View {
     ZStack {
@@ -24,7 +25,12 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 22) {
           topBar
           titleBlock
-          quickActionStrip
+          collapsibleSection(
+            title: "Schnell starten",
+            subtitle: "Gym, Run und Mahlzeiten direkt erreichbar, aber nicht dauerhaft so dominant",
+            isExpanded: $showsQuickActions,
+            content: { quickActionStrip }
+          )
           todaySection
           collapsibleSection(
             title: "Wochenplan und Streak",
@@ -134,23 +140,27 @@ struct HomeView: View {
         .font(GainsFont.title(24))
         .foregroundStyle(GainsColor.ink)
 
-      HStack(spacing: 10) {
-        homeLauncherCard(
-          title: "Running",
-          icon: "figure.run",
-          accent: GainsColor.moss,
-          action: startOrResumeRun,
-          footerTitle: store.activeRun != nil ? "Aktiver Lauf" : "Letzter Lauf",
-          footerText: runningFooterText
-        )
+      focusStatusRow
 
+      HStack(spacing: 10) {
         homeLauncherCard(
           title: "Krafttraining",
           icon: "dumbbell.fill",
           accent: GainsColor.ink,
           action: startOrResumeWorkout,
           footerTitle: store.activeWorkout != nil ? "Aktives Workout" : "Letztes Workout",
-          footerText: strengthFooterText
+          footerText: strengthFooterText,
+          emphasis: .primary
+        )
+
+        homeLauncherCard(
+          title: "Running",
+          icon: "figure.run",
+          accent: GainsColor.moss,
+          action: startOrResumeRun,
+          footerTitle: store.activeRun != nil ? "Aktiver Lauf" : "Letzter Lauf",
+          footerText: runningFooterText,
+          emphasis: .secondary
         )
       }
 
@@ -665,6 +675,14 @@ struct HomeView: View {
     }
   }
 
+  private var focusStatusRow: some View {
+    HStack(spacing: 10) {
+      compactMetric(title: "Heute", value: store.todayPlannedWorkout?.title ?? "Flex Day", subtitle: "aktueller Fokus")
+      compactMetric(title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)", subtitle: "Sessions")
+      compactMetric(title: "Protein", value: "\(store.nutritionProteinToday) g", subtitle: "heute")
+    }
+  }
+
   private var quickActionStrip: some View {
     HStack(spacing: 10) {
       quickActionTile(
@@ -765,6 +783,11 @@ struct HomeView: View {
     .frame(maxWidth: .infinity)
   }
 
+  private enum HomeLauncherEmphasis {
+    case primary
+    case secondary
+  }
+
   private func quickActionTile(
     title: String,
     subtitle: String,
@@ -826,6 +849,69 @@ struct HomeView: View {
     .padding(12)
     .background(GainsColor.background.opacity(0.82))
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+  }
+
+  private func homeLauncherCard(
+    title: String,
+    icon: String,
+    accent: Color,
+    action: @escaping () -> Void,
+    footerTitle: String,
+    footerText: String,
+    emphasis: HomeLauncherEmphasis = .secondary
+  ) -> some View {
+    Button(action: action) {
+      VStack(alignment: .leading, spacing: 14) {
+        HStack(alignment: .top) {
+          VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: icon)
+              .font(.system(size: 18, weight: .semibold))
+              .foregroundStyle(emphasis == .primary ? GainsColor.lime : accent)
+              .frame(width: 40, height: 40)
+              .background(
+                (emphasis == .primary ? GainsColor.background.opacity(0.18) : accent.opacity(0.14))
+              )
+              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            Text(title)
+              .font(GainsFont.title(emphasis == .primary ? 22 : 20))
+              .foregroundStyle(emphasis == .primary ? GainsColor.card : GainsColor.ink)
+          }
+
+          Spacer()
+
+          GainsDisclosureIndicator(
+            foreground: emphasis == .primary ? GainsColor.card.opacity(0.7) : GainsColor.softInk
+          )
+        }
+
+        Spacer(minLength: 0)
+
+        VStack(alignment: .leading, spacing: 6) {
+          Text(footerTitle.uppercased())
+            .font(GainsFont.label(9))
+            .tracking(1.8)
+            .foregroundStyle(emphasis == .primary ? GainsColor.card.opacity(0.72) : GainsColor.softInk)
+
+          Text(footerText)
+            .font(GainsFont.body(13))
+            .foregroundStyle(emphasis == .primary ? GainsColor.card.opacity(0.92) : GainsColor.ink)
+            .lineLimit(3)
+        }
+      }
+      .frame(maxWidth: .infinity, minHeight: emphasis == .primary ? 188 : 168, alignment: .leading)
+      .padding(18)
+      .background(emphasis == .primary ? GainsColor.ink : GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+          .stroke(
+            emphasis == .primary ? GainsColor.ink : GainsColor.border.opacity(0.75),
+            lineWidth: 1
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    }
+    .buttonStyle(.plain)
   }
 
   private func collapsibleSection<Content: View>(
