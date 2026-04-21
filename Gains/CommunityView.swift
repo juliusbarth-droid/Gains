@@ -85,8 +85,8 @@ struct CommunityView: View {
   private var visibleContent: some View {
     switch selectedSurface {
     case .feed:
-      VStack(alignment: .leading, spacing: 22) {
-        forYouIntroSection
+      VStack(alignment: .leading, spacing: 18) {
+        featuredFeedHeader
         filterSection
         feedSection(
           emptyTitle: "Noch nichts in deiner For You Page",
@@ -199,22 +199,24 @@ struct CommunityView: View {
     .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
   }
 
-  private var forYouIntroSection: some View {
+  private var featuredFeedHeader: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
-        parts: ["FOR", "YOU"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
+        parts: ["FEED", "FIRST"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
 
-      LazyVGrid(
-        columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 2), spacing: 10
-      ) {
-        communitySummaryCard(title: "Feed", value: "\(forYouPosts.count)")
-        communitySummaryCard(
-          title: "Workouts", value: "\(forYouPosts.filter { $0.type == .workout }.count)")
-        communitySummaryCard(
-          title: "Läufe", value: "\(forYouPosts.filter { $0.type == .run }.count)")
-        communitySummaryCard(
-          title: "Progress", value: "\(forYouPosts.filter { $0.type == .progress }.count)")
+      VStack(alignment: .leading, spacing: 10) {
+        Text(store.communityHighlightHeadline)
+          .font(GainsFont.title(24))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(2)
+
+        Text("Beiträge stehen hier im Mittelpunkt. Filter und Kontakte bleiben erhalten, treten aber hinter dem Feed zurück.")
+          .font(GainsFont.body(14))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(3)
       }
+      .padding(18)
+      .gainsCardStyle()
     }
   }
 

@@ -138,7 +138,7 @@ struct HomeView: View {
         homeLauncherCard(
           title: "Running",
           icon: "figure.run",
-          accent: GainsColor.lime,
+          accent: GainsColor.moss,
           action: startOrResumeRun,
           footerTitle: store.activeRun != nil ? "Aktiver Lauf" : "Letzter Lauf",
           footerText: runningFooterText

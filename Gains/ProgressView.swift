@@ -76,12 +76,12 @@ struct ProgressView: View {
     switch selectedSurface {
     case .overview:
       VStack(alignment: .leading, spacing: 22) {
+        statusFocusSection
         bodyCompositionCard
+        goalSection
         trainingStatsSection
         exerciseStrengthSection
         progressFeedbackSection
-        quickActionsSection
-        goalSection
       }
     case .health:
       VStack(alignment: .leading, spacing: 22) {
@@ -125,6 +125,28 @@ struct ProgressView: View {
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
+      }
+      .padding(18)
+      .gainsCardStyle()
+    }
+  }
+
+  private var statusFocusSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SlashLabel(
+        parts: ["JETZT", "WICHTIG"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk)
+
+      VStack(alignment: .leading, spacing: 10) {
+        Text(store.progressSummaryHeadline)
+          .font(GainsFont.title(22))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(2)
+
+        Text(store.progressSummaryDescription)
+          .font(GainsFont.body(14))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(3)
       }
       .padding(18)
       .gainsCardStyle()
