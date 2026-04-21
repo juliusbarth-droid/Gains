@@ -9,6 +9,12 @@ enum AppTab: Hashable {
   case community
 }
 
+enum AppWorkoutWorkspace: String, Hashable {
+  case kraft
+  case laufen
+  case fortschritt
+}
+
 struct EvidenceSource: Identifiable {
   let id = UUID()
   let title: String

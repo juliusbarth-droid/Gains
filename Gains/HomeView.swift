@@ -11,6 +11,9 @@ struct HomeView: View {
   @State private var isShowingProfile = false
   @State private var isShowingCoach = false
   @State private var isShowingProgress = false
+  @State private var showsTodayDetails = false
+  @State private var showsWeeklyInsights = false
+  @State private var showsSupportTools = false
 
   var body: some View {
     ZStack {
@@ -20,10 +23,21 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 22) {
           topBar
           titleBlock
+          quickActionStrip
           todaySection
-          insightsSection
           plannerSection
-          supportSection
+          collapsibleSection(
+            title: "Fortschritt im Blick",
+            subtitle: "KPIs, Check-ins und Health kompakter halten",
+            isExpanded: $showsWeeklyInsights,
+            content: { insightsSectionContent }
+          )
+          collapsibleSection(
+            title: "Coach, Community und Extras",
+            subtitle: "Wichtige Zusatzfunktionen bleiben da, aber stören den Flow nicht",
+            isExpanded: $showsSupportTools,
+            content: { supportSectionContent }
+          )
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -135,17 +149,17 @@ struct HomeView: View {
       }
 
       Button {
-        navigation.openTraining()
+        navigation.openTraining(workspace: .kraft)
       } label: {
         HStack(spacing: 10) {
-          Text("Training öffnen")
+          Text("Trainingsbereich öffnen")
             .font(GainsFont.label(11))
             .tracking(1.6)
             .foregroundStyle(GainsColor.ink)
 
           Spacer()
 
-          Image(systemName: "arrow.right")
+          Image(systemName: showsTodayDetails ? "chevron.up" : "arrow.right")
             .font(.system(size: 12, weight: .bold))
             .foregroundStyle(GainsColor.ink)
         }
@@ -158,6 +172,30 @@ struct HomeView: View {
 
       todayWorkoutCard
       workoutStatusCard
+
+      if showsTodayDetails {
+        todayDetailStack
+      }
+
+      Button {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+          showsTodayDetails.toggle()
+        }
+      } label: {
+        Text(showsTodayDetails ? "Weniger anzeigen" : "Mehr für heute anzeigen")
+          .font(GainsFont.label(11))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.softInk)
+          .frame(maxWidth: .infinity)
+          .frame(height: 40)
+          .background(GainsColor.card)
+          .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+              .stroke(GainsColor.border.opacity(0.8), lineWidth: 1)
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      }
+      .buttonStyle(.plain)
     }
   }
 
@@ -295,10 +333,8 @@ struct HomeView: View {
     .buttonStyle(.plain)
   }
 
-  private var insightsSection: some View {
+  private var insightsSectionContent: some View {
     VStack(alignment: .leading, spacing: 12) {
-      sectionLabel("FORTSCHRITT", "SCHNELLBLICK")
-
       HStack(spacing: 10) {
         Button {
           isShowingProgress = true
@@ -559,72 +595,151 @@ struct HomeView: View {
     }
   }
 
-  private var supportSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      sectionLabel("MEHR", "FÜR DICH")
+  private var supportSectionContent: some View {
+    HStack(alignment: .top, spacing: 12) {
+      Button {
+        isShowingCoach = true
+      } label: {
+        VStack(alignment: .leading, spacing: 12) {
+          Text("COACH")
+            .font(GainsFont.label(10))
+            .tracking(2.4)
+            .foregroundStyle(GainsColor.softInk)
 
-      HStack(alignment: .top, spacing: 12) {
-        Button {
-          isShowingCoach = true
-        } label: {
-          VStack(alignment: .leading, spacing: 12) {
-            Text("COACH")
-              .font(GainsFont.label(10))
-              .tracking(2.4)
-              .foregroundStyle(GainsColor.softInk)
+          Text(store.coachHeadline)
+            .font(GainsFont.title(20))
+            .foregroundStyle(GainsColor.ink)
 
-            Text(store.coachHeadline)
-              .font(GainsFont.title(20))
-              .foregroundStyle(GainsColor.ink)
+          Text(store.coachDescription)
+            .font(GainsFont.body(14))
+            .foregroundStyle(GainsColor.softInk)
 
-            Text(store.coachDescription)
-              .font(GainsFont.body(14))
-              .foregroundStyle(GainsColor.softInk)
+          Spacer(minLength: 0)
 
-            Spacer(minLength: 0)
-
-            Text("Coach öffnen")
-              .font(GainsFont.label(11))
-              .tracking(1.4)
-              .foregroundStyle(GainsColor.lime)
-          }
-          .frame(maxWidth: .infinity, minHeight: 190, alignment: .leading)
-          .padding(18)
-          .gainsCardStyle()
+          Text("Coach öffnen")
+            .font(GainsFont.label(11))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.lime)
         }
-        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity, minHeight: 190, alignment: .leading)
+        .padding(18)
+        .gainsCardStyle()
+      }
+      .buttonStyle(.plain)
+
+      Button {
+        store.shareProgressUpdate()
+      } label: {
+        VStack(alignment: .leading, spacing: 12) {
+          Text("COMMUNITY")
+            .font(GainsFont.label(10))
+            .tracking(2.4)
+            .foregroundStyle(GainsColor.onLimeSecondary)
+
+          Text(store.communityHighlightHeadline)
+            .font(GainsFont.title(20))
+            .foregroundStyle(GainsColor.onLime)
+
+          Text(store.communityHighlightDescription)
+            .font(GainsFont.body(14))
+            .foregroundStyle(GainsColor.onLimeSecondary)
+
+          Spacer(minLength: 0)
+
+          Text("Update teilen")
+            .font(GainsFont.label(11))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.onLime)
+        }
+        .frame(maxWidth: .infinity, minHeight: 190, alignment: .leading)
+        .padding(18)
+        .gainsCardStyle(GainsColor.lime.opacity(0.85))
+      }
+      .buttonStyle(.plain)
+    }
+  }
+
+  private var quickActionStrip: some View {
+    HStack(spacing: 10) {
+      quickActionTile(
+        title: store.activeWorkout == nil ? "Gym" : "Workout live",
+        subtitle: store.activeWorkout == nil ? "Schnell starten" : "Direkt fortsetzen",
+        icon: "dumbbell.fill",
+        background: GainsColor.lime.opacity(0.78),
+        foreground: GainsColor.moss
+      ) {
+        navigation.openTraining(workspace: .kraft)
+        startOrResumeWorkout()
+      }
+
+      quickActionTile(
+        title: store.activeRun == nil ? "Run" : "Run live",
+        subtitle: store.activeRun == nil ? "Cardio starten" : "Tracker öffnen",
+        icon: "figure.run",
+        background: GainsColor.card,
+        foreground: GainsColor.ink
+      ) {
+        navigation.openTraining(workspace: .laufen)
+        startOrResumeRun()
+      }
+
+      quickActionTile(
+        title: "Mahlzeit",
+        subtitle: "Tracken",
+        icon: "fork.knife",
+        background: GainsColor.card,
+        foreground: GainsColor.ink
+      ) {
+        navigation.selectedTab = .recipes
+      }
+    }
+  }
+
+  private var todayDetailStack: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      if !store.nutritionEntries(for: .breakfast).isEmpty
+        || !store.nutritionEntries(for: .lunchDinner).isEmpty
+        || !store.nutritionEntries(for: .snack).isEmpty
+        || !store.nutritionEntries(for: .shake).isEmpty
+      {
+        nutritionTodayCard
+      }
+
+      progressSnapshotCard
+    }
+  }
+
+  private var nutritionTodayCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        Text("ERNÄHRUNG HEUTE")
+          .font(GainsFont.label(10))
+          .tracking(2)
+          .foregroundStyle(GainsColor.softInk)
+
+        Spacer()
 
         Button {
-          store.shareProgressUpdate()
+          navigation.selectedTab = .recipes
         } label: {
-          VStack(alignment: .leading, spacing: 12) {
-            Text("COMMUNITY")
-              .font(GainsFont.label(10))
-              .tracking(2.4)
-              .foregroundStyle(GainsColor.onLimeSecondary)
-
-            Text(store.communityHighlightHeadline)
-              .font(GainsFont.title(20))
-              .foregroundStyle(GainsColor.onLime)
-
-            Text(store.communityHighlightDescription)
-              .font(GainsFont.body(14))
-              .foregroundStyle(GainsColor.onLimeSecondary)
-
-            Spacer(minLength: 0)
-
-            Text("Update teilen")
-              .font(GainsFont.label(11))
-              .tracking(1.4)
-              .foregroundStyle(GainsColor.onLime)
-          }
-          .frame(maxWidth: .infinity, minHeight: 190, alignment: .leading)
-          .padding(18)
-          .gainsCardStyle(GainsColor.lime.opacity(0.85))
+          Text("Öffnen")
+            .font(GainsFont.label(10))
+            .foregroundStyle(GainsColor.moss)
         }
         .buttonStyle(.plain)
       }
+
+      HStack(spacing: 10) {
+        compactMetric(title: "Kalorien", value: "\(store.nutritionCaloriesToday)", subtitle: "heute")
+        compactMetric(title: "Protein", value: "\(store.nutritionProteinToday) g", subtitle: "erfasst")
+        compactMetric(
+          title: "Offen", value: "\(max(store.nutritionTargetProtein - store.nutritionProteinToday, 0)) g",
+          subtitle: "bis Ziel"
+        )
+      }
     }
+    .padding(18)
+    .gainsCardStyle()
   }
 
   private func quickCheckInButton(title: String, icon: String) -> some View {
@@ -642,6 +757,113 @@ struct HomeView: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity)
+  }
+
+  private func quickActionTile(
+    title: String,
+    subtitle: String,
+    icon: String,
+    background: Color,
+    foreground: Color,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      VStack(alignment: .leading, spacing: 10) {
+        Image(systemName: icon)
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(foreground)
+          .frame(width: 38, height: 38)
+          .background(GainsColor.background.opacity(0.6))
+          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+        Text(title)
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(2)
+
+        Text(subtitle)
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(2)
+      }
+      .frame(maxWidth: .infinity, minHeight: 124, alignment: .leading)
+      .padding(14)
+      .background(background)
+      .overlay(
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+          .stroke(GainsColor.border.opacity(0.7), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func compactMetric(title: String, value: String, subtitle: String) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.softInk)
+
+      Text(value)
+        .font(GainsFont.title(18))
+        .foregroundStyle(GainsColor.ink)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+
+      Text(subtitle)
+        .font(GainsFont.body(12))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(1)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(GainsColor.background.opacity(0.82))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+  }
+
+  private func collapsibleSection<Content: View>(
+    title: String,
+    subtitle: String,
+    isExpanded: Binding<Bool>,
+    @ViewBuilder content: @escaping () -> Content
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Button {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+          isExpanded.wrappedValue.toggle()
+        }
+      } label: {
+        HStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+              .font(GainsFont.title(20))
+              .foregroundStyle(GainsColor.ink)
+
+            Text(subtitle)
+              .font(GainsFont.body(13))
+              .foregroundStyle(GainsColor.softInk)
+              .lineLimit(2)
+          }
+
+          Spacer()
+
+          Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.ink)
+            .frame(width: 34, height: 34)
+            .background(GainsColor.card)
+            .clipShape(Circle())
+        }
+        .padding(18)
+        .gainsCardStyle()
+      }
+      .buttonStyle(.plain)
+
+      if isExpanded.wrappedValue {
+        content()
+      }
+    }
   }
 
   private var weekStrip: some View {

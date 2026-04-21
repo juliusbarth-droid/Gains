@@ -24,6 +24,7 @@
 		AA000000000000000000000F /* WorkoutHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001F /* WorkoutHubView.swift */; };
 		BB0000000000000000000001 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002 /* ProfileView.swift */; };
 		CC0000000000000000000001 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000002 /* HealthKitManager.swift */; };
+		DD0000000000000000000001 /* AppNavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000000000000000000002 /* AppNavigationStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -46,6 +47,7 @@
 		BB0000000000000000000002 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		CC0000000000000000000002 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		CC0000000000000000000003 /* Gains.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gains.entitlements; sourceTree = "<group>"; };
+		DD0000000000000000000002 /* AppNavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,6 +73,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000011 /* GainsApp.swift */,
+				DD0000000000000000000002 /* AppNavigationStore.swift */,
 				AA0000000000000000000012 /* ContentView.swift */,
 				AA0000000000000000000013 /* DesignSystem.swift */,
 				AA0000000000000000000014 /* Models.swift */,
@@ -185,6 +188,7 @@
 				AA000000000000000000000F /* WorkoutHubView.swift in Sources */,
 				BB0000000000000000000001 /* ProfileView.swift in Sources */,
 				CC0000000000000000000001 /* HealthKitManager.swift in Sources */,
+				DD0000000000000000000001 /* AppNavigationStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

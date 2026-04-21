@@ -5,6 +5,28 @@ private enum WorkoutWorkspace: String, CaseIterable, Identifiable {
   case laufen
   case fortschritt
 
+  init(appWorkspace: AppWorkoutWorkspace) {
+    switch appWorkspace {
+    case .kraft:
+      self = .kraft
+    case .laufen:
+      self = .laufen
+    case .fortschritt:
+      self = .fortschritt
+    }
+  }
+
+  var appWorkspace: AppWorkoutWorkspace {
+    switch self {
+    case .kraft:
+      return .kraft
+    case .laufen:
+      return .laufen
+    case .fortschritt:
+      return .fortschritt
+    }
+  }
+
   var id: Self { self }
 
   var title: String {
@@ -74,6 +96,7 @@ private enum HistoryEntry: Identifiable {
 
 struct WorkoutHubView: View {
   @EnvironmentObject private var store: GainsStore
+  @EnvironmentObject private var navigation: AppNavigationStore
   let viewModel: WorkoutHubViewModel
   @State private var isShowingWorkoutTracker = false
   @State private var isShowingRunTracker = false
@@ -84,6 +107,7 @@ struct WorkoutHubView: View {
   var body: some View {
     GainsScreen {
       VStack(alignment: .leading, spacing: 22) {
+        quickStartSection
         screenHeader(
           eyebrow: "WORKOUT / TRAINING",
           title: "Dein Workout-Bereich",
@@ -94,6 +118,12 @@ struct WorkoutHubView: View {
         workspaceHero
         workspaceContent
       }
+    }
+    .onAppear {
+      selectedWorkspace = WorkoutWorkspace(appWorkspace: navigation.preferredWorkoutWorkspace)
+    }
+    .onChange(of: navigation.preferredWorkoutWorkspace) { _, workspace in
+      selectedWorkspace = WorkoutWorkspace(appWorkspace: workspace)
     }
     .sheet(isPresented: $isShowingWorkoutTracker) {
       WorkoutTrackerView()
@@ -120,6 +150,7 @@ struct WorkoutHubView: View {
           ForEach(WorkoutWorkspace.allCases) { workspace in
             Button {
               selectedWorkspace = workspace
+              navigation.preferredWorkoutWorkspace = workspace.appWorkspace
             } label: {
               workspaceCard(for: workspace)
             }
@@ -127,6 +158,45 @@ struct WorkoutHubView: View {
           }
         }
         .padding(.vertical, 2)
+      }
+    }
+  }
+
+  private var quickStartSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      screenHeader(
+        eyebrow: "WORKOUT / TRAINING",
+        title: "Heute wirklich nutzbar",
+        subtitle:
+          "Starte dein Gym-Workout, springe in Cardio oder öffne deinen Verlauf, ohne dich erst durch alle Bereiche zu kämpfen."
+      )
+
+      HStack(spacing: 10) {
+        quickStartCard(
+          title: store.activeWorkout == nil ? "Gym starten" : "Workout fortsetzen",
+          subtitle: store.activeWorkout == nil
+            ? (store.todayPlannedWorkout?.title ?? store.currentWorkoutPreview.title)
+            : "Aktive Session öffnen",
+          systemImage: "dumbbell.fill",
+          accent: GainsColor.lime,
+          action: {
+            navigation.preferredWorkoutWorkspace = .kraft
+            selectedWorkspace = .kraft
+            startOrResumeTodayWorkout()
+          }
+        )
+
+        quickStartCard(
+          title: store.activeRun == nil ? "Run starten" : "Run fortsetzen",
+          subtitle: store.activeRun == nil ? "Kardiotraining direkt öffnen" : "Live-Run öffnen",
+          systemImage: "figure.run",
+          accent: GainsColor.card,
+          action: {
+            navigation.preferredWorkoutWorkspace = .laufen
+            selectedWorkspace = .laufen
+            startOrResumeRun()
+          }
+        )
       }
     }
   }
@@ -1559,6 +1629,46 @@ struct WorkoutHubView: View {
     .padding(14)
     .background(backgroundColor)
     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+  }
+
+  private func quickStartCard(
+    title: String,
+    subtitle: String,
+    systemImage: String,
+    accent: Color,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      VStack(alignment: .leading, spacing: 12) {
+        Image(systemName: systemImage)
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(accent == GainsColor.lime ? GainsColor.moss : GainsColor.ink)
+          .frame(width: 42, height: 42)
+          .background(accent.opacity(accent == GainsColor.lime ? 0.24 : 0.88))
+          .clipShape(Circle())
+
+        Text(title)
+          .font(GainsFont.title(19))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(2)
+
+        Text(subtitle)
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(2)
+
+        Spacer(minLength: 0)
+
+        Text("Direkt öffnen")
+          .font(GainsFont.label(10))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.moss)
+      }
+      .frame(maxWidth: .infinity, minHeight: 156, alignment: .leading)
+      .padding(16)
+      .gainsCardStyle()
+    }
+    .buttonStyle(.plain)
   }
 
   private func runPaceLabel(_ seconds: Int) -> String {
