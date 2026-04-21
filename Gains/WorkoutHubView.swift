@@ -103,6 +103,8 @@ struct WorkoutHubView: View {
   @State private var isShowingWorkoutBuilder = false
   @State private var selectedWorkspace: WorkoutWorkspace = .kraft
   @State private var selectedHistorySurface: HistorySurface = .all
+  @State private var showsTrainingLibrary = false
+  @State private var showsWeeklyPlan = true
 
   var body: some View {
     GainsScreen {
@@ -230,11 +232,18 @@ struct WorkoutHubView: View {
 
   private var kraftWorkspace: some View {
     VStack(alignment: .leading, spacing: 22) {
+      trainingFocusHeader
       plannerStatusCard
-      plannerSection
-      assignedWorkoutsSection
       overviewSection
       todaySection
+      plannerSection
+      assignedWorkoutsSection
+      collapsibleTrainingSection(
+        title: "Wochenplan",
+        subtitle: "Split und Trainingstage im Zusammenhang sehen",
+        isExpanded: $showsWeeklyPlan,
+        content: { weeklyPlanSection }
+      )
       evidenceSection
 
       if let activeWorkout = store.activeWorkout {
@@ -243,9 +252,17 @@ struct WorkoutHubView: View {
 
       exercisePreviewSection
       quickJumpSection
-      ownWorkoutsSection
-      templateWorkoutsSection
-      weeklyPlanSection
+      collapsibleTrainingSection(
+        title: "Workout-Bibliothek",
+        subtitle: "Eigene und vorgefertigte Workouts gesammelt statt alles sofort offen",
+        isExpanded: $showsTrainingLibrary,
+        content: {
+          VStack(alignment: .leading, spacing: 22) {
+            ownWorkoutsSection
+            templateWorkoutsSection
+          }
+        }
+      )
     }
   }
 
@@ -359,6 +376,27 @@ struct WorkoutHubView: View {
     }
   }
 
+  private var trainingFocusHeader: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SlashLabel(
+        parts: ["HEUTE", "TRAINING"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk)
+
+      VStack(alignment: .leading, spacing: 10) {
+        Text(store.plannerSummaryHeadline)
+          .font(GainsFont.title(24))
+          .foregroundStyle(GainsColor.ink)
+
+        Text("Plan, heutiges Workout und Bibliothek greifen hier jetzt klarer ineinander.")
+          .font(GainsFont.body(14))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(3)
+      }
+      .padding(18)
+      .gainsCardStyle()
+    }
+  }
+
   private var historyWorkspace: some View {
     VStack(alignment: .leading, spacing: 22) {
       historyOverviewSection
@@ -371,12 +409,12 @@ struct WorkoutHubView: View {
       plannerMetricCard(
         title: "Heute", value: store.todayPlannedWorkout?.split ?? "Frei", subtitle: "Tagesfokus")
       plannerMetricCard(
-        title: "Pläne", value: "\(store.savedWorkoutPlans.count)", subtitle: "gespeichert")
+        title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)", subtitle: "Sessions")
       Button {
         selectedWorkspace = .fortschritt
       } label: {
         plannerMetricCard(
-          title: "Verlauf", value: "\(store.workoutHistory.count)", subtitle: "Sessions")
+          title: "Erreicht", value: "+\(store.personalRecordCount)", subtitle: "PRs")
       }
       .buttonStyle(.plain)
     }
@@ -1157,6 +1195,50 @@ struct WorkoutHubView: View {
             selectedWorkspace = .fortschritt
           }
         }
+      }
+    }
+  }
+
+  private func collapsibleTrainingSection<Content: View>(
+    title: String,
+    subtitle: String,
+    isExpanded: Binding<Bool>,
+    @ViewBuilder content: @escaping () -> Content
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Button {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+          isExpanded.wrappedValue.toggle()
+        }
+      } label: {
+        HStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+              .font(GainsFont.title(20))
+              .foregroundStyle(GainsColor.ink)
+
+            Text(subtitle)
+              .font(GainsFont.body(13))
+              .foregroundStyle(GainsColor.softInk)
+              .lineLimit(2)
+          }
+
+          Spacer()
+
+          Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.ink)
+            .frame(width: 34, height: 34)
+            .background(GainsColor.card)
+            .clipShape(Circle())
+        }
+        .padding(18)
+        .gainsCardStyle()
+      }
+      .buttonStyle(.plain)
+
+      if isExpanded.wrappedValue {
+        content()
       }
     }
   }

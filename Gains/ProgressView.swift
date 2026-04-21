@@ -76,6 +76,7 @@ struct ProgressView: View {
     switch selectedSurface {
     case .overview:
       VStack(alignment: .leading, spacing: 22) {
+        achievementHeroSection
         statusFocusSection
         bodyCompositionCard
         goalSection
@@ -112,6 +113,11 @@ struct ProgressView: View {
           .foregroundStyle(GainsColor.ink)
           .lineLimit(2)
 
+        Text(store.progressSummaryDescription)
+          .font(GainsFont.body(14))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(3)
+
         Button {
           store.shareProgressUpdate()
         } label: {
@@ -128,6 +134,34 @@ struct ProgressView: View {
       }
       .padding(18)
       .gainsCardStyle()
+    }
+  }
+
+  private var achievementHeroSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SlashLabel(
+        parts: ["ERREICHT", "DIESE WOCHE"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk)
+
+      VStack(alignment: .leading, spacing: 14) {
+        Text("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Sessions erledigt")
+          .font(GainsFont.title(24))
+          .foregroundStyle(GainsColor.card)
+
+        Text("\(store.personalRecordCount) neue Rekorde, \(store.streakDays) Tage Streak und \(store.goalCompletionCount) Ziele aktuell on track.")
+          .font(GainsFont.body(14))
+          .foregroundStyle(GainsColor.card.opacity(0.82))
+          .lineLimit(3)
+
+        HStack(spacing: 10) {
+          achievementPill(title: "Rekorde", value: "+ \(store.personalRecordCount)")
+          achievementPill(title: "Streak", value: "\(store.streakDays) Tage")
+          achievementPill(title: "Check-ins", value: "\(store.goalCompletionCount)")
+        }
+      }
+      .padding(20)
+      .background(GainsColor.ink)
+      .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
   }
 
@@ -207,7 +241,7 @@ struct ProgressView: View {
     HStack(spacing: 10) {
       progressMiniCard(title: "Gewicht", value: String(format: "%.1f kg", store.currentWeight))
       progressMiniCard(title: "Ziele", value: "\(store.goalCompletionCount)/\(store.currentGoals.count)")
-      progressMiniCard(title: "Tracker", value: "\(store.connectedTrackerCount)")
+      progressMiniCard(title: "Streak", value: "\(store.streakDays) Tage")
     }
   }
 
@@ -746,6 +780,25 @@ struct ProgressView: View {
     return String(format: "%d:%02d /km", minutes, remainingSeconds)
   }
 }
+
+  private func achievementPill(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.card.opacity(0.68))
+
+      Text(value)
+        .font(GainsFont.title(16))
+        .foregroundStyle(GainsColor.card)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(Color.white.opacity(0.08))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+  }
 
   private func collapsibleProgressSection<Content: View>(
     title: String,
