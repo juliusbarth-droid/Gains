@@ -689,7 +689,7 @@ struct HomeView: View {
         title: store.activeWorkout == nil ? "Gym" : "Workout live",
         subtitle: store.activeWorkout == nil ? "Schnell starten" : "Direkt fortsetzen",
         icon: "dumbbell.fill",
-        background: GainsColor.lime.opacity(0.78),
+        background: GainsColor.lime.opacity(0.88),
         foreground: GainsColor.moss
       ) {
         navigation.openTraining(workspace: .kraft)
@@ -700,8 +700,8 @@ struct HomeView: View {
         title: store.activeRun == nil ? "Run" : "Run live",
         subtitle: store.activeRun == nil ? "Cardio starten" : "Tracker öffnen",
         icon: "figure.run",
-        background: GainsColor.card,
-        foreground: GainsColor.ink
+        background: GainsColor.lime.opacity(0.22),
+        foreground: GainsColor.moss
       ) {
         navigation.openTraining(workspace: .laufen)
         startOrResumeRun()
@@ -712,7 +712,7 @@ struct HomeView: View {
         subtitle: "Tracken",
         icon: "fork.knife",
         background: GainsColor.card,
-        foreground: GainsColor.ink
+        foreground: GainsColor.moss
       ) {
         navigation.selectedTab = .recipes
       }

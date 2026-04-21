@@ -146,11 +146,11 @@ struct ProgressView: View {
       VStack(alignment: .leading, spacing: 14) {
         Text("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Sessions erledigt")
           .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.card)
+          .foregroundStyle(GainsColor.ink)
 
         Text("\(store.personalRecordCount) neue Rekorde, \(store.streakDays) Tage Streak und \(store.goalCompletionCount) Ziele aktuell on track.")
           .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.card.opacity(0.82))
+          .foregroundStyle(GainsColor.onLimeSecondary)
           .lineLimit(3)
 
         HStack(spacing: 10) {
@@ -160,7 +160,7 @@ struct ProgressView: View {
         }
       }
       .padding(20)
-      .background(GainsColor.ink)
+      .background(GainsColor.lime.opacity(0.82))
       .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
   }
@@ -786,17 +786,17 @@ struct ProgressView: View {
       Text(title.uppercased())
         .font(GainsFont.label(9))
         .tracking(1.8)
-        .foregroundStyle(GainsColor.card.opacity(0.68))
+        .foregroundStyle(GainsColor.ink.opacity(0.58))
 
       Text(value)
         .font(GainsFont.title(16))
-        .foregroundStyle(GainsColor.card)
+        .foregroundStyle(GainsColor.ink)
         .lineLimit(1)
         .minimumScaleFactor(0.8)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(12)
-    .background(Color.white.opacity(0.08))
+    .background(GainsColor.card.opacity(0.62))
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 

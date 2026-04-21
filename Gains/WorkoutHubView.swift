@@ -224,7 +224,7 @@ struct WorkoutHubView: View {
         .lineLimit(2)
     }
     .padding(18)
-    .gainsCardStyle()
+    .gainsCardStyle(GainsColor.lime.opacity(0.14))
   }
 
   @ViewBuilder
@@ -807,7 +807,7 @@ struct WorkoutHubView: View {
           .lineLimit(3)
       }
       .padding(18)
-      .gainsCardStyle(GainsColor.lime.opacity(0.2))
+      .gainsCardStyle(GainsColor.lime.opacity(0.28))
     }
   }
 
@@ -1014,6 +1014,9 @@ struct WorkoutHubView: View {
         plannerMetricCard(
           title: "Übungen", value: "\(plan.exercises.count)", subtitle: "im Plan")
       }
+      .padding(12)
+      .background(GainsColor.lime.opacity(0.12))
+      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
 
       Text(exerciseSummary(for: plan))
         .font(GainsFont.body(13))
