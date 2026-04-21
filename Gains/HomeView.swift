@@ -881,7 +881,7 @@ struct HomeView: View {
           Spacer()
 
           GainsDisclosureIndicator(
-            foreground: emphasis == .primary ? GainsColor.card.opacity(0.7) : GainsColor.softInk
+            accent: emphasis == .primary ? GainsColor.card.opacity(0.7) : GainsColor.softInk
           )
         }
 
