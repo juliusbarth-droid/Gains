@@ -20,6 +20,7 @@ struct ProgressView: View {
   @EnvironmentObject private var store: GainsStore
   let viewModel: ProgressViewModel
   @State private var selectedSurface: ProgressSurface = .overview
+  @State private var showsQuickCheckIns = false
 
   private let quickActionColumns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 2)
   private let vitalColumns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 2)
@@ -35,6 +36,13 @@ struct ProgressView: View {
         )
 
         progressSummaryCard
+        quickStatusRow
+        collapsibleProgressSection(
+          title: "Schnelle Check-ins",
+          subtitle: "Wiegen, Taille, Protein und Vitals nur bei Bedarf einblenden",
+          isExpanded: $showsQuickCheckIns,
+          content: { quickActionsSection }
+        )
         surfacePicker
         visibleContent
       }
@@ -170,6 +178,14 @@ struct ProgressView: View {
         quickActionButton(title: "Protein", action: store.logProteinCheckIn)
         quickActionButton(title: "Vitals", action: store.syncVitalData)
       }
+    }
+  }
+
+  private var quickStatusRow: some View {
+    HStack(spacing: 10) {
+      progressMiniCard(title: "Gewicht", value: String(format: "%.1f kg", store.currentWeight))
+      progressMiniCard(title: "Ziele", value: "\(store.goalCompletionCount)/\(store.currentGoals.count)")
+      progressMiniCard(title: "Tracker", value: "\(store.connectedTrackerCount)")
     }
   }
 
@@ -708,6 +724,68 @@ struct ProgressView: View {
     return String(format: "%d:%02d /km", minutes, remainingSeconds)
   }
 }
+
+  private func collapsibleProgressSection<Content: View>(
+    title: String,
+    subtitle: String,
+    isExpanded: Binding<Bool>,
+    @ViewBuilder content: @escaping () -> Content
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Button {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+          isExpanded.wrappedValue.toggle()
+        }
+      } label: {
+        HStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+              .font(GainsFont.title(20))
+              .foregroundStyle(GainsColor.ink)
+
+            Text(subtitle)
+              .font(GainsFont.body(13))
+              .foregroundStyle(GainsColor.softInk)
+              .lineLimit(2)
+          }
+
+          Spacer()
+
+          Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.ink)
+            .frame(width: 34, height: 34)
+            .background(GainsColor.card)
+            .clipShape(Circle())
+        }
+        .padding(18)
+        .gainsCardStyle()
+      }
+      .buttonStyle(.plain)
+
+      if isExpanded.wrappedValue {
+        content()
+      }
+    }
+  }
+
+  private func progressMiniCard(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.softInk)
+
+      Text(value)
+        .font(GainsFont.title(18))
+        .foregroundStyle(GainsColor.ink)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(14)
+    .gainsCardStyle()
+  }
 
 private struct ProgressHighlightCard: View {
   let title: String

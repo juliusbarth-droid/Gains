@@ -14,6 +14,7 @@ struct HomeView: View {
   @State private var showsTodayDetails = false
   @State private var showsWeeklyInsights = false
   @State private var showsSupportTools = false
+  @State private var showsWeeklyPlan = false
 
   var body: some View {
     ZStack {
@@ -25,7 +26,12 @@ struct HomeView: View {
           titleBlock
           quickActionStrip
           todaySection
-          plannerSection
+          collapsibleSection(
+            title: "Wochenplan und Streak",
+            subtitle: "Kalender, Routine und Wochenstruktur nur dann aufklappen, wenn du sie brauchst",
+            isExpanded: $showsWeeklyPlan,
+            content: { plannerSectionContent }
+          )
           collapsibleSection(
             title: "Fortschritt im Blick",
             subtitle: "KPIs, Check-ins und Health kompakter halten",
@@ -584,7 +590,7 @@ struct HomeView: View {
     }
   }
 
-  private var plannerSection: some View {
+  private var plannerSectionContent: some View {
     VStack(alignment: .leading, spacing: 12) {
       sectionLabel("WOCHE", "PLANEN")
 

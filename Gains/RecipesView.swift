@@ -16,6 +16,8 @@ struct RecipesView: View {
   @State private var showsDiscoveryTools = false
   @State private var showsManualEntrySheet = false
   @State private var pendingMealType: RecipeMealType = .breakfast
+  @State private var showsMealLog = true
+  @State private var showsRecipeDiscovery = false
 
   var body: some View {
     NavigationStack {
@@ -24,40 +26,54 @@ struct RecipesView: View {
           screenHeader(
             eyebrow: "ERNÄHRUNG / TRACKER",
             title: "Essen tracken",
-            subtitle: "Dein Tagesziel zuerst, Rezepte und Suche direkt darunter."
+            subtitle: "Dein Tagesziel zuerst, Rezepte und Suche nur dann, wenn du sie wirklich brauchst."
           )
 
           nutritionGoalSection
           nutritionOverviewSection
-          mealTrackerSection
-          nutritionActionsSection
-          discoveryEntryCard
-
-          if showsDiscoveryTools || activeFilterCount > 0
-            || !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          {
-            recipesListIntro
-            featuredRecipesSection
-            goalFocusSection
-            searchSection
-            summarySection
-            activeFiltersSection
-            categorySection
-
-            if (showsDiscoveryTools && showsIngredientFilter)
-              || !ingredientText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            {
-              ingredientSection
-            }
-
-            if filteredRecipes.isEmpty {
-              emptyState
-            } else {
-              ForEach(filteredRecipes) { recipe in
-                recipeTrackingCard(recipe)
+          collapsibleNutritionSection(
+            title: "Heutige Mahlzeiten",
+            subtitle: "Dein Log für Frühstück, Lunch, Snack und Shake",
+            isExpanded: $showsMealLog,
+            content: {
+              VStack(alignment: .leading, spacing: 22) {
+                mealTrackerSection
+                nutritionActionsSection
               }
             }
-          }
+          )
+
+          collapsibleNutritionSection(
+            title: "Rezepte und Discovery",
+            subtitle: "Suche, Filter und Inspiration in einem ruhigeren Bereich",
+            isExpanded: $showsRecipeDiscovery,
+            content: {
+              VStack(alignment: .leading, spacing: 22) {
+                discoveryEntryCard
+                recipesListIntro
+                featuredRecipesSection
+                goalFocusSection
+                searchSection
+                summarySection
+                activeFiltersSection
+                categorySection
+
+                if (showsDiscoveryTools && showsIngredientFilter)
+                  || !ingredientText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                {
+                  ingredientSection
+                }
+
+                if filteredRecipes.isEmpty {
+                  emptyState
+                } else {
+                  ForEach(filteredRecipes) { recipe in
+                    recipeTrackingCard(recipe)
+                  }
+                }
+              }
+            }
+          )
         }
       }
       .navigationBarTitleDisplayMode(.inline)
@@ -85,6 +101,50 @@ struct RecipesView: View {
 
   private var featuredRecipes: [Recipe] {
     Array(filteredRecipes.prefix(3))
+  }
+
+  private func collapsibleNutritionSection<Content: View>(
+    title: String,
+    subtitle: String,
+    isExpanded: Binding<Bool>,
+    @ViewBuilder content: @escaping () -> Content
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Button {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
+          isExpanded.wrappedValue.toggle()
+        }
+      } label: {
+        HStack(alignment: .center, spacing: 12) {
+          VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+              .font(GainsFont.title(20))
+              .foregroundStyle(GainsColor.ink)
+
+            Text(subtitle)
+              .font(GainsFont.body(13))
+              .foregroundStyle(GainsColor.softInk)
+              .lineLimit(2)
+          }
+
+          Spacer()
+
+          Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.ink)
+            .frame(width: 34, height: 34)
+            .background(GainsColor.card)
+            .clipShape(Circle())
+        }
+        .padding(18)
+        .gainsCardStyle()
+      }
+      .buttonStyle(.plain)
+
+      if isExpanded.wrappedValue {
+        content()
+      }
+    }
   }
 
   private var filteredRecipes: [Recipe] {
