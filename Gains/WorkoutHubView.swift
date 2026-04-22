@@ -104,7 +104,8 @@ struct WorkoutHubView: View {
   @State private var selectedWorkspace: WorkoutWorkspace = .kraft
   @State private var selectedHistorySurface: HistorySurface = .all
   @State private var showsTrainingLibrary = false
-  @State private var showsWeeklyPlan = true
+  @State private var showsWeeklyPlan = false
+  @State private var showsPlannerSetup = false
 
   var body: some View {
     GainsScreen {
@@ -245,8 +246,13 @@ struct WorkoutHubView: View {
       plannerStatusCard
       overviewSection
       todaySection
-      plannerSection
       assignedWorkoutsSection
+      collapsibleTrainingSection(
+        title: "Planer einrichten",
+        subtitle: "Frequenz, Ziel, Fokus und freie Tage nur dann bearbeiten, wenn du sie ändern willst",
+        isExpanded: $showsPlannerSetup,
+        content: { plannerSection }
+      )
       collapsibleTrainingSection(
         title: "Wochenplan",
         subtitle: "Split und Trainingstage im Zusammenhang sehen",
@@ -814,7 +820,7 @@ struct WorkoutHubView: View {
   private var assignedWorkoutsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
-        parts: ["WORKOUTS", "ZUWEISEN"], primaryColor: GainsColor.lime,
+        parts: ["HEUTE &", "ZUWEISEN"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
       if store.scheduledPlannerDays.isEmpty {
@@ -1071,13 +1077,27 @@ struct WorkoutHubView: View {
     let effectiveWorkout =
       assignedWorkout
       ?? store.weeklyWorkoutSchedule.first(where: { $0.weekday == day })?.workoutPlan
+    let isToday = day == .today
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: 14) {
       HStack(alignment: .top, spacing: 12) {
         VStack(alignment: .leading, spacing: 6) {
-          Text(day.title)
-            .font(GainsFont.title(20))
-            .foregroundStyle(GainsColor.ink)
+          HStack(spacing: 8) {
+            Text(day.title)
+              .font(GainsFont.title(20))
+              .foregroundStyle(GainsColor.ink)
+
+            if isToday {
+              Text("HEUTE")
+                .font(GainsFont.label(9))
+                .tracking(1.8)
+                .foregroundStyle(GainsColor.ink)
+                .padding(.horizontal, 8)
+                .frame(height: 22)
+                .background(GainsColor.lime)
+                .clipShape(Capsule())
+            }
+          }
 
           Text(
             assignedWorkout == nil ? "Automatisch aus deinem Split" : "Fix für diesen Tag gesetzt"
@@ -1095,7 +1115,7 @@ struct WorkoutHubView: View {
       }
 
       if let effectiveWorkout {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
           Text(effectiveWorkout.title)
             .font(GainsFont.title(18))
             .foregroundStyle(GainsColor.ink)
@@ -1105,7 +1125,11 @@ struct WorkoutHubView: View {
           )
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
+          .lineLimit(3)
         }
+        .padding(14)
+        .background(isToday ? GainsColor.lime.opacity(0.16) : GainsColor.background.opacity(0.72))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
       } else {
         Text("Für diesen Tag ist noch kein konkretes Workout hinterlegt.")
           .font(GainsFont.body(13))
@@ -1128,9 +1152,9 @@ struct WorkoutHubView: View {
             }
           }
         } label: {
-          Text("Workout wählen")
+          Text(effectiveWorkout == nil ? "Workout zuweisen" : "Workout ändern")
             .font(GainsFont.label(11))
-            .tracking(1.4)
+            .tracking(1.3)
             .foregroundStyle(GainsColor.ink)
             .frame(maxWidth: .infinity)
             .frame(height: 42)
@@ -1138,13 +1162,13 @@ struct WorkoutHubView: View {
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
 
-        if day == .today, let effectiveWorkout {
+        if isToday, let effectiveWorkout {
           Button {
             openWorkout(effectiveWorkout)
           } label: {
-            Text("Heute starten")
+            Text(store.activeWorkout == nil ? "Jetzt starten" : "Workout öffnen")
               .font(GainsFont.label(11))
-              .tracking(1.4)
+              .tracking(1.3)
               .foregroundStyle(GainsColor.lime)
               .frame(maxWidth: .infinity)
               .frame(height: 42)
@@ -1156,7 +1180,7 @@ struct WorkoutHubView: View {
       }
     }
     .padding(16)
-    .gainsCardStyle()
+    .gainsCardStyle(isToday ? GainsColor.lime.opacity(0.08) : GainsColor.card)
   }
 
   private func emptyWorkoutLibraryCard(title: String, description: String) -> some View {
@@ -1654,7 +1678,15 @@ struct WorkoutHubView: View {
   private func startOrResumeTodayWorkout() {
     if let todayPlan = store.todayPlannedWorkout {
       openWorkout(todayPlan)
+      return
     }
+
+    if let fallbackPlan = store.savedWorkoutPlans.first ?? store.templateWorkoutPlans.first {
+      openWorkout(fallbackPlan)
+      return
+    }
+
+    isShowingWorkoutBuilder = true
   }
 
   private func openWorkout(_ plan: WorkoutPlan) {
