@@ -7,6 +7,69 @@ enum AppTab: Hashable {
   case recipes
   case progress
   case community
+
+  var title: String {
+    switch self {
+    case .home:
+      return "Today"
+    case .workout:
+      return "Train"
+    case .recipes:
+      return "Fuel"
+    case .progress:
+      return "Body"
+    case .community:
+      return "Crew"
+    }
+  }
+}
+
+enum CaptureKind: String, CaseIterable, Identifiable {
+  case workout
+  case run
+  case progress
+  case meal
+
+  var id: Self { self }
+
+  var title: String {
+    switch self {
+    case .workout:
+      return "Workout"
+    case .run:
+      return "Lauf"
+    case .progress:
+      return "Progress"
+    case .meal:
+      return "Meal"
+    }
+  }
+
+  var actionTitle: String {
+    switch self {
+    case .workout:
+      return "Workout posten"
+    case .run:
+      return "Lauf posten"
+    case .progress:
+      return "Progress teilen"
+    case .meal:
+      return "Meal loggen"
+    }
+  }
+
+  var systemImage: String {
+    switch self {
+    case .workout:
+      return "dumbbell.fill"
+    case .run:
+      return "figure.run"
+    case .progress:
+      return "chart.line.uptrend.xyaxis"
+    case .meal:
+      return "fork.knife"
+    }
+  }
 }
 
 enum AppWorkoutWorkspace: String, Hashable {

@@ -9,13 +9,9 @@ struct HomeView: View {
   @State private var isShowingWorkoutTracker = false
   @State private var isShowingRunTracker = false
   @State private var isShowingProfile = false
-  @State private var isShowingCoach = false
   @State private var isShowingProgress = false
   @State private var showsTodayDetails = false
   @State private var showsWeeklyInsights = false
-  @State private var showsSupportTools = false
-  @State private var showsWeeklyPlan = false
-  @State private var showsQuickActions = false
 
   var body: some View {
     ZStack {
@@ -25,30 +21,26 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 22) {
           topBar
           titleBlock
-          collapsibleSection(
-            title: "Schnell starten",
-            subtitle: "Gym, Run und Mahlzeiten direkt erreichbar, aber nicht dauerhaft so dominant",
-            isExpanded: $showsQuickActions,
-            content: { quickActionStrip }
-          )
+          readinessHero
           todaySection
+          checkInRitualsSection
+          weekRhythmSection
           collapsibleSection(
-            title: "Wochenplan und Streak",
-            subtitle: "Kalender, Routine und Wochenstruktur nur dann aufklappen, wenn du sie brauchst",
-            isExpanded: $showsWeeklyPlan,
-            content: { plannerSectionContent }
+            title: "Details für heute",
+            subtitle: "Ernährung, Body-Snapshot und weitere Statuskarten nur bei Bedarf",
+            isExpanded: $showsTodayDetails,
+            content: { todayDetailStack }
           )
           collapsibleSection(
-            title: "Fortschritt im Blick",
-            subtitle: "KPIs, Check-ins und Health kompakter halten",
+            title: "Insights und Extras",
+            subtitle: "Wochen-KPIs, Coach-Kontext und Community bleiben gesammelt unten",
             isExpanded: $showsWeeklyInsights,
-            content: { insightsSectionContent }
-          )
-          collapsibleSection(
-            title: "Coach, Community und Extras",
-            subtitle: "Wichtige Zusatzfunktionen bleiben da, aber stören den Flow nicht",
-            isExpanded: $showsSupportTools,
-            content: { supportSectionContent }
+            content: {
+              VStack(alignment: .leading, spacing: 18) {
+                insightsSectionContent
+                supportSectionContent
+              }
+            }
           )
         }
         .padding(.horizontal, 20)
@@ -104,18 +96,6 @@ struct HomeView: View {
           }
       }
     }
-    .sheet(isPresented: $isShowingCoach) {
-      NavigationStack {
-        CoachView(viewModel: .mock)
-          .environmentObject(store)
-          .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-              Button("Fertig") { isShowingCoach = false }
-                .foregroundStyle(GainsColor.ink)
-            }
-          }
-      }
-    }
     .sheet(isPresented: $isShowingProgress) {
       NavigationStack {
         ProgressView(viewModel: .mock)
@@ -133,108 +113,23 @@ struct HomeView: View {
   }
 
   private var todaySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      sectionLabel("HEUTE", "FOKUS")
-
-      Text("Was ist heute dran?")
-        .font(GainsFont.title(24))
-        .foregroundStyle(GainsColor.ink)
-
+    VStack(alignment: .leading, spacing: 14) {
+      sectionHeader(
+        eyebrow: "TODAY / PLAN",
+        title: "Was heute zählt",
+        subtitle: primaryTodaySummary
+      )
       focusStatusRow
-
-      HStack(spacing: 10) {
-        homeLauncherCard(
-          title: "Krafttraining",
-          icon: "dumbbell.fill",
-          accent: GainsColor.ink,
-          action: startOrResumeWorkout,
-          footerTitle: store.activeWorkout != nil ? "Aktives Workout" : "Letztes Workout",
-          footerText: strengthFooterText,
-          emphasis: .primary
-        )
-
-        homeLauncherCard(
-          title: "Running",
-          icon: "figure.run",
-          accent: GainsColor.moss,
-          action: startOrResumeRun,
-          footerTitle: store.activeRun != nil ? "Aktiver Lauf" : "Letzter Lauf",
-          footerText: runningFooterText,
-          emphasis: .secondary
-        )
-      }
-
-      Button {
-        navigation.openTraining(workspace: .kraft)
-      } label: {
-        HStack(spacing: 10) {
-          Text("Trainingsbereich öffnen")
-            .font(GainsFont.label(11))
-            .tracking(1.6)
-            .foregroundStyle(GainsColor.ink)
-
-          Spacer()
-
-          Image(systemName: showsTodayDetails ? "chevron.up" : "arrow.right")
-            .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(GainsColor.ink)
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 46)
-        .background(GainsColor.lime)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-      }
-      .buttonStyle(.plain)
-
       todayWorkoutCard
+      secondaryActionRow
       workoutStatusCard
-
-      if showsTodayDetails {
-        todayDetailStack
-      }
-
-      Button {
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.9)) {
-          showsTodayDetails.toggle()
-        }
-      } label: {
-        Text(showsTodayDetails ? "Weniger anzeigen" : "Mehr für heute anzeigen")
-          .font(GainsFont.label(11))
-          .tracking(1.4)
-          .foregroundStyle(GainsColor.softInk)
-          .frame(maxWidth: .infinity)
-          .frame(height: 40)
-          .background(GainsColor.card)
-          .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-              .stroke(GainsColor.border.opacity(0.8), lineWidth: 1)
-          )
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-      }
-      .buttonStyle(.plain)
+      latestLogCard
     }
   }
 
   private var topBar: some View {
-    HStack(alignment: .top) {
-      VStack(alignment: .leading, spacing: 12) {
-        GainsWordmark(size: 36)
-
-        Text("Let's go, \(viewModel.userName).")
-          .font(GainsFont.title(28))
-          .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
-          .minimumScaleFactor(0.75)
-          .padding(.top, 2)
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 14)
-      .background(GainsColor.elevated.opacity(0.82))
-      .overlay(
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.78), lineWidth: 1)
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    HStack(alignment: .center) {
+      GainsWordmark(size: 34)
 
       Spacer()
 
@@ -259,94 +154,179 @@ struct HomeView: View {
   }
 
   private var titleBlock: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      SlashLabel(
-        parts: [currentDateParts.day, currentDateParts.date, currentDateParts.week],
-        primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
+    VStack(alignment: .leading, spacing: 16) {
+      HStack(alignment: .top, spacing: 14) {
+        VStack(alignment: .leading, spacing: 10) {
+          SlashLabel(
+            parts: [currentDateParts.day, currentDateParts.date, currentDateParts.week],
+            primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
+
+          Text("Los geht's, \(viewModel.userName).")
+            .font(GainsFont.display(34))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(2)
+            .minimumScaleFactor(0.74)
+
+          Text(todayGreetingLine)
+            .font(GainsFont.body(14))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+        }
+
+        Spacer()
+
+        Circle()
+          .fill(GainsColor.lime.opacity(0.18))
+          .frame(width: 44, height: 44)
+          .overlay(
+            Image(systemName: "sun.max.fill")
+              .font(.system(size: 16, weight: .semibold))
+              .foregroundStyle(GainsColor.moss)
+          )
+      }
+
+      HStack(spacing: 10) {
+        titleBlockChip(
+          title: "Heute",
+          value: store.todayPlannedWorkout?.split ?? store.todayPlannedDay.title
+        )
+        titleBlockChip(
+          title: "Woche",
+          value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions"
+        )
+      }
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 10)
-    .background(GainsColor.card.opacity(0.78))
-    .overlay(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
-        .stroke(GainsColor.border.opacity(0.75), lineWidth: 1)
-    )
-    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-    .padding(.top, 2)
+    .padding(18)
+    .gainsInteractiveCardStyle(GainsColor.card, accent: GainsColor.lime)
   }
 
-  private var streakCard: some View {
-    Button {
-      store.showCurrentCalendarWeek()
-      store.selectCalendarDay(Date())
-    } label: {
-      VStack(alignment: .leading, spacing: 18) {
+  private var readinessHero: some View {
+    VStack(alignment: .leading, spacing: 20) {
+      HStack(alignment: .center, spacing: 12) {
         SlashLabel(
-          parts: ["STREAK", "ACTIVE", "PUSHING"], primaryColor: GainsColor.lime,
-          secondaryColor: GainsColor.card.opacity(0.72))
+          parts: ["READINESS", readinessStatus.uppercased(), "\(store.streakDays) TAGE"],
+          primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.card.opacity(0.72)
+        )
 
-        HStack(alignment: .bottom, spacing: 16) {
-          Text("\(store.streakDays)")
-            .font(GainsFont.display(118))
-            .foregroundStyle(GainsColor.card)
-            .tracking(-4)
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
+        Spacer()
 
-          VStack(alignment: .leading, spacing: 14) {
-            Text("tage in folge")
-              .font(GainsFont.label())
-              .foregroundStyle(GainsColor.card.opacity(0.8))
-              .textCase(.lowercase)
-
-            Divider()
-              .overlay(GainsColor.card.opacity(0.18))
-
-            VStack(alignment: .leading, spacing: 6) {
-              Text("BIS REKORD")
-                .font(GainsFont.label(10))
-                .tracking(3)
-                .foregroundStyle(GainsColor.card.opacity(0.68))
-
-              Text("+ \(max(store.recordDays - store.streakDays, 0))")
-                .font(GainsFont.display(28))
-                .foregroundStyle(GainsColor.lime)
-            }
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.bottom, 18)
-        }
-
-        VStack(spacing: 8) {
-          GeometryReader { proxy in
-            let progress = min(Double(store.streakDays) / Double(max(store.recordDays, 1)), 1)
-
-            ZStack(alignment: .leading) {
-              Capsule()
-                .fill(Color.white.opacity(0.08))
-                .frame(height: 4)
-
-              Capsule()
-                .fill(GainsColor.lime)
-                .frame(width: proxy.size.width * progress, height: 4)
-            }
-          }
-          .frame(height: 4)
-
-          HStack {
-            Text("\(store.streakDays)")
-            Spacer()
-            Text("\(store.recordDays)")
-          }
-          .font(GainsFont.label())
-          .foregroundStyle(GainsColor.card.opacity(0.75))
-        }
+        Text("TODAY")
+          .font(GainsFont.label(9))
+          .tracking(1.8)
+          .foregroundStyle(GainsColor.ink)
+          .padding(.horizontal, 10)
+          .frame(height: 26)
+          .background(GainsColor.lime)
+          .clipShape(Capsule())
       }
-      .padding(22)
-      .background(GainsColor.ink)
-      .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+
+      HStack(alignment: .center, spacing: 18) {
+        readinessDial
+
+        VStack(alignment: .leading, spacing: 10) {
+          Text("BEREIT FUER HEUTE")
+            .font(GainsFont.label(10))
+            .tracking(2)
+            .foregroundStyle(GainsColor.card.opacity(0.66))
+
+          Text(readinessStatus)
+            .font(GainsFont.title(22))
+            .foregroundStyle(GainsColor.lime)
+
+          Text("Streak \(store.streakDays)/\(store.recordDays)")
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.card.opacity(0.78))
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+      }
+
+      Text(readinessCoachLine)
+        .font(GainsFont.body(15))
+        .foregroundStyle(GainsColor.card.opacity(0.86))
+        .lineSpacing(3)
+        .lineLimit(3)
+
+      HStack(spacing: 10) {
+        readinessMetric(title: "HRV", value: vitalValue("HRV"))
+        readinessMetric(title: "RHR", value: vitalValue("Ruhepuls"))
+        readinessMetric(title: "Sleep", value: vitalValue("Schlaf"))
+      }
     }
-    .buttonStyle(.plain)
+    .padding(20)
+    .background(
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .fill(GainsColor.ink)
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+  }
+
+  private var readinessDial: some View {
+    ZStack {
+      Circle()
+        .stroke(GainsColor.card.opacity(0.12), lineWidth: 12)
+
+      Circle()
+        .trim(from: 0, to: CGFloat(readinessScore) / 100)
+        .stroke(
+          GainsColor.lime,
+          style: StrokeStyle(lineWidth: 12, lineCap: .round)
+        )
+        .rotationEffect(.degrees(-90))
+
+      Circle()
+        .fill(GainsColor.card.opacity(0.06))
+        .frame(width: 86, height: 86)
+
+      VStack(spacing: 0) {
+        Text("\(readinessScore)")
+          .font(GainsFont.display(42))
+          .foregroundStyle(GainsColor.card)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
+
+        Text("SCORE")
+          .font(GainsFont.label(8))
+          .tracking(1.6)
+          .foregroundStyle(GainsColor.card.opacity(0.58))
+      }
+    }
+    .frame(width: 126, height: 126)
+  }
+
+  private var todayGreetingLine: String {
+    switch store.todayPlannedDay.status {
+    case .planned:
+      return "Heute steht \(store.todayPlannedWorkout?.title ?? store.currentWorkoutPreview.title) im Fokus."
+    case .rest:
+      return "Heute ist bewusst leichter geplant. Recovery, Schritte und Rhythmus reichen."
+    case .flexible:
+      return "Heute bleibt offen. Du kannst Training, Mobility oder einen lockeren Run sinnvoll einbauen."
+    }
+  }
+
+  private func titleBlockChip(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.softInk)
+
+      Text(value)
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.ink)
+        .lineLimit(1)
+        .minimumScaleFactor(0.78)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, 12)
+    .frame(height: 50)
+    .background(GainsColor.background.opacity(0.82))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
   private var insightsSectionContent: some View {
@@ -403,45 +383,85 @@ struct HomeView: View {
   private var todayWorkoutCard: some View {
     let plan = store.todayPlannedWorkout ?? store.currentWorkoutPreview
 
-    return VStack(alignment: .leading, spacing: 12) {
-      HStack(alignment: .center, spacing: 14) {
-        VStack(alignment: .leading, spacing: 10) {
-          Text(plan.title.uppercased())
-            .font(GainsFont.display(26))
-            .foregroundStyle(GainsColor.ink)
+    return Button(action: startOrResumeWorkout) {
+      VStack(alignment: .leading, spacing: 16) {
+        HStack(alignment: .top, spacing: 14) {
+          VStack(alignment: .leading, spacing: 8) {
+            Text("PRIMARY ACTION")
+              .font(GainsFont.label(10))
+              .tracking(1.8)
+              .foregroundStyle(GainsColor.softInk)
 
-          SlashLabel(
-            parts: [
-              "\(plan.exercises.count) ÜBUNGEN",
-              "\(store.plannerSettings.preferredSessionLength) MIN", plan.focus.uppercased(),
-            ],
-            primaryColor: GainsColor.lime,
-            secondaryColor: GainsColor.softInk
-          )
+            Text(plan.title.uppercased())
+              .font(GainsFont.display(28))
+              .foregroundStyle(GainsColor.ink)
+              .lineLimit(2)
+              .minimumScaleFactor(0.82)
+          }
+
+          Spacer()
+
+          Text(store.activeWorkout == nil ? "START" : "LIVE")
+            .font(GainsFont.label(10))
+            .tracking(1.5)
+            .foregroundStyle(GainsColor.onLime)
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .background(GainsColor.lime)
+            .clipShape(Capsule())
         }
 
-        Spacer()
+        SlashLabel(
+          parts: [
+            "\(plan.exercises.count) ÜBUNGEN",
+            "\(plan.estimatedDurationMinutes) MIN",
+            plan.focus.uppercased(),
+          ],
+          primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk
+        )
 
-        VStack(spacing: 10) {
-          Button(action: startOrResumeWorkout) {
-            Text(store.activeWorkout == nil ? "START →" : "WEITER →")
-              .font(GainsFont.label())
-              .tracking(1.8)
-              .foregroundStyle(GainsColor.lime)
-              .frame(width: 104, height: 48)
-              .background(GainsColor.ink)
+        HStack(spacing: 8) {
+          ForEach(Array(plan.exercises.prefix(3).enumerated()), id: \.offset) { _, exercise in
+            Text(exercise.name)
+              .font(GainsFont.body(12))
+              .foregroundStyle(GainsColor.softInk)
+              .lineLimit(1)
+              .minimumScaleFactor(0.75)
+              .padding(.horizontal, 10)
+              .frame(height: 30)
+              .background(GainsColor.background.opacity(0.78))
               .clipShape(Capsule())
           }
-          .buttonStyle(.plain)
-
-          GainsDisclosureIndicator()
         }
+
+        HStack(spacing: 12) {
+          Image(systemName: "play.fill")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(GainsColor.onLime)
+            .frame(width: 34, height: 34)
+            .background(GainsColor.lime)
+            .clipShape(Circle())
+
+          Text(store.activeWorkout == nil ? "Workout starten" : "Workout weiter tracken")
+            .font(GainsFont.label(12))
+            .tracking(1.3)
+            .foregroundStyle(GainsColor.ink)
+
+          Spacer()
+
+          Image(systemName: "arrow.right")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.softInk)
+        }
+        .padding(12)
+        .background(GainsColor.elevated)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
       }
       .padding(18)
-      .gainsInteractiveCardStyle()
-      .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-      .onTapGesture(perform: startOrResumeWorkout)
+      .gainsInteractiveCardStyle(GainsColor.card, accent: GainsColor.lime)
     }
+    .buttonStyle(.plain)
   }
 
   @ViewBuilder
@@ -500,7 +520,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 10) {
           Text("KÖRPER")
             .font(GainsFont.label(10))
-            .tracking(2.8)
+            .tracking(2)
             .foregroundStyle(GainsColor.softInk)
 
           Text(String(format: "%.1f kg", store.currentWeight))
@@ -519,7 +539,7 @@ struct HomeView: View {
 
           Text("HEALTH")
             .font(GainsFont.label(10))
-            .tracking(2.8)
+            .tracking(2)
             .foregroundStyle(GainsColor.moss)
 
           Text("-\(store.currentCardioRiskImprovement)%")
@@ -600,21 +620,10 @@ struct HomeView: View {
     }
   }
 
-  private var plannerSectionContent: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      sectionLabel("WOCHE", "PLANEN")
-
-      VStack(alignment: .leading, spacing: 14) {
-        streakCard
-        weekStrip
-      }
-    }
-  }
-
   private var supportSectionContent: some View {
     HStack(alignment: .top, spacing: 12) {
       Button {
-        isShowingCoach = true
+        showsTodayDetails = true
       } label: {
         VStack(alignment: .leading, spacing: 12) {
           Text("COACH")
@@ -632,7 +641,7 @@ struct HomeView: View {
 
           Spacer(minLength: 0)
 
-          Text("Coach öffnen")
+          Text("Heute öffnen")
             .font(GainsFont.label(11))
             .tracking(1.4)
             .foregroundStyle(GainsColor.lime)
@@ -644,7 +653,7 @@ struct HomeView: View {
       .buttonStyle(.plain)
 
       Button {
-        store.shareProgressUpdate()
+        navigation.presentCapture(kind: .progress)
       } label: {
         VStack(alignment: .leading, spacing: 12) {
           Text("COMMUNITY")
@@ -675,48 +684,237 @@ struct HomeView: View {
     }
   }
 
-  private var focusStatusRow: some View {
-    HStack(spacing: 10) {
-      compactMetric(title: "Heute", value: store.todayPlannedWorkout?.title ?? "Flex Day", subtitle: "aktueller Fokus")
-      compactMetric(title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)", subtitle: "Sessions")
-      compactMetric(title: "Protein", value: "\(store.nutritionProteinToday) g", subtitle: "heute")
+  private var weekRhythmSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      sectionHeader(
+        eyebrow: "WEEK / RHYTHM",
+        title: "Wochenrhythmus",
+        subtitle: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions erledigt · Streak \(store.streakDays) Tage"
+      )
+
+      weekStrip
     }
   }
 
-  private var quickActionStrip: some View {
+  private var secondaryActionRow: some View {
     HStack(spacing: 10) {
-      quickActionTile(
-        title: store.activeWorkout == nil ? "Gym" : "Workout live",
-        subtitle: store.activeWorkout == nil ? "Schnell starten" : "Direkt fortsetzen",
-        icon: "dumbbell.fill",
-        background: GainsColor.lime.opacity(0.88),
-        foreground: GainsColor.moss
-      ) {
-        navigation.openTraining(workspace: .kraft)
-        startOrResumeWorkout()
-      }
-
-      quickActionTile(
+      todayQuickButton(
         title: store.activeRun == nil ? "Run" : "Run live",
-        subtitle: store.activeRun == nil ? "Cardio starten" : "Tracker öffnen",
+        subtitle: store.activeRun == nil ? "Starten" : "Fortsetzen",
         icon: "figure.run",
-        background: GainsColor.lime.opacity(0.22),
-        foreground: GainsColor.moss
-      ) {
-        navigation.openTraining(workspace: .laufen)
-        startOrResumeRun()
+        action: {
+          navigation.openTraining(workspace: .laufen)
+          startOrResumeRun()
+        }
+      )
+
+      todayQuickButton(
+        title: "Fuel",
+        subtitle: "Meal loggen",
+        icon: "fork.knife",
+        action: {
+          navigation.presentCapture(kind: .meal)
+        }
+      )
+
+      todayQuickButton(
+        title: "Body",
+        subtitle: "Check-in",
+        icon: "heart.text.square.fill",
+        action: {
+          navigation.selectedTab = .progress
+        }
+      )
+    }
+  }
+
+  private var focusStatusRow: some View {
+    HStack(spacing: 10) {
+      Button {
+        navigation.openTraining(workspace: .kraft)
+      } label: {
+        compactMetric(
+          title: "Train",
+          value: store.todayPlannedWorkout?.title ?? "Flex Day",
+          subtitle: "Workout heute"
+        )
+      }
+      .buttonStyle(.plain)
+
+      Button {
+        navigation.selectedTab = .recipes
+      } label: {
+        compactMetric(
+          title: "Fuel",
+          value: "\(store.nutritionProteinToday) g",
+          subtitle: "Protein heute"
+        )
+      }
+      .buttonStyle(.plain)
+
+      Button {
+        navigation.selectedTab = .progress
+      } label: {
+        compactMetric(
+          title: "Move",
+          value: moveValue,
+          subtitle: "Schritte"
+        )
+      }
+      .buttonStyle(.plain)
+    }
+  }
+
+  private func sectionHeader(eyebrow: String, title: String, subtitle: String) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      SlashLabel(
+        parts: eyebrow.components(separatedBy: " / "),
+        primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk
+      )
+
+      Text(title)
+        .font(GainsFont.title(24))
+        .foregroundStyle(GainsColor.ink)
+        .lineLimit(2)
+
+      Text(subtitle)
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(2)
+    }
+  }
+
+  private func todayQuickButton(
+    title: String,
+    subtitle: String,
+    icon: String,
+    action: @escaping () -> Void
+  ) -> some View {
+    Button(action: action) {
+      VStack(alignment: .leading, spacing: 9) {
+        Image(systemName: icon)
+          .font(.system(size: 15, weight: .semibold))
+          .foregroundStyle(GainsColor.lime)
+          .frame(width: 34, height: 34)
+          .background(GainsColor.ink)
+          .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+
+        Text(title)
+          .font(GainsFont.title(15))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
+
+        Text(subtitle)
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(1)
+          .minimumScaleFactor(0.82)
+      }
+      .frame(maxWidth: .infinity, minHeight: 112, alignment: .leading)
+      .padding(13)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+          .stroke(GainsColor.border.opacity(0.75), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  private var checkInRitualsSection: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack {
+        Text("CHECK-IN RITUALE")
+          .font(GainsFont.label(10))
+          .tracking(2)
+          .foregroundStyle(GainsColor.softInk)
+
+        Spacer()
+
+        Text("\(store.completedCoachCheckInIDs.count)/\(CoachViewModel.mock.checkIns.count)")
+          .font(GainsFont.label(10))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.lime)
       }
 
-      quickActionTile(
-        title: "Mahlzeit",
-        subtitle: "Tracken",
-        icon: "fork.knife",
-        background: GainsColor.card,
-        foreground: GainsColor.moss
-      ) {
-        navigation.selectedTab = .recipes
+      VStack(spacing: 8) {
+        ForEach(CoachViewModel.mock.checkIns.prefix(4)) { item in
+          Button {
+            store.toggleCoachCheckIn(item.id)
+          } label: {
+            HStack(spacing: 12) {
+              Image(systemName: store.completedCoachCheckInIDs.contains(item.id) ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(
+                  store.completedCoachCheckInIDs.contains(item.id) ? GainsColor.lime : GainsColor.softInk
+                )
+
+              VStack(alignment: .leading, spacing: 3) {
+                Text(item.title)
+                  .font(GainsFont.title(16))
+                  .foregroundStyle(GainsColor.ink)
+                  .lineLimit(1)
+
+                Text(item.detail)
+                  .font(GainsFont.body(12))
+                  .foregroundStyle(GainsColor.softInk)
+                  .lineLimit(1)
+              }
+
+              Spacer()
+            }
+            .padding(12)
+            .background(GainsColor.card)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          }
+          .buttonStyle(.plain)
+        }
       }
     }
+    .padding(16)
+    .gainsCardStyle(GainsColor.elevated)
+  }
+
+  private var latestLogCard: some View {
+    Button {
+      navigation.presentCapture(kind: latestLogKind)
+    } label: {
+      HStack(alignment: .center, spacing: 12) {
+        Image(systemName: latestLogKind.systemImage)
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(GainsColor.lime)
+          .frame(width: 42, height: 42)
+          .background(GainsColor.ink)
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+        VStack(alignment: .leading, spacing: 5) {
+          Text("LATEST LOG")
+            .font(GainsFont.label(9))
+            .tracking(1.8)
+            .foregroundStyle(GainsColor.softInk)
+
+          Text(latestLogTitle)
+            .font(GainsFont.title(18))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+
+          Text("Tippen zum Capturen oder Teilen")
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(1)
+        }
+
+        Spacer()
+
+        GainsDisclosureIndicator()
+      }
+      .padding(16)
+      .gainsCardStyle()
+    }
+    .buttonStyle(.plain)
   }
 
   private var todayDetailStack: some View {
@@ -783,50 +981,6 @@ struct HomeView: View {
     .frame(maxWidth: .infinity)
   }
 
-  private enum HomeLauncherEmphasis {
-    case primary
-    case secondary
-  }
-
-  private func quickActionTile(
-    title: String,
-    subtitle: String,
-    icon: String,
-    background: Color,
-    foreground: Color,
-    action: @escaping () -> Void
-  ) -> some View {
-    Button(action: action) {
-      VStack(alignment: .leading, spacing: 10) {
-        Image(systemName: icon)
-          .font(.system(size: 18, weight: .semibold))
-          .foregroundStyle(foreground)
-          .frame(width: 38, height: 38)
-          .background(GainsColor.background.opacity(0.6))
-          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-        Text(title)
-          .font(GainsFont.title(16))
-          .foregroundStyle(GainsColor.ink)
-          .lineLimit(2)
-
-        Text(subtitle)
-          .font(GainsFont.body(12))
-          .foregroundStyle(GainsColor.softInk)
-          .lineLimit(2)
-      }
-      .frame(maxWidth: .infinity, minHeight: 124, alignment: .leading)
-      .padding(14)
-      .background(background)
-      .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.7), lineWidth: 1)
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-    .buttonStyle(.plain)
-  }
-
   private func compactMetric(title: String, value: String, subtitle: String) -> some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(title.uppercased())
@@ -851,67 +1005,89 @@ struct HomeView: View {
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
-  private func homeLauncherCard(
-    title: String,
-    icon: String,
-    accent: Color,
-    action: @escaping () -> Void,
-    footerTitle: String,
-    footerText: String,
-    emphasis: HomeLauncherEmphasis = .secondary
-  ) -> some View {
-    Button(action: action) {
-      VStack(alignment: .leading, spacing: 14) {
-        HStack(alignment: .top) {
-          VStack(alignment: .leading, spacing: 8) {
-            Image(systemName: icon)
-              .font(.system(size: 18, weight: .semibold))
-              .foregroundStyle(emphasis == .primary ? GainsColor.lime : accent)
-              .frame(width: 40, height: 40)
-              .background(
-                (emphasis == .primary ? GainsColor.background.opacity(0.18) : accent.opacity(0.14))
-              )
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+  private func readinessMetric(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 5) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.card.opacity(0.6))
 
-            Text(title)
-              .font(GainsFont.title(emphasis == .primary ? 22 : 20))
-              .foregroundStyle(emphasis == .primary ? GainsColor.card : GainsColor.ink)
-          }
-
-          Spacer()
-
-          GainsDisclosureIndicator(
-            accent: emphasis == .primary ? GainsColor.card.opacity(0.7) : GainsColor.softInk
-          )
-        }
-
-        Spacer(minLength: 0)
-
-        VStack(alignment: .leading, spacing: 6) {
-          Text(footerTitle.uppercased())
-            .font(GainsFont.label(9))
-            .tracking(1.8)
-            .foregroundStyle(emphasis == .primary ? GainsColor.card.opacity(0.72) : GainsColor.softInk)
-
-          Text(footerText)
-            .font(GainsFont.body(13))
-            .foregroundStyle(emphasis == .primary ? GainsColor.card.opacity(0.92) : GainsColor.ink)
-            .lineLimit(3)
-        }
-      }
-      .frame(maxWidth: .infinity, minHeight: emphasis == .primary ? 188 : 168, alignment: .leading)
-      .padding(18)
-      .background(emphasis == .primary ? GainsColor.ink : GainsColor.card)
-      .overlay(
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .stroke(
-            emphasis == .primary ? GainsColor.ink : GainsColor.border.opacity(0.75),
-            lineWidth: 1
-          )
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+      Text(value)
+        .font(GainsFont.title(16))
+        .foregroundStyle(GainsColor.card)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
     }
-    .buttonStyle(.plain)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(GainsColor.card.opacity(0.08))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+  }
+
+  private func vitalValue(_ title: String) -> String {
+    store.currentVitalReadings.first(where: { $0.title == title })?.value ?? "--"
+  }
+
+  private var readinessScore: Int {
+    let base = 68 + (store.weeklySessionsCompleted * 3) + store.completedCoachCheckInIDs.count
+    let trackerBonus = store.connectedTrackerIDs.isEmpty ? 0 : 5
+    return min(max(base + trackerBonus, 42), 96)
+  }
+
+  private var readinessStatus: String {
+    switch readinessScore {
+    case 86...:
+      return "Peak"
+    case 74...85:
+      return "Ready"
+    case 62...73:
+      return "Maintain"
+    case 50...61:
+      return "Recover"
+    default:
+      return "Overreach"
+    }
+  }
+
+  private var readinessCoachLine: String {
+    if readinessScore >= 74 {
+      return "\(store.coachHeadline) Starte mit \(store.todayPlannedWorkout?.title ?? store.currentWorkoutPreview.title) und halte Fuel simpel."
+    }
+
+    return "Heute etwas defensiver: Technik sauber halten, Hydration abhaken und nach dem Training kurz reflektieren."
+  }
+
+  private var primaryTodaySummary: String {
+    let plan = store.todayPlannedWorkout ?? store.currentWorkoutPreview
+    let proteinOpen = max(store.nutritionTargetProtein - store.nutritionProteinToday, 0)
+    return "\(plan.title) ist der Anker. Danach \(proteinOpen)g Protein offen halten und Bewegung sauber abschliessen."
+  }
+
+  private var moveValue: String {
+    if let snapshot = store.healthSnapshot {
+      return "\(snapshot.stepsToday)"
+    }
+
+    return store.connectedTrackerIDs.isEmpty ? "--" : "8.4k"
+  }
+
+  private var latestLogKind: CaptureKind {
+    let runDate = store.latestCompletedRun?.finishedAt ?? Date.distantPast
+    let workoutDate = store.latestCompletedWorkout?.finishedAt ?? Date.distantPast
+    return runDate > workoutDate ? .run : .workout
+  }
+
+  private var latestLogTitle: String {
+    switch latestLogKind {
+    case .run:
+      return store.latestCompletedRun?.title ?? "Noch kein Lauf geloggt"
+    case .workout:
+      return store.lastCompletedWorkout?.title ?? store.currentWorkoutPreview.title
+    case .progress:
+      return "Progress Update"
+    case .meal:
+      return "Meal Log"
+    }
   }
 
   private func collapsibleSection<Content: View>(
@@ -1132,107 +1308,6 @@ struct HomeView: View {
     store.startWorkout(from: plan)
     isShowingWorkoutChooser = false
     isShowingWorkoutTracker = true
-  }
-
-  private var runningFooterText: String {
-    if let activeRun = store.activeRun {
-      return
-        "\(String(format: "%.1f", activeRun.distanceKm)) km · \(activeRun.durationMinutes) Min · live"
-    }
-
-    if let lastRun = store.latestCompletedRun {
-      return
-        "\(lastRun.title) · \(String(format: "%.1f", lastRun.distanceKm)) km · \(runPaceLabel(lastRun.averagePaceSeconds))"
-    }
-
-    return "Bereit für deinen ersten GPS-Run"
-  }
-
-  private var strengthFooterText: String {
-    if let activeWorkout = store.activeWorkout {
-      return
-        "\(activeWorkout.title) · \(activeWorkout.completedSets)/\(activeWorkout.totalSets) Sätze"
-    }
-
-    if let lastWorkout = store.lastCompletedWorkout {
-      return
-        "\(lastWorkout.title) · \(lastWorkout.completedSets) Sätze · \(Int(lastWorkout.volume)) kg"
-    }
-
-    let plan = store.todayPlannedWorkout ?? store.currentWorkoutPreview
-    return "\(plan.title) · \(plan.exercises.count) Übungen"
-  }
-
-  private func runPaceLabel(_ seconds: Int) -> String {
-    guard seconds > 0 else { return "--:-- /km" }
-    let minutes = seconds / 60
-    let remainingSeconds = seconds % 60
-    return String(format: "%d:%02d /km", minutes, remainingSeconds)
-  }
-
-  private func homeLauncherCard(
-    title: String,
-    icon: String,
-    accent: Color,
-    action: @escaping () -> Void,
-    footerTitle: String,
-    footerText: String
-  ) -> some View {
-    Button(action: action) {
-      VStack(alignment: .leading, spacing: 14) {
-        HStack {
-          ZStack {
-            Circle()
-              .fill(accent.opacity(accent == GainsColor.ink ? 1 : 0.22))
-              .frame(width: 42, height: 42)
-
-            Image(systemName: icon)
-              .font(.system(size: 18, weight: .semibold))
-              .foregroundStyle(accent == GainsColor.ink ? GainsColor.lime : GainsColor.moss)
-          }
-
-          Spacer()
-
-          Image(systemName: "arrow.right.circle.fill")
-            .font(.system(size: 22, weight: .semibold))
-            .foregroundStyle(accent == GainsColor.ink ? GainsColor.ink : GainsColor.moss)
-        }
-
-        Text(title)
-          .font(GainsFont.title(22))
-          .foregroundStyle(GainsColor.ink)
-
-        Text("Direkt starten")
-          .font(GainsFont.label(9))
-          .tracking(1.8)
-          .foregroundStyle(
-            accent == GainsColor.ink ? GainsColor.softInk : GainsColor.onLimeSecondary)
-
-        Divider()
-          .overlay(GainsColor.border.opacity(0.55))
-
-        VStack(alignment: .leading, spacing: 6) {
-          Text(footerTitle.uppercased())
-            .font(GainsFont.label(9))
-            .tracking(1.8)
-            .foregroundStyle(
-              accent == GainsColor.ink ? GainsColor.moss : GainsColor.onLimeSecondary)
-
-          Text(footerText)
-            .font(GainsFont.body(13))
-            .foregroundStyle(
-              accent == GainsColor.ink ? GainsColor.softInk : GainsColor.onLimeSecondary
-            )
-            .multilineTextAlignment(.leading)
-        }
-      }
-      .frame(maxWidth: .infinity, minHeight: 188, alignment: .leading)
-      .padding(18)
-      .gainsInteractiveCardStyle(
-        accent == GainsColor.ink ? GainsColor.card : GainsColor.lime.opacity(0.28),
-        accent: GainsColor.moss)
-    }
-    .buttonStyle(.plain)
   }
 
   private func isSelectedCalendarDay(_ day: DayProgress) -> Bool {
@@ -1583,8 +1658,8 @@ struct SlashLabel: View {
       ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
         Text(part)
           .font(GainsFont.label(10))
-          .tracking(3)
-          .foregroundStyle(index == 0 ? secondaryColor : secondaryColor)
+          .tracking(2)
+          .foregroundStyle(index == 0 ? primaryColor : secondaryColor)
 
         if index < parts.count - 1 {
           Text("/")
@@ -1610,7 +1685,7 @@ struct StatCard: View {
     VStack(alignment: .leading, spacing: 10) {
       Text(title)
         .font(GainsFont.label(10))
-        .tracking(2.8)
+        .tracking(2)
         .foregroundStyle(foreground.opacity(0.7))
 
       valueView

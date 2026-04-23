@@ -35,7 +35,7 @@ enum GainsColor {
   static let elevated = Color(lightHex: "ECE9E2", darkHex: "202325")
   static let ink = Color(lightHex: "1A1A1A", darkHex: "F4F3EE")
   static let softInk = Color(lightHex: "4E4E4E", darkHex: "C9C6BC")
-  static let mutedInk = Color(lightHex: "767676", darkHex: "A19D93")
+  static let mutedInk = Color(lightHex: "636363", darkHex: "A19D93")
   static let border = Color(lightHex: "BBB8B0", darkHex: "3B3E40")
   static let lime = Color(lightHex: "D4E85C", darkHex: "C2DC47")
   static let moss = Color(lightHex: "4A5220", darkHex: "6F8440")
@@ -58,7 +58,7 @@ enum GainsFont {
   }
 
   static func label(_ size: CGFloat = 11) -> Font {
-    .system(size: max(size, 11.5), weight: .medium)
+    .system(size: max(size, 12), weight: .medium)
   }
 }
 
@@ -93,22 +93,8 @@ extension View {
       .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
       .overlay(
         RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .fill(
-            LinearGradient(
-              colors: [
-                Color.white.opacity(0.045),
-                Color.clear,
-              ],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            )
-          )
-      )
-      .overlay(
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
           .stroke(GainsColor.border.opacity(0.95), lineWidth: 1)
       )
-      .shadow(color: Color.black.opacity(0.08), radius: 14, y: 8)
   }
 
   func gainsInteractiveCardStyle(
@@ -119,22 +105,8 @@ extension View {
       .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
       .overlay(
         RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .fill(
-            LinearGradient(
-              colors: [
-                Color.white.opacity(0.06),
-                Color.clear,
-              ],
-              startPoint: .topLeading,
-              endPoint: .bottomTrailing
-            )
-          )
-      )
-      .overlay(
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
           .stroke(accent.opacity(0.72), lineWidth: 1.2)
       )
-      .shadow(color: Color.black.opacity(0.18), radius: 18, y: 10)
   }
 }
 
@@ -143,35 +115,6 @@ struct GainsAppBackground: View {
     ZStack {
       GainsColor.background
         .ignoresSafeArea()
-
-      LinearGradient(
-        colors: [
-          GainsColor.background,
-          GainsColor.background,
-          GainsColor.card.opacity(0.24),
-        ],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
-      .ignoresSafeArea()
-
-      Circle()
-        .fill(GainsColor.lime.opacity(0.08))
-        .frame(width: 280, height: 280)
-        .blur(radius: 70)
-        .offset(x: 140, y: -250)
-
-      Circle()
-        .fill(GainsColor.elevated.opacity(0.7))
-        .frame(width: 340, height: 340)
-        .blur(radius: 90)
-        .offset(x: -160, y: -320)
-
-      Circle()
-        .fill(GainsColor.card.opacity(0.55))
-        .frame(width: 260, height: 260)
-        .blur(radius: 80)
-        .offset(x: 170, y: 420)
     }
     .allowsHitTesting(false)
   }

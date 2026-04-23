@@ -25,6 +25,7 @@
 		BB0000000000000000000001 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002 /* ProfileView.swift */; };
 		CC0000000000000000000001 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000002 /* HealthKitManager.swift */; };
 		DD0000000000000000000001 /* AppNavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000000000000000000002 /* AppNavigationStore.swift */; };
+		EE0000000000000000000001 /* CaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0000000000000000000002 /* CaptureSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +49,7 @@
 		CC0000000000000000000002 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		CC0000000000000000000003 /* Gains.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gains.entitlements; sourceTree = "<group>"; };
 		DD0000000000000000000002 /* AppNavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationStore.swift; sourceTree = "<group>"; };
+		EE0000000000000000000002 /* CaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +77,7 @@
 				AA0000000000000000000011 /* GainsApp.swift */,
 				DD0000000000000000000002 /* AppNavigationStore.swift */,
 				AA0000000000000000000012 /* ContentView.swift */,
+				EE0000000000000000000002 /* CaptureSheet.swift */,
 				AA0000000000000000000013 /* DesignSystem.swift */,
 				AA0000000000000000000014 /* Models.swift */,
 				AA0000000000000000000015 /* HomeView.swift */,
@@ -189,6 +192,7 @@
 				BB0000000000000000000001 /* ProfileView.swift in Sources */,
 				CC0000000000000000000001 /* HealthKitManager.swift in Sources */,
 				DD0000000000000000000001 /* AppNavigationStore.swift in Sources */,
+				EE0000000000000000000001 /* CaptureSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

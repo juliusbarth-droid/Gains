@@ -18,6 +18,7 @@ private enum ProgressSurface: String, CaseIterable, Identifiable {
 
 struct ProgressView: View {
   @EnvironmentObject private var store: GainsStore
+  @EnvironmentObject private var navigation: AppNavigationStore
   let viewModel: ProgressViewModel
   @State private var selectedSurface: ProgressSurface = .overview
   @State private var showsQuickCheckIns = false
@@ -29,12 +30,13 @@ struct ProgressView: View {
     GainsScreen {
       VStack(alignment: .leading, spacing: 22) {
         screenHeader(
-          eyebrow: "PROGRESS / HEALTH",
-          title: "Mehr als nur Gewicht",
+          eyebrow: "BODY / REFLECTION",
+          title: "Readiness und Verlauf",
           subtitle:
             "Dein Fortschritt verbindet Körperdaten, Vitalwerte und Trainingsdaten in einem klaren Überblick."
         )
 
+        bodyReadinessHero
         progressSummaryCard
         quickStatusRow
         collapsibleProgressSection(
@@ -119,7 +121,7 @@ struct ProgressView: View {
           .lineLimit(3)
 
         Button {
-          store.shareProgressUpdate()
+          navigation.presentCapture(kind: .progress)
         } label: {
           Text("Progress teilen")
             .font(GainsFont.label(11))
@@ -135,6 +137,63 @@ struct ProgressView: View {
       .padding(18)
       .gainsCardStyle()
     }
+  }
+
+  private var bodyReadinessHero: some View {
+    VStack(alignment: .leading, spacing: 18) {
+      SlashLabel(
+        parts: ["READINESS", readinessStatus.uppercased(), "BODY"],
+        primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.card.opacity(0.72)
+      )
+
+      HStack(alignment: .center, spacing: 18) {
+        ZStack {
+          Circle()
+            .stroke(GainsColor.card.opacity(0.12), lineWidth: 14)
+
+          Circle()
+            .trim(from: 0, to: CGFloat(readinessScore) / 100)
+            .stroke(
+              GainsColor.lime,
+              style: StrokeStyle(lineWidth: 14, lineCap: .round)
+            )
+            .rotationEffect(.degrees(-90))
+
+          VStack(spacing: 2) {
+            Text("\(readinessScore)")
+              .font(GainsFont.display(42))
+              .foregroundStyle(GainsColor.card)
+
+            Text("%")
+              .font(GainsFont.label(10))
+              .tracking(1.6)
+              .foregroundStyle(GainsColor.card.opacity(0.66))
+          }
+        }
+        .frame(width: 126, height: 126)
+
+        VStack(alignment: .leading, spacing: 12) {
+          Text(readinessStatus)
+            .font(GainsFont.title(26))
+            .foregroundStyle(GainsColor.lime)
+
+          Text(readinessSummary)
+            .font(GainsFont.body(14))
+            .foregroundStyle(GainsColor.card.opacity(0.8))
+            .lineLimit(4)
+        }
+      }
+
+      HStack(spacing: 10) {
+        readinessMetric(title: "HRV", value: vitalValue("HRV"))
+        readinessMetric(title: "RHR", value: vitalValue("Ruhepuls"))
+        readinessMetric(title: "Schlaf", value: vitalValue("Schlaf"))
+      }
+    }
+    .padding(20)
+    .background(GainsColor.ink)
+    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
   }
 
   private var achievementHeroSection: some View {
@@ -778,6 +837,58 @@ struct ProgressView: View {
     let minutes = seconds / 60
     let remainingSeconds = seconds % 60
     return String(format: "%d:%02d /km", minutes, remainingSeconds)
+  }
+
+  private func readinessMetric(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 5) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.card.opacity(0.6))
+
+      Text(value)
+        .font(GainsFont.title(16))
+        .foregroundStyle(GainsColor.card)
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(GainsColor.card.opacity(0.08))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+  }
+
+  private func vitalValue(_ title: String) -> String {
+    store.currentVitalReadings.first(where: { $0.title == title })?.value ?? "--"
+  }
+
+  private var readinessScore: Int {
+    let base = 66 + (store.weeklySessionsCompleted * 3) + store.completedCoachCheckInIDs.count
+    let trackerBonus = store.connectedTrackerIDs.isEmpty ? 0 : 6
+    return min(max(base + trackerBonus + store.vitalSyncCount, 40), 96)
+  }
+
+  private var readinessStatus: String {
+    switch readinessScore {
+    case 86...:
+      return "Peak"
+    case 74...85:
+      return "Ready"
+    case 62...73:
+      return "Maintain"
+    case 50...61:
+      return "Recover"
+    default:
+      return "Overreach"
+    }
+  }
+
+  private var readinessSummary: String {
+    if store.connectedTrackerIDs.isEmpty {
+      return "Verbinde Apple Health, WHOOP, Garmin oder Oura, damit HRV, Ruhepuls und Schlaf den Score live schaerfen."
+    }
+
+    return "Deine Vitals, Check-ins und Trainingswoche laufen hier zusammen. BODY ist bewusst der laengere Reflexionsscreen."
   }
 }
 

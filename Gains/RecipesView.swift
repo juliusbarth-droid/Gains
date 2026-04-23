@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RecipesView: View {
   @EnvironmentObject private var store: GainsStore
+  @EnvironmentObject private var navigation: AppNavigationStore
   let viewModel: RecipesViewModel
   @State private var searchText = ""
   @State private var ingredientText = ""
@@ -24,7 +25,7 @@ struct RecipesView: View {
       GainsScreen {
         VStack(alignment: .leading, spacing: 22) {
           screenHeader(
-            eyebrow: "ERNÄHRUNG / TRACKER",
+            eyebrow: "FUEL / ACTION",
             title: "Essen tracken",
             subtitle: "Dein Tagesziel zuerst, Rezepte und Suche nur dann, wenn du sie wirklich brauchst."
           )
@@ -385,8 +386,7 @@ struct RecipesView: View {
       Spacer()
 
       Button {
-        pendingMealType = .lunchDinner
-        showsManualEntrySheet = true
+        navigation.presentCapture(kind: .meal)
       } label: {
         Text("Jetzt erfassen")
           .font(GainsFont.label(10))
@@ -425,8 +425,7 @@ struct RecipesView: View {
 
       VStack(spacing: 10) {
         Button {
-          pendingMealType = .breakfast
-          showsManualEntrySheet = true
+          navigation.presentCapture(kind: .meal)
         } label: {
           quickActionCard(
             title: "Mahlzeit hinzufügen",
@@ -806,8 +805,7 @@ struct RecipesView: View {
         Spacer()
 
         Button {
-          pendingMealType = mealType
-          showsManualEntrySheet = true
+          navigation.presentCapture(kind: .meal)
         } label: {
           Text("Hinzufügen")
             .font(GainsFont.label(10))

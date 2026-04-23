@@ -32,11 +32,11 @@ private enum WorkoutWorkspace: String, CaseIterable, Identifiable {
   var title: String {
     switch self {
     case .kraft:
-      return "Krafttraining"
+      return "KRAFT"
     case .laufen:
-      return "Kardiotraining"
+      return "LAUFEN"
     case .fortschritt:
-      return "Verlauf"
+      return "PLAN"
     }
   }
 
@@ -47,7 +47,7 @@ private enum WorkoutWorkspace: String, CaseIterable, Identifiable {
     case .laufen:
       return "figure.run"
     case .fortschritt:
-      return "chart.xyaxis.line"
+      return "calendar"
     }
   }
 }
@@ -105,20 +105,15 @@ struct WorkoutHubView: View {
   @State private var selectedHistorySurface: HistorySurface = .all
   @State private var showsTrainingLibrary = false
   @State private var showsWeeklyPlan = false
-  @State private var showsPlannerSetup = false
+  @State private var showsRunningTemplates = false
+  @State private var showsRunningHistory = false
+  @State private var showsTrainingHistory = false
 
   var body: some View {
     GainsScreen {
       VStack(alignment: .leading, spacing: 22) {
-        quickStartSection
-        screenHeader(
-          eyebrow: "WORKOUT / TRAINING",
-          title: "Dein Workout-Bereich",
-          subtitle: viewModel.subtitle
-        )
-
+        trainHeader
         workspacePicker
-        workspaceHero
         workspaceContent
       }
     }
@@ -145,7 +140,7 @@ struct WorkoutHubView: View {
   private var workspacePicker: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
-        parts: ["WORKOUT", "BEREICHE"], primaryColor: GainsColor.lime,
+        parts: ["TRAIN", "WORKSPACES"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
       ScrollView(.horizontal, showsIndicators: false) {
@@ -165,67 +160,16 @@ struct WorkoutHubView: View {
     }
   }
 
-  private var quickStartSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+  private var trainHeader: some View {
+    VStack(alignment: .leading, spacing: 16) {
       screenHeader(
-        eyebrow: "WORKOUT / TRAINING",
-        title: "Heute wirklich nutzbar",
-        subtitle:
-          "Starte dein Gym-Workout, springe in Cardio oder öffne deinen Verlauf, ohne dich erst durch alle Bereiche zu kämpfen."
+        eyebrow: "TRAIN / ACTION",
+        title: trainingHeaderTitle,
+        subtitle: trainingHeaderSubtitle
       )
 
       quickTrainingSummaryRow
-
-      HStack(spacing: 10) {
-        quickStartCard(
-          title: store.activeWorkout == nil ? "Gym starten" : "Workout fortsetzen",
-          subtitle: store.activeWorkout == nil
-            ? (store.todayPlannedWorkout?.title ?? store.currentWorkoutPreview.title)
-            : "Aktive Session öffnen",
-          systemImage: "dumbbell.fill",
-          accent: GainsColor.lime,
-          action: {
-            navigation.preferredWorkoutWorkspace = .kraft
-            selectedWorkspace = .kraft
-            startOrResumeTodayWorkout()
-          }
-        )
-
-        quickStartCard(
-          title: store.activeRun == nil ? "Run starten" : "Run fortsetzen",
-          subtitle: store.activeRun == nil ? "Kardiotraining direkt öffnen" : "Live-Run öffnen",
-          systemImage: "figure.run",
-          accent: GainsColor.moss,
-          action: {
-            navigation.preferredWorkoutWorkspace = .laufen
-            selectedWorkspace = .laufen
-            startOrResumeRun()
-          }
-        )
-      }
     }
-  }
-
-  private var workspaceHero: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      HStack(spacing: 10) {
-        Image(systemName: selectedWorkspace.systemImage)
-          .font(.system(size: 18, weight: .semibold))
-          .foregroundStyle(GainsColor.moss)
-
-        Text(selectedWorkspace.title)
-          .font(GainsFont.title(26))
-          .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
-      }
-
-      Text(workspaceSubtitle)
-        .font(GainsFont.body(14))
-        .foregroundStyle(GainsColor.softInk)
-        .lineLimit(2)
-    }
-    .padding(18)
-    .gainsCardStyle(GainsColor.lime.opacity(0.14))
   }
 
   @ViewBuilder
@@ -236,37 +180,20 @@ struct WorkoutHubView: View {
     case .laufen:
       runningWorkspace
     case .fortschritt:
-      historyWorkspace
+      planWorkspace
     }
   }
 
   private var kraftWorkspace: some View {
     VStack(alignment: .leading, spacing: 22) {
-      trainingFocusHeader
-      plannerStatusCard
+      strengthHeroSection
       overviewSection
-      todaySection
-      assignedWorkoutsSection
-      collapsibleTrainingSection(
-        title: "Planer einrichten",
-        subtitle: "Frequenz, Ziel, Fokus und freie Tage nur dann bearbeiten, wenn du sie ändern willst",
-        isExpanded: $showsPlannerSetup,
-        content: { plannerSection }
-      )
-      collapsibleTrainingSection(
-        title: "Wochenplan",
-        subtitle: "Split und Trainingstage im Zusammenhang sehen",
-        isExpanded: $showsWeeklyPlan,
-        content: { weeklyPlanSection }
-      )
-      evidenceSection
 
       if let activeWorkout = store.activeWorkout {
         liveSection(activeWorkout)
       }
 
       exercisePreviewSection
-      quickJumpSection
       collapsibleTrainingSection(
         title: "Workout-Bibliothek",
         subtitle: "Eigene und vorgefertigte Workouts gesammelt statt alles sofort offen",
@@ -283,60 +210,176 @@ struct WorkoutHubView: View {
 
   private var runningWorkspace: some View {
     VStack(alignment: .leading, spacing: 22) {
-      evidenceSection
-      runningSummarySection
       runningStarterSection
-      runningInsightSection
+      runningSummarySection
 
       if store.activeRun != nil {
         runningLiveSection
       }
 
-      runningTemplatesSection
+      runningInsightSection
       runningRecordsSection
-      runningHistorySection
+      collapsibleTrainingSection(
+        title: "Run-Templates",
+        subtitle: "Easy, Tempo, Long Run und Recovery nur aufklappen, wenn du eine Vorlage brauchst",
+        isExpanded: $showsRunningTemplates,
+        content: { runningTemplatesSection }
+      )
+      collapsibleTrainingSection(
+        title: "Run-History",
+        subtitle: "Letzte Läufe und Wiederholen-Aktionen gesammelt am Ende",
+        isExpanded: $showsRunningHistory,
+        content: { runningHistorySection }
+      )
     }
   }
 
-  @ViewBuilder
-  private var evidenceSection: some View {
-    if let recommendation = store.studyBackedRecommendations.first {
-      VStack(alignment: .leading, spacing: 12) {
-        SlashLabel(
-          parts: ["STUDIEN", "BASIS"], primaryColor: GainsColor.lime,
-          secondaryColor: GainsColor.softInk)
+  private var strengthHeroSection: some View {
+    let today = store.todayPlannedDay
+    let plan = today.workoutPlan ?? store.todayPlannedWorkout ?? store.currentWorkoutPreview
+    let isLive = store.activeWorkout != nil
+    let title: String
+    let eyebrowParts: [String]
+    let primaryTitle: String
+    let secondaryTitle: String
 
-        VStack(alignment: .leading, spacing: 14) {
-          Text(recommendation.title)
-            .font(GainsFont.title(22))
-            .foregroundStyle(GainsColor.ink)
+    switch today.status {
+    case .planned:
+      title = plan.title.uppercased()
+      eyebrowParts = ["KRAFT", "HEUTE", today.dayLabel.uppercased()]
+      primaryTitle = isLive ? "Workout weiter tracken" : "Workout starten"
+      secondaryTitle = "Bibliothek"
+    case .rest:
+      title = "RECOVERY DAY"
+      eyebrowParts = ["KRAFT", "RECOVERY", today.dayLabel.uppercased()]
+      primaryTitle = "Wochenplan öffnen"
+      secondaryTitle = "Optionales Workout"
+    case .flexible:
+      title = "FLEX DAY"
+      eyebrowParts = ["KRAFT", "OPTIONAL", today.dayLabel.uppercased()]
+      primaryTitle = isLive ? "Workout weiter tracken" : "Optionales Workout starten"
+      secondaryTitle = "Wochenplan"
+    }
+
+    return VStack(alignment: .leading, spacing: 18) {
+      HStack(alignment: .top, spacing: 14) {
+        VStack(alignment: .leading, spacing: 8) {
+          SlashLabel(
+            parts: eyebrowParts,
+            primaryColor: GainsColor.lime,
+            secondaryColor: GainsColor.card.opacity(0.7)
+          )
+
+          Text(title)
+            .font(GainsFont.display(30))
+            .foregroundStyle(GainsColor.card)
             .lineLimit(2)
+            .minimumScaleFactor(0.8)
+        }
 
-          Text(recommendation.scenario)
-            .font(GainsFont.label(10))
-            .tracking(1.8)
-            .foregroundStyle(GainsColor.moss)
-            .lineLimit(1)
+        Spacer()
 
-          VStack(alignment: .leading, spacing: 8) {
-            ForEach(recommendation.sources) { source in
-              HStack {
-                Text(source.title)
-                  .font(GainsFont.label(10))
-                  .tracking(1.5)
-                  .foregroundStyle(GainsColor.ink)
-                  .lineLimit(1)
-                Spacer()
-              }
-              .padding(12)
-              .background(GainsColor.background.opacity(0.75))
-              .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
+        Text(isLive ? "LIVE" : (today.status == .rest ? "REST" : "START"))
+          .font(GainsFont.label(10))
+          .tracking(1.5)
+          .foregroundStyle(today.status == .rest ? GainsColor.ink : GainsColor.onLime)
+          .padding(.horizontal, 12)
+          .frame(height: 32)
+          .background(today.status == .rest ? GainsColor.card : GainsColor.lime)
+          .clipShape(Capsule())
+      }
+
+      Text(todayHeadline(for: today))
+        .font(GainsFont.body(14))
+        .foregroundStyle(GainsColor.card.opacity(0.78))
+        .lineLimit(3)
+
+      HStack(spacing: 10) {
+        switch today.status {
+        case .planned:
+          darkMetricCard(title: "Übungen", value: "\(plan.exercises.count)", subtitle: plan.focus)
+          darkMetricCard(title: "Dauer", value: "\(plan.estimatedDurationMinutes)", subtitle: "Min")
+          darkMetricCard(title: "Split", value: plan.split, subtitle: "Fokus")
+        case .rest:
+          darkMetricCard(title: "Woche", value: "\(store.weeklySessionsCompleted)", subtitle: "Sessions")
+          darkMetricCard(title: "Recovery", value: "\(store.restDaysCount)", subtitle: "Freie Tage")
+          darkMetricCard(title: "Volumen", value: String(format: "%.1f t", store.weeklyVolumeTons), subtitle: "7 Tage")
+        case .flexible:
+          darkMetricCard(
+            title: "Ziel", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)",
+            subtitle: "Sessions")
+          darkMetricCard(title: "Volumen", value: String(format: "%.1f t", store.weeklyVolumeTons), subtitle: "7 Tage")
+          darkMetricCard(title: "Option", value: plan.split, subtitle: "Nächster Fit")
+        }
+      }
+
+      HStack(spacing: 10) {
+        Button {
+          switch today.status {
+          case .planned:
+            startOrResumeTodayWorkout()
+          case .rest:
+            selectedWorkspace = .fortschritt
+          case .flexible:
+            startOrResumeTodayWorkout()
+          }
+        } label: {
+          trainHeroActionButton(
+            title: primaryTitle,
+            systemImage: today.status == .rest ? "calendar" : "play.fill",
+            isPrimary: true
+          )
+        }
+        .buttonStyle(.plain)
+
+        Button {
+          switch today.status {
+          case .planned:
+            showsTrainingLibrary = true
+          case .rest, .flexible:
+            selectedWorkspace = .fortschritt
+          }
+        } label: {
+          trainHeroActionButton(
+            title: secondaryTitle,
+            systemImage: today.status == .planned ? "square.stack.3d.up.fill" : "arrow.right",
+            isPrimary: false
+          )
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .padding(20)
+    .background(GainsColor.ink)
+    .overlay(
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+  }
+
+  private var planWorkspace: some View {
+    VStack(alignment: .leading, spacing: 22) {
+      plannerStatusCard
+      weeklyPlanSection
+      plannerSection
+      collapsibleTrainingSection(
+        title: "Workout-Zuweisungen",
+        subtitle: "Konkrete Workouts einzelnen Trainingstagen zuordnen",
+        isExpanded: $showsWeeklyPlan,
+        content: { assignedWorkoutsSection }
+      )
+      collapsibleTrainingSection(
+        title: "Trainingsverlauf",
+        subtitle: "Workouts und Läufe bleiben prüfbar, aber nicht im Weg",
+        isExpanded: $showsTrainingHistory,
+        content: {
+          VStack(alignment: .leading, spacing: 18) {
+            historyOverviewSection
+            historySection
           }
         }
-        .padding(18)
-        .gainsCardStyle()
-      }
+      )
     }
   }
 
@@ -383,61 +426,40 @@ struct WorkoutHubView: View {
     }
   }
 
-  private var libraryWorkspace: some View {
-    VStack(alignment: .leading, spacing: 22) {
-      creationSection
-      ownWorkoutsSection
-      templateWorkoutsSection
-    }
-  }
-
   private var quickTrainingSummaryRow: some View {
     HStack(spacing: 10) {
-      plannerMetricCard(
-        title: "Heute", value: store.todayPlannedWorkout?.split ?? "Frei", subtitle: "Fokus")
-      plannerMetricCard(
-        title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)", subtitle: "Sessions")
-      plannerMetricCard(
-        title: "Läufe", value: "\(store.weeklyRunCount)", subtitle: "7 Tage")
-    }
-  }
-
-  private var workspaceSubtitle: String {
-    switch selectedWorkspace {
-    case .kraft:
-      return "Heute trainieren, Woche planen und Workouts klarer verwalten."
-    case .laufen:
-      return "Runs, Templates und Fortschritt kompakter und schneller erfassbar."
-    case .fortschritt:
-      return "Workouts und Läufe in einem Verlauf, ohne unnötigen Ballast."
-    }
-  }
-
-  private var trainingFocusHeader: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["HEUTE", "TRAINING"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      VStack(alignment: .leading, spacing: 10) {
-        Text(store.plannerSummaryHeadline)
-          .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.ink)
-
-        Text("Plan, heutiges Workout und Bibliothek greifen hier jetzt klarer ineinander.")
-          .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.softInk)
-          .lineLimit(3)
+      switch selectedWorkspace {
+      case .kraft:
+        plannerMetricCard(
+          title: "Heute", value: store.todayPlannedWorkout?.split ?? store.todayPlannedDay.title,
+          subtitle: "Fokus")
+        plannerMetricCard(
+          title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)",
+          subtitle: "Sessions")
+        plannerMetricCard(
+          title: "Volumen", value: String(format: "%.1f t", store.weeklyVolumeTons),
+          subtitle: "7 Tage")
+      case .laufen:
+        plannerMetricCard(
+          title: "Distanz", value: String(format: "%.1f km", store.weeklyRunDistanceKm),
+          subtitle: "7 Tage")
+        plannerMetricCard(
+          title: "Zeit", value: "\(store.weeklyRunDurationMinutes) Min",
+          subtitle: "Bewegung")
+        plannerMetricCard(
+          title: "Pace", value: runPaceLabel(store.averageRunPaceSeconds),
+          subtitle: "Ø")
+      case .fortschritt:
+        plannerMetricCard(
+          title: "Tage", value: "\(store.trainingDaysCount)",
+          subtitle: "geplant")
+        plannerMetricCard(
+          title: "Zugewiesen", value: "\(store.plannerAssignedDaysCount)",
+          subtitle: "fix")
+        plannerMetricCard(
+          title: "Frei", value: "\(store.restDaysCount)",
+          subtitle: "Recovery")
       }
-      .padding(18)
-      .gainsCardStyle()
-    }
-  }
-
-  private var historyWorkspace: some View {
-    VStack(alignment: .leading, spacing: 22) {
-      historyOverviewSection
-      historySection
     }
   }
 
@@ -487,17 +509,29 @@ struct WorkoutHubView: View {
 
   private var runningStarterSection: some View {
     VStack(alignment: .leading, spacing: 14) {
-      SlashLabel(
-        parts: ["RUN", "START"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
-
       VStack(alignment: .leading, spacing: 10) {
+        SlashLabel(
+          parts: ["LAUFEN", "QUICK START"],
+          primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.card.opacity(0.72)
+        )
+
         Text(store.runningHeadline)
           .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.ink)
+          .foregroundStyle(GainsColor.card)
 
         Text(store.runningDescription)
           .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.softInk)
+          .foregroundStyle(GainsColor.card.opacity(0.78))
+          .lineLimit(3)
+
+        HStack(spacing: 10) {
+          darkMetricCard(
+            title: "7 Tage", value: String(format: "%.1f", store.weeklyRunDistanceKm),
+            subtitle: "km")
+          darkMetricCard(title: "Runs", value: "\(store.weeklyRunCount)", subtitle: "Woche")
+          darkMetricCard(title: "Pace", value: runPaceLabel(store.averageRunPaceSeconds), subtitle: "Ø")
+        }
 
         HStack(spacing: 10) {
           Button {
@@ -506,30 +540,39 @@ struct WorkoutHubView: View {
             Text(store.activeRun == nil ? "Lauf starten" : "Lauf weiter tracken")
               .font(GainsFont.label(12))
               .tracking(1.6)
-              .foregroundStyle(GainsColor.lime)
+              .foregroundStyle(GainsColor.onLime)
               .frame(maxWidth: .infinity)
               .frame(height: 48)
-              .background(GainsColor.ink)
+              .background(GainsColor.lime)
               .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
           }
           .buttonStyle(.plain)
 
           Button {
-            store.shareLatestRun()
+            selectedWorkspace = .fortschritt
           } label: {
-            Text("Teilen")
+            Text("Plan")
               .font(GainsFont.label(12))
               .tracking(1.6)
-              .foregroundStyle(GainsColor.ink)
+              .foregroundStyle(GainsColor.card)
               .frame(width: 96, height: 48)
-              .background(GainsColor.lime)
+              .background(GainsColor.card.opacity(0.1))
+              .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                  .stroke(GainsColor.card.opacity(0.22), lineWidth: 1)
+              )
               .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
           }
           .buttonStyle(.plain)
         }
       }
-      .padding(18)
-      .gainsCardStyle()
+      .padding(20)
+      .background(GainsColor.ink)
+      .overlay(
+        RoundedRectangle(cornerRadius: 28, style: .continuous)
+          .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
   }
 
@@ -760,61 +803,43 @@ struct WorkoutHubView: View {
     }
   }
 
-  private var planningFocusSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      SlashLabel(
-        parts: ["PLAN", "SETUP"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
-
-      VStack(alignment: .leading, spacing: 10) {
-        Text("Plane deine Woche in Ruhe")
-          .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.ink)
-
-        Text(
-          "Lege Frequenz, freie Tage und Session-Länge fest. Eigene Trainingspläne verwaltest du separat im Bereich Workouts."
-        )
-        .font(GainsFont.body(14))
-        .foregroundStyle(GainsColor.softInk)
-
-        Button {
-          selectedWorkspace = .kraft
-        } label: {
-          Text("ZU DEINEN WORKOUTS")
-            .font(GainsFont.label(12))
-            .tracking(1.6)
-            .foregroundStyle(GainsColor.lime)
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .background(GainsColor.ink)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-        .buttonStyle(.plain)
-      }
-      .padding(18)
-      .gainsCardStyle()
-    }
-  }
-
   private var plannerStatusCard: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
-        parts: ["PLANER", "STATUS"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+        parts: ["PLAN", "STATUS"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.card.opacity(0.72))
 
       VStack(alignment: .leading, spacing: 10) {
         Text(store.plannerSummaryHeadline)
           .font(GainsFont.title(22))
-          .foregroundStyle(GainsColor.ink)
+          .foregroundStyle(GainsColor.card)
           .lineLimit(2)
 
         Text(store.plannerSummaryDescription)
           .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.softInk)
+          .foregroundStyle(GainsColor.card.opacity(0.78))
           .lineLimit(3)
       }
-      .padding(18)
-      .gainsCardStyle(GainsColor.lime.opacity(0.28))
+
+      HStack(spacing: 10) {
+        darkMetricCard(
+          title: "Einheiten", value: "\(store.trainingDaysCount)",
+          subtitle: "pro Woche")
+        darkMetricCard(
+          title: "Dauer", value: "\(store.plannerSettings.preferredSessionLength)",
+          subtitle: "Min")
+        darkMetricCard(
+          title: "Fokus", value: store.plannerSettings.trainingFocus.title,
+          subtitle: store.plannerSettings.goal.title)
+      }
     }
+    .padding(20)
+    .background(GainsColor.ink)
+    .overlay(
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
   }
 
   private var assignedWorkoutsSection: some View {
@@ -834,95 +859,6 @@ struct WorkoutHubView: View {
           assignedWorkoutCard(for: day)
         }
       }
-    }
-  }
-
-  private var creationSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      SlashLabel(
-        parts: ["ERSTELLEN", "WORKOUT"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      VStack(alignment: .leading, spacing: 10) {
-        Text("Baue dir eigene Trainingspläne")
-          .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.ink)
-
-        Text(
-          "Erstelle Upper-, Lower- oder Push/Pull/Beine-Workouts, wähle Übungen aus und speichere alles direkt in deiner Workout-Bibliothek."
-        )
-        .font(GainsFont.body())
-        .foregroundStyle(GainsColor.softInk)
-
-        Button {
-          isShowingWorkoutBuilder = true
-        } label: {
-          Text("WORKOUT ERSTELLEN")
-            .font(GainsFont.label(12))
-            .tracking(1.8)
-            .foregroundStyle(GainsColor.lime)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(GainsColor.ink)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-        .buttonStyle(.plain)
-      }
-      .padding(18)
-      .gainsCardStyle()
-    }
-  }
-
-  private var todaySection: some View {
-    let today = store.todayPlannedDay
-
-    return VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["HEUTE", "GEPLANT"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      VStack(alignment: .leading, spacing: 14) {
-        HStack(alignment: .top) {
-          VStack(alignment: .leading, spacing: 8) {
-            Text(today.title.uppercased())
-              .font(GainsFont.display(28))
-              .foregroundStyle(GainsColor.ink)
-
-            if let plan = today.workoutPlan {
-              Text(
-                "\(plan.exercises.count) Übungen · \(store.plannerSettings.preferredSessionLength) Min · \(plan.focus)"
-              )
-              .font(GainsFont.body())
-              .foregroundStyle(GainsColor.softInk)
-            } else {
-              Text(today.focus)
-                .font(GainsFont.body())
-                .foregroundStyle(GainsColor.softInk)
-            }
-          }
-
-          Spacer()
-
-          if today.workoutPlan != nil {
-            Button(action: startOrResumeTodayWorkout) {
-              Text(store.activeWorkout == nil ? "START →" : "WEITER →")
-                .font(GainsFont.label())
-                .tracking(1.4)
-                .foregroundStyle(GainsColor.lime)
-                .frame(width: 110, height: 46)
-                .background(GainsColor.ink)
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
-          }
-        }
-
-        Text(todayHeadline(for: today))
-          .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.softInk)
-      }
-      .padding(18)
-      .gainsCardStyle(todayCardBackground(for: today))
     }
   }
 
@@ -1238,36 +1174,6 @@ struct WorkoutHubView: View {
     }
   }
 
-  private var quickJumpSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["SCHNELL", "WEITER"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      VStack(spacing: 10) {
-        HStack(spacing: 10) {
-          quickJumpButton(title: "Laufen", subtitle: "Run-Bereich öffnen") {
-            selectedWorkspace = .laufen
-          }
-
-          quickJumpButton(title: "Trainingsplaner", subtitle: "Woche einstellen") {
-            selectedWorkspace = .kraft
-          }
-        }
-
-        HStack(spacing: 10) {
-          quickJumpButton(title: "Workouts", subtitle: "Pläne öffnen") {
-            selectedWorkspace = .kraft
-          }
-
-          quickJumpButton(title: "Verlauf", subtitle: "Sessions prüfen") {
-            selectedWorkspace = .fortschritt
-          }
-        }
-      }
-    }
-  }
-
   private func collapsibleTrainingSection<Content: View>(
     title: String,
     subtitle: String,
@@ -1514,6 +1420,31 @@ struct WorkoutHubView: View {
     .gainsCardStyle()
   }
 
+  private func darkMetricCard(title: String, value: String, subtitle: String) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.card.opacity(0.58))
+
+      Text(value)
+        .font(GainsFont.title(17))
+        .foregroundStyle(GainsColor.card)
+        .lineLimit(1)
+        .minimumScaleFactor(0.65)
+
+      Text(subtitle)
+        .font(GainsFont.body(11))
+        .foregroundStyle(GainsColor.card.opacity(0.68))
+        .lineLimit(1)
+        .minimumScaleFactor(0.72)
+    }
+    .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
+    .padding(12)
+    .background(GainsColor.card.opacity(0.08))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+  }
+
   private var plannerSection: some View {
     VStack(alignment: .leading, spacing: 14) {
       VStack(alignment: .leading, spacing: 16) {
@@ -1730,17 +1661,6 @@ struct WorkoutHubView: View {
     }
   }
 
-  private func todayCardBackground(for day: WorkoutDayPlan) -> Color {
-    switch day.status {
-    case .planned:
-      return GainsColor.card
-    case .rest:
-      return GainsColor.background.opacity(0.9)
-    case .flexible:
-      return GainsColor.lime.opacity(0.22)
-    }
-  }
-
   private func backgroundForWeekdayCard(_ day: WorkoutDayPlan) -> Color {
     switch day.status {
     case .planned:
@@ -1762,6 +1682,11 @@ struct WorkoutHubView: View {
       Text(value)
         .font(GainsFont.title(20))
         .foregroundStyle(GainsColor.ink)
+
+      Text(subtitle)
+        .font(GainsFont.body(12))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(14)
@@ -1774,60 +1699,105 @@ struct WorkoutHubView: View {
     let iconColor = isSelected ? GainsColor.moss : GainsColor.softInk
     let backgroundColor = isSelected ? GainsColor.lime : GainsColor.card
 
-    return VStack(alignment: .leading, spacing: 8) {
-      Image(systemName: workspace.systemImage)
-        .font(.system(size: 16, weight: .semibold))
-        .foregroundStyle(iconColor)
+    return VStack(alignment: .leading, spacing: 10) {
+      HStack(alignment: .center, spacing: 10) {
+        Image(systemName: workspace.systemImage)
+          .font(.system(size: 16, weight: .semibold))
+          .foregroundStyle(iconColor)
 
-      Text(workspace.title)
-        .font(GainsFont.title(16))
-        .foregroundStyle(titleColor)
+        Text(workspace.title)
+          .font(GainsFont.title(16))
+          .foregroundStyle(titleColor)
+
+        Spacer()
+      }
+
+      Text(workspaceCardHeadline(for: workspace))
+        .font(GainsFont.body(13))
+        .foregroundStyle(isSelected ? GainsColor.ink.opacity(0.9) : GainsColor.softInk)
+        .lineLimit(2)
+
+      Text(workspaceCardValue(for: workspace))
+        .font(GainsFont.label(9))
+        .tracking(1.6)
+        .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.ink.opacity(0.62))
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
     }
-    .frame(width: 154)
-    .frame(minHeight: 84, alignment: .leading)
+    .frame(width: 176)
+    .frame(minHeight: 116, alignment: .leading)
     .padding(14)
     .background(backgroundColor)
     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
   }
 
-  private func quickStartCard(
-    title: String,
-    subtitle: String,
-    systemImage: String,
-    accent: Color,
-    action: @escaping () -> Void
-  ) -> some View {
-    Button(action: action) {
-      VStack(alignment: .leading, spacing: 12) {
-        Image(systemName: systemImage)
-          .font(.system(size: 18, weight: .semibold))
-          .foregroundStyle(accent == GainsColor.lime ? GainsColor.moss : GainsColor.ink)
-          .frame(width: 42, height: 42)
-          .background(accent.opacity(accent == GainsColor.lime ? 0.24 : 0.88))
-          .clipShape(Circle())
-
-        Text(title)
-          .font(GainsFont.title(19))
-          .foregroundStyle(GainsColor.ink)
-          .lineLimit(2)
-
-        Text(subtitle)
-          .font(GainsFont.body(13))
-          .foregroundStyle(GainsColor.softInk)
-          .lineLimit(2)
-
-        Spacer(minLength: 0)
-
-        Text("Direkt öffnen")
-          .font(GainsFont.label(10))
-          .tracking(1.4)
-          .foregroundStyle(GainsColor.moss)
-      }
-      .frame(maxWidth: .infinity, minHeight: 156, alignment: .leading)
-      .padding(16)
-      .gainsCardStyle()
+  private var trainingHeaderTitle: String {
+    switch selectedWorkspace {
+    case .kraft:
+      return store.activeWorkout == nil ? "Kraft fokussieren" : "Workout ist live"
+    case .laufen:
+      return store.activeRun == nil ? "Run sauber starten" : "Run ist live"
+    case .fortschritt:
+      return "Woche sauber planen"
     }
-    .buttonStyle(.plain)
+  }
+
+  private var trainingHeaderSubtitle: String {
+    switch selectedWorkspace {
+    case .kraft:
+      return "\(store.todayPlannedDay.title) heute. Stärke-Flow, Wochenfortschritt und Bibliothek bleiben in einem klaren Ablauf."
+    case .laufen:
+      return "Laufstart, aktuelle Form und Vorlagen sind gebündelt, damit Cardio nicht wie ein zweiter Modus wirkt."
+    case .fortschritt:
+      return "Session-Frequenz, Tageslogik und Workout-Zuweisungen greifen hier direkt ineinander."
+    }
+  }
+
+  private func workspaceCardHeadline(for workspace: WorkoutWorkspace) -> String {
+    switch workspace {
+    case .kraft:
+      return store.todayPlannedWorkout?.title ?? store.todayPlannedDay.title
+    case .laufen:
+      return store.activeRun == nil ? "Cardio heute" : "Lauf aktiv"
+    case .fortschritt:
+      return store.plannerSummaryHeadline
+    }
+  }
+
+  private func workspaceCardValue(for workspace: WorkoutWorkspace) -> String {
+    switch workspace {
+    case .kraft:
+      return "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) SESSIONS"
+    case .laufen:
+      return store.activeRun == nil
+        ? "\(String(format: "%.1f", store.weeklyRunDistanceKm)) KM / 7 TAGE"
+        : "\(store.weeklyRunCount) RUNS / DIESE WOCHE"
+    case .fortschritt:
+      return "\(store.plannerAssignedDaysCount) FIX ZUGEWIESEN"
+    }
+  }
+
+  private func trainHeroActionButton(title: String, systemImage: String, isPrimary: Bool) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: systemImage)
+        .font(.system(size: 12, weight: .semibold))
+      Text(title)
+        .font(GainsFont.label(11))
+        .tracking(1.3)
+        .lineLimit(1)
+        .minimumScaleFactor(0.82)
+      Spacer(minLength: 0)
+    }
+    .foregroundStyle(isPrimary ? GainsColor.onLime : GainsColor.card)
+    .frame(maxWidth: .infinity)
+    .frame(height: 46)
+    .padding(.horizontal, 14)
+    .background(isPrimary ? GainsColor.lime : GainsColor.card.opacity(0.08))
+    .overlay(
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .stroke(isPrimary ? GainsColor.lime : GainsColor.card.opacity(0.22), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
   private func runPaceLabel(_ seconds: Int) -> String {
@@ -1835,22 +1805,6 @@ struct WorkoutHubView: View {
     let minutes = seconds / 60
     let seconds = seconds % 60
     return String(format: "%d:%02d /km", minutes, seconds)
-  }
-
-  private func quickJumpButton(title: String, subtitle: String, action: @escaping () -> Void)
-    -> some View
-  {
-    Button(action: action) {
-      VStack(alignment: .leading, spacing: 8) {
-        Text(title)
-          .font(GainsFont.title(16))
-          .foregroundStyle(GainsColor.ink)
-      }
-      .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
-      .padding(14)
-      .gainsCardStyle()
-    }
-    .buttonStyle(.plain)
   }
 
   private func workoutSourceBadge(_ source: WorkoutPlanSource) -> some View {

@@ -27,8 +27,8 @@ struct CommunityView: View {
     GainsScreen {
       VStack(alignment: .leading, spacing: 22) {
         screenHeader(
-          eyebrow: "COMMUNITY / SOCIAL",
-          title: "Fortschritt, den man teilt",
+          eyebrow: "CREW / CONNECTION",
+          title: "Fortschritt im Feed",
           subtitle: viewModel.headline
         )
 
@@ -87,6 +87,7 @@ struct CommunityView: View {
     case .feed:
       VStack(alignment: .leading, spacing: 18) {
         featuredFeedHeader
+        challengeCard
         filterSection
         feedSection(
           emptyTitle: "Noch nichts in deiner For You Page",
@@ -103,7 +104,6 @@ struct CommunityView: View {
           emptyDescription:
             "Teile dein letztes Workout, deinen letzten Lauf oder ein Progress-Update."
         )
-        composerSection
       }
     case .circles:
       VStack(alignment: .leading, spacing: 22) {
