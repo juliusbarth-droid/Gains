@@ -49,39 +49,63 @@ struct ContentView: View {
           Button {
             navigation.presentCapture(kind: suggestedCaptureKind)
           } label: {
-            HStack(spacing: 10) {
-              Image(systemName: suggestedCaptureKind.systemImage)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(GainsColor.onLime)
-                .frame(width: 34, height: 34)
-                .background(GainsColor.onLime.opacity(0.12))
-                .clipShape(Circle())
+            HStack(spacing: 12) {
+              ZStack {
+                Circle()
+                  .fill(GainsColor.onLime.opacity(0.16))
+                  .frame(width: 38, height: 38)
 
-              VStack(alignment: .leading, spacing: 2) {
+                Image(systemName: suggestedCaptureKind.systemImage)
+                  .font(.system(size: 15, weight: .semibold))
+                  .foregroundStyle(GainsColor.onLime)
+              }
+
+              VStack(alignment: .leading, spacing: 3) {
                 Text("Schnell erfassen")
                   .font(GainsFont.label(10))
-                  .tracking(1.2)
+                  .tracking(1.4)
                   .foregroundStyle(GainsColor.onLimeSecondary)
 
                 Text(captureCTA)
-                  .font(GainsFont.title(15))
+                  .font(GainsFont.title(16))
                   .foregroundStyle(GainsColor.onLime)
                   .lineLimit(1)
               }
 
-              Image(systemName: "plus")
-                .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(GainsColor.onLime)
+              Spacer(minLength: 8)
+
+              ZStack {
+                Circle()
+                  .fill(GainsColor.card.opacity(0.22))
+                  .frame(width: 30, height: 30)
+
+                Image(systemName: "plus")
+                  .font(.system(size: 12, weight: .bold))
+                  .foregroundStyle(GainsColor.onLime)
+              }
             }
-            .padding(.horizontal, 14)
-            .frame(height: 58)
-            .background(GainsColor.lime)
-            .overlay(
-              RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(GainsColor.card.opacity(0.7), lineWidth: 1)
+            .padding(.horizontal, 16)
+            .frame(width: 188, height: 62)
+            .background(
+              LinearGradient(
+                colors: [GainsColor.lime, GainsColor.lime.opacity(0.92)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+              )
             )
-            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .shadow(color: GainsColor.lime.opacity(0.14), radius: 12, x: 0, y: 8)
+            .overlay(alignment: .topTrailing) {
+              Circle()
+                .fill(GainsColor.card.opacity(0.18))
+                .frame(width: 52, height: 52)
+                .blur(radius: 10)
+                .offset(x: 8, y: -8)
+            }
+            .overlay(
+              RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(GainsColor.card.opacity(0.55), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .shadow(color: GainsColor.lime.opacity(0.16), radius: 14, x: 0, y: 10)
           }
           .buttonStyle(.plain)
           .accessibilityLabel("\(captureCTA) erfassen")
