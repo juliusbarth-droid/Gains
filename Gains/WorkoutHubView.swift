@@ -106,6 +106,8 @@ struct WorkoutHubView: View {
   @State private var showsTrainingLibrary = false
   @State private var showsWeeklyPlan = false
   @State private var showsPlannerSetup = false
+  @State private var showsRunningInsights = false
+  @State private var showsRunningRecords = false
   @State private var showsRunningTemplates = false
   @State private var showsRunningHistory = false
   @State private var showsTrainingHistory = false
@@ -218,8 +220,18 @@ struct WorkoutHubView: View {
         runningLiveSection
       }
 
-      runningInsightSection
-      runningRecordsSection
+      collapsibleTrainingSection(
+        title: "Run-Insights",
+        subtitle: "Volumen, Pace und schneller Restart nur dann sichtbar, wenn du tiefer in deine Läufe gehst",
+        isExpanded: $showsRunningInsights,
+        content: { runningInsightSection }
+      )
+      collapsibleTrainingSection(
+        title: "Records",
+        subtitle: "Bestzeiten und längste Läufe bleiben greifbar, aber blockieren nicht den Start",
+        isExpanded: $showsRunningRecords,
+        content: { runningRecordsSection }
+      )
       collapsibleTrainingSection(
         title: "Run-Templates",
         subtitle: "Easy, Tempo, Long Run und Recovery nur aufklappen, wenn du eine Vorlage brauchst",
