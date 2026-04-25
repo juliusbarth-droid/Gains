@@ -11,15 +11,15 @@ enum AppTab: Hashable {
   var title: String {
     switch self {
     case .home:
-      return "Today"
+      return "Home"
     case .workout:
-      return "Train"
+      return "Training"
     case .recipes:
-      return "Fuel"
+      return "Ernährung"
     case .progress:
-      return "Body"
+      return "Fortschritt"
     case .community:
-      return "Crew"
+      return "Community"
     }
   }
 }
