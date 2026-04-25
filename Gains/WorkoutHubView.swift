@@ -105,6 +105,7 @@ struct WorkoutHubView: View {
   @State private var selectedHistorySurface: HistorySurface = .all
   @State private var showsTrainingLibrary = false
   @State private var showsWeeklyPlan = false
+  @State private var showsPlannerSetup = false
   @State private var showsRunningTemplates = false
   @State private var showsRunningHistory = false
   @State private var showsTrainingHistory = false
@@ -362,7 +363,12 @@ struct WorkoutHubView: View {
     VStack(alignment: .leading, spacing: 22) {
       plannerStatusCard
       weeklyPlanSection
-      plannerSection
+      collapsibleTrainingSection(
+        title: "Planer bearbeiten",
+        subtitle: "Frequenz, Fokus, Ziel und freie Tage nur dann öffnen, wenn du wirklich umplanst",
+        isExpanded: $showsPlannerSetup,
+        content: { plannerSection }
+      )
       collapsibleTrainingSection(
         title: "Workout-Zuweisungen",
         subtitle: "Konkrete Workouts einzelnen Trainingstagen zuordnen",

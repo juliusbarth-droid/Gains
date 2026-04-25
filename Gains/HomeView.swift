@@ -12,6 +12,8 @@ struct HomeView: View {
   @State private var isShowingProgress = false
   @State private var showsTodayDetails = false
   @State private var showsWeeklyInsights = false
+  @State private var showsCheckInRituals = false
+  @State private var showsWeekRhythm = false
   @State private var arrangingPlan: WorkoutPlan?
 
   var body: some View {
@@ -24,8 +26,18 @@ struct HomeView: View {
           titleBlock
           quickStartRow
           todaySection
-          checkInRitualsSection
-          weekRhythmSection
+          collapsibleSection(
+            title: "Check-in Rituale",
+            subtitle: "Tagesroutinen und kleine Haken nur dann öffnen, wenn du sie wirklich abarbeiten willst",
+            isExpanded: $showsCheckInRituals,
+            content: { checkInRitualsSection }
+          )
+          collapsibleSection(
+            title: "Wochenrhythmus",
+            subtitle: "Streak, Sessions und Wochenkalender gesammelt statt dauerhaft im Fokus",
+            isExpanded: $showsWeekRhythm,
+            content: { weekRhythmSection }
+          )
           collapsibleSection(
             title: "Details für heute",
             subtitle: "Ernährung, Body-Snapshot und weitere Statuskarten nur bei Bedarf",
@@ -434,10 +446,10 @@ struct HomeView: View {
       .background(gradient)
       .overlay(alignment: .topTrailing) {
         Circle()
-          .fill(glowColor)
-          .frame(width: 120, height: 120)
-          .blur(radius: 48)
-          .offset(x: 35, y: -35)
+          .fill(glowColor.opacity(0.55))
+          .frame(width: 98, height: 98)
+          .blur(radius: 42)
+          .offset(x: 28, y: -28)
           .allowsHitTesting(false)
       }
       .overlay(
@@ -445,7 +457,7 @@ struct HomeView: View {
           .stroke(foreground.opacity(0.10), lineWidth: 1)
       )
       .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-      .shadow(color: glowColor.opacity(0.35), radius: 18, x: 0, y: 12)
+      .shadow(color: glowColor.opacity(0.18), radius: 12, x: 0, y: 8)
     }
     .buttonStyle(.plain)
   }
