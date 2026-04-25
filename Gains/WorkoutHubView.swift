@@ -234,7 +234,7 @@ struct WorkoutHubView: View {
       )
       collapsibleTrainingSection(
         title: "Run-Templates",
-        subtitle: "Easy, Tempo, Long Run und Recovery nur aufklappen, wenn du eine Vorlage brauchst",
+        subtitle: "Easy, Tempo und Long Run nur aufklappen, wenn du eine Vorlage brauchst",
         isExpanded: $showsRunningTemplates,
         content: { runningTemplatesSection }
       )
@@ -263,10 +263,10 @@ struct WorkoutHubView: View {
       primaryTitle = isLive ? "Workout weiter tracken" : "Workout starten"
       secondaryTitle = "Bibliothek"
     case .rest:
-      title = "RECOVERY DAY"
-      eyebrowParts = ["KRAFT", "RECOVERY", today.dayLabel.uppercased()]
+      title = "FREIER TAG"
+      eyebrowParts = ["KRAFT", "FREI", today.dayLabel.uppercased()]
       primaryTitle = "Wochenplan öffnen"
-      secondaryTitle = "Optionales Workout"
+      secondaryTitle = "Workout wählen"
     case .flexible:
       title = "FLEX DAY"
       eyebrowParts = ["KRAFT", "OPTIONAL", today.dayLabel.uppercased()]
@@ -315,7 +315,7 @@ struct WorkoutHubView: View {
           darkMetricCard(title: "Split", value: plan.split, subtitle: "Fokus")
         case .rest:
           darkMetricCard(title: "Woche", value: "\(store.weeklySessionsCompleted)", subtitle: "Sessions")
-          darkMetricCard(title: "Recovery", value: "\(store.restDaysCount)", subtitle: "Freie Tage")
+          darkMetricCard(title: "Frei", value: "\(store.restDaysCount)", subtitle: "Tage")
           darkMetricCard(title: "Volumen", value: String(format: "%.1f t", store.weeklyVolumeTons), subtitle: "7 Tage")
         case .flexible:
           darkMetricCard(
@@ -1672,7 +1672,7 @@ struct WorkoutHubView: View {
       return viewModel.headline
     case .rest:
       return
-        "Heute ist als freier Tag geplant. Fokus auf Recovery, Schritte und entspanntes Dranbleiben."
+        "Heute ist als freier Tag geplant. Halte nur den Rhythmus mit Schritten, Mobility oder einem spontanen Workout."
     case .flexible:
       return
         "Heute ist flexibel. Du kannst spontan Cardio, Mobility oder ein zusätzliches Workout einbauen."

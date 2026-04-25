@@ -1,6 +1,8 @@
+import PhotosUI
 import SwiftUI
 
 private enum MealCaptureSurface: String, CaseIterable, Identifiable {
+  case photo
   case recipes
   case manual
 
@@ -8,6 +10,8 @@ private enum MealCaptureSurface: String, CaseIterable, Identifiable {
 
   var title: String {
     switch self {
+    case .photo:
+      return "Foto"
     case .recipes:
       return "Rezept wählen"
     case .manual:
@@ -22,10 +26,12 @@ struct CaptureSheet: View {
   @Environment(\.dismiss) private var dismiss
 
   @State private var selectedKind: CaptureKind
-  @State private var selectedMealSurface: MealCaptureSurface = .recipes
+  @State private var selectedMealSurface: MealCaptureSurface = .photo
   @State private var recipeSearchText = ""
   @State private var selectedRecipeGoal: RecipeGoal?
   @State private var selectedRecipe: Recipe?
+  @State private var mealPhotoItem: PhotosPickerItem?
+  @State private var hasSelectedMealPhoto = false
   @State private var mealTitle = ""
   @State private var mealType: RecipeMealType = .lunchDinner
   @State private var calories = ""
@@ -177,6 +183,10 @@ struct CaptureSheet: View {
       .pickerStyle(.segmented)
       .tint(GainsColor.lime)
 
+      if selectedMealSurface == .photo {
+        photoMealCapture
+      }
+
       if selectedMealSurface == .recipes {
         recipeChooser
       }
@@ -243,9 +253,70 @@ struct CaptureSheet: View {
           .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
       }
       .buttonStyle(.plain)
-      .disabled(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-      .opacity(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1)
+      .disabled(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto))
+      .opacity(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto) ? 0.5 : 1)
     }
+  }
+
+  private var photoMealCapture: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      fieldBlock(title: "Meal-Foto") {
+        VStack(alignment: .leading, spacing: 12) {
+          PhotosPicker(selection: $mealPhotoItem, matching: .images) {
+            HStack(spacing: 10) {
+              Image(systemName: hasSelectedMealPhoto ? "photo.fill" : "camera.fill")
+                .font(.system(size: 14, weight: .semibold))
+              Text(hasSelectedMealPhoto ? "Foto wechseln" : "Essensfoto wählen")
+                .font(GainsFont.label(11))
+                .tracking(1.2)
+              Spacer()
+            }
+            .foregroundStyle(GainsColor.ink)
+            .padding(.horizontal, 16)
+            .frame(height: 52)
+            .gainsCardStyle(GainsColor.elevated)
+          }
+          .buttonStyle(.plain)
+
+          Text(hasSelectedMealPhoto ? "Foto ausgewählt. Trage jetzt Kalorien und Makros direkt darunter ein." : "Wähle ein Foto von deinem Essen, dann kannst du die Kalorien sofort aus dem Bild heraus loggen.")
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(3)
+
+          HStack(spacing: 8) {
+            quickMacroPreset(title: "Snack", calories: 250, protein: 15)
+            quickMacroPreset(title: "Meal", calories: 550, protein: 35)
+            quickMacroPreset(title: "Groß", calories: 850, protein: 45)
+          }
+        }
+      }
+    }
+    .onChange(of: mealPhotoItem) { _, newItem in
+      hasSelectedMealPhoto = newItem != nil
+      if mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, newItem != nil {
+        mealTitle = "Foto-Meal"
+      }
+    }
+  }
+
+  private func quickMacroPreset(title: String, calories: Int, protein: Int) -> some View {
+    Button {
+      if mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        mealTitle = title == "Meal" ? "Foto-Meal" : "Foto-Meal \(title)"
+      }
+      self.calories = "\(calories)"
+      self.protein = "\(protein)"
+    } label: {
+      Text(title)
+        .font(GainsFont.label(10))
+        .tracking(1.2)
+        .foregroundStyle(GainsColor.onLime)
+        .padding(.horizontal, 12)
+        .frame(height: 34)
+        .background(GainsColor.lime)
+        .clipShape(Capsule())
+    }
+    .buttonStyle(.plain)
   }
 
   private var recipeChooser: some View {
