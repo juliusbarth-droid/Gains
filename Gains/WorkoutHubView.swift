@@ -850,6 +850,72 @@ struct WorkoutHubView: View {
           title: "Fokus", value: store.plannerSettings.trainingFocus.title,
           subtitle: store.plannerSettings.goal.title)
       }
+
+      HStack(spacing: 10) {
+        Button {
+          showsPlannerSetup = true
+        } label: {
+          trainingActionButton(
+            title: "Plan bearbeiten",
+            subtitle: "Ziel, Frequenz, Split",
+            isPrimary: false
+          )
+        }
+        .buttonStyle(.plain)
+
+        Button {
+          showsWeeklyPlan = true
+        } label: {
+          trainingActionButton(
+            title: store.scheduledPlannerDays.isEmpty ? "Trainingstage setzen" : "Workouts zuweisen",
+            subtitle: store.scheduledPlannerDays.isEmpty ? "Woche vorbereiten" : "Tage konkret machen",
+            isPrimary: true
+          )
+        }
+        .buttonStyle(.plain)
+      }
+
+      if let todayWorkout = store.todayPlannedWorkout {
+        Button {
+          openWorkout(todayWorkout)
+        } label: {
+          HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+              Text("HEUTE DIREKT STARTEN")
+                .font(GainsFont.label(10))
+                .tracking(1.8)
+                .foregroundStyle(GainsColor.card.opacity(0.7))
+
+              Text(todayWorkout.title)
+                .font(GainsFont.title(18))
+                .foregroundStyle(GainsColor.card)
+                .lineLimit(1)
+
+              Text("\(todayWorkout.split) · \(todayWorkout.estimatedDurationMinutes) Min")
+                .font(GainsFont.body(12))
+                .foregroundStyle(GainsColor.card.opacity(0.72))
+                .lineLimit(1)
+            }
+
+            Spacer()
+
+            Image(systemName: "play.fill")
+              .font(.system(size: 12, weight: .bold))
+              .foregroundStyle(GainsColor.onLime)
+              .frame(width: 34, height: 34)
+              .background(GainsColor.lime)
+              .clipShape(Circle())
+          }
+          .padding(14)
+          .background(GainsColor.card.opacity(0.08))
+          .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+              .stroke(GainsColor.card.opacity(0.16), lineWidth: 1)
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
+      }
     }
     .padding(20)
     .background(GainsColor.ink)
@@ -858,6 +924,28 @@ struct WorkoutHubView: View {
         .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
     )
     .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+  }
+
+  private func trainingActionButton(title: String, subtitle: String, isPrimary: Bool) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title)
+        .font(GainsFont.title(16))
+        .foregroundStyle(isPrimary ? GainsColor.onLime : GainsColor.card)
+        .lineLimit(2)
+
+      Text(subtitle)
+        .font(GainsFont.body(12))
+        .foregroundStyle(isPrimary ? GainsColor.onLimeSecondary : GainsColor.card.opacity(0.72))
+        .lineLimit(2)
+    }
+    .frame(maxWidth: .infinity, minHeight: 86, alignment: .leading)
+    .padding(14)
+    .background(isPrimary ? GainsColor.lime : GainsColor.card.opacity(0.08))
+    .overlay(
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .stroke((isPrimary ? GainsColor.lime : GainsColor.card).opacity(0.18), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
   }
 
   private var assignedWorkoutsSection: some View {
