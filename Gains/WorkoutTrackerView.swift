@@ -133,7 +133,7 @@ struct WorkoutTrackerView: View {
   // MARK: - Header
 
   private func header(_ workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: 16) {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 6) {
           HStack(spacing: 8) {
@@ -143,41 +143,68 @@ struct WorkoutTrackerView: View {
             Text("LIVE TRAINING")
               .font(GainsFont.label(10))
               .tracking(2.2)
-              .foregroundStyle(GainsColor.lime)
+              .foregroundStyle(GainsColor.card.opacity(0.78))
           }
 
           Text(workout.title)
-            .font(GainsFont.display(28))
-            .foregroundStyle(GainsColor.ink)
+            .font(GainsFont.display(30))
+            .foregroundStyle(GainsColor.card)
             .lineLimit(2)
             .minimumScaleFactor(0.78)
+
+          Text(headerMotivation(for: workout))
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.card.opacity(0.72))
+            .lineLimit(2)
         }
 
         Spacer()
 
-        VStack(alignment: .trailing, spacing: 4) {
+        VStack(alignment: .trailing, spacing: 6) {
           Text("DAUER")
             .font(GainsFont.label(9))
             .tracking(1.8)
-            .foregroundStyle(GainsColor.softInk)
+            .foregroundStyle(GainsColor.card.opacity(0.66))
           Text(sessionTimeString(workout.startedAt))
-            .font(GainsFont.display(22))
-            .foregroundStyle(GainsColor.ink)
+            .font(GainsFont.display(24))
+            .foregroundStyle(GainsColor.card)
             .monospacedDigit()
         }
       }
 
       progressBar(workout)
 
-      HStack(spacing: 8) {
+      HStack(spacing: 10) {
         statChip(
-          label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)")
+          label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)",
+          accent: GainsColor.lime,
+          isDark: true
+        )
         statChip(
-          label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg")
+          label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg",
+          accent: GainsColor.card,
+          isDark: true
+        )
         statChip(
-          label: "ÜBUNGEN", value: "\(workout.exercises.count)")
+          label: "ÜBUNGEN", value: "\(workout.exercises.count)",
+          accent: GainsColor.moss,
+          isDark: true
+        )
       }
     }
+    .padding(20)
+    .background(
+      LinearGradient(
+        colors: [GainsColor.ink, GainsColor.surfaceDeep],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 28, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.2), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
   }
 
   private func progressBar(_ workout: WorkoutSession) -> some View {
@@ -186,38 +213,43 @@ struct WorkoutTrackerView: View {
         workout.totalSets == 0 ? 0 : CGFloat(workout.completedSets) / CGFloat(workout.totalSets)
       ZStack(alignment: .leading) {
         Capsule()
-          .fill(GainsColor.border.opacity(0.55))
-          .frame(height: 5)
+          .fill(GainsColor.card.opacity(0.14))
+          .frame(height: 7)
         Capsule()
           .fill(GainsColor.lime)
-          .frame(width: max(proxy.size.width * progress, progress > 0 ? 8 : 0), height: 5)
+          .frame(width: max(proxy.size.width * progress, progress > 0 ? 10 : 0), height: 7)
       }
     }
-    .frame(height: 5)
+    .frame(height: 7)
   }
 
-  private func statChip(label: String, value: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+  private func statChip(label: String, value: String, accent: Color = GainsColor.lime, isDark: Bool = false) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
       Text(label)
         .font(GainsFont.label(9))
         .tracking(1.6)
-        .foregroundStyle(GainsColor.softInk)
+        .foregroundStyle(isDark ? GainsColor.card.opacity(0.62) : GainsColor.softInk)
+
       Text(value)
         .font(GainsFont.title(16))
-        .foregroundStyle(GainsColor.ink)
+        .foregroundStyle(isDark ? GainsColor.card : GainsColor.ink)
         .monospacedDigit()
         .lineLimit(1)
         .minimumScaleFactor(0.7)
+
+      Capsule()
+        .fill(accent.opacity(isDark ? 0.95 : 0.8))
+        .frame(width: 28, height: 4)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.horizontal, 12)
-    .padding(.vertical, 10)
-    .background(GainsColor.card)
+    .padding(.vertical, 12)
+    .background(isDark ? GainsColor.card.opacity(0.08) : GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .stroke((isDark ? GainsColor.card : GainsColor.border).opacity(0.16), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
   // MARK: - Tab strip
@@ -285,7 +317,7 @@ struct WorkoutTrackerView: View {
     }()
     let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.softInk)
 
-    return VStack(alignment: .leading, spacing: 16) {
+    return VStack(alignment: .leading, spacing: 18) {
       HStack(spacing: 10) {
         Circle()
           .fill(accent)
@@ -326,11 +358,18 @@ struct WorkoutTrackerView: View {
         }
       }
 
-      Text(mainTime)
-        .font(.system(size: 64, weight: .semibold, design: .rounded))
-        .monospacedDigit()
-        .foregroundStyle(GainsColor.card)
-        .frame(maxWidth: .infinity, alignment: .leading)
+      VStack(alignment: .leading, spacing: 8) {
+        Text(mainTime)
+          .font(.system(size: 64, weight: .semibold, design: .rounded))
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.card)
+          .frame(maxWidth: .infinity, alignment: .leading)
+
+        HStack(spacing: 8) {
+          trackerMetaPill(title: isRest ? "Pause" : (isSet ? "Satz läuft" : "Bereit"), accent: accent)
+          trackerMetaPill(title: "Preset \(formattedRestPreset(restDuration))", accent: GainsColor.card, usesDarkText: false)
+        }
+      }
 
       if isRest {
         SwiftUI.ProgressView(value: Double(remainingRestSeconds), total: Double(max(restDuration, 1)))
@@ -354,10 +393,36 @@ struct WorkoutTrackerView: View {
       )
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 24, style: .continuous)
-        .stroke(accent.opacity(0.4), lineWidth: 1.2)
+      RoundedRectangle(cornerRadius: 26, style: .continuous)
+        .stroke(accent.opacity(0.34), lineWidth: 1.1)
     )
+      .shadow(color: accent.opacity(0.1), radius: 16, x: 0, y: 10)
     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+  }
+
+  private func headerMotivation(for workout: WorkoutSession) -> String {
+    let remainingSets = max(workout.totalSets - workout.completedSets, 0)
+
+    if remainingSets == 0 {
+      return "Stark, alle Sätze sind erledigt. Jetzt nur noch sauber abschließen."
+    }
+
+    if remainingSets == 1 {
+      return "Nur noch ein Satz. Zieh ihn sauber durch und mach den Eintrag fertig."
+    }
+
+    return "Noch \(remainingSets) Sätze offen. Fokus auf saubere Reps und konstantes Tempo."
+  }
+
+  private func trackerMetaPill(title: String, accent: Color, usesDarkText: Bool = true) -> some View {
+    Text(title)
+      .font(GainsFont.label(10))
+      .tracking(1.2)
+      .foregroundStyle(usesDarkText ? GainsColor.onLime : GainsColor.card.opacity(0.8))
+      .padding(.horizontal, 10)
+      .frame(height: 28)
+      .background(usesDarkText ? accent : GainsColor.card.opacity(0.12))
+      .clipShape(Capsule())
   }
 
   private var restPresetRow: some View {
