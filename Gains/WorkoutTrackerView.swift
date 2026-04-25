@@ -333,7 +333,7 @@ struct WorkoutTrackerView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
 
       if isRest {
-        ProgressView(value: Double(remainingRestSeconds), total: Double(max(restDuration, 1)))
+        SwiftUI.ProgressView(value: Double(remainingRestSeconds), total: Double(max(restDuration, 1)))
           .tint(GainsColor.ember)
       } else if isSet {
         Text("Konzentriere dich auf saubere Reps. Stop drücken, sobald du fertig bist.")
