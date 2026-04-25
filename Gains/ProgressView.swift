@@ -335,9 +335,27 @@ struct ProgressView: View {
 
   private var quickStatusRow: some View {
     HStack(spacing: 10) {
-      progressMiniCard(title: "Gewicht", value: String(format: "%.1f kg", store.currentWeight))
-      progressMiniCard(title: "Ziele", value: "\(store.goalCompletionCount)/\(store.currentGoals.count)")
-      progressMiniCard(title: "Streak", value: "\(store.streakDays) Tage")
+      progressMiniCard(
+        title: "Gewicht",
+        value: String(format: "%.1f kg", store.currentWeight),
+        subtitle: String(format: "%.1f kg seit Start", store.startingWeight - store.currentWeight),
+        systemImage: "scalemass.fill",
+        progress: min(max((store.startingWeight - store.currentWeight) / max(store.startingWeight * 0.08, 1), 0), 1)
+      )
+      progressMiniCard(
+        title: "Ziele",
+        value: "\(store.goalCompletionCount)/\(store.currentGoals.count)",
+        subtitle: "Ziele on track",
+        systemImage: "target",
+        progress: store.currentGoals.isEmpty ? 0 : min(max(Double(store.goalCompletionCount) / Double(store.currentGoals.count), 0), 1)
+      )
+      progressMiniCard(
+        title: "Streak",
+        value: "\(store.streakDays) Tage",
+        subtitle: store.streakDays >= 7 ? "Starker Rhythmus" : "Dranbleiben",
+        systemImage: "flame.fill",
+        progress: min(max(Double(store.streakDays) / 14, 0), 1)
+      )
     }
   }
 
@@ -1118,22 +1136,59 @@ struct ProgressView: View {
     }
   }
 
-  private func progressMiniCard(title: String, value: String) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text(title.uppercased())
-        .font(GainsFont.label(9))
-        .tracking(1.8)
-        .foregroundStyle(GainsColor.softInk)
+  private func progressMiniCard(
+    title: String,
+    value: String,
+    subtitle: String,
+    systemImage: String,
+    progress: Double
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(alignment: .top) {
+        Text(title.uppercased())
+          .font(GainsFont.label(9))
+          .tracking(1.8)
+          .foregroundStyle(GainsColor.softInk)
+
+        Spacer()
+
+        Image(systemName: systemImage)
+          .font(.system(size: 13, weight: .semibold))
+          .foregroundStyle(GainsColor.lime)
+      }
 
       Text(value)
         .font(GainsFont.title(18))
         .foregroundStyle(GainsColor.ink)
         .lineLimit(1)
         .minimumScaleFactor(0.8)
+
+      Text(subtitle)
+        .font(GainsFont.body(12))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(2)
+
+      GeometryReader { proxy in
+        ZStack(alignment: .leading) {
+          Capsule()
+            .fill(GainsColor.border.opacity(0.28))
+            .frame(height: 6)
+
+          Capsule()
+            .fill(GainsColor.lime)
+            .frame(width: proxy.size.width * min(max(progress, 0), 1), height: 6)
+        }
+      }
+      .frame(height: 6)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(14)
-    .gainsCardStyle()
+    .background(GainsColor.elevated)
+    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
   }
 
 private struct ProgressHighlightCard: View {
