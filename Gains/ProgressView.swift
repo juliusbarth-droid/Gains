@@ -207,7 +207,7 @@ struct ProgressView: View {
           .font(GainsFont.title(24))
           .foregroundStyle(GainsColor.ink)
 
-        Text("\(store.personalRecordCount) neue Rekorde, \(store.streakDays) Tage Streak und \(store.goalCompletionCount) Ziele aktuell on track.")
+        Text(momentumSummary)
           .font(GainsFont.body(14))
           .foregroundStyle(GainsColor.onLimeSecondary)
           .lineLimit(3)
@@ -217,6 +217,20 @@ struct ProgressView: View {
           achievementPill(title: "Streak", value: "\(store.streakDays) Tage")
           achievementPill(title: "Check-ins", value: "\(store.goalCompletionCount)")
         }
+
+        Button {
+          navigation.openTraining(workspace: .kraft)
+        } label: {
+          Text(momentumCTA)
+            .font(GainsFont.label(11))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.lime)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
+            .background(GainsColor.ink)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
       }
       .padding(20)
       .background(GainsColor.lime.opacity(0.82))
@@ -279,6 +293,29 @@ struct ProgressView: View {
       }
       .buttonStyle(.plain)
     }
+  }
+
+  private var momentumSummary: String {
+    let sessionsLeft = max(store.weeklyGoalCount - store.weeklySessionsCompleted, 0)
+
+    if sessionsLeft == 0 {
+      return "Wochenziel erreicht. Halte den Lauf mit einem lockeren Check-in oder einer Bonus-Session am Leben."
+    }
+
+    if sessionsLeft == 1 {
+      return "Noch eine Session bis zum Wochenziel. Genau solche kleinen Zwischenziele halten die Routine stabil."
+    }
+
+    if store.streakDays >= 7 {
+      return "\(store.personalRecordCount) neue Rekorde, \(store.streakDays) Tage Streak und nur noch \(sessionsLeft) Sessions bis zum Wochenziel. Bleib im Rhythmus."
+    }
+
+    return "\(store.personalRecordCount) neue Rekorde, \(store.streakDays) Tage Streak und \(store.goalCompletionCount) Ziele aktuell on track. Der nächste kleine Haken zählt."
+  }
+
+  private var momentumCTA: String {
+    let sessionsLeft = max(store.weeklyGoalCount - store.weeklySessionsCompleted, 0)
+    return sessionsLeft <= 1 ? "Letzte Session für diese Woche öffnen" : "Nächste Session starten"
   }
 
   private var quickActionsSection: some View {
