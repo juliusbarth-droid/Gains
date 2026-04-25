@@ -419,35 +419,42 @@ struct ProgressView: View {
   }
 
   private var trendSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    let latest = store.weightTrend.last?.value ?? store.currentWeight
+    let first = store.weightTrend.first?.value ?? latest
+    let delta = latest - first
+
+    return VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
         parts: ["TREND", "7 TAGE"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
-      HStack(alignment: .bottom, spacing: 12) {
-        let maxValue = store.weightTrend.map(\.value).max() ?? 1
-        let minValue = store.weightTrend.map(\.value).min() ?? 0
-        let span = max(maxValue - minValue, 0.1)
+      VStack(alignment: .leading, spacing: 16) {
+        HStack(alignment: .top) {
+          VStack(alignment: .leading, spacing: 6) {
+            Text("Gewichtstrend")
+              .font(GainsFont.title(24))
+              .foregroundStyle(GainsColor.ink)
 
-        ForEach(store.weightTrend) { point in
-          VStack(spacing: 8) {
-            Text(String(format: "%.1f", point.value))
-              .font(GainsFont.label(9))
-              .foregroundStyle(GainsColor.softInk)
-
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-              .fill(point.value == store.weightTrend.last?.value ? GainsColor.lime : GainsColor.ink)
-              .frame(height: 44 + ((maxValue - point.value) / span * 56))
-
-            Text(point.label)
-              .font(GainsFont.label(9))
-              .tracking(1.6)
+            Text(delta == 0 ? "Stabil über die letzten 7 Tage" : delta < 0 ? "\(String(format: "%.1f", abs(delta))) kg runter in 7 Tagen" : "+\(String(format: "%.1f", delta)) kg in 7 Tagen")
+              .font(GainsFont.body(14))
               .foregroundStyle(GainsColor.softInk)
           }
-          .frame(maxWidth: .infinity)
+
+          Spacer()
+
+          Text(String(format: "%.1f kg", latest))
+            .font(GainsFont.display(28))
+            .foregroundStyle(GainsColor.lime)
         }
+
+        HStack(spacing: 10) {
+          trendStatPill(title: "Start", value: String(format: "%.1f", first))
+          trendStatPill(title: "Jetzt", value: String(format: "%.1f", latest))
+          trendStatPill(title: "Delta", value: delta == 0 ? "0.0" : String(format: "%@%.1f", delta > 0 ? "+" : "", delta))
+        }
+
+        weightTrendChart
       }
-      .frame(height: 150)
       .padding(18)
       .gainsCardStyle()
       .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -455,6 +462,125 @@ struct ProgressView: View {
         store.logWeightCheckIn()
       }
     }
+  }
+
+  private var weightTrendChart: some View {
+    let points = store.weightTrend
+    let maxValue = points.map(\.value).max() ?? 1
+    let minValue = points.map(\.value).min() ?? 0
+    let span = max(maxValue - minValue, 0.1)
+
+    return VStack(alignment: .leading, spacing: 12) {
+      GeometryReader { proxy in
+        let width = proxy.size.width
+        let height = proxy.size.height
+        let stepX = points.count > 1 ? width / CGFloat(points.count - 1) : width
+
+        ZStack(alignment: .topLeading) {
+          VStack(spacing: 0) {
+            ForEach(0..<4, id: \.self) { _ in
+              Rectangle()
+                .fill(GainsColor.border.opacity(0.18))
+                .frame(height: 1)
+              Spacer()
+            }
+            Rectangle()
+              .fill(GainsColor.border.opacity(0.18))
+              .frame(height: 1)
+          }
+
+          Path { path in
+            for (index, point) in points.enumerated() {
+              let x = CGFloat(index) * stepX
+              let y = height - CGFloat((point.value - minValue) / span) * (height - 12) - 6
+              if index == 0 {
+                path.move(to: CGPoint(x: x, y: y))
+              } else {
+                path.addLine(to: CGPoint(x: x, y: y))
+              }
+            }
+          }
+          .stroke(GainsColor.lime, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+
+          Path { path in
+            guard !points.isEmpty else { return }
+            for (index, point) in points.enumerated() {
+              let x = CGFloat(index) * stepX
+              let y = height - CGFloat((point.value - minValue) / span) * (height - 12) - 6
+              if index == 0 {
+                path.move(to: CGPoint(x: x, y: y))
+              } else {
+                path.addLine(to: CGPoint(x: x, y: y))
+              }
+            }
+            path.addLine(to: CGPoint(x: CGFloat(points.count - 1) * stepX, y: height))
+            path.addLine(to: CGPoint(x: 0, y: height))
+            path.closeSubpath()
+          }
+          .fill(
+            LinearGradient(
+              colors: [GainsColor.lime.opacity(0.24), GainsColor.lime.opacity(0.02)],
+              startPoint: .top,
+              endPoint: .bottom
+            )
+          )
+
+          ForEach(Array(points.enumerated()), id: \.element.id) { index, point in
+            let x = CGFloat(index) * stepX
+            let y = height - CGFloat((point.value - minValue) / span) * (height - 12) - 6
+
+            VStack(spacing: 6) {
+              Text(String(format: "%.1f", point.value))
+                .font(GainsFont.label(9))
+                .foregroundStyle(point.id == points.last?.id ? GainsColor.lime : GainsColor.softInk)
+
+              Circle()
+                .fill(point.id == points.last?.id ? GainsColor.lime : GainsColor.ink)
+                .frame(width: point.id == points.last?.id ? 11 : 8, height: point.id == points.last?.id ? 11 : 8)
+                .overlay(
+                  Circle()
+                    .stroke(GainsColor.card, lineWidth: 2)
+                )
+            }
+            .position(x: x, y: max(y - 12, 12))
+          }
+        }
+      }
+      .frame(height: 180)
+
+      HStack(spacing: 8) {
+        ForEach(store.weightTrend) { point in
+          VStack(spacing: 4) {
+            Text(point.label)
+              .font(GainsFont.label(9))
+              .tracking(1.4)
+              .foregroundStyle(GainsColor.softInk)
+
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+              .fill(point.id == store.weightTrend.last?.id ? GainsColor.lime : GainsColor.border.opacity(0.5))
+              .frame(height: 4)
+          }
+          .frame(maxWidth: .infinity)
+        }
+      }
+    }
+  }
+
+  private func trendStatPill(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(title.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.softInk)
+
+      Text(value)
+        .font(GainsFont.title(18))
+        .foregroundStyle(GainsColor.ink)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(GainsColor.elevated)
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
   private var healthMetricSection: some View {
