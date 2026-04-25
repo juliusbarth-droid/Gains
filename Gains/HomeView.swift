@@ -153,9 +153,7 @@ struct HomeView: View {
       )
       focusStatusRow
       todayWorkoutCard
-      secondaryActionRow
       workoutStatusCard
-      latestLogCard
     }
   }
 
@@ -1069,6 +1067,9 @@ struct HomeView: View {
 
   private var todayDetailStack: some View {
     VStack(alignment: .leading, spacing: 12) {
+      secondaryActionRow
+      latestLogCard
+
       if !store.nutritionEntries(for: .breakfast).isEmpty
         || !store.nutritionEntries(for: .lunchDinner).isEmpty
         || !store.nutritionEntries(for: .snack).isEmpty
