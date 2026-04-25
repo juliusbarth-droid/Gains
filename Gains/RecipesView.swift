@@ -423,7 +423,7 @@ struct RecipesView: View {
 
       Button {
         pendingMealType = .lunchDinner
-        showsQuickAddSheet = true
+        showsManualEntrySheet = true
       } label: {
         nutritionQuickActionTile(
           title: "Schnell erfassen",
@@ -497,7 +497,7 @@ struct RecipesView: View {
 
         Button {
           pendingMealType = .lunchDinner
-          showsQuickAddSheet = true
+          showsManualEntrySheet = true
         } label: {
           quickActionCard(
             title: "Mahlzeit schnell hinzufügen",
