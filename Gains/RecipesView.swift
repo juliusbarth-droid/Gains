@@ -876,8 +876,16 @@ struct RecipesView: View {
 
         Spacer()
 
-        Button {
-          navigation.presentCapture(kind: .meal)
+        Menu {
+          Button("Schnell erfassen") {
+            pendingMealType = mealType
+            showsManualEntrySheet = true
+          }
+
+          Button("Mit Foto loggen") {
+            pendingMealType = mealType
+            navigation.presentCapture(kind: .meal)
+          }
         } label: {
           Text("Hinzufügen")
             .font(GainsFont.label(10))
@@ -888,12 +896,29 @@ struct RecipesView: View {
             .background(GainsColor.lime)
             .clipShape(Capsule())
         }
+      }
+
+      HStack(spacing: 10) {
+        Button {
+          pendingMealType = mealType
+          showsManualEntrySheet = true
+        } label: {
+          mealShortcutButton(title: "Schnell", icon: "plus")
+        }
+        .buttonStyle(.plain)
+
+        Button {
+          pendingMealType = mealType
+          navigation.presentCapture(kind: .meal)
+        } label: {
+          mealShortcutButton(title: "Foto", icon: "camera.fill")
+        }
         .buttonStyle(.plain)
       }
 
       if entries.isEmpty {
         Text(
-          "Füge hier dein \(mealType.shortTitle.lowercased()) hinzu oder logge ein Rezept direkt darunter."
+          "Füge hier dein \(mealType.shortTitle.lowercased()) per Schnell-Log oder Foto hinzu."
         )
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
@@ -931,6 +956,25 @@ struct RecipesView: View {
     }
     .padding(18)
     .gainsCardStyle()
+  }
+
+  private func mealShortcutButton(title: String, icon: String) -> some View {
+    HStack(spacing: 6) {
+      Image(systemName: icon)
+        .font(.system(size: 11, weight: .bold))
+      Text(title)
+        .font(GainsFont.label(10))
+        .tracking(1.2)
+    }
+    .foregroundStyle(GainsColor.ink)
+    .frame(maxWidth: .infinity)
+    .frame(height: 34)
+    .background(GainsColor.background.opacity(0.86))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.45), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
   }
 
   private func quickActionCard(title: String, subtitle: String, symbol: String) -> some View {
