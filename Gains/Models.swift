@@ -3,7 +3,8 @@ import Foundation
 
 enum AppTab: Hashable {
   case home
-  case workout
+  case gym
+  case run
   case recipes
   case progress
   case community
@@ -12,8 +13,10 @@ enum AppTab: Hashable {
     switch self {
     case .home:
       return "Home"
-    case .workout:
-      return "Training"
+    case .gym:
+      return "Gym"
+    case .run:
+      return "Laufen"
     case .recipes:
       return "Ernährung"
     case .progress:

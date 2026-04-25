@@ -141,7 +141,7 @@ struct CaptureSheet: View {
         actionTitle: selectedKind.actionTitle
       ) {
         store.shareLatestWorkout()
-        navigation.selectedTab = .community
+        navigation.selectedTab = .home
         dismiss()
       }
     case .run:
@@ -151,7 +151,7 @@ struct CaptureSheet: View {
         actionTitle: selectedKind.actionTitle
       ) {
         store.shareLatestRun()
-        navigation.selectedTab = .community
+        navigation.selectedTab = .run
         dismiss()
       }
     case .progress:
@@ -165,7 +165,7 @@ struct CaptureSheet: View {
         actionTitle: selectedKind.actionTitle
       ) {
         store.shareProgressUpdate()
-        navigation.selectedTab = .community
+        navigation.selectedTab = .progress
         dismiss()
       }
     case .meal:

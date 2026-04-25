@@ -16,9 +16,21 @@ struct ContentView: View {
           }
 
         WorkoutHubView(viewModel: .mock)
-          .tag(AppTab.workout)
+          .tag(AppTab.gym)
+          .onAppear {
+            navigation.preferredWorkoutWorkspace = .kraft
+          }
           .tabItem {
-            Label(AppTab.workout.title, systemImage: "dumbbell.fill")
+            Label(AppTab.gym.title, systemImage: "dumbbell.fill")
+          }
+
+        WorkoutHubView(viewModel: .mock)
+          .tag(AppTab.run)
+          .onAppear {
+            navigation.preferredWorkoutWorkspace = .laufen
+          }
+          .tabItem {
+            Label(AppTab.run.title, systemImage: "figure.run")
           }
 
         RecipesView(viewModel: .mock)
@@ -31,12 +43,6 @@ struct ContentView: View {
           .tag(AppTab.progress)
           .tabItem {
             Label(AppTab.progress.title, systemImage: "heart.text.square.fill")
-          }
-
-        CommunityView(viewModel: .mock)
-          .tag(AppTab.community)
-          .tabItem {
-            Label(AppTab.community.title, systemImage: "person.3.fill")
           }
       }
 
@@ -139,8 +145,10 @@ struct ContentView: View {
       let lastRunDate = store.latestCompletedRun?.finishedAt ?? Date.distantPast
       let lastWorkoutDate = store.latestCompletedWorkout?.finishedAt ?? Date.distantPast
       return lastRunDate > lastWorkoutDate ? .run : .workout
-    case .workout:
+    case .gym:
       return .workout
+    case .run:
+      return .run
     case .recipes:
       return .meal
     case .progress:

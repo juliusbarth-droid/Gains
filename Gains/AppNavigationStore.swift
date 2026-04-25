@@ -7,7 +7,7 @@ final class AppNavigationStore: ObservableObject {
 
   func openTraining(workspace: AppWorkoutWorkspace = .kraft) {
     preferredWorkoutWorkspace = workspace
-    selectedTab = .workout
+    selectedTab = workspace == .laufen ? .run : .gym
   }
 
   func presentCapture(kind: CaptureKind = .workout) {
