@@ -1824,7 +1824,7 @@ private struct WorkoutArrangeView: View {
           }
         } else {
           VStack(spacing: 12) {
-            ProgressView()
+            SwiftUI.ProgressView()
             Text("Workout wird vorbereitet ...")
               .font(GainsFont.body(13))
               .foregroundStyle(GainsColor.softInk)
