@@ -43,27 +43,51 @@ struct ContentView: View {
       VStack {
         Spacer()
 
-        Button {
-          navigation.presentCapture(kind: suggestedCaptureKind)
-        } label: {
-          Image(systemName: "plus")
-            .font(.system(size: 21, weight: .semibold))
-            .foregroundStyle(GainsColor.onLime)
-            .frame(width: 54, height: 54)
+        HStack {
+          Spacer()
+
+          Button {
+            navigation.presentCapture(kind: suggestedCaptureKind)
+          } label: {
+            HStack(spacing: 10) {
+              Image(systemName: suggestedCaptureKind.systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(GainsColor.onLime)
+                .frame(width: 34, height: 34)
+                .background(GainsColor.onLime.opacity(0.12))
+                .clipShape(Circle())
+
+              VStack(alignment: .leading, spacing: 2) {
+                Text("Schnell erfassen")
+                  .font(GainsFont.label(10))
+                  .tracking(1.2)
+                  .foregroundStyle(GainsColor.onLimeSecondary)
+
+                Text(captureCTA)
+                  .font(GainsFont.title(15))
+                  .foregroundStyle(GainsColor.onLime)
+                  .lineLimit(1)
+              }
+
+              Image(systemName: "plus")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(GainsColor.onLime)
+            }
+            .padding(.horizontal, 14)
+            .frame(height: 58)
             .background(GainsColor.lime)
-            .overlay {
-              Circle()
-                .stroke(GainsColor.card, lineWidth: 5)
-            }
-            .overlay {
-              Circle()
-                .stroke(GainsColor.lime.opacity(0.45), lineWidth: 1)
-            }
-            .clipShape(Circle())
+            .overlay(
+              RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(GainsColor.card.opacity(0.7), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .shadow(color: GainsColor.lime.opacity(0.14), radius: 12, x: 0, y: 8)
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("\(captureCTA) erfassen")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Capture öffnen")
-        .padding(.bottom, 42)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 22)
       }
       .allowsHitTesting(true)
     }
@@ -99,6 +123,19 @@ struct ContentView: View {
       return .progress
     case .community:
       return .workout
+    }
+  }
+
+  private var captureCTA: String {
+    switch suggestedCaptureKind {
+    case .workout:
+      return "Workout"
+    case .run:
+      return "Lauf"
+    case .progress:
+      return "Fortschritt"
+    case .meal:
+      return "Mahlzeit"
     }
   }
 }
