@@ -1,24 +1,70 @@
 import Combine
 import SwiftUI
+import UIKit
 
 struct WorkoutTrackerView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var store: GainsStore
-  @State private var activeTimedSetID: UUID?
+
+  enum TrackerTab: String, CaseIterable, Identifiable {
+    case live, exercises
+    var id: String { rawValue }
+    var title: String {
+      switch self {
+      case .live: return "LIVE-SESSION"
+      case .exercises: return "ÜBUNGEN"
+      }
+    }
+  }
+
+  @State private var selectedTab: TrackerTab = .live
+  @State private var activeSetID: UUID?
   @State private var activeSetStartedAt: Date?
   @State private var restTimerEndsAt: Date?
+  @State private var restDuration: Int = 90
   @State private var currentTime = Date()
+  @State private var isFinishing = false
+
   private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+  private let restPresets: [Int] = [60, 90, 120, 180]
 
   var body: some View {
     NavigationStack {
-      GainsScreen {
+      ZStack(alignment: .bottom) {
+        GainsAppBackground()
+
         if let workout = store.activeWorkout {
-          VStack(alignment: .leading, spacing: 22) {
-            header(workout)
-            progressCard(workout)
-            nextStepCard(workout)
-            exerciseList(workout)
+          ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 22) {
+              header(workout)
+              segmentTabs
+
+              switch selectedTab {
+              case .live:
+                liveBody(workout)
+              case .exercises:
+                exercisesBody(workout)
+              }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 130)
+          }
+
+          bottomCTA(workout)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
+        } else {
+          VStack(spacing: 12) {
+            Image(systemName: "figure.strengthtraining.traditional")
+              .font(.system(size: 28, weight: .semibold))
+              .foregroundStyle(GainsColor.softInk)
+            Text("Kein aktives Workout")
+              .font(GainsFont.title(20))
+              .foregroundStyle(GainsColor.ink)
+            Button("Schließen") { dismiss() }
+              .font(GainsFont.label(11))
+              .foregroundStyle(GainsColor.lime)
           }
         }
       }
@@ -28,355 +74,670 @@ struct WorkoutTrackerView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button("Schließen") {
+          Button {
             dismiss()
+          } label: {
+            Image(systemName: "chevron.down")
+              .font(.system(size: 13, weight: .bold))
+              .foregroundStyle(GainsColor.ink)
+              .frame(width: 30, height: 30)
+              .background(GainsColor.card)
+              .clipShape(Circle())
           }
-          .foregroundStyle(GainsColor.ink)
         }
-
+        ToolbarItem(placement: .principal) {
+          Text("STRENGTH TRAINER")
+            .font(GainsFont.label(11))
+            .tracking(2.2)
+            .foregroundStyle(GainsColor.ink)
+        }
         ToolbarItem(placement: .topBarTrailing) {
-          Button("Beenden") {
-            store.finishWorkout()
-            dismiss()
+          Button {
+            isFinishing = true
+          } label: {
+            Text("BEENDEN")
+              .font(GainsFont.label(10))
+              .tracking(1.6)
+              .foregroundStyle(GainsColor.ember)
           }
-          .foregroundStyle(GainsColor.moss)
-          .fontWeight(.semibold)
           .disabled(store.activeWorkout == nil)
         }
+      }
+      .toolbar {
+        ToolbarItemGroup(placement: .keyboard) {
+          Spacer()
+          Button("Fertig") {
+            UIApplication.shared.sendAction(
+              #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+          }
+          .font(GainsFont.label(12))
+          .foregroundStyle(GainsColor.moss)
+        }
+      }
+      .alert("Workout beenden?", isPresented: $isFinishing) {
+        Button("Verwerfen", role: .destructive) {
+          store.discardWorkout()
+          dismiss()
+        }
+        Button("Speichern") {
+          store.finishWorkout()
+          dismiss()
+        }
+        Button("Weiter trainieren", role: .cancel) {}
+      } message: {
+        Text("Speicher deinen Fortschritt oder verwirf das aktuelle Workout.")
       }
     }
   }
 
+  // MARK: - Header
+
   private func header(_ workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      SlashLabel(
-        parts: ["TRACKER", "LIVE SESSION"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      Text(workout.title.uppercased())
-        .font(GainsFont.title(30))
-        .foregroundStyle(GainsColor.ink)
-
-      Text("\(workout.focus) · \(workout.exercises.count) Übungen")
-        .font(GainsFont.body())
-        .foregroundStyle(GainsColor.softInk)
-    }
-  }
-
-  private func progressCard(_ workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 16) {
-      HStack {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 6) {
-          Text("FORTSCHRITT")
-            .font(GainsFont.label(10))
-            .tracking(2.4)
-            .foregroundStyle(GainsColor.card.opacity(0.72))
+          HStack(spacing: 8) {
+            Circle()
+              .fill(GainsColor.lime)
+              .frame(width: 6, height: 6)
+            Text("LIVE TRAINING")
+              .font(GainsFont.label(10))
+              .tracking(2.2)
+              .foregroundStyle(GainsColor.lime)
+          }
 
-          Text("\(workout.completedSets)/\(workout.totalSets) Sätze")
-            .font(GainsFont.display(34))
-            .foregroundStyle(GainsColor.card)
+          Text(workout.title)
+            .font(GainsFont.display(28))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(2)
+            .minimumScaleFactor(0.78)
         }
 
         Spacer()
 
-        VStack(alignment: .trailing, spacing: 6) {
-          Text("SESSION")
-            .font(GainsFont.label(10))
-            .tracking(2.4)
-            .foregroundStyle(GainsColor.card.opacity(0.72))
-
-          Text(elapsedLabel(since: workout.startedAt))
-            .font(GainsFont.display(28))
-            .foregroundStyle(GainsColor.lime)
+        VStack(alignment: .trailing, spacing: 4) {
+          Text("DAUER")
+            .font(GainsFont.label(9))
+            .tracking(1.8)
+            .foregroundStyle(GainsColor.softInk)
+          Text(sessionTimeString(workout.startedAt))
+            .font(GainsFont.display(22))
+            .foregroundStyle(GainsColor.ink)
+            .monospacedDigit()
         }
       }
 
-      HStack(spacing: 10) {
-        trackerMetricChip(title: "Volumen", value: "\(Int(workout.totalVolume)) kg")
-        trackerMetricChip(title: "Übungen", value: "\(workout.exercises.count)")
-        trackerMetricChip(
-          title: "Offen", value: "\(max(workout.totalSets - workout.completedSets, 0))")
+      progressBar(workout)
+
+      HStack(spacing: 8) {
+        statChip(
+          label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)")
+        statChip(
+          label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg")
+        statChip(
+          label: "ÜBUNGEN", value: "\(workout.exercises.count)")
       }
-
-      if let activeTimedSetID, let startedAt {
-        HStack {
-          Text("AKTIVER SATZ")
-            .font(GainsFont.label(10))
-            .tracking(2.2)
-            .foregroundStyle(GainsColor.card.opacity(0.72))
-
-          Spacer()
-
-          Text(elapsedLabel(since: startedAt))
-            .font(GainsFont.title(20))
-            .foregroundStyle(GainsColor.lime)
-
-          Button("Stoppen") {
-            stopSetTimer(for: activeTimedSetID)
-          }
-          .font(GainsFont.label(10))
-          .foregroundStyle(GainsColor.ink)
-          .padding(.horizontal, 12)
-          .frame(height: 30)
-          .background(GainsColor.card)
-          .clipShape(Capsule())
-        }
-      }
-
-      if restTimerEndsAt != nil, remainingRestSeconds > 0 {
-        HStack {
-          Text("PAUSE")
-            .font(GainsFont.label(10))
-            .tracking(2.2)
-            .foregroundStyle(GainsColor.card.opacity(0.72))
-
-          Spacer()
-
-          Text(restTimerLabel)
-            .font(GainsFont.title(20))
-            .foregroundStyle(GainsColor.lime)
-
-          Button("Überspringen") {
-            restTimerEndsAt = nil
-          }
-          .font(GainsFont.label(10))
-          .foregroundStyle(GainsColor.ink)
-          .padding(.horizontal, 12)
-          .frame(height: 30)
-          .background(GainsColor.card)
-          .clipShape(Capsule())
-        }
-      }
-
-      GeometryReader { proxy in
-        let progress =
-          workout.totalSets == 0 ? 0 : CGFloat(workout.completedSets) / CGFloat(workout.totalSets)
-        ZStack(alignment: .leading) {
-          Capsule()
-            .fill(Color.white.opacity(0.12))
-            .frame(height: 5)
-
-          Capsule()
-            .fill(GainsColor.lime)
-            .frame(width: proxy.size.width * progress, height: 5)
-        }
-      }
-      .frame(height: 5)
     }
-    .padding(20)
-    .background(GainsColor.ink)
-    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
   }
 
-  private func trackerMetricChip(title: String, value: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title.uppercased())
-        .font(GainsFont.label(9))
-        .tracking(1.8)
-        .foregroundStyle(GainsColor.card.opacity(0.68))
+  private func progressBar(_ workout: WorkoutSession) -> some View {
+    GeometryReader { proxy in
+      let progress: CGFloat =
+        workout.totalSets == 0 ? 0 : CGFloat(workout.completedSets) / CGFloat(workout.totalSets)
+      ZStack(alignment: .leading) {
+        Capsule()
+          .fill(GainsColor.border.opacity(0.55))
+          .frame(height: 5)
+        Capsule()
+          .fill(GainsColor.lime)
+          .frame(width: max(proxy.size.width * progress, progress > 0 ? 8 : 0), height: 5)
+      }
+    }
+    .frame(height: 5)
+  }
 
+  private func statChip(label: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(label)
+        .font(GainsFont.label(9))
+        .tracking(1.6)
+        .foregroundStyle(GainsColor.softInk)
       Text(value)
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.card)
+        .font(GainsFont.title(16))
+        .foregroundStyle(GainsColor.ink)
+        .monospacedDigit()
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(12)
-    .background(Color.white.opacity(0.06))
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  // MARK: - Tab strip
+
+  private var segmentTabs: some View {
+    HStack(spacing: 6) {
+      ForEach(TrackerTab.allCases) { tab in
+        Button {
+          withAnimation(.easeInOut(duration: 0.18)) {
+            selectedTab = tab
+          }
+        } label: {
+          Text(tab.title)
+            .font(GainsFont.label(11))
+            .tracking(1.6)
+            .foregroundStyle(selectedTab == tab ? GainsColor.lime : GainsColor.softInk)
+            .frame(maxWidth: .infinity)
+            .frame(height: 38)
+            .background(selectedTab == tab ? GainsColor.ink : Color.clear)
+            .overlay(
+              RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(
+                  selectedTab == tab ? GainsColor.lime.opacity(0.45) : GainsColor.border.opacity(0.55),
+                  lineWidth: 1
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .padding(4)
+    .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
-  private func nextStepCard(_ workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["NÄCHSTER", "SCHRITT"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+  // MARK: - Live tab
 
-      if let nextPending = nextPendingSet(in: workout) {
-        HStack(alignment: .top, spacing: 12) {
-          VStack(alignment: .leading, spacing: 6) {
-            Text(nextPending.exercise.name)
-              .font(GainsFont.title(22))
-              .foregroundStyle(GainsColor.ink)
+  @ViewBuilder
+  private func liveBody(_ workout: WorkoutSession) -> some View {
+    timerCard
+    restPresetRow
 
-            Text(
-              "Satz \(nextPending.set.order) · \(Int(nextPending.set.weight.rounded())) kg · \(nextPending.set.reps) Reps"
-            )
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.softInk)
-          }
+    if let pending = nextPending(in: workout) {
+      activeExerciseCard(pending.exercise, focusSet: pending.set)
+    } else {
+      finishedCard
+    }
 
-          Spacer()
+    upNextCard(workout)
+  }
 
+  private var timerCard: some View {
+    let isRest = (restTimerEndsAt != nil) && remainingRestSeconds > 0
+    let isSet = activeSetID != nil
+    let mainLabel: String = {
+      if isRest { return "PAUSE" }
+      if isSet { return "SATZ AKTIV" }
+      return "BEREIT"
+    }()
+    let mainTime: String = {
+      if isRest { return restTimerLabel }
+      if isSet { return elapsedLabel(since: activeSetStartedAt) }
+      return "00:00"
+    }()
+    let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.softInk)
+
+    return VStack(alignment: .leading, spacing: 16) {
+      HStack(spacing: 10) {
+        Circle()
+          .fill(accent)
+          .frame(width: 8, height: 8)
+        Text(mainLabel)
+          .font(GainsFont.label(10))
+          .tracking(2)
+          .foregroundStyle(GainsColor.card.opacity(0.7))
+        Spacer()
+        if isRest {
           Button {
-            toggleSetTimer(for: nextPending.set.id)
+            restTimerEndsAt = nil
           } label: {
-            Text(activeTimedSetID == nextPending.set.id ? "Läuft" : "Satz starten")
+            Text("ÜBERSPRINGEN")
               .font(GainsFont.label(10))
-              .tracking(1.4)
-              .foregroundStyle(
-                activeTimedSetID == nextPending.set.id ? GainsColor.moss : GainsColor.ink
-              )
+              .tracking(1.6)
+              .foregroundStyle(GainsColor.lime)
+              .padding(.horizontal, 10)
+              .frame(height: 28)
+              .background(GainsColor.lime.opacity(0.18))
+              .clipShape(Capsule())
+          }
+          .buttonStyle(.plain)
+        } else if isSet {
+          Button {
+            stopActiveSet()
+          } label: {
+            Text("STOP")
+              .font(GainsFont.label(10))
+              .tracking(1.6)
+              .foregroundStyle(GainsColor.lime)
               .padding(.horizontal, 12)
-              .frame(height: 36)
-              .background(
-                activeTimedSetID == nextPending.set.id
-                  ? GainsColor.lime.opacity(0.22) : GainsColor.lime
-              )
+              .frame(height: 28)
+              .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
           }
           .buttonStyle(.plain)
         }
+      }
+
+      Text(mainTime)
+        .font(.system(size: 64, weight: .semibold, design: .rounded))
+        .monospacedDigit()
+        .foregroundStyle(GainsColor.card)
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+      if isRest {
+        ProgressView(value: Double(remainingRestSeconds), total: Double(max(restDuration, 1)))
+          .tint(GainsColor.ember)
+      } else if isSet {
+        Text("Konzentriere dich auf saubere Reps. Stop drücken, sobald du fertig bist.")
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.card.opacity(0.7))
       } else {
-        Text("Alle Sätze sind erledigt. Du kannst das Workout jetzt abschließen.")
-          .font(GainsFont.body(14))
+        Text("Wähle den nächsten Satz und starte mit dem Play-Button.")
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.card.opacity(0.7))
+      }
+    }
+    .padding(20)
+    .background(
+      LinearGradient(
+        colors: [GainsColor.ink, GainsColor.surfaceDeep],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 24, style: .continuous)
+        .stroke(accent.opacity(0.4), lineWidth: 1.2)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+  }
+
+  private var restPresetRow: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 8) {
+        Circle()
+          .fill(GainsColor.ember)
+          .frame(width: 5, height: 5)
+        Text("PAUSEN-VOREINSTELLUNG")
+          .font(GainsFont.label(10))
+          .tracking(2)
           .foregroundStyle(GainsColor.softInk)
+      }
+
+      HStack(spacing: 8) {
+        ForEach(restPresets, id: \.self) { seconds in
+          Button {
+            restDuration = seconds
+            if restTimerEndsAt != nil {
+              restTimerEndsAt = Calendar.current.date(byAdding: .second, value: seconds, to: Date())
+            }
+          } label: {
+            Text(formattedRestPreset(seconds))
+              .font(GainsFont.label(11))
+              .tracking(1.4)
+              .foregroundStyle(restDuration == seconds ? GainsColor.onLime : GainsColor.ink)
+              .frame(maxWidth: .infinity)
+              .frame(height: 36)
+              .background(restDuration == seconds ? GainsColor.lime : GainsColor.card)
+              .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                  .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+              )
+              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
+
+  private func formattedRestPreset(_ seconds: Int) -> String {
+    let minutes = seconds / 60
+    let rest = seconds % 60
+    if rest == 0 { return "\(minutes):00" }
+    return String(format: "%d:%02d", minutes, rest)
+  }
+
+  private func activeExerciseCard(_ exercise: TrackedExercise, focusSet: TrackedSet) -> some View {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 4) {
+          Text("AKTUELLE ÜBUNG")
+            .font(GainsFont.label(10))
+            .tracking(2)
+            .foregroundStyle(GainsColor.softInk)
+          Text(exercise.name)
+            .font(GainsFont.title(22))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(2)
+            .minimumScaleFactor(0.78)
+          Text(exercise.targetMuscle.uppercased())
+            .font(GainsFont.label(10))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.moss)
+        }
+        Spacer()
+        Text("\(exercise.sets.filter(\.isCompleted).count)/\(exercise.sets.count)")
+          .font(GainsFont.title(20))
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.moss)
+      }
+
+      VStack(spacing: 10) {
+        ForEach(exercise.sets) { set in
+          TrackerSetRow(
+            exerciseID: exercise.id,
+            set: set,
+            isFocused: set.id == focusSet.id,
+            isTimerRunning: activeSetID == set.id,
+            onTogglePlay: {
+              toggleSetTimer(for: set.id)
+            },
+            onComplete: {
+              completeSet(exerciseID: exercise.id, set: set)
+            }
+          )
+        }
+      }
+
+      HStack(spacing: 10) {
+        Button {
+          store.addSet(to: exercise.id)
+        } label: {
+          chipButton(icon: "plus", title: "Satz")
+        }
+        .buttonStyle(.plain)
+
+        Button {
+          store.removeLastSet(from: exercise.id)
+        } label: {
+          chipButton(icon: "minus", title: "Satz")
+        }
+        .buttonStyle(.plain)
+        .disabled(exercise.sets.count <= 1)
+        .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
       }
     }
     .padding(18)
     .gainsCardStyle()
   }
 
-  private func exerciseList(_ workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
-      ForEach(workout.exercises) { exercise in
-        VStack(alignment: .leading, spacing: 12) {
-          HStack {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(exercise.name)
-                .font(GainsFont.title(21))
-                .foregroundStyle(GainsColor.ink)
+  private func chipButton(icon: String, title: String) -> some View {
+    HStack(spacing: 6) {
+      Image(systemName: icon)
+        .font(.system(size: 11, weight: .bold))
+      Text(title.uppercased())
+        .font(GainsFont.label(10))
+        .tracking(1.6)
+    }
+    .foregroundStyle(GainsColor.ink)
+    .padding(.horizontal, 12)
+    .frame(height: 32)
+    .background(GainsColor.background.opacity(0.85))
+    .overlay(
+      Capsule()
+        .stroke(GainsColor.border.opacity(0.55), lineWidth: 1)
+    )
+    .clipShape(Capsule())
+  }
 
-              Text(exercise.targetMuscle.uppercased())
-                .font(GainsFont.label(10))
-                .tracking(2.2)
-                .foregroundStyle(GainsColor.softInk)
+  private func upNextCard(_ workout: WorkoutSession) -> some View {
+    let upcoming = workout.exercises.first { exercise in
+      exercise.sets.contains { !$0.isCompleted }
+        && exercise.id != currentExerciseID(in: workout)
+    }
+
+    return Group {
+      if let upcoming {
+        VStack(alignment: .leading, spacing: 8) {
+          HStack(spacing: 8) {
+            Circle()
+              .fill(GainsColor.softInk.opacity(0.5))
+              .frame(width: 5, height: 5)
+            Text("ALS NÄCHSTES")
+              .font(GainsFont.label(10))
+              .tracking(2)
+              .foregroundStyle(GainsColor.softInk)
+          }
+
+          HStack(spacing: 12) {
+            Image(systemName: "dumbbell.fill")
+              .font(.system(size: 14, weight: .bold))
+              .foregroundStyle(GainsColor.lime)
+              .frame(width: 38, height: 38)
+              .background(GainsColor.ink)
+              .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 4) {
+              Text(upcoming.name)
+                .font(GainsFont.title(16))
+                .foregroundStyle(GainsColor.ink)
+              Text(
+                "\(upcoming.sets.count) Sätze · \(upcoming.targetMuscle)"
+              )
+              .font(GainsFont.label(10))
+              .tracking(1.4)
+              .foregroundStyle(GainsColor.softInk)
             }
 
             Spacer()
-
-            Text("\(exercise.sets.filter(\.isCompleted).count)/\(exercise.sets.count)")
-              .font(GainsFont.title(18))
-              .foregroundStyle(GainsColor.moss)
           }
-
-          exerciseStatusRow(exercise)
-
-          ForEach(exercise.sets) { set in
-            WorkoutSetRow(
-              exerciseID: exercise.id,
-              set: set,
-              isTimerRunning: activeTimedSetID == set.id,
-              timerLabel: activeTimedSetID == set.id
-                ? elapsedLabel(since: activeSetStartedAt) : "Timer starten",
-              onTimerTap: { toggleSetTimer(for: set.id) },
-              onCompletionTap: {
-                if activeTimedSetID == set.id {
-                  stopSetTimer(for: set.id)
-                }
-                let wasCompleted = set.isCompleted
-                store.toggleSet(exerciseID: exercise.id, setID: set.id)
-                handleSetCompletionChange(becameCompleted: !wasCompleted)
-              }
-            )
-          }
+          .padding(14)
+          .background(GainsColor.card)
+          .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+              .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
-        .padding(18)
-        .gainsCardStyle()
       }
-
-      Button {
-        store.finishWorkout()
-        dismiss()
-      } label: {
-        Text("Workout abschließen")
-          .font(GainsFont.label(12))
-          .tracking(1.5)
-          .foregroundStyle(GainsColor.lime)
-          .frame(maxWidth: .infinity)
-          .frame(height: 52)
-          .background(GainsColor.ink)
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-      }
-      .buttonStyle(.plain)
-      .padding(.top, 4)
     }
   }
 
-  private var startedAt: Date? {
-    activeSetStartedAt
+  private var finishedCard: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text("Alle Sätze sind erledigt")
+        .font(GainsFont.title(20))
+        .foregroundStyle(GainsColor.ink)
+      Text("Stark! Schließe das Workout ab und sicher dir den Eintrag in deiner Historie.")
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.softInk)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(18)
+    .gainsCardStyle(GainsColor.lime.opacity(0.4))
+  }
+
+  // MARK: - Exercises tab
+
+  @ViewBuilder
+  private func exercisesBody(_ workout: WorkoutSession) -> some View {
+    VStack(spacing: 14) {
+      ForEach(workout.exercises) { exercise in
+        exerciseDetailCard(exercise)
+      }
+    }
+  }
+
+  private func exerciseDetailCard(_ exercise: TrackedExercise) -> some View {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 4) {
+          Text(exercise.name)
+            .font(GainsFont.title(19))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(2)
+          Text(exercise.targetMuscle.uppercased())
+            .font(GainsFont.label(10))
+            .tracking(1.6)
+            .foregroundStyle(GainsColor.softInk)
+        }
+
+        Spacer()
+
+        Text("\(exercise.sets.filter(\.isCompleted).count)/\(exercise.sets.count)")
+          .font(GainsFont.title(18))
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.moss)
+      }
+
+      VStack(spacing: 10) {
+        ForEach(exercise.sets) { set in
+          TrackerSetRow(
+            exerciseID: exercise.id,
+            set: set,
+            isFocused: false,
+            isTimerRunning: activeSetID == set.id,
+            onTogglePlay: { toggleSetTimer(for: set.id) },
+            onComplete: { completeSet(exerciseID: exercise.id, set: set) }
+          )
+        }
+      }
+
+      HStack(spacing: 10) {
+        Button {
+          store.addSet(to: exercise.id)
+        } label: {
+          chipButton(icon: "plus", title: "Satz")
+        }
+        .buttonStyle(.plain)
+
+        Button {
+          store.removeLastSet(from: exercise.id)
+        } label: {
+          chipButton(icon: "minus", title: "Satz")
+        }
+        .buttonStyle(.plain)
+        .disabled(exercise.sets.count <= 1)
+        .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
+      }
+    }
+    .padding(18)
+    .gainsCardStyle()
+  }
+
+  // MARK: - Bottom CTA
+
+  private func bottomCTA(_ workout: WorkoutSession) -> some View {
+    let pending = nextPending(in: workout)
+    let isComplete = pending == nil
+    let isSetActive = activeSetID != nil
+    let title: String = {
+      if isComplete { return "WORKOUT BEENDEN" }
+      if isSetActive { return "SATZ STOPPEN" }
+      if let pending {
+        let order = pending.set.order
+        return order == 1 && pending.exercise.sets.allSatisfy({ !$0.isCompleted })
+          ? "STARTE DEN ERSTEN SATZ"
+          : "SATZ \(order) STARTEN"
+      }
+      return "STARTE DEN ERSTEN SATZ"
+    }()
+    let icon = isSetActive ? "stop.fill" : (isComplete ? "checkmark" : "play.fill")
+
+    return Button {
+      if isComplete {
+        store.finishWorkout()
+        dismiss()
+        return
+      }
+      if isSetActive, let id = activeSetID {
+        // Stop the timer and mark current focus set complete.
+        if let pending, pending.set.id == id {
+          completeSet(exerciseID: pending.exercise.id, set: pending.set)
+        } else {
+          stopActiveSet()
+        }
+        return
+      }
+      if let pending {
+        toggleSetTimer(for: pending.set.id)
+      }
+    } label: {
+      HStack(spacing: 12) {
+        Image(systemName: icon)
+          .font(.system(size: 13, weight: .heavy))
+          .foregroundStyle(GainsColor.lime)
+
+        Text(title)
+          .font(GainsFont.label(13))
+          .tracking(2)
+          .foregroundStyle(GainsColor.lime)
+
+        Spacer()
+
+        if !isComplete {
+          Text("\(workout.completedSets)/\(workout.totalSets)")
+            .font(GainsFont.label(10))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.lime.opacity(0.7))
+            .monospacedDigit()
+        }
+      }
+      .padding(.horizontal, 22)
+      .frame(height: 64)
+      .background(GainsColor.ink)
+      .overlay(
+        RoundedRectangle(cornerRadius: 22, style: .continuous)
+          .stroke(GainsColor.lime.opacity(0.55), lineWidth: 1.4)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+      .shadow(color: GainsColor.lime.opacity(0.18), radius: 18, x: 0, y: 10)
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Logic helpers
+
+  private func currentExerciseID(in workout: WorkoutSession) -> UUID? {
+    nextPending(in: workout)?.exercise.id
+  }
+
+  private func nextPending(in workout: WorkoutSession) -> (
+    exercise: TrackedExercise, set: TrackedSet
+  )? {
+    for exercise in workout.exercises {
+      if let next = exercise.sets.first(where: { !$0.isCompleted }) {
+        return (exercise, next)
+      }
+    }
+    return nil
   }
 
   private func toggleSetTimer(for setID: UUID) {
-    if activeTimedSetID == setID {
-      stopSetTimer(for: setID)
+    if activeSetID == setID {
+      stopActiveSet()
     } else {
       restTimerEndsAt = nil
-      activeTimedSetID = setID
+      activeSetID = setID
       activeSetStartedAt = Date()
     }
   }
 
-  private func stopSetTimer(for setID: UUID) {
-    guard activeTimedSetID == setID else { return }
-    activeTimedSetID = nil
+  private func stopActiveSet() {
+    activeSetID = nil
     activeSetStartedAt = nil
   }
 
-  private func handleSetCompletionChange(becameCompleted: Bool) {
-    guard becameCompleted else {
+  private func completeSet(exerciseID: UUID, set: TrackedSet) {
+    let wasCompleted = set.isCompleted
+    if activeSetID == set.id {
+      stopActiveSet()
+    }
+    store.toggleSet(exerciseID: exerciseID, setID: set.id)
+    if !wasCompleted {
+      restTimerEndsAt = Calendar.current.date(byAdding: .second, value: restDuration, to: Date())
+    } else {
       restTimerEndsAt = nil
-      return
     }
-    restTimerEndsAt = Calendar.current.date(byAdding: .second, value: 90, to: Date())
-  }
-
-  private func exerciseStatusRow(_ exercise: TrackedExercise) -> some View {
-    let nextOpenSet = exercise.sets.first(where: { !$0.isCompleted })
-    let lastCompletedSet = exercise.sets.filter(\.isCompleted).last
-
-    return HStack(spacing: 10) {
-      if let nextOpenSet {
-        trackerPill(title: "Nächster Satz", value: "S\(nextOpenSet.order)")
-      }
-
-      if let lastCompletedSet {
-        trackerPill(
-          title: "Zuletzt",
-          value: "\(Int(lastCompletedSet.weight.rounded())) kg × \(lastCompletedSet.reps)")
-      }
-
-      if nextOpenSet == nil {
-        trackerPill(title: "Status", value: "Fertig")
-      }
-    }
-  }
-
-  private func trackerPill(title: String, value: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title.uppercased())
-        .font(GainsFont.label(9))
-        .tracking(1.8)
-        .foregroundStyle(GainsColor.softInk)
-
-      Text(value)
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.ink)
-    }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 10)
-    .background(GainsColor.background.opacity(0.8))
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-  }
-
-  private func nextPendingSet(in workout: WorkoutSession) -> (
-    exercise: TrackedExercise, set: TrackedSet
-  )? {
-    for exercise in workout.exercises {
-      if let nextSet = exercise.sets.first(where: { !$0.isCompleted }) {
-        return (exercise, nextSet)
-      }
-    }
-    return nil
   }
 
   private var remainingRestSeconds: Int {
@@ -387,136 +748,196 @@ struct WorkoutTrackerView: View {
   private var restTimerLabel: String {
     let seconds = remainingRestSeconds
     let minutes = seconds / 60
-    let remainingSeconds = seconds % 60
-    return String(format: "%02d:%02d", minutes, remainingSeconds)
+    let rest = seconds % 60
+    return String(format: "%02d:%02d", minutes, rest)
   }
 
   private func elapsedLabel(since date: Date?) -> String {
     guard let date else { return "00:00" }
     let seconds = max(Int(currentTime.timeIntervalSince(date)), 0)
     let minutes = seconds / 60
-    let remainingSeconds = seconds % 60
-    return String(format: "%02d:%02d", minutes, remainingSeconds)
+    let rest = seconds % 60
+    return String(format: "%02d:%02d", minutes, rest)
+  }
+
+  private func sessionTimeString(_ start: Date) -> String {
+    let seconds = max(Int(currentTime.timeIntervalSince(start)), 0)
+    let hours = seconds / 3600
+    let minutes = (seconds % 3600) / 60
+    let secs = seconds % 60
+    if hours > 0 {
+      return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+    }
+    return String(format: "%02d:%02d", minutes, secs)
   }
 }
 
-private struct WorkoutSetRow: View {
+// MARK: - Set row with manual keyboard input
+
+private struct TrackerSetRow: View {
   @EnvironmentObject private var store: GainsStore
 
   let exerciseID: UUID
   let set: TrackedSet
+  let isFocused: Bool
   let isTimerRunning: Bool
-  let timerLabel: String
-  let onTimerTap: () -> Void
-  let onCompletionTap: () -> Void
+  let onTogglePlay: () -> Void
+  let onComplete: () -> Void
+
+  @State private var weightText: String = ""
+  @State private var repsText: String = ""
+  @FocusState private var focusedField: Field?
+
+  enum Field: Hashable {
+    case weight, reps
+  }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 12) {
+    let accent: Color = {
+      if set.isCompleted { return GainsColor.moss }
+      if isTimerRunning { return GainsColor.lime }
+      if isFocused { return GainsColor.lime.opacity(0.55) }
+      return GainsColor.border.opacity(0.45)
+    }()
+
+    return HStack(spacing: 12) {
+      VStack(spacing: 2) {
         Text("S\(set.order)")
-          .font(GainsFont.label(10))
-          .tracking(2)
-          .foregroundStyle(GainsColor.softInk)
-          .frame(width: 24)
-
-        stepperField(
-          title: "KG", value: displayWeight, onMinus: decreaseWeight, onPlus: increaseWeight)
-        stepperField(
-          title: "REPS", value: "\(set.reps)", onMinus: decreaseReps, onPlus: increaseReps)
-
-        Button(action: onCompletionTap) {
-          Image(systemName: set.isCompleted ? "checkmark.circle.fill" : "circle")
-            .font(.system(size: 24, weight: .semibold))
-            .foregroundStyle(set.isCompleted ? GainsColor.moss : GainsColor.border)
-        }
-        .buttonStyle(.plain)
+          .font(GainsFont.label(11))
+          .tracking(1.4)
+          .foregroundStyle(set.isCompleted ? GainsColor.onLime : GainsColor.ink)
       }
+      .frame(width: 36, height: 36)
+      .background(set.isCompleted ? GainsColor.lime : GainsColor.background.opacity(0.85))
+      .clipShape(Circle())
 
-      Button(action: onTimerTap) {
-        HStack {
-          Label(timerLabel, systemImage: isTimerRunning ? "stopwatch.fill" : "stopwatch")
-            .font(GainsFont.label(10))
-            .tracking(1.2)
-            .foregroundStyle(isTimerRunning ? GainsColor.moss : GainsColor.ink)
+      inputField(
+        title: "KG",
+        text: $weightText,
+        field: .weight,
+        keyboard: .decimalPad,
+        commit: commitWeight
+      )
 
-          Spacer()
+      inputField(
+        title: "REPS",
+        text: $repsText,
+        field: .reps,
+        keyboard: .numberPad,
+        commit: commitReps
+      )
 
-          Text(isTimerRunning ? "Satz läuft" : "Satz starten")
-            .font(GainsFont.label(10))
-            .tracking(1.2)
-            .foregroundStyle(isTimerRunning ? GainsColor.moss : GainsColor.softInk)
-        }
-        .padding(.horizontal, 12)
-        .frame(height: 40)
-        .background(isTimerRunning ? GainsColor.lime.opacity(0.38) : GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      Button(action: onTogglePlay) {
+        Image(systemName: isTimerRunning ? "pause.fill" : "play.fill")
+          .font(.system(size: 13, weight: .heavy))
+          .foregroundStyle(isTimerRunning ? GainsColor.onLime : GainsColor.lime)
+          .frame(width: 38, height: 38)
+          .background(isTimerRunning ? GainsColor.lime : GainsColor.ink)
+          .clipShape(Circle())
+      }
+      .buttonStyle(.plain)
+
+      Button(action: onComplete) {
+        Image(systemName: set.isCompleted ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 24, weight: .semibold))
+          .foregroundStyle(set.isCompleted ? GainsColor.moss : GainsColor.softInk)
       }
       .buttonStyle(.plain)
     }
-    .padding(14)
-    .background(set.isCompleted ? GainsColor.lime.opacity(0.4) : GainsColor.background.opacity(0.7))
-    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-  }
-
-  private var displayWeight: String {
-    if set.weight.truncatingRemainder(dividingBy: 1) == 0 {
-      return "\(Int(set.weight))"
+    .padding(.horizontal, 12)
+    .padding(.vertical, 12)
+    .background(
+      set.isCompleted
+        ? GainsColor.lime.opacity(0.18)
+        : (isFocused ? GainsColor.background.opacity(0.6) : GainsColor.background.opacity(0.4))
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .stroke(accent, lineWidth: isFocused || isTimerRunning ? 1.4 : 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .onAppear {
+      weightText = formattedWeight(set.weight)
+      repsText = "\(set.reps)"
     }
-    return String(format: "%.1f", set.weight)
-  }
-
-  private func stepperField(
-    title: String, value: String, onMinus: @escaping () -> Void, onPlus: @escaping () -> Void
-  ) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(title)
-        .font(GainsFont.label(9))
-        .tracking(1.8)
-        .foregroundStyle(GainsColor.softInk)
-
-      HStack(spacing: 8) {
-        Button(action: onMinus) {
-          Image(systemName: "minus")
-            .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(GainsColor.ink)
-            .frame(width: 28, height: 28)
-            .background(GainsColor.card)
-            .clipShape(Circle())
-        }
-        .buttonStyle(.plain)
-
-        Text(value)
-          .font(GainsFont.title(18))
-          .foregroundStyle(GainsColor.ink)
-          .frame(minWidth: 36)
-
-        Button(action: onPlus) {
-          Image(systemName: "plus")
-            .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(GainsColor.ink)
-            .frame(width: 28, height: 28)
-            .background(GainsColor.card)
-            .clipShape(Circle())
-        }
-        .buttonStyle(.plain)
+    .onChange(of: set.weight) { _, newValue in
+      if focusedField != .weight {
+        weightText = formattedWeight(newValue)
       }
     }
+    .onChange(of: set.reps) { _, newValue in
+      if focusedField != .reps {
+        repsText = "\(newValue)"
+      }
+    }
+  }
+
+  private func inputField(
+    title: String,
+    text: Binding<String>,
+    field: Field,
+    keyboard: UIKeyboardType,
+    commit: @escaping () -> Void
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(title)
+        .font(GainsFont.label(9))
+        .tracking(1.6)
+        .foregroundStyle(GainsColor.softInk)
+
+      TextField("0", text: text)
+        .font(GainsFont.title(20))
+        .monospacedDigit()
+        .foregroundStyle(GainsColor.ink)
+        .keyboardType(keyboard)
+        .multilineTextAlignment(.leading)
+        .focused($focusedField, equals: field)
+        .onSubmit(commit)
+        .onChange(of: focusedField) { _, newValue in
+          if newValue != field {
+            commit()
+          }
+        }
+    }
     .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, 12)
+    .padding(.vertical, 8)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .stroke(
+          focusedField == field ? GainsColor.lime.opacity(0.6) : GainsColor.border.opacity(0.4),
+          lineWidth: 1
+        )
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
   }
 
-  private func decreaseWeight() {
-    store.updateSet(exerciseID: exerciseID, setID: set.id, weight: max(0, set.weight - 2.5))
+  private func commitWeight() {
+    let normalized = weightText.replacingOccurrences(of: ",", with: ".")
+    if let value = Double(normalized) {
+      let rounded = max(0, value)
+      store.updateSet(exerciseID: exerciseID, setID: set.id, weight: rounded)
+      weightText = formattedWeight(rounded)
+    } else {
+      weightText = formattedWeight(set.weight)
+    }
   }
 
-  private func increaseWeight() {
-    store.updateSet(exerciseID: exerciseID, setID: set.id, weight: set.weight + 2.5)
+  private func commitReps() {
+    if let value = Int(repsText) {
+      let bounded = max(0, value)
+      store.updateSet(exerciseID: exerciseID, setID: set.id, reps: bounded)
+      repsText = "\(bounded)"
+    } else {
+      repsText = "\(set.reps)"
+    }
   }
 
-  private func decreaseReps() {
-    store.updateSet(exerciseID: exerciseID, setID: set.id, reps: max(0, set.reps - 1))
-  }
-
-  private func increaseReps() {
-    store.updateSet(exerciseID: exerciseID, setID: set.id, reps: set.reps + 1)
+  private func formattedWeight(_ value: Double) -> String {
+    if value.truncatingRemainder(dividingBy: 1) == 0 {
+      return "\(Int(value))"
+    }
+    return String(format: "%.1f", value)
   }
 }

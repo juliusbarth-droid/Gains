@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct GainsApp: App {
   @StateObject private var store = GainsStore()
-  @StateObject private var navigation = AppNavigationStore()
+  @StateObject private var navigation AppNavigationStore()
 
   var body: some Scene {
     WindowGroup {

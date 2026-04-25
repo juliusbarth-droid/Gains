@@ -42,6 +42,11 @@ enum GainsColor {
   static let signalDeep = Color(lightHex: "4A5220", darkHex: "879F4B")
   static let onLime = Color(lightHex: "171A10", darkHex: "15180F")
   static let onLimeSecondary = Color(lightHex: "39411B", darkHex: "2E3517")
+  static let ember = Color(lightHex: "E8543C", darkHex: "FF6A4A")
+  static let emberGlow = Color(lightHex: "F0A88F", darkHex: "FFB094")
+  static let onEmber = Color(lightHex: "2A0E07", darkHex: "190503")
+  static let onEmberSecondary = Color(lightHex: "551D10", darkHex: "3A1109")
+  static let surfaceDeep = Color(lightHex: "DCDAD2", darkHex: "050606")
 }
 
 enum GainsFont {

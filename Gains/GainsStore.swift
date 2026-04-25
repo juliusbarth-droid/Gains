@@ -1353,6 +1353,12 @@ final class GainsStore: ObservableObject {
     }
   }
 
+  func startQuickWorkout() {
+    guard activeWorkout == nil else { return }
+    let plan = todayPlannedWorkout ?? savedWorkoutPlans.first ?? currentWorkoutPreview
+    activeWorkout = WorkoutSession.fromPlan(plan)
+  }
+
   func discardWorkout() {
     activeWorkout = nil
   }
@@ -1635,6 +1641,50 @@ final class GainsStore: ObservableObject {
     if let weight {
       activeWorkout?.exercises[exerciseIndex].sets[setIndex].weight = max(0, weight)
     }
+  }
+
+  func reorderActiveExercises(from source: IndexSet, to destination: Int) {
+    activeWorkout?.exercises.move(fromOffsets: source, toOffset: destination)
+  }
+
+  func removeActiveExercise(id: UUID) {
+    activeWorkout?.exercises.removeAll { $0.id == id }
+  }
+
+  func appendActiveExercise(from item: ExerciseLibraryItem) {
+    guard activeWorkout != nil else { return }
+    let sets: [TrackedSet] = (0..<max(item.defaultSets, 1)).map { index in
+      TrackedSet(
+        order: index + 1,
+        reps: item.defaultReps,
+        weight: item.suggestedWeight,
+        isCompleted: false
+      )
+    }
+    let tracked = TrackedExercise(name: item.name, targetMuscle: item.primaryMuscle, sets: sets)
+    activeWorkout?.exercises.append(tracked)
+  }
+
+  func addSet(to exerciseID: UUID) {
+    guard let exerciseIndex = activeWorkout?.exercises.firstIndex(where: { $0.id == exerciseID })
+    else { return }
+    let existingSets = activeWorkout?.exercises[exerciseIndex].sets ?? []
+    let reference = existingSets.last
+    let newOrder = (existingSets.last?.order ?? 0) + 1
+    let newSet = TrackedSet(
+      order: newOrder,
+      reps: reference?.reps ?? 8,
+      weight: reference?.weight ?? 0,
+      isCompleted: false
+    )
+    activeWorkout?.exercises[exerciseIndex].sets.append(newSet)
+  }
+
+  func removeLastSet(from exerciseID: UUID) {
+    guard let exerciseIndex = activeWorkout?.exercises.firstIndex(where: { $0.id == exerciseID }),
+      (activeWorkout?.exercises[exerciseIndex].sets.count ?? 0) > 1
+    else { return }
+    activeWorkout?.exercises[exerciseIndex].sets.removeLast()
   }
 
   func toggleCoachCheckIn(_ id: UUID) {
