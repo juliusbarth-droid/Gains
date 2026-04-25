@@ -223,6 +223,8 @@ struct RecipesView: View {
           secondaryNeedCard
         }
 
+        nutritionQuickStartRow
+
         VStack(alignment: .leading, spacing: 10) {
           Text("Makros heute")
             .font(GainsFont.label(10))
@@ -405,6 +407,64 @@ struct RecipesView: View {
     .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
   }
 
+  private var nutritionQuickStartRow: some View {
+    HStack(spacing: 10) {
+      Button {
+        navigation.presentCapture(kind: .meal)
+      } label: {
+        nutritionQuickActionTile(
+          title: "Foto loggen",
+          subtitle: "Meal mit Bild erfassen",
+          symbol: "camera.fill",
+          isPrimary: true
+        )
+      }
+      .buttonStyle(.plain)
+
+      Button {
+        pendingMealType = .lunchDinner
+        showsQuickAddSheet = true
+      } label: {
+        nutritionQuickActionTile(
+          title: "Schnell erfassen",
+          subtitle: "Kalorien direkt eintragen",
+          symbol: "plus.circle.fill",
+          isPrimary: false
+        )
+      }
+      .buttonStyle(.plain)
+    }
+  }
+
+  private func nutritionQuickActionTile(title: String, subtitle: String, symbol: String, isPrimary: Bool) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Image(systemName: symbol)
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundStyle(isPrimary ? GainsColor.onLime : GainsColor.lime)
+        .frame(width: 34, height: 34)
+        .background(isPrimary ? GainsColor.onLime.opacity(0.12) : GainsColor.ink)
+        .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+
+      Text(title)
+        .font(GainsFont.title(16))
+        .foregroundStyle(isPrimary ? GainsColor.onLime : GainsColor.ink)
+        .lineLimit(2)
+
+      Text(subtitle)
+        .font(GainsFont.body(12))
+        .foregroundStyle(isPrimary ? GainsColor.onLimeSecondary : GainsColor.softInk)
+        .lineLimit(2)
+    }
+    .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+    .padding(14)
+    .background(isPrimary ? GainsColor.lime : GainsColor.elevated)
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke((isPrimary ? GainsColor.lime : GainsColor.border).opacity(0.45), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+  }
+
   private var mealTrackerSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
@@ -428,8 +488,20 @@ struct RecipesView: View {
           navigation.presentCapture(kind: .meal)
         } label: {
           quickActionCard(
-            title: "Mahlzeit hinzufügen",
-            subtitle: "Direkt Essen und Makros eintragen",
+            title: "Meal mit Foto loggen",
+            subtitle: "Bild auswählen und Kalorien direkt erfassen",
+            symbol: "camera.fill"
+          )
+        }
+        .buttonStyle(.plain)
+
+        Button {
+          pendingMealType = .lunchDinner
+          showsQuickAddSheet = true
+        } label: {
+          quickActionCard(
+            title: "Mahlzeit schnell hinzufügen",
+            subtitle: "Kalorien und Makros ohne Umwege eintragen",
             symbol: "plus.circle.fill"
           )
         }
