@@ -30,13 +30,13 @@ enum GainsAppearanceMode: String, CaseIterable {
 }
 
 enum GainsColor {
-  static let background = Color(lightHex: "E8E6E0", darkHex: "0B0C0C")
-  static let card = Color(lightHex: "F4F2EC", darkHex: "17191A")
-  static let elevated = Color(lightHex: "ECE9E2", darkHex: "202325")
-  static let ink = Color(lightHex: "1A1A1A", darkHex: "F4F3EE")
-  static let softInk = Color(lightHex: "4E4E4E", darkHex: "C9C6BC")
-  static let mutedInk = Color(lightHex: "636363", darkHex: "A19D93")
-  static let border = Color(lightHex: "BBB8B0", darkHex: "3B3E40")
+  static let background = Color(lightHex: "EAE7E1", darkHex: "0E1011")
+  static let card = Color(lightHex: "F7F4EE", darkHex: "151718")
+  static let elevated = Color(lightHex: "F0ECE5", darkHex: "1B1E20")
+  static let ink = Color(lightHex: "171717", darkHex: "F3F1EA")
+  static let softInk = Color(lightHex: "4B4B4B", darkHex: "C3BFB5")
+  static let mutedInk = Color(lightHex: "686868", darkHex: "9A958B")
+  static let border = Color(lightHex: "C3BEB5", darkHex: "313538")
   static let lime = Color(lightHex: "D4E85C", darkHex: "C2DC47")
   static let moss = Color(lightHex: "4A5220", darkHex: "6F8440")
   static let signalDeep = Color(lightHex: "4A5220", darkHex: "879F4B")
@@ -46,7 +46,7 @@ enum GainsColor {
   static let emberGlow = Color(lightHex: "F0A88F", darkHex: "FFB094")
   static let onEmber = Color(lightHex: "2A0E07", darkHex: "190503")
   static let onEmberSecondary = Color(lightHex: "551D10", darkHex: "3A1109")
-  static let surfaceDeep = Color(lightHex: "DCDAD2", darkHex: "050606")
+  static let surfaceDeep = Color(lightHex: "DFDCD4", darkHex: "0A0C0D")
 }
 
 enum GainsFont {
@@ -98,7 +98,7 @@ extension View {
       .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
       .overlay(
         RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.95), lineWidth: 1)
+          .stroke(GainsColor.border.opacity(0.7), lineWidth: 1)
       )
   }
 
@@ -110,7 +110,7 @@ extension View {
       .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
       .overlay(
         RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .stroke(accent.opacity(0.72), lineWidth: 1.2)
+          .stroke(accent.opacity(0.52), lineWidth: 1.1)
       )
   }
 }
