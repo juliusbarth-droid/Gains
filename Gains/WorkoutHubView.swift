@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private enum WorkoutWorkspace: String, CaseIterable, Identifiable {
   case kraft
@@ -97,42 +98,28 @@ private enum HistoryEntry: Identifiable {
 struct WorkoutHubView: View {
   @EnvironmentObject private var store: GainsStore
   @EnvironmentObject private var navigation: AppNavigationStore
-  let viewModel: WorkoutHubViewModel
   @State private var isShowingWorkoutTracker = false
   @State private var isShowingRunTracker = false
   @State private var isShowingWorkoutBuilder = false
   @State private var selectedWorkspace: WorkoutWorkspace = .kraft
   @State private var selectedHistorySurface: HistorySurface = .all
-  @State private var showsTrainingLibrary = false
   @State private var showsWeeklyPlan = false
   @State private var showsPlannerSetup = false
-  @State private var showsRunningInsights = false
-  @State private var showsRunningRecords = false
-  @State private var showsRunningTemplates = false
-  @State private var showsRunningHistory = false
   @State private var showsTrainingHistory = false
+  @State private var selectedRun: CompletedRunSummary? = nil
+  @State private var showsRunStats = false
+  @State private var showsRunHistory = false
+  // Workout editing
+  @State private var workoutToEdit: WorkoutPlan? = nil
+  @State private var workoutToDelete: WorkoutPlan? = nil
+  @State private var showsDeleteConfirmation = false
 
   var body: some View {
     GainsScreen {
       VStack(alignment: .leading, spacing: 22) {
         trainHeader
-        workspacePicker
-        workspaceContent
+        runningWorkspace
       }
-    }
-    .onAppear {
-      selectedWorkspace = WorkoutWorkspace(appWorkspace: navigation.preferredWorkoutWorkspace)
-    }
-    .onChange(of: navigation.preferredWorkoutWorkspace) { _, workspace in
-      selectedWorkspace = WorkoutWorkspace(appWorkspace: workspace)
-    }
-    .sheet(isPresented: $isShowingWorkoutTracker) {
-      WorkoutTrackerView()
-        .environmentObject(store)
-    }
-    .sheet(isPresented: $isShowingWorkoutBuilder) {
-      WorkoutBuilderView()
-        .environmentObject(store)
     }
     .sheet(isPresented: $isShowingRunTracker) {
       RunTrackerView()
@@ -164,15 +151,11 @@ struct WorkoutHubView: View {
   }
 
   private var trainHeader: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      screenHeader(
-        eyebrow: "TRAIN / ACTION",
-        title: trainingHeaderTitle,
-        subtitle: trainingHeaderSubtitle
-      )
-
-      quickTrainingSummaryRow
-    }
+    screenHeader(
+      eyebrow: "RUN / ACTION",
+      title: store.activeRun == nil ? "Run sauber starten" : "Run ist live",
+      subtitle: "Laufstart, aktuelle Form und Vorlagen sind gebündelt – Cardio bleibt klar getrennt vom Gym."
+    )
   }
 
   @ViewBuilder
@@ -189,62 +172,123 @@ struct WorkoutHubView: View {
 
   private var kraftWorkspace: some View {
     VStack(alignment: .leading, spacing: 22) {
+      // 1. Today CTA
       strengthHeroSection
-      overviewSection
 
+      // 2. Live-Session — nur wenn aktiv
       if let activeWorkout = store.activeWorkout {
         liveSection(activeWorkout)
       }
 
-      exercisePreviewSection
-      collapsibleTrainingSection(
-        title: "Workout-Bibliothek",
-        subtitle: "Eigene und vorgefertigte Workouts gesammelt statt alles sofort offen",
-        isExpanded: $showsTrainingLibrary,
-        content: {
-          VStack(alignment: .leading, spacing: 22) {
-            ownWorkoutsSection
-            templateWorkoutsSection
-          }
-        }
-      )
+      // 3. Eigene Workouts — immer sichtbar, mit Edit/Delete
+      ownWorkoutsSection
+
+      // 4. Vorlagen — sekundär, immer sichtbar
+      templateWorkoutsSection
     }
   }
 
   private var runningWorkspace: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    VStack(alignment: .leading, spacing: 20) {
+      // 1. Primäre Aktion — immer sichtbar
       runningStarterSection
-      runningSummarySection
 
+      // 2. Live-Tracker — nur sichtbar wenn Lauf aktiv
       if store.activeRun != nil {
         runningLiveSection
       }
 
+      // 3. Letzter Lauf — nur der aktuellste, kompakt
+      if let latestRun = store.runHistory.first {
+        recentRunCard(latestRun)
+      }
+
+      // 4. Vorlagen — früh sichtbar, zentraler Aktionspfad
+      runningTemplatesSection
+
+      // 5. Statistiken — alles gefaltet hinter einem Tap
       collapsibleTrainingSection(
-        title: "Run-Insights",
-        subtitle: "Volumen, Pace und schneller Restart nur dann sichtbar, wenn du tiefer in deine Läufe gehst",
-        isExpanded: $showsRunningInsights,
-        content: { runningInsightSection }
+        title: "Statistiken & PRs",
+        subtitle: "Woche, Jahr, Bestzeiten und Pace-Zonen",
+        isExpanded: $showsRunStats,
+        content: {
+          VStack(alignment: .leading, spacing: 20) {
+            weeklyDistanceChartSection
+            ytdStatsSection
+            distancePRsSection
+            paceZonesSection
+          }
+        }
       )
+
+      // 6. Alle Aktivitäten — gefaltet
       collapsibleTrainingSection(
-        title: "Records",
-        subtitle: "Bestzeiten und längste Läufe bleiben greifbar, aber blockieren nicht den Start",
-        isExpanded: $showsRunningRecords,
-        content: { runningRecordsSection }
-      )
-      collapsibleTrainingSection(
-        title: "Run-Templates",
-        subtitle: "Easy, Tempo und Long Run nur aufklappen, wenn du eine Vorlage brauchst",
-        isExpanded: $showsRunningTemplates,
-        content: { runningTemplatesSection }
-      )
-      collapsibleTrainingSection(
-        title: "Run-History",
-        subtitle: "Letzte Läufe und Wiederholen-Aktionen gesammelt am Ende",
-        isExpanded: $showsRunningHistory,
-        content: { runningHistorySection }
+        title: "Alle Aktivitäten",
+        subtitle: store.runHistory.isEmpty
+          ? "Noch kein Lauf aufgezeichnet"
+          : "\(store.runHistory.count) Läufe gespeichert",
+        isExpanded: $showsRunHistory,
+        content: { runFeedSection }
       )
     }
+    .sheet(item: $selectedRun) { run in
+      RunDetailSheet(run: run) {
+        store.startRunLike(run)
+        selectedRun = nil
+        isShowingRunTracker = true
+      }
+      .environmentObject(store)
+    }
+  }
+
+  private func recentRunCard(_ run: CompletedRunSummary) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack {
+        SlashLabel(
+          parts: ["LETZTER", "LAUF"], primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
+        Spacer()
+        Text(run.finishedAt.formatted(date: .abbreviated, time: .omitted))
+          .font(GainsFont.label(9))
+          .tracking(1.0)
+          .foregroundStyle(GainsColor.softInk)
+      }
+
+      Button {
+        selectedRun = run
+      } label: {
+        HStack(alignment: .top, spacing: 12) {
+          VStack(alignment: .leading, spacing: 4) {
+            Text(run.title)
+              .font(GainsFont.title(18))
+              .foregroundStyle(GainsColor.ink)
+            Text(run.routeName)
+              .font(GainsFont.body(12))
+              .foregroundStyle(GainsColor.moss)
+          }
+
+          Spacer()
+
+          VStack(alignment: .trailing, spacing: 4) {
+            HStack(alignment: .lastTextBaseline, spacing: 3) {
+              Text(String(format: "%.2f", run.distanceKm))
+                .font(.system(size: 22, weight: .black, design: .rounded))
+                .foregroundStyle(GainsColor.ink)
+              Text("km")
+                .font(GainsFont.body(12))
+                .foregroundStyle(GainsColor.softInk)
+            }
+            Text(runPaceLabel(run.averagePaceSeconds))
+              .font(GainsFont.label(10))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(16)
+    .gainsCardStyle()
   }
 
   private var strengthHeroSection: some View {
@@ -348,7 +392,7 @@ struct WorkoutHubView: View {
         Button {
           switch today.status {
           case .planned:
-            showsTrainingLibrary = true
+            isShowingWorkoutBuilder = true
           case .rest, .flexible:
             selectedWorkspace = .fortschritt
           }
@@ -363,7 +407,7 @@ struct WorkoutHubView: View {
       }
     }
     .padding(20)
-    .background(GainsColor.ink)
+    .background(GainsColor.ctaSurface)
     .overlay(
       RoundedRectangle(cornerRadius: 28, style: .continuous)
         .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
@@ -401,244 +445,146 @@ struct WorkoutHubView: View {
     }
   }
 
-  private var runningInsightSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["RUN", "INSIGHTS"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+  // MARK: - Running Hero Card (Strava-style)
 
-      VStack(alignment: .leading, spacing: 14) {
-        Text(store.latestRunAchievement)
-          .font(GainsFont.title(22))
-          .foregroundStyle(GainsColor.ink)
-
-        HStack(spacing: 10) {
-          plannerMetricCard(
-            title: "30 Tage", value: String(format: "%.1f km", store.monthlyRunDistanceKm),
-            subtitle: "Volumen")
-          plannerMetricCard(
-            title: "Ø Pace", value: runPaceLabel(store.averageRunPaceSeconds), subtitle: "7 Tage")
+  private var runningStarterSection: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      // ── Top bar: title + streak ──────────────────────────────────
+      HStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 6) {
+          SlashLabel(
+            parts: ["LAUFEN", "RECORD"],
+            primaryColor: GainsColor.lime,
+            secondaryColor: GainsColor.card.opacity(0.65)
+          )
+          Text(store.runningHeadline)
+            .font(GainsFont.title(26))
+            .foregroundStyle(GainsColor.card)
+            .lineLimit(2)
         }
-
-        if let latestRun = store.latestCompletedRun {
-          Button {
-            store.startRunLike(latestRun)
-            isShowingRunTracker = true
-          } label: {
-            Text(store.activeRun == nil ? "Letzten Lauf erneut starten" : "Aktiven Lauf fortsetzen")
-              .font(GainsFont.label(11))
-              .tracking(1.4)
-              .foregroundStyle(store.activeRun == nil ? GainsColor.lime : GainsColor.softInk)
-              .frame(maxWidth: .infinity)
-              .frame(height: 44)
-              .background(store.activeRun == nil ? GainsColor.ink : GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        Spacer(minLength: 12)
+        if store.runStreak > 0 {
+          VStack(spacing: 2) {
+            Image(systemName: "flame.fill")
+              .font(.system(size: 18, weight: .semibold))
+              .foregroundStyle(GainsColor.lime)
+            Text("\(store.runStreak)")
+              .font(GainsFont.title(18))
+              .foregroundStyle(GainsColor.lime)
+            Text("Tage")
+              .font(GainsFont.label(8))
+              .tracking(1.0)
+              .foregroundStyle(GainsColor.lime.opacity(0.7))
           }
-          .buttonStyle(.plain)
-          .disabled(store.activeRun != nil)
-          .opacity(store.activeRun == nil ? 1 : 0.5)
+          .frame(width: 48)
         }
       }
-      .padding(18)
-      .gainsCardStyle()
-    }
-  }
+      .padding(.horizontal, 20)
+      .padding(.top, 20)
+      .padding(.bottom, 16)
 
-  private var quickTrainingSummaryRow: some View {
-    HStack(spacing: 10) {
-      switch selectedWorkspace {
-      case .kraft:
-        plannerMetricCard(
-          title: "Heute", value: store.todayPlannedWorkout?.split ?? store.todayPlannedDay.title,
-          subtitle: "Fokus")
-        plannerMetricCard(
-          title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)",
-          subtitle: "Sessions")
-        plannerMetricCard(
-          title: "Volumen", value: String(format: "%.1f t", store.weeklyVolumeTons),
-          subtitle: "7 Tage")
-      case .laufen:
-        plannerMetricCard(
-          title: "Distanz", value: String(format: "%.1f km", store.weeklyRunDistanceKm),
-          subtitle: "7 Tage")
-        plannerMetricCard(
-          title: "Zeit", value: "\(store.weeklyRunDurationMinutes) Min",
-          subtitle: "Bewegung")
-        plannerMetricCard(
-          title: "Pace", value: runPaceLabel(store.averageRunPaceSeconds),
-          subtitle: "Ø")
-      case .fortschritt:
-        plannerMetricCard(
-          title: "Tage", value: "\(store.trainingDaysCount)",
-          subtitle: "geplant")
-        plannerMetricCard(
-          title: "Zugewiesen", value: "\(store.plannerAssignedDaysCount)",
-          subtitle: "fix")
-        plannerMetricCard(
-          title: "Frei", value: "\(store.restDaysCount)",
-          subtitle: "Recovery")
+      // ── Quick stats strip ────────────────────────────────────────
+      HStack(spacing: 0) {
+        darkMetricCard(
+          title: "7 Tage",
+          value: String(format: "%.1f", store.weeklyRunDistanceKm),
+          subtitle: "km"
+        )
+        darkMetricCard(title: "Läufe", value: "\(store.weeklyRunCount)", subtitle: "Woche")
+        darkMetricCard(title: "Ø Pace", value: runPaceLabel(store.averageRunPaceSeconds), subtitle: "7 Tage")
       }
-    }
-  }
+      .padding(.horizontal, 16)
+      .padding(.bottom, 16)
 
-  private var overviewSection: some View {
-    HStack(spacing: 10) {
-      plannerMetricCard(
-        title: "Heute", value: store.todayPlannedWorkout?.split ?? "Frei", subtitle: "Tagesfokus")
-      plannerMetricCard(
-        title: "Woche", value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)", subtitle: "Sessions")
-      Button {
-        selectedWorkspace = .fortschritt
-      } label: {
-        plannerMetricCard(
-          title: "Erreicht", value: "+\(store.personalRecordCount)", subtitle: "PRs")
-      }
-      .buttonStyle(.plain)
-    }
-  }
-
-  private var runningSummarySection: some View {
-    HStack(spacing: 10) {
-      Button {
-        selectedWorkspace = .fortschritt
-      } label: {
-        plannerMetricCard(
-          title: "Distanz", value: String(format: "%.1f km", store.weeklyRunDistanceKm),
-          subtitle: "7 Tage")
-      }
-      .buttonStyle(.plain)
-
-      Button {
-        selectedWorkspace = .fortschritt
-      } label: {
-        plannerMetricCard(title: "Läufe", value: "\(store.weeklyRunCount)", subtitle: "Woche")
-      }
-      .buttonStyle(.plain)
-
+      // ── Record button ────────────────────────────────────────────
       Button {
         startOrResumeRun()
       } label: {
-        plannerMetricCard(
-          title: "Best Pace", value: runPaceLabel(store.bestRunPaceSeconds), subtitle: "PB")
+        HStack(spacing: 10) {
+          Image(systemName: store.activeRun == nil ? "record.circle.fill" : "play.circle.fill")
+            .font(.system(size: 18, weight: .semibold))
+          Text(store.activeRun == nil ? "Aktivität aufzeichnen" : "Lauf weiter tracken")
+            .font(GainsFont.label(13))
+            .tracking(1.4)
+        }
+        .foregroundStyle(GainsColor.onLime)
+        .frame(maxWidth: .infinity)
+        .frame(height: 52)
+        .background(GainsColor.lime)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
       }
       .buttonStyle(.plain)
+      .padding(.horizontal, 16)
+      .padding(.bottom, 16)
     }
-  }
-
-  private var runningStarterSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      VStack(alignment: .leading, spacing: 10) {
-        SlashLabel(
-          parts: ["LAUFEN", "QUICK START"],
-          primaryColor: GainsColor.lime,
-          secondaryColor: GainsColor.card.opacity(0.72)
-        )
-
-        Text(store.runningHeadline)
-          .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.card)
-
-        Text(store.runningDescription)
-          .font(GainsFont.body(14))
-          .foregroundStyle(GainsColor.card.opacity(0.78))
-          .lineLimit(3)
-
-        HStack(spacing: 10) {
-          darkMetricCard(
-            title: "7 Tage", value: String(format: "%.1f", store.weeklyRunDistanceKm),
-            subtitle: "km")
-          darkMetricCard(title: "Runs", value: "\(store.weeklyRunCount)", subtitle: "Woche")
-          darkMetricCard(title: "Pace", value: runPaceLabel(store.averageRunPaceSeconds), subtitle: "Ø")
-        }
-
-        HStack(spacing: 10) {
-          Button {
-            startOrResumeRun()
-          } label: {
-            Text(store.activeRun == nil ? "Lauf starten" : "Lauf weiter tracken")
-              .font(GainsFont.label(12))
-              .tracking(1.6)
-              .foregroundStyle(GainsColor.onLime)
-              .frame(maxWidth: .infinity)
-              .frame(height: 48)
-              .background(GainsColor.lime)
-              .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-          }
-          .buttonStyle(.plain)
-
-          Button {
-            selectedWorkspace = .fortschritt
-          } label: {
-            Text("Plan")
-              .font(GainsFont.label(12))
-              .tracking(1.6)
-              .foregroundStyle(GainsColor.card)
-              .frame(width: 96, height: 48)
-              .background(GainsColor.card.opacity(0.1))
-              .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                  .stroke(GainsColor.card.opacity(0.22), lineWidth: 1)
-              )
-              .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-          }
-          .buttonStyle(.plain)
-        }
-      }
-      .padding(20)
-      .background(GainsColor.ink)
-      .overlay(
-        RoundedRectangle(cornerRadius: 28, style: .continuous)
-          .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-    }
+    .background(GainsColor.ctaSurface)
+    .overlay(
+      RoundedRectangle(cornerRadius: 24, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.22), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
   }
 
   private var runningLiveSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["LIVE", "RUN"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
-
+    Group {
       if let activeRun = store.activeRun {
-        VStack(alignment: .leading, spacing: 14) {
-          HStack(spacing: 12) {
-            workoutStatCard(
-              title: "Distanz", value: String(format: "%.1f", activeRun.distanceKm), subtitle: "km")
-            workoutStatCard(
-              title: "Pace", value: runPaceLabel(activeRun.averagePaceSeconds), subtitle: "pro km")
-            workoutStatCard(title: "Puls", value: "\(activeRun.currentHeartRate)", subtitle: "bpm")
+        VStack(alignment: .leading, spacing: 12) {
+          // Pulsing "LIVE" header
+          HStack(spacing: 8) {
+            Circle()
+              .fill(GainsColor.lime)
+              .frame(width: 8, height: 8)
+            Text("LAUF AKTIV")
+              .font(GainsFont.label(10))
+              .tracking(2.0)
+              .foregroundStyle(GainsColor.lime)
           }
 
-          HStack(spacing: 10) {
-            Button {
-              store.addRunSplit()
-            } label: {
-              Text("Split +")
-                .font(GainsFont.label(11))
-                .tracking(1.4)
-                .foregroundStyle(GainsColor.ink)
-                .frame(maxWidth: .infinity)
-                .frame(height: 42)
-                .background(GainsColor.lime)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            }
-            .buttonStyle(.plain)
-
-            Button {
-              isShowingRunTracker = true
-            } label: {
-              Text("Tracker öffnen")
-                .font(GainsFont.label(11))
-                .tracking(1.4)
-                .foregroundStyle(GainsColor.lime)
-                .frame(maxWidth: .infinity)
-                .frame(height: 42)
-                .background(GainsColor.ink)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            }
-            .buttonStyle(.plain)
+          HStack(spacing: 0) {
+            workoutStatCard(
+              title: "Distanz",
+              value: String(format: "%.2f", activeRun.distanceKm),
+              subtitle: "km"
+            )
+            workoutStatCard(
+              title: "Pace",
+              value: runPaceLabel(activeRun.averagePaceSeconds),
+              subtitle: "/km"
+            )
+            workoutStatCard(
+              title: "Puls",
+              value: "\(activeRun.currentHeartRate)",
+              subtitle: "bpm"
+            )
           }
+          .background(GainsColor.card)
+          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+          Button {
+            isShowingRunTracker = true
+          } label: {
+            HStack(spacing: 8) {
+              Image(systemName: "map.fill")
+                .font(.system(size: 13, weight: .semibold))
+              Text("Tracker & Karte öffnen")
+                .font(GainsFont.label(11))
+                .tracking(1.2)
+            }
+            .foregroundStyle(GainsColor.onLime)
+            .frame(maxWidth: .infinity)
+            .frame(height: 46)
+            .background(GainsColor.lime)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          }
+          .buttonStyle(.plain)
         }
+        .padding(16)
+        .background(GainsColor.card)
+        .overlay(
+          RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .stroke(GainsColor.lime.opacity(0.5), lineWidth: 1.5)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
       }
     }
   }
@@ -646,7 +592,7 @@ struct WorkoutHubView: View {
   private var runningTemplatesSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
-        parts: ["RUN", "VORLAGEN"], primaryColor: GainsColor.lime,
+        parts: ["VORSCHLÄGE", "ROUTEN"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
       ForEach(store.runningTemplates) { template in
@@ -691,7 +637,7 @@ struct WorkoutHubView: View {
               .foregroundStyle(GainsColor.lime)
               .frame(maxWidth: .infinity)
               .frame(height: 42)
-              .background(GainsColor.ink)
+              .background(GainsColor.ctaSurface)
               .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
           }
           .buttonStyle(.plain)
@@ -704,118 +650,450 @@ struct WorkoutHubView: View {
     }
   }
 
-  private var runningRecordsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["STRAVA", "STYLE"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+  // MARK: - Run Feed (Strava-style)
 
-      if store.runPersonalBests.isEmpty {
+  private var runFeedSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack(alignment: .firstTextBaseline) {
+        SlashLabel(
+          parts: ["AKTIVITÄTEN", "FEED"], primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
+        Spacer()
+        if !store.runHistory.isEmpty {
+          Text("\(store.runHistory.count) Läufe")
+            .font(GainsFont.label(9))
+            .tracking(1.2)
+            .foregroundStyle(GainsColor.softInk)
+        }
+      }
+
+      if store.runHistory.isEmpty {
         emptyWorkoutLibraryCard(
-          title: "Noch keine Lauf-Records",
-          description:
-            "Sobald du deine ersten Läufe speicherst, tauchen hier Bestzeiten und längste Runs auf."
+          title: "Noch keine Aktivitäten",
+          description: "Starte deinen ersten Lauf – Gains baut deinen Feed automatisch auf."
         )
       } else {
-        ForEach(store.runPersonalBests) { best in
-          HStack {
-            VStack(alignment: .leading, spacing: 4) {
-              Text(best.title)
-                .font(GainsFont.title(18))
-                .foregroundStyle(GainsColor.ink)
-
-              Text(best.context)
-                .font(GainsFont.body(13))
-                .foregroundStyle(GainsColor.softInk)
-            }
-
-            Spacer()
-
-            Text(best.value)
-              .font(GainsFont.title(20))
-              .foregroundStyle(GainsColor.moss)
+        ForEach(store.runHistory) { run in
+          Button {
+            selectedRun = run
+          } label: {
+            runActivityCard(run)
           }
-          .padding(16)
-          .gainsCardStyle()
+          .buttonStyle(.plain)
         }
       }
     }
   }
 
-  private var runningHistorySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["RUN", "HISTORY"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk
-      )
+  private func runActivityCard(_ run: CompletedRunSummary) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      // ── Header ──────────────────────────────────────────────────
+      HStack(alignment: .top, spacing: 12) {
+        VStack(alignment: .leading, spacing: 3) {
+          HStack(spacing: 6) {
+            Image(systemName: "figure.run")
+              .font(.system(size: 11, weight: .semibold))
+              .foregroundStyle(GainsColor.lime)
+            Text(run.finishedAt.formatted(date: .abbreviated, time: .omitted).uppercased())
+              .font(GainsFont.label(9))
+              .tracking(1.2)
+              .foregroundStyle(GainsColor.softInk)
+            Text("·")
+              .foregroundStyle(GainsColor.softInk.opacity(0.5))
+            Text(run.routeName)
+              .font(GainsFont.label(9))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.moss)
+              .lineLimit(1)
+          }
+          Text(run.title)
+            .font(GainsFont.title(20))
+            .foregroundStyle(GainsColor.ink)
+        }
+        Spacer(minLength: 0)
+        Image(systemName: "chevron.right")
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(GainsColor.softInk.opacity(0.4))
+      }
+      .padding(.horizontal, 16)
+      .padding(.top, 16)
+      .padding(.bottom, 14)
 
-      if store.runHistory.isEmpty {
-        emptyWorkoutLibraryCard(
-          title: "Noch keine Läufe gespeichert",
-          description:
-            "Starte deinen ersten Lauf und Gains baut dir hier direkt deine Historie auf."
+      // ── Key stats ───────────────────────────────────────────────
+      HStack(spacing: 0) {
+        runStatCell(
+          label: "DISTANZ",
+          value: String(format: "%.2f", run.distanceKm),
+          unit: "km"
         )
-      } else {
-        ForEach(store.runHistory.prefix(4)) { run in
-          VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 12) {
-              VStack(alignment: .leading, spacing: 4) {
-                Text(run.title)
-                  .font(GainsFont.title(18))
-                  .foregroundStyle(GainsColor.ink)
+        Rectangle()
+          .fill(GainsColor.border.opacity(0.4))
+          .frame(width: 1, height: 34)
+        runStatCell(
+          label: "PACE",
+          value: runPaceLabel(run.averagePaceSeconds),
+          unit: ""
+        )
+        Rectangle()
+          .fill(GainsColor.border.opacity(0.4))
+          .frame(width: 1, height: 34)
+        runStatCell(
+          label: "DAUER",
+          value: formattedDuration(run.durationMinutes),
+          unit: ""
+        )
+        if run.elevationGain > 0 {
+          Rectangle()
+            .fill(GainsColor.border.opacity(0.4))
+            .frame(width: 1, height: 34)
+          runStatCell(
+            label: "HÖHE",
+            value: "\(run.elevationGain)",
+            unit: "m"
+          )
+        }
+      }
+      .padding(.vertical, 12)
+      .background(GainsColor.background.opacity(0.55))
 
-                Text(
-                  "\(String(format: "%.1f", run.distanceKm)) km · \(runPaceLabel(run.averagePaceSeconds)) · \(run.averageHeartRate) bpm"
-                )
-                .font(GainsFont.body(13))
-                .foregroundStyle(GainsColor.softInk)
+      // ── Pace-Bar-Chart (Splits) ──────────────────────────────────
+      if !run.splits.isEmpty {
+        runSplitBars(run.splits)
+          .padding(.horizontal, 16)
+          .padding(.top, 14)
+          .padding(.bottom, 4)
+      }
 
-                Text(run.routeName)
-                  .font(GainsFont.label(9))
-                  .tracking(1.6)
-                  .foregroundStyle(GainsColor.moss)
-              }
+      // ── Footer: "Erneut laufen" ──────────────────────────────────
+      Button {
+        store.startRunLike(run)
+        isShowingRunTracker = true
+      } label: {
+        HStack(spacing: 6) {
+          Image(systemName: "arrow.clockwise")
+            .font(.system(size: 11, weight: .semibold))
+          Text("Erneut laufen")
+            .font(GainsFont.label(10))
+            .tracking(1.2)
+        }
+        .foregroundStyle(store.activeRun == nil ? GainsColor.lime : GainsColor.softInk)
+        .frame(maxWidth: .infinity)
+        .frame(height: 40)
+        .background(GainsColor.background.opacity(0.6))
+      }
+      .buttonStyle(.plain)
+      .disabled(store.activeRun != nil)
+      .opacity(store.activeRun == nil ? 1 : 0.45)
+      .padding(.top, 10)
+      .padding(.bottom, 4)
+    }
+    .gainsCardStyle()
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
+    )
+  }
 
-              Spacer()
+  private func runSplitBars(_ splits: [RunSplit]) -> some View {
+    let displayed = Array(splits.prefix(8))
+    let paces = displayed.map(\.paceSeconds).filter { $0 > 0 }
+    let minPace = paces.min() ?? 1
+    let maxPace = max(paces.max() ?? 1, minPace + 1)
 
-              Text(run.finishedAt, style: .date)
-                .font(GainsFont.label(9))
-                .foregroundStyle(GainsColor.softInk)
+    return VStack(alignment: .leading, spacing: 8) {
+      Text("KILOMETER-SPLITS")
+        .font(GainsFont.label(8))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.softInk)
+
+      HStack(alignment: .bottom, spacing: 5) {
+        ForEach(displayed, id: \.id) { split in
+          let pace = split.paceSeconds
+          // Invert: schneller (niedrigerer Wert) = höhere Bar
+          let fraction: Double = pace > 0
+            ? 1.0 - (Double(pace - minPace) / Double(maxPace - minPace)) * 0.6
+            : 0.15
+          let isFastest = pace == minPace && pace > 0
+
+          VStack(spacing: 4) {
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+              .fill(isFastest ? GainsColor.lime : GainsColor.lime.opacity(0.45 + fraction * 0.35))
+              .frame(height: max(fraction * 44, 6))
+
+            Text("\(split.index)")
+              .font(GainsFont.label(8))
+              .tracking(0.5)
+              .foregroundStyle(GainsColor.softInk)
+          }
+          .frame(maxWidth: .infinity)
+        }
+      }
+      .frame(height: 56, alignment: .bottom)
+
+      // Pace labels (min / max)
+      HStack {
+        Text("schnell \(runPaceLabel(minPace))")
+          .font(GainsFont.label(8))
+          .foregroundStyle(GainsColor.lime)
+        Spacer()
+        Text("langsam \(runPaceLabel(maxPace))")
+          .font(GainsFont.label(8))
+          .foregroundStyle(GainsColor.softInk)
+      }
+    }
+  }
+
+  private func runStatCell(label: String, value: String, unit: String) -> some View {
+    VStack(spacing: 4) {
+      Text(label)
+        .font(GainsFont.label(8))
+        .tracking(1.4)
+        .foregroundStyle(GainsColor.softInk)
+      HStack(alignment: .lastTextBaseline, spacing: 2) {
+        Text(value)
+          .font(.system(size: 15, weight: .bold, design: .rounded))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
+        if !unit.isEmpty {
+          Text(unit)
+            .font(GainsFont.body(10))
+            .foregroundStyle(GainsColor.softInk)
+        }
+      }
+    }
+    .frame(maxWidth: .infinity)
+  }
+
+  private func formattedDuration(_ minutes: Int) -> String {
+    let h = minutes / 60
+    let m = minutes % 60
+    return h > 0 ? "\(h):\(String(format: "%02d", m))" : "\(m) min"
+  }
+
+  // MARK: - Strava-style Running Sections
+
+  private var weeklyDistanceChartSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      HStack {
+        SlashLabel(
+          parts: ["WOCHE", "DISTANZ"], primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
+        Spacer()
+        Text(String(format: "%.1f km", store.weeklyRunDistanceKm))
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+      }
+
+      let days = store.weeklyRunsByDay
+      let maxKm = max(days.map(\.km).max() ?? 1, 1)
+
+      HStack(alignment: .bottom, spacing: 6) {
+        ForEach(days) { day in
+          VStack(spacing: 6) {
+            if day.km > 0 {
+              Text(String(format: "%.1f", day.km))
+                .font(GainsFont.label(8))
+                .tracking(0.5)
+                .foregroundStyle(day.isToday ? GainsColor.moss : GainsColor.softInk)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            } else {
+              Text("")
+                .font(GainsFont.label(8))
             }
 
-            HStack(spacing: 10) {
-              Button {
-                store.startRunLike(run)
-                isShowingRunTracker = true
-              } label: {
-                Text("Erneut laufen")
-                  .font(GainsFont.label(10))
-                  .tracking(1.4)
-                  .foregroundStyle(store.activeRun == nil ? GainsColor.lime : GainsColor.softInk)
-                  .frame(maxWidth: .infinity)
-                  .frame(height: 40)
-                  .background(store.activeRun == nil ? GainsColor.ink : GainsColor.card)
-                  .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            GeometryReader { geo in
+              VStack(spacing: 0) {
+                Spacer()
+                let fraction = day.km > 0 ? max(day.km / maxKm, 0.06) : 0.04
+                RoundedRectangle(cornerRadius: 5, style: .continuous)
+                  .fill(
+                    day.km > 0
+                      ? (day.isToday ? GainsColor.lime : GainsColor.lime.opacity(0.55))
+                      : GainsColor.border.opacity(0.5)
+                  )
+                  .frame(height: geo.size.height * fraction)
               }
-              .buttonStyle(.plain)
-              .disabled(store.activeRun != nil)
-              .opacity(store.activeRun == nil ? 1 : 0.5)
+            }
+            .frame(height: 72)
 
-              Button {
-                store.shareLatestRun()
-              } label: {
-                Text("Teilen")
-                  .font(GainsFont.label(10))
-                  .tracking(1.4)
+            Text(day.dayLabel)
+              .font(GainsFont.label(9))
+              .tracking(1.0)
+              .foregroundStyle(day.isToday ? GainsColor.ink : GainsColor.softInk)
+              .fontWeight(day.isToday ? .semibold : .regular)
+          }
+          .frame(maxWidth: .infinity)
+        }
+      }
+    }
+    .padding(18)
+    .gainsCardStyle()
+  }
+
+  private var ytdStatsSection: some View {
+    let year = Calendar.current.component(.year, from: Date())
+    let hours = store.yearlyRunDurationMinutes / 60
+    let minutes = store.yearlyRunDurationMinutes % 60
+    let timeString = hours > 0 ? "\(hours)h \(minutes)m" : "\(minutes) min"
+
+    return VStack(alignment: .leading, spacing: 12) {
+      SlashLabel(
+        parts: ["\(year)", "GESAMT"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk)
+
+      HStack(spacing: 10) {
+        ytdMetricCard(
+          title: "Distanz",
+          value: String(format: "%.0f", store.yearlyRunDistanceKm),
+          unit: "km",
+          systemImage: "figure.run"
+        )
+        ytdMetricCard(
+          title: "Läufe",
+          value: "\(store.yearlyRunCount)",
+          unit: "×",
+          systemImage: "checkmark.circle.fill"
+        )
+        ytdMetricCard(
+          title: "Zeit",
+          value: timeString,
+          unit: "",
+          systemImage: "clock.fill"
+        )
+        ytdMetricCard(
+          title: "Höhe",
+          value: "\(store.yearlyElevationGain)",
+          unit: "m",
+          systemImage: "mountain.2.fill"
+        )
+      }
+    }
+  }
+
+  private func ytdMetricCard(title: String, value: String, unit: String, systemImage: String) -> some View {
+    VStack(spacing: 8) {
+      Image(systemName: systemImage)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+
+      VStack(spacing: 2) {
+        HStack(alignment: .lastTextBaseline, spacing: 2) {
+          Text(value)
+            .font(GainsFont.title(15))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+          if !unit.isEmpty {
+            Text(unit)
+              .font(GainsFont.body(10))
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+        Text(title)
+          .font(GainsFont.label(8))
+          .tracking(1.2)
+          .foregroundStyle(GainsColor.softInk)
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 14)
+    .padding(.horizontal, 6)
+    .gainsCardStyle()
+  }
+
+  private var paceZonesSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      SlashLabel(
+        parts: ["PACE", "ZONEN"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk)
+
+      let zones = store.paceZones
+      if zones.isEmpty {
+        Text("Starte deine ersten Läufe, um deine Pace-Zonen zu sehen.")
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.softInk)
+          .padding(.vertical, 8)
+      } else {
+        VStack(spacing: 10) {
+          let zoneColors: [Color] = [
+            GainsColor.lime.opacity(0.5),
+            GainsColor.lime.opacity(0.75),
+            GainsColor.lime,
+            GainsColor.moss,
+          ]
+          ForEach(Array(zones.enumerated()), id: \.element.id) { index, zone in
+            VStack(alignment: .leading, spacing: 6) {
+              HStack {
+                Text(zone.label)
+                  .font(GainsFont.title(14))
                   .foregroundStyle(GainsColor.ink)
-                  .frame(width: 88, height: 40)
-                  .background(GainsColor.lime)
-                  .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                Text(zone.description)
+                  .font(GainsFont.body(12))
+                  .foregroundStyle(GainsColor.softInk)
+                Spacer()
+                Text(String(format: "%.0f%%", zone.fraction * 100))
+                  .font(GainsFont.title(14))
+                  .foregroundStyle(GainsColor.ink)
               }
-              .buttonStyle(.plain)
+              GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                  RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(GainsColor.border.opacity(0.4))
+                    .frame(height: 8)
+                  RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .fill(zoneColors[min(index, zoneColors.count - 1)])
+                    .frame(width: geo.size.width * zone.fraction, height: 8)
+                }
+              }
+              .frame(height: 8)
             }
           }
-          .padding(16)
-          .gainsCardStyle()
+        }
+      }
+    }
+    .padding(18)
+    .gainsCardStyle()
+  }
+
+  private var distancePRsSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      SlashLabel(
+        parts: ["BESTZEITEN", "DISTANZ"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk)
+
+      let prs = store.distancePRs
+      if prs.isEmpty {
+        emptyWorkoutLibraryCard(
+          title: "Noch keine Bestzeiten",
+          description: "Läufe ab 5 km reichen, um deine ersten PR-Zeiten zu sammeln."
+        )
+      } else {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+          ForEach(prs) { pr in
+            VStack(alignment: .leading, spacing: 6) {
+              HStack(spacing: 6) {
+                Image(systemName: "trophy.fill")
+                  .font(.system(size: 11, weight: .semibold))
+                  .foregroundStyle(GainsColor.lime)
+                Text(pr.title)
+                  .font(GainsFont.label(9))
+                  .tracking(1.4)
+                  .foregroundStyle(GainsColor.softInk)
+              }
+              Text(pr.value)
+                .font(GainsFont.title(20))
+                .foregroundStyle(GainsColor.ink)
+              Text(pr.context)
+                .font(GainsFont.body(11))
+                .foregroundStyle(GainsColor.softInk)
+                .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(14)
+            .gainsCardStyle()
+          }
         }
       }
     }
@@ -918,7 +1196,7 @@ struct WorkoutHubView: View {
       }
     }
     .padding(20)
-    .background(GainsColor.ink)
+    .background(GainsColor.ctaSurface)
     .overlay(
       RoundedRectangle(cornerRadius: 28, style: .continuous)
         .stroke(GainsColor.lime.opacity(0.24), lineWidth: 1)
@@ -986,32 +1264,60 @@ struct WorkoutHubView: View {
 
   private var ownWorkoutsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
+      // ── Header mit prominentem + Button ──────────────────────────
       HStack(alignment: .center) {
         SlashLabel(
           parts: ["EIGENE", "WORKOUTS"], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
         Spacer()
-
         Button {
           isShowingWorkoutBuilder = true
         } label: {
-          Text("NEU")
-            .font(GainsFont.label(10))
-            .tracking(2)
-            .foregroundStyle(GainsColor.moss)
+          HStack(spacing: 6) {
+            Image(systemName: "plus")
+              .font(.system(size: 11, weight: .bold))
+            Text("ERSTELLEN")
+              .font(GainsFont.label(10))
+              .tracking(1.6)
+          }
+          .foregroundStyle(GainsColor.ink)
+          .padding(.horizontal, 14)
+          .frame(height: 34)
+          .background(GainsColor.lime)
+          .clipShape(Capsule())
         }
         .buttonStyle(.plain)
       }
 
+      // ── Workout-Karten ────────────────────────────────────────────
       if store.customWorkoutPlans.isEmpty {
-        emptyWorkoutLibraryCard(
-          title: "Noch keine eigenen Workouts",
-          description:
-            "Erstelle dir hier dein erstes eigenes Upper-, Lower- oder Push/Pull/Beine-Workout."
-        )
+        // Empty state mit eingebettetem CTA
+        Button {
+          isShowingWorkoutBuilder = true
+        } label: {
+          VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 14) {
+              Image(systemName: "plus.circle.fill")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(GainsColor.lime)
+              VStack(alignment: .leading, spacing: 4) {
+                Text("Erstes Workout erstellen")
+                  .font(GainsFont.title(18))
+                  .foregroundStyle(GainsColor.ink)
+                Text("Wähle Übungen, passe Sets & Reps an und speichere es in deiner Bibliothek.")
+                  .font(GainsFont.body(13))
+                  .foregroundStyle(GainsColor.softInk)
+                  .lineLimit(2)
+              }
+            }
+          }
+          .padding(18)
+          .gainsCardStyle()
+        }
+        .buttonStyle(.plain)
       } else {
         ForEach(store.customWorkoutPlans) { plan in
-          savedWorkoutCard(plan)
+          customWorkoutCard(plan)
         }
       }
     }
@@ -1020,98 +1326,342 @@ struct WorkoutHubView: View {
   private var templateWorkoutsSection: some View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
-        parts: ["VORGEFERTIGT", "WORKOUTS"], primaryColor: GainsColor.lime,
+        parts: ["VORLAGEN", "WORKOUTS"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
       ForEach(store.templateWorkoutPlans) { plan in
-        savedWorkoutCard(plan)
+        templateWorkoutCard(plan)
       }
     }
   }
 
-  private func savedWorkoutCard(_ plan: WorkoutPlan) -> some View {
-    VStack(alignment: .leading, spacing: 16) {
+  // MARK: - WHOOP-style eigene Workout-Karte (Edit / Delete / Start)
+
+  private func customWorkoutCard(_ plan: WorkoutPlan) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      // ── Top: Titel + Overflow-Menü ────────────────────────────────
       HStack(alignment: .top, spacing: 12) {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
           Text(plan.title)
-            .font(GainsFont.title(22))
+            .font(GainsFont.title(20))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(2)
-
-          Text("\(plan.split) · \(plan.focus)")
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.softInk)
-            .lineLimit(2)
+            .lineLimit(1)
+          HStack(spacing: 6) {
+            Text(plan.split)
+              .font(GainsFont.label(9))
+              .tracking(1.4)
+              .foregroundStyle(GainsColor.moss)
+            Text("·")
+              .foregroundStyle(GainsColor.softInk.opacity(0.5))
+            Text(plan.focus)
+              .font(GainsFont.label(9))
+              .tracking(1.0)
+              .foregroundStyle(GainsColor.softInk)
+            Text("·")
+              .foregroundStyle(GainsColor.softInk.opacity(0.5))
+            Text("\(plan.exercises.count) Übungen")
+              .font(GainsFont.label(9))
+              .tracking(1.0)
+              .foregroundStyle(GainsColor.softInk)
+          }
         }
-
-        Spacer()
-
-        VStack(alignment: .trailing, spacing: 8) {
-          workoutSourceBadge(plan.source)
-
-          Text("\(plan.exercises.count) Übungen")
-            .font(GainsFont.label(10))
-            .tracking(1.4)
-            .foregroundStyle(GainsColor.moss)
-        }
-      }
-
-      HStack(spacing: 10) {
-        plannerMetricCard(
-          title: "Dauer", value: "\(plan.estimatedDurationMinutes) Min", subtitle: "Session")
-        plannerMetricCard(
-          title: "Übungen", value: "\(plan.exercises.count)", subtitle: "im Plan")
-      }
-      .padding(12)
-      .background(GainsColor.lime.opacity(0.12))
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-
-      Text(exerciseSummary(for: plan))
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.softInk)
-        .lineLimit(3)
-
-      HStack(spacing: 10) {
+        Spacer(minLength: 8)
+        // Overflow-Menü: Bearbeiten / Löschen
         Menu {
-          ForEach(store.scheduledPlannerDays) { day in
-            Button("\(day.title) zuweisen") {
-              store.assignWorkout(plan, to: day)
+          Button {
+            workoutToEdit = plan
+          } label: {
+            Label("Bearbeiten", systemImage: "pencil")
+          }
+          Divider()
+          Button(role: .destructive) {
+            workoutToDelete = plan
+            showsDeleteConfirmation = true
+          } label: {
+            Label("Löschen", systemImage: "trash")
+          }
+        } label: {
+          Image(systemName: "ellipsis")
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(GainsColor.softInk)
+            .frame(width: 34, height: 34)
+            .background(GainsColor.background.opacity(0.7))
+            .clipShape(Circle())
+        }
+      }
+      .padding(.horizontal, 18)
+      .padding(.top, 18)
+      .padding(.bottom, 14)
+
+      // ── Übungsvorschau als Chips ──────────────────────────────────
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(plan.exercises.prefix(5), id: \.id) { exercise in
+            Text(exercise.name)
+              .font(GainsFont.label(9))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.ink)
+              .padding(.horizontal, 12)
+              .frame(height: 28)
+              .background(GainsColor.lime.opacity(0.18))
+              .clipShape(Capsule())
+          }
+          if plan.exercises.count > 5 {
+            Text("+\(plan.exercises.count - 5)")
+              .font(GainsFont.label(9))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.softInk)
+              .padding(.horizontal, 10)
+              .frame(height: 28)
+              .background(GainsColor.background.opacity(0.7))
+              .clipShape(Capsule())
+          }
+        }
+        .padding(.horizontal, 18)
+      }
+      .padding(.bottom, 14)
+
+      // ── Metrik-Streifen ───────────────────────────────────────────
+      HStack(spacing: 0) {
+        workoutMetricCell(label: "DAUER", value: "\(plan.estimatedDurationMinutes)", unit: "min")
+        Rectangle().fill(GainsColor.border.opacity(0.35)).frame(width: 1, height: 28)
+        workoutMetricCell(label: "ÜBUNGEN", value: "\(plan.exercises.count)", unit: "")
+        Rectangle().fill(GainsColor.border.opacity(0.35)).frame(width: 1, height: 28)
+        workoutMetricCell(
+          label: "SÄTZE",
+          value: "\(plan.exercises.reduce(0) { $0 + $1.sets.count })",
+          unit: "")
+      }
+      .padding(.vertical, 12)
+      .background(GainsColor.background.opacity(0.5))
+
+      // ── Action-Buttons ────────────────────────────────────────────
+      HStack(spacing: 10) {
+        // Einplanen
+        Menu {
+          if store.scheduledPlannerDays.isEmpty {
+            Button("Kein Trainingstag geplant") {}
+              .disabled(true)
+          } else {
+            ForEach(store.scheduledPlannerDays) { day in
+              Button("\(day.title) zuweisen") {
+                store.assignWorkout(plan, to: day)
+              }
             }
           }
         } label: {
-          Text("Einplanen")
-            .font(GainsFont.label(10))
-            .tracking(1.3)
+          HStack(spacing: 6) {
+            Image(systemName: "calendar.badge.plus")
+              .font(.system(size: 12, weight: .semibold))
+            Text("Einplanen")
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+          }
+          .foregroundStyle(GainsColor.softInk)
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
+          .background(GainsColor.card)
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+              .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
+          )
+        }
+
+        // Starten
+        Button {
+          openWorkout(plan)
+        } label: {
+          HStack(spacing: 6) {
+            Image(
+              systemName: isWorkoutButtonDisabled(for: plan) ? "stop.circle" : "play.fill"
+            )
+            .font(.system(size: 12, weight: .semibold))
+            Text(actionTitle(for: plan))
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+          }
+          .foregroundStyle(
+            isWorkoutButtonDisabled(for: plan) ? GainsColor.softInk : GainsColor.onLime
+          )
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
+          .background(
+            isWorkoutButtonDisabled(for: plan) ? GainsColor.background.opacity(0.6) : GainsColor.lime
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .disabled(isWorkoutButtonDisabled(for: plan))
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 14)
+    }
+    .background(GainsColor.card)
+    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
+  }
+
+  // MARK: - Einfachere Template-Karte (kein Edit/Delete)
+
+  private func templateWorkoutCard(_ plan: WorkoutPlan) -> some View {
+    VStack(alignment: .leading, spacing: 0) {
+      // ── Header ────────────────────────────────────────────────────
+      HStack(alignment: .top, spacing: 12) {
+        VStack(alignment: .leading, spacing: 6) {
+          Text(plan.title)
+            .font(GainsFont.title(20))
             .foregroundStyle(GainsColor.ink)
-            .frame(maxWidth: .infinity)
-            .frame(height: 42)
-            .background(GainsColor.lime)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .lineLimit(1)
+          HStack(spacing: 6) {
+            Text(plan.split)
+              .font(GainsFont.label(9))
+              .tracking(1.4)
+              .foregroundStyle(GainsColor.moss)
+            Text("·")
+              .foregroundStyle(GainsColor.softInk.opacity(0.5))
+            Text(plan.focus)
+              .font(GainsFont.label(9))
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+        Spacer()
+        workoutSourceBadge(plan.source)
+      }
+      .padding(.horizontal, 18)
+      .padding(.top, 18)
+      .padding(.bottom, 14)
+
+      // ── Übungsvorschau ────────────────────────────────────────────
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(plan.exercises.prefix(5), id: \.id) { exercise in
+            Text(exercise.name)
+              .font(GainsFont.label(9))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.ink)
+              .padding(.horizontal, 12)
+              .frame(height: 28)
+              .background(GainsColor.lime.opacity(0.12))
+              .clipShape(Capsule())
+          }
+          if plan.exercises.count > 5 {
+            Text("+\(plan.exercises.count - 5)")
+              .font(GainsFont.label(9))
+              .foregroundStyle(GainsColor.softInk)
+              .padding(.horizontal, 10)
+              .frame(height: 28)
+              .background(GainsColor.background.opacity(0.7))
+              .clipShape(Capsule())
+          }
+        }
+        .padding(.horizontal, 18)
+      }
+      .padding(.bottom, 14)
+
+      // ── Metrik-Streifen ───────────────────────────────────────────
+      HStack(spacing: 0) {
+        workoutMetricCell(label: "DAUER", value: "\(plan.estimatedDurationMinutes)", unit: "min")
+        Rectangle().fill(GainsColor.border.opacity(0.35)).frame(width: 1, height: 28)
+        workoutMetricCell(label: "ÜBUNGEN", value: "\(plan.exercises.count)", unit: "")
+        Rectangle().fill(GainsColor.border.opacity(0.35)).frame(width: 1, height: 28)
+        workoutMetricCell(
+          label: "SÄTZE",
+          value: "\(plan.exercises.reduce(0) { $0 + $1.sets.count })",
+          unit: "")
+      }
+      .padding(.vertical, 12)
+      .background(GainsColor.background.opacity(0.5))
+
+      // ── Action-Buttons ────────────────────────────────────────────
+      HStack(spacing: 10) {
+        Menu {
+          if store.scheduledPlannerDays.isEmpty {
+            Button("Kein Trainingstag geplant") {}
+              .disabled(true)
+          } else {
+            ForEach(store.scheduledPlannerDays) { day in
+              Button("\(day.title) zuweisen") {
+                store.assignWorkout(plan, to: day)
+              }
+            }
+          }
+        } label: {
+          HStack(spacing: 6) {
+            Image(systemName: "calendar.badge.plus")
+              .font(.system(size: 12, weight: .semibold))
+            Text("Einplanen")
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+          }
+          .foregroundStyle(GainsColor.softInk)
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
+          .background(GainsColor.card)
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+              .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
+          )
         }
 
         Button {
           openWorkout(plan)
         } label: {
-          Text(actionTitle(for: plan))
-            .font(GainsFont.label(11))
-            .tracking(1.3)
-            .foregroundStyle(
-              isWorkoutButtonDisabled(for: plan) ? GainsColor.softInk : GainsColor.lime
+          HStack(spacing: 6) {
+            Image(
+              systemName: isWorkoutButtonDisabled(for: plan) ? "stop.circle" : "play.fill"
             )
-            .frame(maxWidth: .infinity)
-            .frame(height: 42)
-            .background(
-              isWorkoutButtonDisabled(for: plan)
-                ? GainsColor.background.opacity(0.7) : GainsColor.ink
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .font(.system(size: 12, weight: .semibold))
+            Text(actionTitle(for: plan))
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+          }
+          .foregroundStyle(
+            isWorkoutButtonDisabled(for: plan) ? GainsColor.softInk : GainsColor.onLime
+          )
+          .frame(maxWidth: .infinity)
+          .frame(height: 44)
+          .background(
+            isWorkoutButtonDisabled(for: plan) ? GainsColor.background.opacity(0.6) : GainsColor.lime
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(isWorkoutButtonDisabled(for: plan))
       }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 14)
     }
-    .padding(18)
-    .gainsCardStyle()
+    .background(GainsColor.card)
+    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 20, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
+  }
+
+  private func workoutMetricCell(label: String, value: String, unit: String) -> some View {
+    VStack(spacing: 3) {
+      Text(label)
+        .font(GainsFont.label(8))
+        .tracking(1.4)
+        .foregroundStyle(GainsColor.softInk)
+      HStack(alignment: .lastTextBaseline, spacing: 2) {
+        Text(value)
+          .font(.system(size: 15, weight: .bold, design: .rounded))
+          .foregroundStyle(GainsColor.ink)
+        if !unit.isEmpty {
+          Text(unit)
+            .font(GainsFont.body(10))
+            .foregroundStyle(GainsColor.softInk)
+        }
+      }
+    }
+    .frame(maxWidth: .infinity)
   }
 
   private func assignedWorkoutCard(for day: Weekday) -> some View {
@@ -1214,7 +1764,7 @@ struct WorkoutHubView: View {
               .foregroundStyle(GainsColor.lime)
               .frame(maxWidth: .infinity)
               .frame(height: 42)
-              .background(GainsColor.ink)
+              .background(GainsColor.ctaSurface)
               .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
           }
           .buttonStyle(.plain)
@@ -1226,18 +1776,13 @@ struct WorkoutHubView: View {
   }
 
   private func emptyWorkoutLibraryCard(title: String, description: String) -> some View {
-    VStack(alignment: .leading, spacing: 10) {
-      Text(title)
-        .font(GainsFont.title(20))
-        .foregroundStyle(GainsColor.ink)
-
-      Text(description)
-        .font(GainsFont.body(14))
-        .foregroundStyle(GainsColor.softInk)
-        .lineLimit(3)
-    }
-    .padding(16)
-    .gainsCardStyle()
+    // A3: Verwendet jetzt den einheitlichen `EmptyStateView` statt eigene Card.
+    EmptyStateView(
+      style: .inline,
+      title: title,
+      message: description,
+      icon: "tray"
+    )
   }
 
   private var exercisePreviewSection: some View {
@@ -1404,17 +1949,13 @@ struct WorkoutHubView: View {
       }
 
       if filteredHistoryEntries.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Noch kein Verlauf in diesem Bereich")
-            .font(GainsFont.title(20))
-            .foregroundStyle(GainsColor.ink)
-
-          Text("Sobald du Läufe oder Workouts abschließt, erscheinen sie hier in deinem Verlauf.")
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.softInk)
-        }
-        .padding(16)
-        .gainsCardStyle()
+        EmptyStateView(
+          style: .inline,
+          title: "Noch kein Verlauf in diesem Bereich",
+          message: "Sobald du Läufe oder Workouts abschließt, erscheinen sie hier in deinem Verlauf.",
+          icon: "clock"
+        )
+        .frame(maxWidth: .infinity)
       } else {
         ForEach(filteredHistoryEntries.prefix(10)) { entry in
           historyEntryCard(entry)
@@ -1757,7 +2298,7 @@ struct WorkoutHubView: View {
   private func todayHeadline(for day: WorkoutDayPlan) -> String {
     switch day.status {
     case .planned:
-      return viewModel.headline
+      return "Dein Training an einem Ort"
     case .rest:
       return
         "Heute ist als freier Tag geplant. Halte nur den Rhythmus mit Schritten, Mobility oder einem spontanen Workout."
@@ -2076,28 +2617,62 @@ struct WorkoutHubView: View {
   }
 }
 
+// MARK: - Editable Exercise (eigene Satz/Rep-Konfiguration im Builder)
+
+private struct EditableExercise: Identifiable {
+  let id: UUID
+  let base: ExerciseLibraryItem
+  var sets: Int
+  var reps: Int
+
+  init(base: ExerciseLibraryItem) {
+    self.id = UUID()
+    self.base = base
+    self.sets = base.defaultSets
+    self.reps = base.defaultReps
+  }
+}
+
+// MARK: - WorkoutBuilderView
+
 struct WorkoutBuilderView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var store: GainsStore
 
+  /// Wenn gesetzt → Bearbeitungs-Modus, sonst Neu-Erstellen
+  var editingPlan: WorkoutPlan? = nil
   var onSaved: ((WorkoutPlan) -> Void)? = nil
 
   @State private var workoutName = ""
   @State private var selectedSplit = "Upper"
   @State private var searchText = ""
-  @State private var selectedExercises: [ExerciseLibraryItem] = []
+  @State private var selectedMuscle = "Alle"
+  @State private var selectedExercises: [EditableExercise] = []
+  @State private var editingExerciseID: UUID? = nil  // welcher Stepper offen ist
+  @State private var inspectingExercise: ExerciseLibraryItem? = nil
 
   private let splitOptions = ["Upper", "Lower", "Push", "Pull", "Beine", "Ganzkörper"]
-  private let splitColumns = Array(repeating: GridItem(.flexible(), spacing: 10), count: 3)
+
+  private var allMuscles: [String] {
+    let muscles = store.exerciseLibrary.map(\.primaryMuscle)
+    var unique = ["Alle"]
+    for m in muscles where !unique.contains(m) { unique.append(m) }
+    return unique
+  }
 
   private var filteredExercises: [ExerciseLibraryItem] {
-    let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmedSearch.isEmpty else { return store.exerciseLibrary }
-
-    return store.exerciseLibrary.filter { exercise in
-      exercise.name.localizedCaseInsensitiveContains(trimmedSearch)
-        || exercise.primaryMuscle.localizedCaseInsensitiveContains(trimmedSearch)
-        || exercise.equipment.localizedCaseInsensitiveContains(trimmedSearch)
+    let base: [ExerciseLibraryItem]
+    if selectedMuscle == "Alle" {
+      base = store.exerciseLibrary
+    } else {
+      base = store.exerciseLibrary.filter { $0.primaryMuscle == selectedMuscle }
+    }
+    let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return base }
+    return base.filter {
+      $0.name.localizedCaseInsensitiveContains(trimmed)
+        || $0.primaryMuscle.localizedCaseInsensitiveContains(trimmed)
+        || $0.equipment.localizedCaseInsensitiveContains(trimmed)
     }
   }
 
@@ -2106,259 +2681,596 @@ struct WorkoutBuilderView: View {
       && !selectedExercises.isEmpty
   }
 
+  private var isEditing: Bool { editingPlan != nil }
+
   var body: some View {
     NavigationStack {
-      GainsScreen {
-        VStack(alignment: .leading, spacing: 22) {
-          screenHeader(
-            eyebrow: "WORKOUT / ERSTELLEN",
-            title: "Eigenes Training",
-            subtitle:
-              "Benenne dein Workout, wähle Übungen aus und speichere es direkt in deiner Bibliothek."
-          )
+      ZStack(alignment: .bottom) {
+        GainsAppBackground()
+        ScrollView(showsIndicators: false) {
+          VStack(alignment: .leading, spacing: 22) {
+            // Header
+            screenHeader(
+              eyebrow: isEditing ? "WORKOUT / BEARBEITEN" : "WORKOUT / ERSTELLEN",
+              title: isEditing ? "Training bearbeiten" : "Eigenes Training",
+              subtitle: isEditing
+                ? "Passe Name, Split und Übungen an – deine Pläne werden automatisch aktualisiert."
+                : "Benenne dein Workout, wähle Übungen und passe Sets & Reps direkt an."
+            )
 
-          nameSection
-          splitSection
-          selectedExercisesSection
-          searchSection
-          librarySection
-          saveButton
+            nameAndSplitSection
+            selectedExercisesSection
+            exerciseLibrarySection
+            // Spacer für den sticky Button
+            Color.clear.frame(height: 80)
+          }
+          .padding(.horizontal, 20)
+          .padding(.top, 14)
+        }
+        // ── Sticky Save-Button ─────────────────────────────────────
+        stickyActionBar
+          .padding(.horizontal, 20)
+          .padding(.bottom, 20)
+      }
+      .onAppear {
+        if let plan = editingPlan {
+          workoutName = plan.title
+          selectedSplit = plan.split
+          // Reconstruct EditableExercise from plan exercises
+          selectedExercises = plan.exercises.compactMap { template in
+            guard let item = store.exerciseLibrary.first(where: { $0.name == template.name })
+            else { return nil }
+            var e = EditableExercise(base: item)
+            e.sets = template.sets.count
+            e.reps = template.sets.first?.reps ?? item.defaultReps
+            return e
+          }
         }
       }
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button("Schließen") {
-            dismiss()
-          }
-          .foregroundStyle(GainsColor.ink)
-        }
-      }
-    }
-  }
-
-  private var nameSection: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      SlashLabel(
-        parts: ["NAME", "WORKOUT"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      VStack(alignment: .leading, spacing: 8) {
-        Text("Wie soll dein Training heißen?")
-          .font(GainsFont.title(20))
-          .foregroundStyle(GainsColor.ink)
-
-        TextField("z. B. Upper A oder Push Fokus Brust", text: $workoutName)
-          .textInputAutocapitalization(.words)
-          .autocorrectionDisabled()
-          .font(GainsFont.body())
-          .padding(.horizontal, 14)
-          .frame(height: 50)
-          .background(GainsColor.background.opacity(0.8))
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-      }
-      .padding(18)
-      .gainsCardStyle()
-    }
-  }
-
-  private var splitSection: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      SlashLabel(
-        parts: ["SPLIT", "AUSWÄHLEN"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
-
-      LazyVGrid(columns: splitColumns, spacing: 10) {
-        ForEach(splitOptions, id: \.self) { option in
           Button {
-            selectedSplit = option
+            dismiss()
           } label: {
-            Text(option)
-              .font(GainsFont.label(11))
-              .tracking(1.2)
-              .foregroundStyle(selectedSplit == option ? GainsColor.ink : GainsColor.softInk)
-              .frame(maxWidth: .infinity)
-              .frame(height: 44)
-              .background(selectedSplit == option ? GainsColor.lime : GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            Image(systemName: "xmark")
+              .font(.system(size: 13, weight: .bold))
+              .foregroundStyle(GainsColor.ink)
+              .frame(width: 30, height: 30)
+              .background(GainsColor.card)
+              .clipShape(Circle())
           }
-          .buttonStyle(.plain)
         }
+        ToolbarItem(placement: .principal) {
+          Text(isEditing ? "BEARBEITEN" : "NEUES WORKOUT")
+            .font(GainsFont.label(11))
+            .tracking(2.0)
+            .foregroundStyle(GainsColor.ink)
+        }
+      }
+      .toolbar {
+        ToolbarItemGroup(placement: .keyboard) {
+          Spacer()
+          Button("Fertig") {
+            UIApplication.shared.sendAction(
+              #selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+          }
+        }
+      }
+      .sheet(item: $inspectingExercise) { exercise in
+        NavigationStack {
+          ExerciseDetailSheet(exercise: exercise)
+        }
+        .presentationDetents([.large])
       }
     }
   }
+
+  // MARK: - Name + Split kombiniert
+
+  private var nameAndSplitSection: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      // Name
+      VStack(alignment: .leading, spacing: 10) {
+        SlashLabel(
+          parts: ["NAME", "WORKOUT"], primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
+
+        HStack(spacing: 10) {
+          Image(systemName: "pencil")
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(GainsColor.softInk)
+          TextField("z. B. Upper A · Push Fokus Brust", text: $workoutName)
+            .textInputAutocapitalization(.words)
+            .autocorrectionDisabled()
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+        }
+        .padding(.horizontal, 14)
+        .frame(height: 50)
+        .background(GainsColor.card)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(
+              workoutName.isEmpty ? GainsColor.border.opacity(0.5) : GainsColor.lime.opacity(0.5),
+              lineWidth: 1.5)
+        )
+      }
+
+      // Split-Chips
+      VStack(alignment: .leading, spacing: 10) {
+        SlashLabel(
+          parts: ["SPLIT", "AUSWÄHLEN"], primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
+
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: 8) {
+            ForEach(splitOptions, id: \.self) { option in
+              Button {
+                selectedSplit = option
+              } label: {
+                Text(option)
+                  .font(GainsFont.label(11))
+                  .tracking(1.2)
+                  .foregroundStyle(selectedSplit == option ? GainsColor.ink : GainsColor.softInk)
+                  .padding(.horizontal, 18)
+                  .frame(height: 38)
+                  .background(selectedSplit == option ? GainsColor.lime : GainsColor.card)
+                  .clipShape(Capsule())
+              }
+              .buttonStyle(.plain)
+            }
+          }
+          .padding(.vertical, 2)
+        }
+      }
+    }
+    .padding(18)
+    .gainsCardStyle()
+  }
+
+  // MARK: - Ausgewählte Übungen (Drag-to-Reorder + Sets/Reps Stepper)
 
   @ViewBuilder
   private var selectedExercisesSection: some View {
     VStack(alignment: .leading, spacing: 10) {
-      SlashLabel(
-        parts: ["AUSGEWÄHLT", "ÜBUNGEN"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+      HStack {
+        SlashLabel(
+          parts: ["AUSGEWÄHLT", "\(selectedExercises.count) ÜBUNGEN"],
+          primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
+        Spacer()
+        if !selectedExercises.isEmpty {
+          Text("\(selectedExercises.count) ausgewählt")
+            .font(GainsFont.label(9))
+            .tracking(0.8)
+            .foregroundStyle(GainsColor.moss)
+        }
+      }
 
       if selectedExercises.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Noch keine Übungen ausgewählt")
-            .font(GainsFont.title(20))
-            .foregroundStyle(GainsColor.ink)
-
-          Text("Füge unten Übungen hinzu. Für den Start reichen schon 4 bis 6 gute Übungen.")
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.softInk)
-        }
-        .padding(18)
-        .gainsCardStyle()
+        EmptyStateView(
+          style: .card(icon: "hand.point.down"),
+          title: "Noch keine Übungen gewählt",
+          message: "Wähle Übungen aus der Bibliothek unten. 4 – 6 reichen für den Start."
+        )
       } else {
-        VStack(alignment: .leading, spacing: 10) {
-          ForEach(selectedExercises) { exercise in
-            HStack(spacing: 12) {
-              VStack(alignment: .leading, spacing: 4) {
-                Text(exercise.name)
-                  .font(GainsFont.title(18))
-                  .foregroundStyle(GainsColor.ink)
-
-                Text(
-                  "\(exercise.primaryMuscle) · \(exercise.defaultSets) Sätze × \(exercise.defaultReps)"
-                )
-                .font(GainsFont.body(13))
-                .foregroundStyle(GainsColor.softInk)
-              }
-
-              Spacer()
-
-              Button {
-                removeExercise(exercise)
-              } label: {
-                Image(systemName: "minus.circle.fill")
-                  .font(.system(size: 22, weight: .semibold))
-                  .foregroundStyle(GainsColor.moss)
-              }
-              .buttonStyle(.plain)
+        VStack(spacing: 0) {
+          ForEach(Array(selectedExercises.enumerated()), id: \.element.id) { index, _ in
+            editableExerciseRow(index: index)
+            if index < selectedExercises.count - 1 {
+              Divider()
+                .background(GainsColor.border.opacity(0.4))
+                .padding(.horizontal, 16)
             }
-            .padding(16)
-            .gainsCardStyle()
           }
         }
+        .background(GainsColor.card)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+          RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+        )
       }
     }
   }
 
-  private var searchSection: some View {
-    VStack(alignment: .leading, spacing: 10) {
-      SlashLabel(
-        parts: ["SUCHEN", "ÜBUNGEN"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+  private func editableExerciseRow(index: Int) -> some View {
+    let ex = selectedExercises[index]
+    let isOpen = editingExerciseID == ex.id
+    let isFirst = index == 0
+    let isLast = index == selectedExercises.count - 1
 
-      HStack(spacing: 10) {
-        Image(systemName: "magnifyingglass")
+    return VStack(alignment: .leading, spacing: 0) {
+      // ── Hauptzeile ────────────────────────────────────────────────
+      HStack(spacing: 12) {
+        // Reihenfolge: Auf/Ab-Buttons
+        VStack(spacing: 2) {
+          Button {
+            guard index > 0 else { return }
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.85)) {
+              selectedExercises.swapAt(index, index - 1)
+            }
+          } label: {
+            Image(systemName: "chevron.up")
+              .font(.system(size: 10, weight: .bold))
+              .foregroundStyle(isFirst ? GainsColor.border : GainsColor.softInk)
+          }
+          .buttonStyle(.plain)
+          .disabled(isFirst)
+
+          Button {
+            guard index < selectedExercises.count - 1 else { return }
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.85)) {
+              selectedExercises.swapAt(index, index + 1)
+            }
+          } label: {
+            Image(systemName: "chevron.down")
+              .font(.system(size: 10, weight: .bold))
+              .foregroundStyle(isLast ? GainsColor.border : GainsColor.softInk)
+          }
+          .buttonStyle(.plain)
+          .disabled(isLast)
+        }
+        .frame(width: 20)
+
+        VStack(alignment: .leading, spacing: 3) {
+          Text(ex.base.name)
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+          Text("\(ex.base.primaryMuscle) · \(ex.base.equipment)")
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+        }
+
+        Spacer()
+
+        // Sets × Reps badge — antippen öffnet Stepper
+        Button {
+          withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
+            editingExerciseID = isOpen ? nil : ex.id
+          }
+        } label: {
+          HStack(spacing: 4) {
+            Text("\(ex.sets)×\(ex.reps)")
+              .font(GainsFont.label(11))
+              .tracking(0.6)
+              .foregroundStyle(isOpen ? GainsColor.ink : GainsColor.moss)
+            Image(systemName: isOpen ? "chevron.up" : "chevron.down")
+              .font(.system(size: 9, weight: .bold))
+              .foregroundStyle(isOpen ? GainsColor.ink : GainsColor.moss)
+          }
+          .padding(.horizontal, 12)
+          .frame(height: 32)
+          .background(isOpen ? GainsColor.lime : GainsColor.lime.opacity(0.18))
+          .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+
+        // Entfernen
+        Button {
+          withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+            if editingExerciseID == ex.id { editingExerciseID = nil }
+            selectedExercises.remove(at: index)
+          }
+        } label: {
+          Image(systemName: "xmark.circle.fill")
+            .font(.system(size: 20, weight: .semibold))
+            .foregroundStyle(GainsColor.softInk.opacity(0.5))
+        }
+        .buttonStyle(.plain)
+      }
+      .padding(.horizontal, 16)
+      .padding(.vertical, 14)
+
+      // ── Inline Stepper (nur wenn offen) ──────────────────────────
+      if isOpen {
+        HStack(spacing: 0) {
+          builderStepper(
+            label: "SÄTZE",
+            value: Binding(
+              get: { selectedExercises[index].sets },
+              set: { selectedExercises[index].sets = $0 }
+            ),
+            range: 1...8
+          )
+          Divider()
+            .background(GainsColor.border.opacity(0.4))
+            .frame(height: 50)
+          builderStepper(
+            label: "WDHL.",
+            value: Binding(
+              get: { selectedExercises[index].reps },
+              set: { selectedExercises[index].reps = $0 }
+            ),
+            range: 1...30
+          )
+        }
+        .background(GainsColor.lime.opacity(0.08))
+        .padding(.horizontal, 16)
+        .padding(.bottom, 14)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+      }
+    }
+  }
+
+  private func builderStepper(label: String, value: Binding<Int>, range: ClosedRange<Int>)
+    -> some View
+  {
+    HStack(spacing: 16) {
+      Button {
+        if value.wrappedValue > range.lowerBound { value.wrappedValue -= 1 }
+      } label: {
+        Image(systemName: "minus")
+          .font(.system(size: 14, weight: .bold))
+          .foregroundStyle(GainsColor.ink)
+          .frame(width: 32, height: 32)
+          .background(GainsColor.background.opacity(0.8))
+          .clipShape(Circle())
+      }
+      .buttonStyle(.plain)
+
+      VStack(spacing: 2) {
+        Text("\(value.wrappedValue)")
+          .font(.system(size: 20, weight: .bold, design: .rounded))
+          .foregroundStyle(GainsColor.ink)
+        Text(label)
+          .font(GainsFont.label(8))
+          .tracking(1.4)
           .foregroundStyle(GainsColor.softInk)
-
-        TextField("Übungen suchen", text: $searchText)
-          .textInputAutocapitalization(.words)
-          .autocorrectionDisabled()
-          .font(GainsFont.body())
       }
-      .padding(.horizontal, 14)
-      .frame(height: 50)
-      .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.7), lineWidth: 1)
-      )
+      .frame(minWidth: 44)
+
+      Button {
+        if value.wrappedValue < range.upperBound { value.wrappedValue += 1 }
+      } label: {
+        Image(systemName: "plus")
+          .font(.system(size: 14, weight: .bold))
+          .foregroundStyle(GainsColor.ink)
+          .frame(width: 32, height: 32)
+          .background(GainsColor.background.opacity(0.8))
+          .clipShape(Circle())
+      }
+      .buttonStyle(.plain)
     }
+    .frame(maxWidth: .infinity)
   }
 
-  private var librarySection: some View {
-    VStack(alignment: .leading, spacing: 10) {
+  // MARK: - Übungs-Bibliothek mit Muskelgruppen-Filter
+
+  private var exerciseLibrarySection: some View {
+    VStack(alignment: .leading, spacing: 14) {
       SlashLabel(
         parts: ["GYM", "BIBLIOTHEK"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
-      if filteredExercises.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Keine passende Übung gefunden")
-            .font(GainsFont.title(20))
-            .foregroundStyle(GainsColor.ink)
+      // Suchfeld
+      HStack(spacing: 10) {
+        Image(systemName: "magnifyingglass")
+          .foregroundStyle(GainsColor.softInk)
+        TextField("Übung suchen…", text: $searchText)
+          .textInputAutocapitalization(.never)
+          .autocorrectionDisabled()
+          .font(GainsFont.body())
+        if !searchText.isEmpty {
+          Button { searchText = "" } label: {
+            Image(systemName: "xmark.circle.fill")
+              .foregroundStyle(GainsColor.softInk)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.horizontal, 14)
+      .frame(height: 48)
+      .background(GainsColor.card)
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .overlay(
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .stroke(GainsColor.border.opacity(0.6), lineWidth: 1)
+      )
 
-          Text("Probiere einen anderen Suchbegriff wie Brust, Rücken, Kniebeugen oder Rudern.")
-            .font(GainsFont.body(14))
+      // Muskelgruppen-Filter-Chips
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 8) {
+          ForEach(allMuscles, id: \.self) { muscle in
+            Button {
+              selectedMuscle = muscle
+            } label: {
+              Text(muscle)
+                .font(GainsFont.label(10))
+                .tracking(1.0)
+                .foregroundStyle(selectedMuscle == muscle ? GainsColor.ink : GainsColor.softInk)
+                .padding(.horizontal, 14)
+                .frame(height: 34)
+                .background(selectedMuscle == muscle ? GainsColor.lime : GainsColor.card)
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+          }
+        }
+        .padding(.vertical, 2)
+      }
+
+      // Übungsliste
+      if filteredExercises.isEmpty {
+        HStack(spacing: 12) {
+          Image(systemName: "magnifyingglass")
+            .foregroundStyle(GainsColor.softInk)
+          Text("Keine Übung gefunden. Probiere einen anderen Begriff.")
+            .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.softInk)
         }
         .padding(18)
         .gainsCardStyle()
       } else {
-        ForEach(filteredExercises) { exercise in
-          HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 6) {
-              Text(exercise.name)
-                .font(GainsFont.title(18))
-                .foregroundStyle(GainsColor.ink)
-
-              Text("\(exercise.primaryMuscle) · \(exercise.equipment)")
-                .font(GainsFont.body(13))
-                .foregroundStyle(GainsColor.softInk)
-
-              Text("\(exercise.defaultSets) Sätze × \(exercise.defaultReps) Wiederholungen")
-                .font(GainsFont.label(10))
-                .tracking(1.5)
-                .foregroundStyle(GainsColor.moss)
+        VStack(spacing: 0) {
+          ForEach(filteredExercises) { exercise in
+            libraryExerciseRow(exercise)
+            if exercise.id != filteredExercises.last?.id {
+              Divider()
+                .background(GainsColor.border.opacity(0.3))
+                .padding(.horizontal, 16)
             }
-
-            Spacer()
-
-            Button {
-              toggleSelection(of: exercise)
-            } label: {
-              Image(systemName: isSelected(exercise) ? "checkmark.circle.fill" : "plus.circle.fill")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(isSelected(exercise) ? GainsColor.moss : GainsColor.ink)
-            }
-            .buttonStyle(.plain)
           }
-          .padding(16)
-          .gainsCardStyle(isSelected(exercise) ? GainsColor.lime.opacity(0.42) : GainsColor.card)
         }
+        .background(GainsColor.card)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+          RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+        )
       }
     }
   }
 
-  private var saveButton: some View {
-    Button {
-      if let workout = store.saveWorkout(
-        named: workoutName,
-        split: selectedSplit,
-        exercises: selectedExercises
-      ) {
-        onSaved?(workout)
-        dismiss()
+  private func libraryExerciseRow(_ exercise: ExerciseLibraryItem) -> some View {
+    let selected = isSelected(exercise)
+    return HStack(spacing: 12) {
+      // Muskelgruppen-Farbpunkt
+      Circle()
+        .fill(muscleColor(exercise.primaryMuscle))
+        .frame(width: 10, height: 10)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(exercise.name)
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+        Text("\(exercise.primaryMuscle) · \(exercise.equipment)")
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.softInk)
       }
+
+      Spacer()
+
+      Text("\(exercise.defaultSets)×\(exercise.defaultReps)")
+        .font(GainsFont.label(10))
+        .tracking(0.6)
+        .foregroundStyle(GainsColor.softInk)
+
+      Button {
+        inspectingExercise = exercise
+      } label: {
+        Image(systemName: "info.circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(GainsColor.softInk)
+      }
+      .buttonStyle(.plain)
+
+      Button {
+        toggleSelection(of: exercise)
+      } label: {
+        Image(
+          systemName: selected ? "checkmark.circle.fill" : "plus.circle"
+        )
+        .font(.system(size: 22, weight: .semibold))
+        .foregroundStyle(selected ? GainsColor.moss : GainsColor.lime)
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 13)
+    .background(selected ? GainsColor.lime.opacity(0.12) : Color.clear)
+    .contentShape(Rectangle())
+    .onTapGesture {
+      toggleSelection(of: exercise)
+    }
+  }
+
+  // MARK: - Sticky Save-Button
+
+  private var stickyActionBar: some View {
+    Button {
+      saveWorkout()
     } label: {
-      Text("Workout speichern")
-        .font(GainsFont.label(12))
-        .tracking(1.6)
-        .foregroundStyle(canSave ? GainsColor.lime : GainsColor.softInk)
-        .frame(maxWidth: .infinity)
-        .frame(height: 52)
-        .background(canSave ? GainsColor.ink : GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      HStack(spacing: 10) {
+        Image(systemName: canSave ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 16, weight: .semibold))
+        Text(isEditing ? "Änderungen speichern" : "Workout speichern")
+          .font(GainsFont.label(13))
+          .tracking(1.4)
+        if !selectedExercises.isEmpty {
+          Text("· \(selectedExercises.count) Übungen")
+            .font(GainsFont.label(11))
+            .opacity(0.72)
+        }
+      }
+      .foregroundStyle(canSave ? GainsColor.onLime : GainsColor.softInk)
+      .frame(maxWidth: .infinity)
+      .frame(height: 56)
+      .background(
+        canSave
+          ? GainsColor.lime
+          : GainsColor.card
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .shadow(
+        color: canSave ? GainsColor.lime.opacity(0.35) : .clear,
+        radius: 12, x: 0, y: 4)
     }
     .buttonStyle(.plain)
     .disabled(!canSave)
   }
 
+  // MARK: - Helpers
+
+  private func saveWorkout() {
+    let trimmedName = workoutName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedName.isEmpty, !selectedExercises.isEmpty else { return }
+
+    // Convert EditableExercise → ExerciseLibraryItem (mit angepassten Defaults)
+    let libraryItems = selectedExercises.map { editable -> ExerciseLibraryItem in
+      ExerciseLibraryItem(
+        name: editable.base.name,
+        primaryMuscle: editable.base.primaryMuscle,
+        equipment: editable.base.equipment,
+        defaultSets: editable.sets,
+        defaultReps: editable.reps,
+        suggestedWeight: editable.base.suggestedWeight
+      )
+    }
+
+    if let plan = editingPlan {
+      if let updated = store.updateWorkout(
+        plan, named: trimmedName, split: selectedSplit, exercises: libraryItems)
+      {
+        onSaved?(updated)
+      }
+    } else {
+      if let created = store.saveWorkout(
+        named: trimmedName, split: selectedSplit, exercises: libraryItems)
+      {
+        onSaved?(created)
+      }
+    }
+    dismiss()
+  }
+
   private func isSelected(_ exercise: ExerciseLibraryItem) -> Bool {
-    selectedExercises.contains(where: { $0.id == exercise.id })
+    selectedExercises.contains(where: { $0.base.name == exercise.name })
   }
 
   private func toggleSelection(of exercise: ExerciseLibraryItem) {
     if isSelected(exercise) {
-      removeExercise(exercise)
+      selectedExercises.removeAll(where: { $0.base.name == exercise.name })
     } else {
-      selectedExercises.append(exercise)
+      selectedExercises.append(EditableExercise(base: exercise))
     }
   }
 
-  private func removeExercise(_ exercise: ExerciseLibraryItem) {
-    selectedExercises.removeAll(where: { $0.id == exercise.id })
+  private func muscleColor(_ muscle: String) -> Color {
+    switch muscle {
+    case "Brust":    return Color(hex: "FF6B6B").opacity(0.8)
+    case "Rücken":   return Color(hex: "4ECDC4").opacity(0.8)
+    case "Beine":    return Color(hex: "45B7D1").opacity(0.8)
+    case "Schulter": return Color(hex: "F7DC6F").opacity(0.8)
+    case "Bizeps":   return Color(hex: "BB8FCE").opacity(0.8)
+    case "Trizeps":  return Color(hex: "F0A500").opacity(0.8)
+    case "Bauch":    return Color(hex: "E74C3C").opacity(0.8)
+    case "Glutes":   return Color(hex: "E91E8C").opacity(0.8)
+    case "Waden":    return Color(hex: "58D68D").opacity(0.8)
+    default:         return GainsColor.lime.opacity(0.7)
+    }
   }
 }

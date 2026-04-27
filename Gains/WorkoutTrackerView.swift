@@ -5,19 +5,8 @@ import UIKit
 struct WorkoutTrackerView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var store: GainsStore
+  @ObservedObject private var healthKit = HealthKitManager.shared
 
-  enum TrackerTab: String, CaseIterable, Identifiable {
-    case live, exercises
-    var id: String { rawValue }
-    var title: String {
-      switch self {
-      case .live: return "LIVE-SESSION"
-      case .exercises: return "ÜBUNGEN"
-      }
-    }
-  }
-
-  @State private var selectedTab: TrackerTab = .live
   @State private var activeSetID: UUID?
   @State private var activeSetStartedAt: Date?
   @State private var restTimerEndsAt: Date?
@@ -37,14 +26,8 @@ struct WorkoutTrackerView: View {
           ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 22) {
               header(workout)
-              segmentTabs
-
-              switch selectedTab {
-              case .live:
-                liveBody(workout)
-              case .exercises:
-                exercisesBody(workout)
-              }
+              integratedTimerCard
+              allExercisesSection(workout)
             }
             .padding(.horizontal, 20)
             .padding(.top, 14)
@@ -70,6 +53,12 @@ struct WorkoutTrackerView: View {
       }
       .onReceive(ticker) { now in
         currentTime = now
+      }
+      .onAppear {
+        HealthKitManager.shared.startHeartRateObserver()
+      }
+      .onDisappear {
+        HealthKitManager.shared.stopHeartRateObserver()
       }
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -186,8 +175,9 @@ struct WorkoutTrackerView: View {
           isDark: true
         )
         statChip(
-          label: "ÜBUNGEN", value: "\(workout.exercises.count)",
-          accent: GainsColor.moss,
+          label: "HF",
+          value: healthKit.liveHeartRate.map { "\($0)" } ?? "--",
+          accent: GainsColor.ember,
           isDark: true
         )
       }
@@ -195,7 +185,7 @@ struct WorkoutTrackerView: View {
     .padding(20)
     .background(
       LinearGradient(
-        colors: [GainsColor.ink, GainsColor.surfaceDeep],
+        colors: [GainsColor.ctaSurface, GainsColor.surfaceDeep],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
       )
@@ -252,57 +242,30 @@ struct WorkoutTrackerView: View {
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
-  // MARK: - Tab strip
+  // MARK: - Unified session body
 
-  private var segmentTabs: some View {
-    HStack(spacing: 6) {
-      ForEach(TrackerTab.allCases) { tab in
-        Button {
-          withAnimation(.easeInOut(duration: 0.18)) {
-            selectedTab = tab
-          }
-        } label: {
-          Text(tab.title)
-            .font(GainsFont.label(11))
-            .tracking(1.6)
-            .foregroundStyle(selectedTab == tab ? GainsColor.lime : GainsColor.softInk)
-            .frame(maxWidth: .infinity)
-            .frame(height: 38)
-            .background(selectedTab == tab ? GainsColor.ink : Color.clear)
-            .overlay(
-              RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(
-                  selectedTab == tab ? GainsColor.lime.opacity(0.45) : GainsColor.border.opacity(0.55),
-                  lineWidth: 1
-                )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .buttonStyle(.plain)
-      }
-    }
-    .padding(4)
-    .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-  }
-
-  // MARK: - Live tab
-
+  /// Zeigt Timer+Pause in einer integrierten Karte (kein Tab-Switch nötig).
   @ViewBuilder
-  private func liveBody(_ workout: WorkoutSession) -> some View {
-    timerCard
-    restPresetRow
+  private func allExercisesSection(_ workout: WorkoutSession) -> some View {
+    let currentID = currentExerciseID(in: workout)
 
-    if let pending = nextPending(in: workout) {
-      activeExerciseCard(pending.exercise, focusSet: pending.set)
-    } else {
+    if nextPending(in: workout) == nil {
       finishedCard
     }
 
-    upNextCard(workout)
+    VStack(spacing: 14) {
+      ForEach(workout.exercises) { exercise in
+        if let pending = nextPending(in: workout), exercise.id == currentID {
+          activeExerciseCard(pending.exercise, focusSet: pending.set)
+        } else {
+          exerciseDetailCard(exercise)
+        }
+      }
+    }
   }
 
-  private var timerCard: some View {
+  /// Timer + Pause-Presets in einer einzigen integrierten Karte.
+  private var integratedTimerCard: some View {
     let isRest = (restTimerEndsAt != nil) && remainingRestSeconds > 0
     let isSet = activeSetID != nil
     let mainLabel: String = {
@@ -318,6 +281,8 @@ struct WorkoutTrackerView: View {
     let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.softInk)
 
     return VStack(alignment: .leading, spacing: 18) {
+
+      // ── Status-Zeile ──────────────────────────────────────────────
       HStack(spacing: 10) {
         Circle()
           .fill(accent)
@@ -327,10 +292,23 @@ struct WorkoutTrackerView: View {
           .tracking(2)
           .foregroundStyle(GainsColor.card.opacity(0.7))
         Spacer()
+        if let bpm = healthKit.liveHeartRate {
+          HStack(spacing: 4) {
+            Image(systemName: "heart.fill")
+              .font(.system(size: 9, weight: .semibold))
+              .foregroundStyle(GainsColor.ember)
+            Text("\(bpm) bpm")
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+              .foregroundStyle(GainsColor.card.opacity(0.85))
+          }
+          .padding(.horizontal, 10)
+          .frame(height: 28)
+          .background(GainsColor.ember.opacity(0.15))
+          .clipShape(Capsule())
+        }
         if isRest {
-          Button {
-            restTimerEndsAt = nil
-          } label: {
+          Button { restTimerEndsAt = nil } label: {
             Text("ÜBERSPRINGEN")
               .font(GainsFont.label(10))
               .tracking(1.6)
@@ -342,9 +320,7 @@ struct WorkoutTrackerView: View {
           }
           .buttonStyle(.plain)
         } else if isSet {
-          Button {
-            stopActiveSet()
-          } label: {
+          Button { stopActiveSet() } label: {
             Text("STOP")
               .font(GainsFont.label(10))
               .tracking(1.6)
@@ -358,36 +334,67 @@ struct WorkoutTrackerView: View {
         }
       }
 
-      VStack(alignment: .leading, spacing: 8) {
-        Text(mainTime)
-          .font(.system(size: 64, weight: .semibold, design: .rounded))
-          .monospacedDigit()
-          .foregroundStyle(GainsColor.card)
-          .frame(maxWidth: .infinity, alignment: .leading)
+      // ── Haupt-Timer ───────────────────────────────────────────────
+      Text(mainTime)
+        .font(.system(size: 64, weight: .semibold, design: .rounded))
+        .monospacedDigit()
+        .foregroundStyle(GainsColor.card)
+        .frame(maxWidth: .infinity, alignment: .leading)
 
-        HStack(spacing: 8) {
-          trackerMetaPill(title: isRest ? "Pause" : (isSet ? "Satz läuft" : "Bereit"), accent: accent)
-          trackerMetaPill(title: "Preset \(formattedRestPreset(restDuration))", accent: GainsColor.card, usesDarkText: false)
-        }
-      }
-
+      // Fortschrittsbalken (Pause) oder Hinweis-Text
       if isRest {
         SwiftUI.ProgressView(value: Double(remainingRestSeconds), total: Double(max(restDuration, 1)))
           .tint(GainsColor.ember)
-      } else if isSet {
-        Text("Konzentriere dich auf saubere Reps. Stop drücken, sobald du fertig bist.")
-          .font(GainsFont.body(13))
-          .foregroundStyle(GainsColor.card.opacity(0.7))
       } else {
-        Text("Wähle den nächsten Satz und starte mit dem Play-Button.")
-          .font(GainsFont.body(13))
-          .foregroundStyle(GainsColor.card.opacity(0.7))
+        Text(
+          isSet
+            ? "Saubere Reps. Stop sobald fertig."
+            : "Play-Button am Satz antippen zum Starten."
+        )
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.card.opacity(0.7))
+      }
+
+      // ── Trennlinie ────────────────────────────────────────────────
+      Rectangle()   
+        .fill(GainsColor.card.opacity(0.12))
+        .frame(height: 1)
+
+      // ── Pause-Presets ─────────────────────────────────────────────
+      HStack(spacing: 0) {
+        Text("PAUSE")
+          .font(GainsFont.label(9))
+          .tracking(1.8)
+          .foregroundStyle(GainsColor.card.opacity(0.5))
+
+        Spacer()
+
+        HStack(spacing: 6) {
+          ForEach(restPresets, id: \.self) { seconds in
+            Button {
+              restDuration = seconds
+              if restTimerEndsAt != nil {
+                restTimerEndsAt = Calendar.current.date(
+                  byAdding: .second, value: seconds, to: Date())
+              }
+            } label: {
+              Text(formattedRestPreset(seconds))
+                .font(GainsFont.label(11))
+                .tracking(1.2)
+                .foregroundStyle(restDuration == seconds ? GainsColor.onLime : GainsColor.card.opacity(0.8))
+                .frame(minWidth: 44, minHeight: 30)
+                .background(restDuration == seconds ? GainsColor.lime : GainsColor.card.opacity(0.1))
+                .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+          }
+        }
       }
     }
     .padding(20)
     .background(
       LinearGradient(
-        colors: [GainsColor.ink, GainsColor.surfaceDeep],
+        colors: [GainsColor.ctaSurface, GainsColor.surfaceDeep],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
       )
@@ -396,7 +403,7 @@ struct WorkoutTrackerView: View {
       RoundedRectangle(cornerRadius: 26, style: .continuous)
         .stroke(accent.opacity(0.34), lineWidth: 1.1)
     )
-      .shadow(color: accent.opacity(0.1), radius: 16, x: 0, y: 10)
+    .shadow(color: accent.opacity(0.1), radius: 16, x: 0, y: 10)
     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
   }
 
@@ -425,44 +432,6 @@ struct WorkoutTrackerView: View {
       .clipShape(Capsule())
   }
 
-  private var restPresetRow: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack(spacing: 8) {
-        Circle()
-          .fill(GainsColor.ember)
-          .frame(width: 5, height: 5)
-        Text("PAUSEN-VOREINSTELLUNG")
-          .font(GainsFont.label(10))
-          .tracking(2)
-          .foregroundStyle(GainsColor.softInk)
-      }
-
-      HStack(spacing: 8) {
-        ForEach(restPresets, id: \.self) { seconds in
-          Button {
-            restDuration = seconds
-            if restTimerEndsAt != nil {
-              restTimerEndsAt = Calendar.current.date(byAdding: .second, value: seconds, to: Date())
-            }
-          } label: {
-            Text(formattedRestPreset(seconds))
-              .font(GainsFont.label(11))
-              .tracking(1.4)
-              .foregroundStyle(restDuration == seconds ? GainsColor.onLime : GainsColor.ink)
-              .frame(maxWidth: .infinity)
-              .frame(height: 36)
-              .background(restDuration == seconds ? GainsColor.lime : GainsColor.card)
-              .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                  .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
-              )
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-          }
-          .buttonStyle(.plain)
-        }
-      }
-    }
-  }
 
   private func formattedRestPreset(_ seconds: Int) -> String {
     let minutes = seconds / 60
@@ -554,58 +523,6 @@ struct WorkoutTrackerView: View {
     .clipShape(Capsule())
   }
 
-  private func upNextCard(_ workout: WorkoutSession) -> some View {
-    let upcoming = workout.exercises.first { exercise in
-      exercise.sets.contains { !$0.isCompleted }
-        && exercise.id != currentExerciseID(in: workout)
-    }
-
-    return Group {
-      if let upcoming {
-        VStack(alignment: .leading, spacing: 8) {
-          HStack(spacing: 8) {
-            Circle()
-              .fill(GainsColor.softInk.opacity(0.5))
-              .frame(width: 5, height: 5)
-            Text("ALS NÄCHSTES")
-              .font(GainsFont.label(10))
-              .tracking(2)
-              .foregroundStyle(GainsColor.softInk)
-          }
-
-          HStack(spacing: 12) {
-            Image(systemName: "dumbbell.fill")
-              .font(.system(size: 14, weight: .bold))
-              .foregroundStyle(GainsColor.lime)
-              .frame(width: 38, height: 38)
-              .background(GainsColor.ink)
-              .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 4) {
-              Text(upcoming.name)
-                .font(GainsFont.title(16))
-                .foregroundStyle(GainsColor.ink)
-              Text(
-                "\(upcoming.sets.count) Sätze · \(upcoming.targetMuscle)"
-              )
-              .font(GainsFont.label(10))
-              .tracking(1.4)
-              .foregroundStyle(GainsColor.softInk)
-            }
-
-            Spacer()
-          }
-          .padding(14)
-          .background(GainsColor.card)
-          .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-              .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
-          )
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        }
-      }
-    }
-  }
 
   private var finishedCard: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -619,17 +536,6 @@ struct WorkoutTrackerView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(18)
     .gainsCardStyle(GainsColor.lime.opacity(0.4))
-  }
-
-  // MARK: - Exercises tab
-
-  @ViewBuilder
-  private func exercisesBody(_ workout: WorkoutSession) -> some View {
-    VStack(spacing: 14) {
-      ForEach(workout.exercises) { exercise in
-        exerciseDetailCard(exercise)
-      }
-    }
   }
 
   private func exerciseDetailCard(_ exercise: TrackedExercise) -> some View {
@@ -749,7 +655,7 @@ struct WorkoutTrackerView: View {
       }
       .padding(.horizontal, 22)
       .frame(height: 64)
-      .background(GainsColor.ink)
+      .background(GainsColor.ctaSurface)
       .overlay(
         RoundedRectangle(cornerRadius: 22, style: .continuous)
           .stroke(GainsColor.lime.opacity(0.55), lineWidth: 1.4)
@@ -897,7 +803,7 @@ private struct TrackerSetRow: View {
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(isTimerRunning ? GainsColor.onLime : GainsColor.lime)
           .frame(width: 38, height: 38)
-          .background(isTimerRunning ? GainsColor.lime : GainsColor.ink)
+          .background(isTimerRunning ? GainsColor.lime : GainsColor.ctaSurface)
           .clipShape(Circle())
       }
       .buttonStyle(.plain)

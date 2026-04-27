@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import HealthKit
 
@@ -15,10 +16,15 @@ struct HealthSnapshot {
   var lastSyncDate: Date
 }
 
-final class HealthKitManager {
+final class HealthKitManager: ObservableObject {
   static let shared = HealthKitManager()
 
   private let healthStore = HKHealthStore()
+
+  /// Zuletzt empfangene Echtzeit-Herzfrequenz (bpm). Nil solange kein Wert vorliegt.
+  @Published private(set) var liveHeartRate: Int? = nil
+
+  private var heartRateQuery: HKQuery?
 
   private init() {}
 
@@ -188,6 +194,67 @@ final class HealthKitManager {
       )
     }
   }
+
+  // MARK: - Live Heart Rate Observer
+
+  /// Startet einen dauerhaften HKAnchoredObjectQuery, der neue HF-Samples
+  /// direkt in `liveHeartRate` schreibt. Kann mehrfach aufgerufen werden –
+  /// ein laufender Observer wird vorher gestoppt.
+  func startHeartRateObserver() {
+    guard isAvailable else { return }
+    guard let heartRateType = HKObjectType.quantityType(forIdentifier: .heartRate) else { return }
+
+    stopHeartRateObserver()
+
+    // Nur Samples der letzten 60 Sekunden beim ersten Fetch berücksichtigen.
+    let recentStart = Date().addingTimeInterval(-60)
+    let predicate = HKQuery.predicateForSamples(withStart: recentStart, end: nil)
+
+    let query = HKAnchoredObjectQuery(
+      type: heartRateType,
+      predicate: predicate,
+      anchor: nil,
+      limit: HKObjectQueryNoLimit
+    ) { [weak self] _, samples, _, _, _ in
+      self?.processHeartRateSamples(samples)
+    }
+
+    query.updateHandler = { [weak self] _, samples, _, _, _ in
+      self?.processHeartRateSamples(samples)
+    }
+
+    healthStore.execute(query)
+    heartRateQuery = query
+  }
+
+  /// Stoppt den laufenden HF-Observer.
+  func stopHeartRateObserver() {
+    guard let query = heartRateQuery else { return }
+    healthStore.stop(query)
+    heartRateQuery = nil
+  }
+
+  private func processHeartRateSamples(_ samples: [HKSample]?) {
+    // Wenn ein BLE-Gerät verbunden ist, ignorieren wir HealthKit-Samples –
+    // BLE liefert eine niedrigere Latenz und höhere Genauigkeit.
+    guard !BLEHeartRateManager.shared.isConnected else { return }
+    guard let sample = (samples as? [HKQuantitySample])?.last else { return }
+    let unit = HKUnit.count().unitDivided(by: .minute())
+    let bpm = Int(sample.quantity.doubleValue(for: unit).rounded())
+    DispatchQueue.main.async { [weak self] in
+      self?.liveHeartRate = bpm
+    }
+  }
+
+  /// Wird vom BLEHeartRateManager aufgerufen, um einen direkt gemessenen Wert zu setzen.
+  /// BLE-Werte haben immer Vorrang vor HealthKit-Samples.
+  func setExternalHeartRate(_ bpm: Int) {
+    DispatchQueue.main.async { [weak self] in
+      self?.liveHeartRate = bpm
+    }
+  }
+
+  // MARK: - Helpers
 
   private var startOfDay: Date {
     Calendar.current.startOfDay(for: Date())

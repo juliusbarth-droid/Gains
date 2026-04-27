@@ -1,0 +1,601 @@
+import SwiftUI
+
+// MARK: - OnboardingView
+//
+// Vier-Schritt-Onboarding für die TestFlight-Beta.
+// Wird von `GainsApp` als FullScreenCover gezeigt, wenn
+// `gains_hasCompletedOnboarding` noch false ist.
+//
+// Schritte:
+//   1. Welcome   — Wertversprechen, was die App macht
+//   2. Profil    — Name, Geschlecht, Alter, Größe, Gewicht, Aktivität → NutritionProfile
+//   3. Berechtigungen — erklärt Health/Location/Bluetooth/Push, ohne System-Prompts
+//   4. Training  — Ziel + Sessions/Woche → WorkoutPlannerSettings
+//
+// Permissions werden hier nur erklärt; die echten System-Prompts triggern
+// erst, wenn der Nutzer das Feature konkret aufruft (Lauf-Tracking,
+// HF-Sensor-Suche, etc.).
+
+enum OnboardingStep: Int, CaseIterable, Identifiable {
+  case welcome
+  case profile
+  case permissions
+  case training
+
+  var id: Int { rawValue }
+  var index: Int { rawValue }
+  var total: Int { OnboardingStep.allCases.count }
+}
+
+struct OnboardingView: View {
+  @EnvironmentObject private var store: GainsStore
+  @AppStorage("gains_hasCompletedOnboarding") private var hasCompletedOnboarding = false
+  @State private var currentStep: OnboardingStep = .welcome
+
+  // Profil-Felder
+  @State private var name: String = ""
+  @State private var sex: BiologicalSex = .male
+  @State private var age: Int = 28
+  @State private var heightCm: Int = 178
+  @State private var weightKg: Int = 76
+  @State private var activityLevel: ActivityLevel = .moderate
+
+  // Trainings-Felder
+  @State private var goal: WorkoutPlanningGoal = .muscleGain
+  @State private var nutritionGoal: NutritionGoal = .muscleGain
+  @State private var sessionsPerWeek: Int = 4
+
+  var body: some View {
+    ZStack {
+      GainsAppBackground()
+
+      VStack(spacing: 0) {
+        progressBar
+          .padding(.horizontal, 24)
+          .padding(.top, 12)
+
+        ScrollView(showsIndicators: false) {
+          stepContent
+            .padding(.horizontal, 24)
+            .padding(.top, 28)
+            .padding(.bottom, 24)
+        }
+
+        bottomBar
+          .padding(.horizontal, 24)
+          .padding(.bottom, 16)
+      }
+    }
+    .interactiveDismissDisabled()
+  }
+
+  // MARK: - Progress Bar
+
+  private var progressBar: some View {
+    HStack(spacing: 6) {
+      ForEach(OnboardingStep.allCases) { step in
+        Capsule()
+          .fill(step.index <= currentStep.index ? GainsColor.lime : GainsColor.border.opacity(0.4))
+          .frame(height: 4)
+      }
+    }
+  }
+
+  // MARK: - Step Content
+
+  @ViewBuilder
+  private var stepContent: some View {
+    switch currentStep {
+    case .welcome:     welcomeStep
+    case .profile:     profileStep
+    case .permissions: permissionsStep
+    case .training:    trainingStep
+    }
+  }
+
+  // MARK: - Step 1: Welcome
+
+  private var welcomeStep: some View {
+    VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: 12) {
+        Text("WILLKOMMEN")
+          .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
+
+        Text("Hi.\nSchön, dass du da bist.")
+          .font(GainsFont.display(40))
+          .foregroundStyle(GainsColor.ink)
+          .lineSpacing(-2)
+          .fixedSize(horizontal: false, vertical: true)
+
+        Text("Gains begleitet deine Trainings, Läufe, Ernährung und deinen Fortschritt — alles in einer App, ohne Quatsch.")
+          .font(GainsFont.body(16))
+          .foregroundStyle(GainsColor.softInk)
+          .lineSpacing(2)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
+      VStack(spacing: 12) {
+        featureRow(icon: "dumbbell.fill", title: "Krafttraining tracken",
+                   description: "Eigene Pläne, vorgefertigte Templates, über 90 Übungen mit Anleitung.")
+        featureRow(icon: "figure.run", title: "Läufe per GPS",
+                   description: "Distanz, Pace, Splits, Höhenmeter — verbunden mit deinem HF-Gurt.")
+        featureRow(icon: "fork.knife", title: "Ernährung loggen",
+                   description: "Kalorien und Makros via Barcode, Suche oder Foto-Erkennung.")
+        featureRow(icon: "heart.text.square.fill", title: "Fortschritt sehen",
+                   description: "Volumen, Pace, Gewicht, Recovery — verständlich aufbereitet.")
+      }
+    }
+  }
+
+  private func featureRow(icon: String, title: String, description: String) -> some View {
+    HStack(alignment: .top, spacing: 14) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+        .frame(width: 38, height: 38)
+        .background(Circle().fill(GainsColor.lime.opacity(0.12)))
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(title)
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+        Text(description)
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.softInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(14)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  // MARK: - Step 2: Profile
+
+  private var profileStep: some View {
+    VStack(alignment: .leading, spacing: 24) {
+      stepHeader(
+        eyebrow: "PROFIL",
+        title: "Erzähl uns von dir.",
+        subtitle: "Wir berechnen daraus deinen Grundumsatz, Kalorien- und Proteinziele. Bleibt alles auf deinem Gerät."
+      )
+
+      // Name
+      VStack(alignment: .leading, spacing: 8) {
+        Text("DEIN NAME")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        TextField("Wie sollen wir dich nennen?", text: $name)
+          .font(GainsFont.body(17))
+          .foregroundStyle(GainsColor.ink)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 14)
+          .background(GainsColor.card)
+          .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+              .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
+          )
+          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+          .submitLabel(.next)
+      }
+
+      // Sex
+      VStack(alignment: .leading, spacing: 8) {
+        Text("GESCHLECHT")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        HStack(spacing: 10) {
+          ForEach(BiologicalSex.allCases, id: \.self) { option in
+            sexChip(option)
+          }
+        }
+      }
+
+      // Age / Height / Weight
+      VStack(alignment: .leading, spacing: 12) {
+        Text("KÖRPERDATEN")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+
+        HStack(spacing: 10) {
+          numberStepper(title: "ALTER", unit: "Jahre", value: $age, range: 14...90, step: 1)
+          numberStepper(title: "GRÖSSE", unit: "cm", value: $heightCm, range: 130...220, step: 1)
+          numberStepper(title: "GEWICHT", unit: "kg", value: $weightKg, range: 35...200, step: 1)
+        }
+      }
+
+      // Activity Level
+      VStack(alignment: .leading, spacing: 8) {
+        Text("AKTIVITÄT")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        VStack(spacing: 8) {
+          ForEach(ActivityLevel.allCases, id: \.self) { level in
+            activityRow(level)
+          }
+        }
+      }
+    }
+  }
+
+  private func sexChip(_ option: BiologicalSex) -> some View {
+    let isSelected = sex == option
+    return Button {
+      sex = option
+    } label: {
+      HStack(spacing: 8) {
+        Text(option.emoji)
+          .font(.system(size: 16))
+        Text(option.title)
+          .font(GainsFont.label(13))
+          .tracking(0.4)
+      }
+      .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.ink)
+      .frame(maxWidth: .infinity)
+      .frame(height: 48)
+      .background(isSelected ? GainsColor.lime : GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+          .stroke(isSelected ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func numberStepper(title: String, unit: String, value: Binding<Int>, range: ClosedRange<Int>, step: Int) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title)
+        .font(GainsFont.label(9))
+        .tracking(1.3)
+        .foregroundStyle(GainsColor.softInk)
+      HStack(alignment: .firstTextBaseline, spacing: 4) {
+        Text("\(value.wrappedValue)")
+          .font(GainsFont.title(22))
+          .foregroundStyle(GainsColor.ink)
+        Text(unit)
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.softInk)
+      }
+      Stepper("", value: value, in: range, step: step)
+        .labelsHidden()
+        .tint(GainsColor.lime)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(12)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+  }
+
+  private func activityRow(_ level: ActivityLevel) -> some View {
+    let isSelected = activityLevel == level
+    return Button {
+      activityLevel = level
+    } label: {
+      HStack(spacing: 14) {
+        Image(systemName: level.systemImage)
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
+          .frame(width: 36, height: 36)
+          .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.12)))
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(level.title)
+            .font(GainsFont.title(15))
+            .foregroundStyle(GainsColor.ink)
+          Text(level.detail)
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+        }
+
+        Spacer()
+
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
+      }
+      .padding(.horizontal, 14)
+      .padding(.vertical, 12)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(
+            isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
+            lineWidth: 1
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Step 3: Permissions
+
+  private var permissionsStep: some View {
+    VStack(alignment: .leading, spacing: 22) {
+      stepHeader(
+        eyebrow: "BERECHTIGUNGEN",
+        title: "Was Gains braucht.",
+        subtitle: "Nichts wird im Hintergrund gesammelt. Du gibst jede Berechtigung erst frei, wenn du das jeweilige Feature nutzen willst."
+      )
+
+      VStack(spacing: 10) {
+        permissionCard(
+          icon: "heart.fill",
+          title: "Apple Health",
+          reason: "Liest Schritte, Schlaf, Ruhepuls und Aktivität, damit deine Statistiken nicht doppelt erfasst werden müssen."
+        )
+        permissionCard(
+          icon: "location.fill",
+          title: "Standort",
+          reason: "Brauchen wir nur während eines Laufs — für GPS-Route, Distanz und Höhenmeter."
+        )
+        permissionCard(
+          icon: "antenna.radiowaves.left.and.right",
+          title: "Bluetooth",
+          reason: "Verbindet HF-Sensoren wie Polar oder Wahoo, um deine Live-Herzfrequenz beim Training zu zeigen."
+        )
+        permissionCard(
+          icon: "bell.fill",
+          title: "Mitteilungen",
+          reason: "Dezent — nur Workout-Reminder, wenn du sie aktivierst. Keine Marketing-Pings."
+        )
+      }
+    }
+  }
+
+  private func permissionCard(icon: String, title: String, reason: String) -> some View {
+    HStack(alignment: .top, spacing: 14) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+        .frame(width: 40, height: 40)
+        .background(Circle().fill(GainsColor.lime.opacity(0.14)))
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(title)
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+        Text(reason)
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.softInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(14)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  // MARK: - Step 4: Training
+
+  private var trainingStep: some View {
+    VStack(alignment: .leading, spacing: 22) {
+      stepHeader(
+        eyebrow: "TRAINING",
+        title: "Was willst du erreichen?",
+        subtitle: "Wir passen Volumen, Frequenz und Empfehlungen an dein Ziel an. Du kannst es jederzeit ändern."
+      )
+
+      VStack(alignment: .leading, spacing: 10) {
+        Text("HAUPTZIEL")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        VStack(spacing: 8) {
+          goalRow(.muscleGain, nutrition: .muscleGain,
+                  description: "Kalorienüberschuss, Volumen-Fokus, schwere Compound-Lifts.")
+          goalRow(.fatLoss, nutrition: .fatLoss,
+                  description: "Defizit mit Protein-Fokus, Kraft erhalten, mehr Cardio-Anteil.")
+          goalRow(.performance, nutrition: .maintain,
+                  description: "Kraftrekorde, Pace und Wiederholungen — Gewicht halten.")
+        }
+      }
+
+      VStack(alignment: .leading, spacing: 10) {
+        Text("TRAININGS PRO WOCHE")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+          Text("\(sessionsPerWeek)")
+            .font(GainsFont.display(48))
+            .foregroundStyle(GainsColor.ink)
+          Text("× pro Woche")
+            .font(GainsFont.body(15))
+            .foregroundStyle(GainsColor.softInk)
+        }
+
+        HStack(spacing: 8) {
+          ForEach(2...6, id: \.self) { count in
+            Button {
+              sessionsPerWeek = count
+            } label: {
+              Text("\(count)")
+                .font(GainsFont.title(16))
+                .foregroundStyle(sessionsPerWeek == count ? GainsColor.onLime : GainsColor.ink)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(sessionsPerWeek == count ? GainsColor.lime : GainsColor.card)
+                .overlay(
+                  RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(sessionsPerWeek == count ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .buttonStyle(.plain)
+          }
+        }
+      }
+    }
+  }
+
+  private func goalRow(_ planning: WorkoutPlanningGoal, nutrition: NutritionGoal, description: String) -> some View {
+    let isSelected = goal == planning
+    return Button {
+      goal = planning
+      nutritionGoal = nutrition
+    } label: {
+      HStack(alignment: .top, spacing: 14) {
+        Image(systemName: nutrition.systemImage)
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
+          .frame(width: 40, height: 40)
+          .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14)))
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text(planning.title)
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+          Text(description)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
+      }
+      .padding(14)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(
+            isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
+            lineWidth: 1
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Header Helper
+
+  private func stepHeader(eyebrow: String, title: String, subtitle: String) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Text(eyebrow)
+        .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
+      Text(title)
+        .font(GainsFont.display(32))
+        .foregroundStyle(GainsColor.ink)
+        .lineSpacing(-2)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(subtitle)
+        .font(GainsFont.body(15))
+        .foregroundStyle(GainsColor.softInk)
+        .lineSpacing(2)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  // MARK: - Bottom Bar
+
+  private var bottomBar: some View {
+    HStack(spacing: 12) {
+      if currentStep != .welcome {
+        Button {
+          withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+            if let prev = OnboardingStep(rawValue: currentStep.rawValue - 1) {
+              currentStep = prev
+            }
+          }
+        } label: {
+          Image(systemName: "chevron.left")
+            .font(.system(size: 14, weight: .bold))
+            .foregroundStyle(GainsColor.ink)
+            .frame(width: 56, height: 56)
+            .background(GainsColor.card)
+            .overlay(
+              RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .buttonStyle(.plain)
+      }
+
+      Button {
+        advance()
+      } label: {
+        HStack(spacing: 8) {
+          Text(currentStep == .training ? "Los geht's" : "Weiter")
+            .font(GainsFont.label(13))
+            .tracking(1.4)
+          Image(systemName: "arrow.right")
+            .font(.system(size: 13, weight: .heavy))
+        }
+        .foregroundStyle(canAdvance ? GainsColor.onLime : GainsColor.ink.opacity(0.5))
+        .frame(maxWidth: .infinity)
+        .frame(height: 56)
+        .background(canAdvance ? GainsColor.lime : GainsColor.card)
+        .overlay(
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(canAdvance ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      }
+      .buttonStyle(.plain)
+      .disabled(!canAdvance)
+    }
+  }
+
+  private var canAdvance: Bool {
+    switch currentStep {
+    case .welcome:     return true
+    case .profile:     return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    case .permissions: return true
+    case .training:    return true
+    }
+  }
+
+  private func advance() {
+    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+      if currentStep == .training {
+        finish()
+      } else if let next = OnboardingStep(rawValue: currentStep.rawValue + 1) {
+        currentStep = next
+      }
+    }
+  }
+
+  private func finish() {
+    // Profil speichern
+    let profile = NutritionProfile(
+      sex: sex,
+      age: age,
+      heightCm: heightCm,
+      weightKg: weightKg,
+      bodyFatPercent: nil,
+      activityLevel: activityLevel,
+      goal: nutritionGoal,
+      surplusKcal: nutritionGoal == .muscleGain ? 250 : (nutritionGoal == .fatLoss ? -400 : 0)
+    )
+    store.setNutritionProfile(profile)
+
+    // Name speichern
+    let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    if !trimmedName.isEmpty {
+      store.userName = trimmedName
+    }
+
+    // Trainings-Settings übernehmen
+    var settings = store.plannerSettings
+    settings.goal = goal
+    settings.sessionsPerWeek = sessionsPerWeek
+    store.plannerSettings = settings
+
+    store.saveAll()
+    hasCompletedOnboarding = true
+  }
+}

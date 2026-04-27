@@ -26,6 +26,19 @@
 		CC0000000000000000000001 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000002 /* HealthKitManager.swift */; };
 		DD0000000000000000000001 /* AppNavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000000000000000000002 /* AppNavigationStore.swift */; };
 		EE0000000000000000000001 /* CaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0000000000000000000002 /* CaptureSheet.swift */; };
+		FF0000000000000000000001 /* NutritionTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000002 /* NutritionTrackerView.swift */; };
+		GG0000000000000000000001 /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GG0000000000000000000002 /* BarcodeScannerView.swift */; };
+		HH0000000000000000000001 /* FoodPhotoRecognitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */; };
+		II0000000000000000000001 /* RunDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = II0000000000000000000002 /* RunDetailSheet.swift */; };
+		JJ0000000000000000000001 /* GymView.swift in Sources */ = {isa = PBXBuildFile; fileRef = JJ0000000000000000000002 /* GymView.swift */; };
+		KK0000000000000000000001 /* BLEHeartRateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KK0000000000000000000002 /* BLEHeartRateManager.swift */; };
+		LL0000000000000000000001 /* WearablePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LL0000000000000000000002 /* WearablePickerSheet.swift */; };
+		MM0000000000000000000001 /* GainsPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = MM0000000000000000000002 /* GainsPersistence.swift */; };
+		NN0000000000000000000001 /* ExerciseCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = NN0000000000000000000002 /* ExerciseCatalog.swift */; };
+		OO0000000000000000000001 /* WorkoutTrackerEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OO0000000000000000000002 /* WorkoutTrackerEntryView.swift */; };
+		PP0000000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PP0000000000000000000002 /* OnboardingView.swift */; };
+		QQ0000000000000000000001 /* MetricKitObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = QQ0000000000000000000002 /* MetricKitObserver.swift */; };
+		RR0000000000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = RR0000000000000000000002 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +63,19 @@
 		CC0000000000000000000003 /* Gains.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gains.entitlements; sourceTree = "<group>"; };
 		DD0000000000000000000002 /* AppNavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationStore.swift; sourceTree = "<group>"; };
 		EE0000000000000000000002 /* CaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSheet.swift; sourceTree = "<group>"; };
+		FF0000000000000000000002 /* NutritionTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionTrackerView.swift; sourceTree = "<group>"; };
+		GG0000000000000000000002 /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
+		HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodPhotoRecognitionView.swift; sourceTree = "<group>"; };
+		II0000000000000000000002 /* RunDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailSheet.swift; sourceTree = "<group>"; };
+		JJ0000000000000000000002 /* GymView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymView.swift; sourceTree = "<group>"; };
+		KK0000000000000000000002 /* BLEHeartRateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEHeartRateManager.swift; sourceTree = "<group>"; };
+		LL0000000000000000000002 /* WearablePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablePickerSheet.swift; sourceTree = "<group>"; };
+		MM0000000000000000000002 /* GainsPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsPersistence.swift; sourceTree = "<group>"; };
+		NN0000000000000000000002 /* ExerciseCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCatalog.swift; sourceTree = "<group>"; };
+		OO0000000000000000000002 /* WorkoutTrackerEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTrackerEntryView.swift; sourceTree = "<group>"; };
+		PP0000000000000000000002 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		QQ0000000000000000000002 /* MetricKitObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricKitObserver.swift; sourceTree = "<group>"; };
+		RR0000000000000000000002 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,8 +116,21 @@
 				AA000000000000000000001C /* GainsStore.swift */,
 				AA000000000000000000001D /* WorkoutTrackerView.swift */,
 				AA000000000000000000001E /* RecipesView.swift */,
+				FF0000000000000000000002 /* NutritionTrackerView.swift */,
+				GG0000000000000000000002 /* BarcodeScannerView.swift */,
+				HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */,
+				II0000000000000000000002 /* RunDetailSheet.swift */,
 				AA000000000000000000001F /* WorkoutHubView.swift */,
+				JJ0000000000000000000002 /* GymView.swift */,
 				BB0000000000000000000002 /* ProfileView.swift */,
+				KK0000000000000000000002 /* BLEHeartRateManager.swift */,
+				LL0000000000000000000002 /* WearablePickerSheet.swift */,
+				MM0000000000000000000002 /* GainsPersistence.swift */,
+				NN0000000000000000000002 /* ExerciseCatalog.swift */,
+				OO0000000000000000000002 /* WorkoutTrackerEntryView.swift */,
+				PP0000000000000000000002 /* OnboardingView.swift */,
+				QQ0000000000000000000002 /* MetricKitObserver.swift */,
+				RR0000000000000000000002 /* PrivacyInfo.xcprivacy */,
 				CC0000000000000000000002 /* HealthKitManager.swift */,
 				CC0000000000000000000003 /* Gains.entitlements */,
 			);
@@ -165,6 +204,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000006 /* Assets.xcassets in Resources */,
+				RR0000000000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +233,18 @@
 				CC0000000000000000000001 /* HealthKitManager.swift in Sources */,
 				DD0000000000000000000001 /* AppNavigationStore.swift in Sources */,
 				EE0000000000000000000001 /* CaptureSheet.swift in Sources */,
+				FF0000000000000000000001 /* NutritionTrackerView.swift in Sources */,
+				GG0000000000000000000001 /* BarcodeScannerView.swift in Sources */,
+				HH0000000000000000000001 /* FoodPhotoRecognitionView.swift in Sources */,
+				II0000000000000000000001 /* RunDetailSheet.swift in Sources */,
+				JJ0000000000000000000001 /* GymView.swift in Sources */,
+				KK0000000000000000000001 /* BLEHeartRateManager.swift in Sources */,
+				LL0000000000000000000001 /* WearablePickerSheet.swift in Sources */,
+				MM0000000000000000000001 /* GainsPersistence.swift in Sources */,
+				NN0000000000000000000001 /* ExerciseCatalog.swift in Sources */,
+				OO0000000000000000000001 /* WorkoutTrackerEntryView.swift in Sources */,
+				PP0000000000000000000001 /* OnboardingView.swift in Sources */,
+				QQ0000000000000000000001 /* MetricKitObserver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,7 +259,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = Gains/Gains.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = DUZJZ3867T;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -215,6 +267,9 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Gains liest Apple-Health-Daten wie Schritte, Schlaf, Ruhepuls, VO2max und Aktivität, damit deine Fitness- und Progress-Statistiken live aktualisiert werden.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Gains kann Health-Daten nutzen, um deine Trainings- und Fortschrittsansicht mit Apple Health zu synchronisieren.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gains verwendet deinen Standort, um Läufe per GPS zu tracken und deine Route, Distanz und Höhenmeter anzuzeigen.";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Gains verbindet sich per Bluetooth mit Herzfrequenz-Sensoren (Polar, Garmin, Wahoo u.a.), um deine Live-HF während des Trainings anzuzeigen.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Gains verwendet die Kamera, um Barcodes zu scannen und Mahlzeiten per KI-Fotoerkennung zu erfassen.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Gains greift auf deine Fotobibliothek zu, um Mahlzeiten per KI-Fotoerkennung zu analysieren.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -243,7 +298,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CODE_SIGN_ENTITLEMENTS = Gains/Gains.entitlements;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = DUZJZ3867T;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -251,6 +306,9 @@
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Gains liest Apple-Health-Daten wie Schritte, Schlaf, Ruhepuls, VO2max und Aktivität, damit deine Fitness- und Progress-Statistiken live aktualisiert werden.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Gains kann Health-Daten nutzen, um deine Trainings- und Fortschrittsansicht mit Apple Health zu synchronisieren.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gains verwendet deinen Standort, um Läufe per GPS zu tracken und deine Route, Distanz und Höhenmeter anzuzeigen.";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Gains verbindet sich per Bluetooth mit Herzfrequenz-Sensoren (Polar, Garmin, Wahoo u.a.), um deine Live-HF während des Trainings anzuzeigen.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Gains verwendet die Kamera, um Barcodes zu scannen und Mahlzeiten per KI-Fotoerkennung zu erfassen.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Gains greift auf deine Fotobibliothek zu, um Mahlzeiten per KI-Fotoerkennung zu analysieren.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -33,7 +33,7 @@ struct CaptureSheet: View {
   @State private var mealPhotoItem: PhotosPickerItem?
   @State private var hasSelectedMealPhoto = false
   @State private var mealTitle = ""
-  @State private var mealType: RecipeMealType = .lunchDinner
+  @State private var mealType: RecipeMealType = .lunch
   @State private var calories = ""
   @State private var protein = ""
   @State private var carbs = ""
@@ -127,7 +127,7 @@ struct CaptureSheet: View {
         .lineLimit(3)
     }
     .padding(20)
-    .background(GainsColor.ink)
+    .background(GainsColor.ctaSurface)
     .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
   }
 
@@ -367,7 +367,7 @@ struct CaptureSheet: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(selectedRecipe?.id == recipe.id ? GainsColor.onLime : GainsColor.lime)
                 .frame(width: 36, height: 36)
-                .background(selectedRecipe?.id == recipe.id ? GainsColor.lime : GainsColor.ink)
+                .background(selectedRecipe?.id == recipe.id ? GainsColor.lime : GainsColor.ctaSurface)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
               VStack(alignment: .leading, spacing: 4) {

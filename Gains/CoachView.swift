@@ -38,11 +38,11 @@ struct CoachView: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .padding(20)
-    .background(GainsColor.ink)
+    .background(GainsColor.ctaSurface)
     .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
     .overlay(alignment: .topLeading) {
       RoundedRectangle(cornerRadius: 26, style: .continuous)
-        .stroke(GainsColor.lime.opacity(0.18), lineWidth: 1)
+        .stroke(GainsColor.lime.opacity(0.22), lineWidth: 1)
     }
     .foregroundStyle(GainsColor.card)
   }

@@ -98,6 +98,6 @@ private struct ScreenHeaderView: View {
 }
 
 @ViewBuilder
-func screenHeader(eyebrow: String, title: String, subtitle: String) -> some View {
+func screenHeader(eyebrow: String, title: String, subtitle: String = "") -> some View {
   ScreenHeaderView(eyebrow: eyebrow, title: title, subtitle: subtitle)
 }

@@ -40,8 +40,10 @@ final class GainsStore: ObservableObject {
   @Published var activeWorkout: WorkoutSession?
   @Published var activeRun: ActiveRunSession?
   @Published var lastCompletedWorkout: CompletedWorkoutSummary?
-  @Published var workoutHistory: [CompletedWorkoutSummary] = CompletedWorkoutSummary.mockHistory
-  @Published var runHistory: [CompletedRunSummary] = CompletedRunSummary.mockHistory
+  // A1: Frische Installation startet leer — Mock-Historien sind nur noch im
+  // DEBUG-Demo-Modus erreichbar (siehe `loadDemoData()` unten).
+  @Published var workoutHistory: [CompletedWorkoutSummary] = []
+  @Published var runHistory: [CompletedRunSummary] = []
   @Published var savedWorkoutPlans: [WorkoutPlan] = WorkoutPlan.starterTemplates
   @Published var plannerSettings: WorkoutPlannerSettings = .default
   @Published var completedCoachCheckInIDs: Set<UUID> = []
@@ -54,23 +56,30 @@ final class GainsStore: ObservableObject {
   @Published var healthConnectionStatus: HealthConnectionStatus = .disconnected
   @Published var whoopConnectionStatus: WhoopConnectionStatus = .disconnected
   @Published var healthSnapshot: HealthSnapshot?
-  @Published var communityPosts: [CommunityPost] = CommunityViewModel.mock.posts
+  // Community-Daten bleiben in Phase A leer (Tab wird in A1b durch Coming-Soon
+  // ersetzt). Mock-Posts sind nur über `loadDemoData()` aktivierbar.
+  @Published var communityPosts: [CommunityPost] = []
   @Published var communityContacts: [CommunityContact] = []
   @Published var contactsAccessStatus: CNAuthorizationStatus = CNContactStore.authorizationStatus(
     for: .contacts)
+  @Published var socialSharingSettings: SocialSharingSettings = .default
+  @Published var forumThreads: [ForumThread] = []
+  @Published var meetups: [Meetup] = []
+  @Published var joinedMeetupIDs: Set<UUID> = []
   @Published var notificationsEnabled = true
   @Published var healthAutoSyncEnabled = true
   @Published var studyBasedCoachingEnabled = true
   @Published var appearanceMode: GainsAppearanceMode = .dark
   @Published var nutritionGoal: NutritionGoal = .maintain
+  @Published var nutritionProfile: NutritionProfile?
   @Published var nutritionEntries: [NutritionEntry] = []
-  @Published var weightTrend: [WeightTrendPoint] = ProgressViewModel.mock.weeklyTrend
-  @Published var waistMeasurement = 91.0
-  @Published var bodyFatChange = HomeViewModel.mock.bodyFatChange
-  @Published var proteinProgress = 178.0
-  @Published var userName: String = HomeViewModel.mock.userName
+  @Published var weightTrend: [WeightTrendPoint] = []
+  @Published var waistMeasurement: Double = 0
+  @Published var bodyFatChange: Double = 0
+  @Published var proteinProgress: Double = 0
+  @Published var userName: String = ""
   @Published var streakDays = 0
-  @Published var recordDays = HomeViewModel.mock.recordDays
+  @Published var recordDays = 0
   @Published var vitalSyncCount = 0
   @Published var lastProgressEvent =
     "Dein Progress reagiert hier auf Check-ins, Tracker-Syncs und abgeschlossene Workouts."
@@ -86,36 +95,243 @@ final class GainsStore: ObservableObject {
 
   private let contactStore = CNContactStore()
   private let healthKitManager = HealthKitManager.shared
-  private let startWeight = ProgressViewModel.mock.startWeight
-  private let startWaist = 96.4
-  private let baseChallengeParticipants = CommunityViewModel.mock.challengeParticipants
-  private let baseMilestones = ProgressViewModel.mock.milestones
+  // A1: Start-Werte fallen weg — sobald der Nutzer ein Profil/Gewicht
+  // eingibt, übernimmt currentWeight die Rolle. Solange das nicht passiert,
+  // sind alle progress-bezogenen Berechnungen 0.
+  private var startWeight: Double { currentWeight }
+  private let startWaist: Double = 0
+  private let baseChallengeParticipants = 0
+  private let baseMilestones: [ProgressMilestone] = []
 
   init() {
     let today = Calendar.current.startOfDay(for: Date())
-    let seededDates = Self.seedCompletedDates(relativeTo: today)
     _selectedCalendarDate = Published(initialValue: today)
-    _completedCalendarDates = Published(initialValue: seededDates)
-    nutritionEntries = Self.seedNutritionEntries(for: today)
+    // A1: Keine vor-ausgefüllten "abgeschlossen"-Tage mehr — Streak startet bei 0
+    // und baut sich aus echten Workouts auf.
+    _completedCalendarDates = Published(initialValue: [])
+    // A5: Schema-Migration laufen lassen, bevor wir lesen.
+    PersistenceMigrator.runIfNeeded()
+    loadPersistedData(today: today)
     lastCompletedWorkout = workoutHistory.first
     recalculateStreak()
   }
+
+  // MARK: - Persistenz
+
+  private func loadPersistedData(today: Date) {
+    let ud = UserDefaults.standard
+
+    if let name = ud.string(forKey: PersistenceKey.userName) {
+      userName = name
+    }
+    // A5: Historien lenient laden — einzelne korrupte Einträge dürfen nicht
+    // die ganze Liste verwerfen.
+    if let history = ud.decodedLoadLenient(CompletedWorkoutSummary.self, forKey: PersistenceKey.workoutHistory) {
+      workoutHistory = history
+    }
+    if let runs = ud.decodedLoadLenient(CompletedRunSummary.self, forKey: PersistenceKey.runHistory) {
+      runHistory = runs
+    }
+    if let plans = ud.decodedLoad([WorkoutPlan].self, forKey: PersistenceKey.savedWorkoutPlans) {
+      savedWorkoutPlans = plans
+    }
+    if let settings = ud.decodedLoad(WorkoutPlannerSettings.self, forKey: PersistenceKey.plannerSettings) {
+      plannerSettings = settings
+    }
+    if let trend = ud.decodedLoad([WeightTrendPoint].self, forKey: PersistenceKey.weightTrend) {
+      weightTrend = trend
+    }
+    if let entries = ud.decodedLoadLenient(NutritionEntry.self, forKey: PersistenceKey.nutritionEntries) {
+      // Persistierte Einträge laden — nichts mehr nachseeden.
+      nutritionEntries = entries
+    } else {
+      // A1: Frische Installation startet ohne Beispiel-Mahlzeiten.
+      nutritionEntries = []
+    }
+    if let goal = ud.decodedLoad(NutritionGoal.self, forKey: PersistenceKey.nutritionGoal) {
+      nutritionGoal = goal
+    }
+    if let profile = ud.decodedLoad(NutritionProfile.self, forKey: PersistenceKey.nutritionProfile) {
+      nutritionProfile = profile
+    }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.connectedTrackerIDs) {
+      connectedTrackerIDs = Set(ids)
+    }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.favoriteRecipeIDs) {
+      favoriteRecipeIDs = Set(ids)
+    }
+    if let dates = ud.decodedLoad([Date].self, forKey: PersistenceKey.completedDates) {
+      _completedCalendarDates = Published(initialValue: Set(dates))
+    }
+    if ud.object(forKey: PersistenceKey.waistMeasurement) != nil {
+      waistMeasurement = ud.double(forKey: PersistenceKey.waistMeasurement)
+    }
+    if ud.object(forKey: PersistenceKey.bodyFatChange) != nil {
+      bodyFatChange = ud.double(forKey: PersistenceKey.bodyFatChange)
+    }
+    if ud.object(forKey: PersistenceKey.proteinProgress) != nil {
+      proteinProgress = ud.double(forKey: PersistenceKey.proteinProgress)
+    }
+    if ud.object(forKey: PersistenceKey.streakDays) != nil {
+      streakDays = ud.integer(forKey: PersistenceKey.streakDays)
+    }
+    if ud.object(forKey: PersistenceKey.recordDays) != nil {
+      recordDays = ud.integer(forKey: PersistenceKey.recordDays)
+    }
+    if ud.object(forKey: PersistenceKey.vitalSyncCount) != nil {
+      vitalSyncCount = ud.integer(forKey: PersistenceKey.vitalSyncCount)
+    }
+    if ud.object(forKey: PersistenceKey.notificationsEnabled) != nil {
+      notificationsEnabled = ud.bool(forKey: PersistenceKey.notificationsEnabled)
+    }
+    if ud.object(forKey: PersistenceKey.healthAutoSync) != nil {
+      healthAutoSyncEnabled = ud.bool(forKey: PersistenceKey.healthAutoSync)
+    }
+    if ud.object(forKey: PersistenceKey.studyCoaching) != nil {
+      studyBasedCoachingEnabled = ud.bool(forKey: PersistenceKey.studyCoaching)
+    }
+    if ud.object(forKey: PersistenceKey.joinedChallenge) != nil {
+      joinedChallenge = ud.bool(forKey: PersistenceKey.joinedChallenge)
+    }
+    if let settings = ud.decodedLoad(SocialSharingSettings.self, forKey: PersistenceKey.socialSharingSettings) {
+      socialSharingSettings = settings
+    }
+    if let threads = ud.decodedLoad([ForumThread].self, forKey: PersistenceKey.forumThreads) {
+      forumThreads = threads
+    }
+    if let savedMeetups = ud.decodedLoad([Meetup].self, forKey: PersistenceKey.meetups) {
+      meetups = savedMeetups
+    }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.joinedMeetupIDs) {
+      joinedMeetupIDs = Set(ids)
+    }
+    if let rawMode = ud.string(forKey: PersistenceKey.appearanceMode),
+       let mode = GainsAppearanceMode(rawValue: rawMode) {
+      appearanceMode = mode
+    }
+  }
+
+  func saveAll() {
+    let ud = UserDefaults.standard
+    ud.set(userName, forKey: PersistenceKey.userName)
+    ud.encodedSave(workoutHistory,    forKey: PersistenceKey.workoutHistory)
+    ud.encodedSave(runHistory,        forKey: PersistenceKey.runHistory)
+    ud.encodedSave(savedWorkoutPlans, forKey: PersistenceKey.savedWorkoutPlans)
+    ud.encodedSave(plannerSettings,   forKey: PersistenceKey.plannerSettings)
+    ud.encodedSave(weightTrend,       forKey: PersistenceKey.weightTrend)
+    ud.encodedSave(Array(connectedTrackerIDs), forKey: PersistenceKey.connectedTrackerIDs)
+    ud.encodedSave(Array(favoriteRecipeIDs),   forKey: PersistenceKey.favoriteRecipeIDs)
+    ud.encodedSave(Array(completedCalendarDates), forKey: PersistenceKey.completedDates)
+    ud.encodedSave(nutritionEntries,  forKey: PersistenceKey.nutritionEntries)
+    ud.encodedSave(nutritionGoal,     forKey: PersistenceKey.nutritionGoal)
+    if let profile = nutritionProfile { ud.encodedSave(profile, forKey: PersistenceKey.nutritionProfile) }
+    ud.set(waistMeasurement,          forKey: PersistenceKey.waistMeasurement)
+    ud.set(bodyFatChange,             forKey: PersistenceKey.bodyFatChange)
+    ud.set(proteinProgress,           forKey: PersistenceKey.proteinProgress)
+    ud.set(streakDays,                forKey: PersistenceKey.streakDays)
+    ud.set(recordDays,                forKey: PersistenceKey.recordDays)
+    ud.set(vitalSyncCount,            forKey: PersistenceKey.vitalSyncCount)
+    ud.set(notificationsEnabled,      forKey: PersistenceKey.notificationsEnabled)
+    ud.set(healthAutoSyncEnabled,     forKey: PersistenceKey.healthAutoSync)
+    ud.set(studyBasedCoachingEnabled, forKey: PersistenceKey.studyCoaching)
+    ud.set(joinedChallenge,           forKey: PersistenceKey.joinedChallenge)
+    ud.set(appearanceMode.rawValue,   forKey: PersistenceKey.appearanceMode)
+    ud.encodedSave(socialSharingSettings, forKey: PersistenceKey.socialSharingSettings)
+    ud.encodedSave(forumThreads,      forKey: PersistenceKey.forumThreads)
+    ud.encodedSave(meetups,           forKey: PersistenceKey.meetups)
+    ud.encodedSave(Array(joinedMeetupIDs), forKey: PersistenceKey.joinedMeetupIDs)
+  }
+
+  // MARK: - Demo-Daten (nur DEBUG)
+  //
+  // Für Screenshots, App-Store-Vorschauen und manuelles QA-Testing.
+  // Im Release-Build nicht aufrufbar — die Funktionen existieren dann nicht.
+
+  #if DEBUG
+  /// Befüllt den Store mit den ursprünglichen Mock-Inhalten (Workout-Historie,
+  /// Lauf-Historie, Community-Posts, Forum, Meetups, Beispiel-Mahlzeiten).
+  /// Aufgerufen aus dem Profil-Screen über einen DEBUG-Button.
+  func loadDemoData() {
+    let today = Calendar.current.startOfDay(for: Date())
+    workoutHistory   = CompletedWorkoutSummary.mockHistory
+    runHistory       = CompletedRunSummary.mockHistory
+    communityPosts   = CommunityViewModel.mock.posts
+    forumThreads     = ForumThread.mockThreads
+    meetups          = Meetup.mockMeetups
+    weightTrend      = ProgressViewModel.mock.weeklyTrend
+    bodyFatChange    = HomeViewModel.mock.bodyFatChange
+    recordDays       = HomeViewModel.mock.recordDays
+    proteinProgress  = 178
+    waistMeasurement = 91
+    if userName.isEmpty { userName = "Demo" }
+    if nutritionEntries.isEmpty {
+      nutritionEntries = Self.demoNutritionEntries(for: today)
+    }
+    completedCalendarDates = Self.demoCompletedDates(relativeTo: today)
+    lastCompletedWorkout = workoutHistory.first
+    recalculateStreak()
+    saveAll()
+  }
+
+  /// Setzt alles zurück — alle Persistenz-Keys werden gelöscht und die
+  /// Defaults aus den `@Published`-Eigenschaften treten wieder in Kraft
+  /// (sprich: leere Listen, Nullwerte). Erfordert App-Neustart, damit die
+  /// init() sauber durchläuft.
+  func clearAllData() {
+    let ud = UserDefaults.standard
+    let allKeys: [String] = [
+      PersistenceKey.userName, PersistenceKey.workoutHistory, PersistenceKey.runHistory,
+      PersistenceKey.savedWorkoutPlans, PersistenceKey.plannerSettings,
+      PersistenceKey.weightTrend, PersistenceKey.waistMeasurement,
+      PersistenceKey.bodyFatChange, PersistenceKey.proteinProgress,
+      PersistenceKey.streakDays, PersistenceKey.recordDays, PersistenceKey.vitalSyncCount,
+      PersistenceKey.completedDates, PersistenceKey.nutritionEntries,
+      PersistenceKey.nutritionGoal, PersistenceKey.nutritionProfile,
+      PersistenceKey.connectedTrackerIDs, PersistenceKey.favoriteRecipeIDs,
+      PersistenceKey.notificationsEnabled, PersistenceKey.healthAutoSync,
+      PersistenceKey.studyCoaching, PersistenceKey.appearanceMode,
+      PersistenceKey.joinedChallenge, PersistenceKey.socialSharingSettings,
+      PersistenceKey.forumThreads, PersistenceKey.meetups, PersistenceKey.joinedMeetupIDs,
+      // Auch das Onboarding-Flag und die Community-Waitlist zurücksetzen
+      "gains_hasCompletedOnboarding", "gains_communityWaitlist",
+      // Schema-Version, damit die Migration beim nächsten Start sauber neu läuft.
+      PersistenceKey.schemaVersion,
+    ]
+    for key in allKeys { ud.removeObject(forKey: key) }
+  }
+
+  private static func demoNutritionEntries(for today: Date) -> [NutritionEntry] {
+    let cal = Calendar.current
+    let breakfast = cal.date(bySettingHour: 8, minute: 10, second: 0, of: today) ?? today
+    let lunch     = cal.date(bySettingHour: 13, minute: 0, second: 0, of: today) ?? today
+    return [
+      NutritionEntry(id: UUID(), title: "Overnight Oats Gains", mealType: .breakfast,
+                     loggedAt: breakfast, calories: 458, protein: 39, carbs: 42, fat: 14),
+      NutritionEntry(id: UUID(), title: "High Protein Chicken Bowl", mealType: .lunch,
+                     loggedAt: lunch, calories: 612, protein: 54, carbs: 48, fat: 18),
+    ]
+  }
+
+  private static func demoCompletedDates(relativeTo today: Date) -> Set<Date> {
+    let cal = Calendar.current
+    let offsets = [0, -1, -2, -4, -5, -7, -8, -9, -11]
+    return Set(offsets.compactMap {
+      cal.date(byAdding: .day, value: $0, to: today).map { cal.startOfDay(for: $0) }
+    })
+  }
+  #endif
 
   var weeklyWorkoutSchedule: [WorkoutDayPlan] {
     let allWorkouts = savedWorkoutPlans.isEmpty ? WorkoutPlan.starterTemplates : savedWorkoutPlans
     var workoutRotationIndex = 0
     let scheduledWorkoutDays = Set(scheduledPlannerDays)
-    let generatedRecommendations = plannerRecommendations
-    let recommendationByDay = Dictionary(
-      uniqueKeysWithValues: generatedRecommendations.flatMap { recommendation in
-        recommendation.weekdays.map { ($0, recommendation) }
-      }
-    )
+    let kindByDay = plannedSessionKinds
 
     return Weekday.allCases.map { day in
       let isToday = day == .today
 
       if scheduledWorkoutDays.contains(day) {
+        // Manuelle Zuweisung dominiert weiterhin alles.
         if let assignedWorkout = assignedWorkoutPlan(for: day) {
           return WorkoutDayPlan(
             weekday: day,
@@ -124,28 +340,48 @@ final class GainsStore: ObservableObject {
             focus: assignedWorkout.focus,
             isToday: isToday,
             status: .planned,
-            workoutPlan: assignedWorkout
+            workoutPlan: assignedWorkout,
+            sessionKind: .strength,
+            runTemplate: nil
           )
         }
 
-        let generatedRecommendation = recommendationByDay[day]
-        let generatedWorkoutPlan: WorkoutPlan?
-        if plannerSettings.trainingFocus == .strength || plannerSettings.trainingFocus == .hybrid {
-          generatedWorkoutPlan = allWorkouts[workoutRotationIndex % allWorkouts.count]
-          workoutRotationIndex += 1
-        } else {
-          generatedWorkoutPlan = nil
+        let kind = kindByDay[day] ?? .strength
+
+        if kind.isRun {
+          let template = RunTemplate.template(for: kind)
+          let title = template?.title ?? kind.title
+          let focus =
+            template != nil
+            ? "\(Int(template!.targetDistanceKm)) km · \(template!.targetPaceLabel)"
+            : kind.title
+
+          return WorkoutDayPlan(
+            weekday: day,
+            dayLabel: day.shortLabel,
+            title: title,
+            focus: focus,
+            isToday: isToday,
+            status: .planned,
+            workoutPlan: nil,
+            sessionKind: kind,
+            runTemplate: template
+          )
         }
 
+        // Strength-Tag → bestehende Plan-Rotation.
+        let generatedWorkoutPlan = allWorkouts[workoutRotationIndex % allWorkouts.count]
+        workoutRotationIndex += 1
         return WorkoutDayPlan(
           weekday: day,
           dayLabel: day.shortLabel,
-          title: generatedRecommendation?.title ?? generatedWorkoutPlan?.title ?? "Training",
-          focus: generatedRecommendation?.detail ?? generatedWorkoutPlan?.focus
-            ?? plannerSettings.trainingFocus.title,
+          title: generatedWorkoutPlan.title,
+          focus: generatedWorkoutPlan.focus,
           isToday: isToday,
           status: .planned,
-          workoutPlan: generatedWorkoutPlan
+          workoutPlan: generatedWorkoutPlan,
+          sessionKind: .strength,
+          runTemplate: nil
         )
       }
 
@@ -157,7 +393,9 @@ final class GainsStore: ObservableObject {
           focus: "Recovery / Spaziergang",
           isToday: isToday,
           status: .rest,
-          workoutPlan: nil
+          workoutPlan: nil,
+          sessionKind: nil,
+          runTemplate: nil
         )
       }
 
@@ -168,7 +406,9 @@ final class GainsStore: ObservableObject {
         focus: "Optional Cardio / Mobility",
         isToday: isToday,
         status: .flexible,
-        workoutPlan: nil
+        workoutPlan: nil,
+        sessionKind: .mobility,
+        runTemplate: nil
       )
     }
   }
@@ -312,47 +552,151 @@ final class GainsStore: ObservableObject {
     return personalBests
   }
 
+  // MARK: - Strava-style running stats
+
+  struct DailyRunDistance: Identifiable {
+    let id = UUID()
+    let dayLabel: String
+    let km: Double
+    let isToday: Bool
+  }
+
+  struct PaceZoneEntry: Identifiable {
+    let id = UUID()
+    let label: String
+    let description: String
+    let fraction: Double
+  }
+
+  /// Consecutive days (ending today) with at least one run logged
+  var runStreak: Int {
+    let calendar = Calendar.current
+    var streak = 0
+    var daysBack = 0
+    while true {
+      let date = calendar.date(byAdding: .day, value: -daysBack, to: Date()) ?? Date()
+      let startOfDay = calendar.startOfDay(for: date)
+      let hasRun = runHistory.contains { calendar.isDate($0.finishedAt, inSameDayAs: startOfDay) }
+      if hasRun {
+        streak += 1
+        daysBack += 1
+      } else {
+        break
+      }
+    }
+    return streak
+  }
+
+  /// Daily run distance for the past 7 days (oldest → today)
+  var weeklyRunsByDay: [DailyRunDistance] {
+    let calendar = Calendar.current
+    let today = calendar.startOfDay(for: Date())
+    let symbols = calendar.shortWeekdaySymbols
+    return (0..<7).reversed().map { daysAgo -> DailyRunDistance in
+      let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) ?? today
+      let km = runHistory
+        .filter { calendar.isDate($0.finishedAt, inSameDayAs: date) }
+        .reduce(0.0) { $0 + $1.distanceKm }
+      let weekdayIndex = calendar.component(.weekday, from: date) - 1
+      let label = String(symbols[weekdayIndex].prefix(2))
+      return DailyRunDistance(dayLabel: label, km: km, isToday: daysAgo == 0)
+    }
+  }
+
+  var yearlyRunDistanceKm: Double {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return runHistory.filter { $0.finishedAt >= startOfYear }.reduce(0) { $0 + $1.distanceKm }
+  }
+
+  var yearlyRunCount: Int {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return runHistory.filter { $0.finishedAt >= startOfYear }.count
+  }
+
+  var yearlyElevationGain: Int {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return runHistory.filter { $0.finishedAt >= startOfYear }.reduce(0) { $0 + $1.elevationGain }
+  }
+
+  var yearlyRunDurationMinutes: Int {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return runHistory.filter { $0.finishedAt >= startOfYear }.reduce(0) { $0 + $1.durationMinutes }
+  }
+
+  /// Distribution of runs across pace zones
+  var paceZones: [PaceZoneEntry] {
+    let paces = runHistory.compactMap { $0.averagePaceSeconds > 0 ? $0.averagePaceSeconds : nil }
+    guard !paces.isEmpty else { return [] }
+    let total = Double(paces.count)
+    let entries: [(String, String, Double)] = [
+      ("Easy",    ">7:00 /km",   Double(paces.filter { $0 >= 420 }.count) / total),
+      ("Moderat", "5:30–7:00",   Double(paces.filter { $0 >= 330 && $0 < 420 }.count) / total),
+      ("Tempo",   "4:30–5:30",   Double(paces.filter { $0 >= 270 && $0 < 330 }.count) / total),
+      ("Hart",    "<4:30 /km",   Double(paces.filter { $0 < 270 }.count) / total),
+    ]
+    return entries.filter { $0.2 > 0 }.map { PaceZoneEntry(label: $0.0, description: $0.1, fraction: $0.2) }
+  }
+
+  /// Best finish times for standard distances (5K, 10K, Half, Marathon)
+  var distancePRs: [RunPersonalBest] {
+    let targets: [(title: String, minKm: Double, exactKm: Double)] = [
+      ("5K",           4.8,  5.0),
+      ("10K",          9.5, 10.0),
+      ("Halbmarathon", 20.5, 21.1),
+      ("Marathon",     41.0, 42.2),
+    ]
+    return targets.compactMap { target in
+      let eligible = runHistory.filter { $0.distanceKm >= target.minKm }
+      guard let best = eligible.min(by: { a, b in
+        let aTime = Double(a.durationMinutes) * (target.exactKm / a.distanceKm)
+        let bTime = Double(b.durationMinutes) * (target.exactKm / b.distanceKm)
+        return aTime < bTime
+      }) else { return nil }
+      let estimatedMinutes = Int(Double(best.durationMinutes) * (target.exactKm / best.distanceKm))
+      let h = estimatedMinutes / 60
+      let m = estimatedMinutes % 60
+      let timeString = h > 0 ? "\(h)h \(m)min" : "\(m) min"
+      return RunPersonalBest(title: target.title, value: timeString, context: best.routeName)
+    }
+  }
+
   var nutritionTargetCalories: Int {
+    if let profile = nutritionProfile { return profile.targetCalories }
     switch nutritionGoal {
-    case .muscleGain:
-      return 2850
-    case .fatLoss:
-      return 2150
-    case .maintain:
-      return 2450
+    case .muscleGain: return 2850
+    case .fatLoss:    return 2150
+    case .maintain:   return 2450
     }
   }
 
   var nutritionTargetProtein: Int {
+    if let profile = nutritionProfile { return profile.targetProteinG }
     switch nutritionGoal {
-    case .muscleGain:
-      return 200
-    case .fatLoss:
-      return 190
-    case .maintain:
-      return 175
+    case .muscleGain: return 200
+    case .fatLoss:    return 190
+    case .maintain:   return 175
     }
   }
 
   var nutritionTargetCarbs: Int {
+    if let profile = nutritionProfile { return profile.targetCarbsG }
     switch nutritionGoal {
-    case .muscleGain:
-      return 310
-    case .fatLoss:
-      return 190
-    case .maintain:
-      return 250
+    case .muscleGain: return 310
+    case .fatLoss:    return 190
+    case .maintain:   return 250
     }
   }
 
   var nutritionTargetFat: Int {
+    if let profile = nutritionProfile { return profile.targetFatG }
     switch nutritionGoal {
-    case .muscleGain:
-      return 85
-    case .fatLoss:
-      return 65
-    case .maintain:
-      return 75
+    case .muscleGain: return 85
+    case .fatLoss:    return 65
+    case .maintain:   return 75
     }
   }
 
@@ -434,6 +778,7 @@ final class GainsStore: ObservableObject {
     proteinProgress = min(260, rounded(proteinProgress + Double(recipe.protein)))
     lastProgressEvent =
       "Meal erfasst: \(recipe.title) mit \(recipe.calories) kcal und \(recipe.protein) g Protein."
+    saveAll()
   }
 
   func logNutritionEntry(
@@ -456,17 +801,35 @@ final class GainsStore: ObservableObject {
     proteinProgress = min(260, rounded(proteinProgress + Double(max(0, protein))))
     lastProgressEvent =
       "Eigene Mahlzeit erfasst: \(trimmedTitle) wurde zum Ernährungstracker hinzugefügt."
+    saveAll()
   }
 
   func setNutritionGoal(_ goal: NutritionGoal) {
     nutritionGoal = goal
+    nutritionProfile?.goal = goal
     lastProgressEvent =
       "Ernährungsziel aktualisiert: \(goal.title). Deine Tagesziele wurden angepasst."
+    saveAll()
+  }
+
+  func setNutritionProfile(_ profile: NutritionProfile) {
+    nutritionProfile = profile
+    nutritionGoal = profile.goal
+    lastProgressEvent =
+      "Ernährungsziele personalisiert: \(profile.targetCalories) kcal · \(profile.targetProteinG)g Protein berechnet."
+    saveAll()
+  }
+
+  func clearNutritionProfile() {
+    nutritionProfile = nil
+    lastProgressEvent = "Ernährungsprofil zurückgesetzt. Standardziele werden verwendet."
+    saveAll()
   }
 
   func removeNutritionEntry(_ id: UUID) {
     nutritionEntries.removeAll { $0.id == id }
     lastProgressEvent = "Ein Ernährungseintrag wurde entfernt."
+    saveAll()
   }
 
   var runningHeadline: String {
@@ -836,7 +1199,9 @@ final class GainsStore: ObservableObject {
   }
 
   var currentWeight: Double {
-    weightTrend.last?.value ?? ProgressViewModel.mock.currentWeight
+    if let last = weightTrend.last?.value { return last }
+    if let profileWeight = nutritionProfile?.weightKg { return Double(profileWeight) }
+    return 0
   }
 
   var startingWeight: Double {
@@ -957,8 +1322,7 @@ final class GainsStore: ObservableObject {
         context: trainingLoad >= 3 ? "Recovery gut" : "Recovery stabil"),
       VitalReading(
         title: "Schlaf", value: String(format: "%.1fh", sleepHours),
-        context: completedCoachCheckInIDs.contains(CoachViewModel.mock.checkIns.last?.id ?? UUID())
-          ? "letzte Nacht" : "geschätzt"),
+        context: !completedCoachCheckInIDs.isEmpty ? "letzte Nacht" : "geschätzt"),
       VitalReading(
         title: "VO2max", value: String(format: "%.1f", vo2max),
         context: connectedTrackerIDs.count > 1 ? "mehrere Quellen" : "Tracker-Wert"),
@@ -1220,11 +1584,15 @@ final class GainsStore: ObservableObject {
     }
 
     if !completedCoachCheckInIDs.isEmpty {
-      return
-        "Coach sagt: \(completedCoachCheckInIDs.count)/\(CoachViewModel.mock.checkIns.count) Tagesziele sind abgehakt"
+      let count = completedCoachCheckInIDs.count
+      return "Coach sagt: \(count) \(count == 1 ? "Tagesziel" : "Tagesziele") abgehakt"
     }
 
-    return HomeViewModel.mock.coachHeadline
+    if let workout = lastCompletedWorkout {
+      return "Coach sagt: Letzter Stand — \(workout.title), \(workout.completedSets) Sätze"
+    }
+
+    return "Coach sagt: Starte dein erstes Training, dann passe ich mich an dich an"
   }
 
   var coachDescription: String {
@@ -1420,6 +1788,16 @@ final class GainsStore: ObservableObject {
     activeRun?.currentHeartRate = min(max((activeRun?.currentHeartRate ?? 140) + delta, 96), 198)
   }
 
+  /// Setzt die aktuelle Herzfrequenz direkt aus einem HealthKit-Live-Wert.
+  /// Klemmt auf physiologisch sinnvolle Grenzen (40–220 bpm).
+  func updateRunHeartRateLive(_ bpm: Int) {
+    guard activeRun != nil else { return }
+    activeRun?.currentHeartRate = min(max(bpm, 40), 220)
+  }
+
+  /// Setzt die aktuelle Herzfrequenz für das aktive Workout (Live Gym).
+  @Published var liveWorkoutHeartRate: Int? = nil
+
   func syncActiveRunGPS(
     distanceKm: Double, durationMinutes: Int, elevationGain: Int,
     routeCoordinates: [CLLocationCoordinate2D], splits: [RunSplit]
@@ -1480,6 +1858,12 @@ final class GainsStore: ObservableObject {
     activeRun = nil
     lastProgressEvent =
       "Lauf gespeichert: \(String(format: "%.1f", summary.distanceKm)) km mit \(formattedPace(secondsPerKilometer: summary.averagePaceSeconds))."
+
+    if socialSharingSettings.autoShareRuns {
+      shareLatestRun()
+    }
+
+    saveAll()
   }
 
   @discardableResult
@@ -1491,25 +1875,161 @@ final class GainsStore: ObservableObject {
 
     let workout = WorkoutPlan.custom(title: trimmedName, split: split, exercises: exercises)
     savedWorkoutPlans.insert(workout, at: 0)
+    saveAll()
     return workout
+  }
+
+  func deleteWorkout(_ plan: WorkoutPlan) {
+    savedWorkoutPlans.removeAll(where: { $0.id == plan.id })
+    // Remove day assignments that referenced this workout
+    for weekday in plannerSettings.dayAssignments.keys {
+      if plannerSettings.dayAssignments[weekday] == plan.id {
+        plannerSettings.dayAssignments[weekday] = nil
+      }
+    }
+    saveAll()
+  }
+
+  func updateWorkout(
+    _ plan: WorkoutPlan, named name: String, split: String, exercises: [ExerciseLibraryItem]
+  ) -> WorkoutPlan? {
+    guard
+      let index = savedWorkoutPlans.firstIndex(where: { $0.id == plan.id }),
+      !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+      !exercises.isEmpty
+    else { return nil }
+    let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let updated = WorkoutPlan.custom(title: trimmedName, split: split, exercises: exercises)
+    // Preserve the original id so day-assignments stay intact
+    let preserved = WorkoutPlan(
+      id: plan.id,
+      source: .custom,
+      title: updated.title,
+      focus: updated.focus,
+      split: updated.split,
+      estimatedDurationMinutes: updated.estimatedDurationMinutes,
+      exercises: updated.exercises
+    )
+    savedWorkoutPlans[index] = preserved
+    saveAll()
+    return preserved
   }
 
   func updateSessionsPerWeek(_ value: Int) {
     let desiredDays = min(max(value, 1), 7)
     rebalancePlannerAvailability(for: desiredDays)
     plannerSettings.sessionsPerWeek = normalizedSessionsPerWeek(desiredDays)
+    saveAll()
   }
 
   func setPlannerGoal(_ goal: WorkoutPlanningGoal) {
     plannerSettings.goal = goal
+    saveAll()
   }
 
   func setTrainingFocus(_ focus: WorkoutTrainingFocus) {
     plannerSettings.trainingFocus = focus
+    saveAll()
   }
 
   func setPreferredSessionLength(_ duration: Int) {
     plannerSettings.preferredSessionLength = duration
+    saveAll()
+  }
+
+  // MARK: - Studienbasierte Planner-Setter
+
+  func setTrainingExperience(_ value: TrainingExperience) {
+    plannerSettings.experience = value
+    saveAll()
+  }
+
+  func setGymEquipment(_ value: GymEquipment) {
+    plannerSettings.equipment = value
+    saveAll()
+  }
+
+  func setSplitPreference(_ value: SplitPreference) {
+    plannerSettings.splitPreference = value
+    saveAll()
+  }
+
+  func setRecoveryCapacity(_ value: RecoveryCapacity) {
+    plannerSettings.recoveryCapacity = value
+    saveAll()
+  }
+
+  func toggleMusclePriority(_ muscle: MuscleGroup) {
+    if plannerSettings.prioritizedMuscles.contains(muscle) {
+      plannerSettings.prioritizedMuscles.remove(muscle)
+    } else {
+      plannerSettings.prioritizedMuscles.insert(muscle)
+    }
+    saveAll()
+  }
+
+  func toggleLimitation(_ limitation: WorkoutLimitation) {
+    if plannerSettings.limitations.contains(limitation) {
+      plannerSettings.limitations.remove(limitation)
+    } else {
+      plannerSettings.limitations.insert(limitation)
+    }
+    saveAll()
+  }
+
+  func setRunningGoal(_ goal: RunningGoal) {
+    plannerSettings.runningGoal = goal
+    // Wenn der User explizit ein Lauf-Ziel setzt, schlagen wir den passenden km-Wert vor,
+    // sofern er noch beim Default ist oder darunterliegt.
+    if plannerSettings.weeklyKilometerTarget < goal.defaultWeeklyKilometers {
+      plannerSettings.weeklyKilometerTarget = goal.defaultWeeklyKilometers
+    }
+    saveAll()
+  }
+
+  /// Wendet alle Wizard-Einstellungen auf einmal an und setzt alle Wochentage
+  /// auf `.flexible`, damit die Engine die optimale Verteilung übernimmt.
+  func applyWizardSettings(
+    focus: WorkoutTrainingFocus,
+    goal: WorkoutPlanningGoal,
+    experience: TrainingExperience,
+    equipment: GymEquipment,
+    sessionsPerWeek: Int,
+    sessionLength: Int,
+    recovery: RecoveryCapacity,
+    prioritizedMuscles: Set<MuscleGroup>,
+    limitations: Set<WorkoutLimitation>,
+    runningGoal: RunningGoal
+  ) {
+    plannerSettings.trainingFocus      = focus
+    plannerSettings.goal               = goal
+    plannerSettings.experience         = experience
+    plannerSettings.equipment          = equipment
+    plannerSettings.sessionsPerWeek    = normalizedSessionsPerWeek(sessionsPerWeek)
+    plannerSettings.preferredSessionLength = sessionLength
+    plannerSettings.recoveryCapacity   = recovery
+    plannerSettings.splitPreference    = .auto
+    plannerSettings.prioritizedMuscles = prioritizedMuscles
+    plannerSettings.limitations        = limitations
+    plannerSettings.runningGoal        = runningGoal
+    if plannerSettings.weeklyKilometerTarget < runningGoal.defaultWeeklyKilometers {
+      plannerSettings.weeklyKilometerTarget = runningGoal.defaultWeeklyKilometers
+    }
+    // Alle Tage auf flexible setzen – die Engine verteilt automatisch
+    for day in Weekday.allCases {
+      plannerSettings.dayPreferences[day] = .flexible
+    }
+    saveAll()
+  }
+
+  func setRunIntensityModel(_ model: RunIntensityModel) {
+    plannerSettings.runIntensityModel = model
+    saveAll()
+  }
+
+  func setWeeklyKilometerTarget(_ km: Int) {
+    plannerSettings.weeklyKilometerTarget = max(0, min(150, km))
+    saveAll()
   }
 
   func cycleDayPreference(_ weekday: Weekday) {
@@ -1523,6 +2043,7 @@ final class GainsStore: ObservableObject {
     }
 
     alignSessionTargetToAvailableDays()
+    saveAll()
   }
 
   func assignedWorkoutPlan(for weekday: Weekday) -> WorkoutPlan? {
@@ -1538,10 +2059,12 @@ final class GainsStore: ObservableObject {
     }
 
     alignSessionTargetToAvailableDays()
+    saveAll()
   }
 
   func clearAssignedWorkout(for weekday: Weekday) {
     plannerSettings.dayAssignments[weekday] = nil
+    saveAll()
   }
 
   func dayPreference(for weekday: Weekday) -> WorkoutDayPreference {
@@ -1578,6 +2101,7 @@ final class GainsStore: ObservableObject {
   func toggleSelectedCalendarDayCompletion() {
     guard canToggleSelectedCalendarDate else { return }
     toggleCalendarCompletion(on: selectedCalendarDate)
+    saveAll()
   }
 
   func finishWorkout() {
@@ -1611,6 +2135,14 @@ final class GainsStore: ObservableObject {
     lastCompletedWorkout = summary
     workoutHistory.insert(summary, at: 0)
     activeWorkout = nil
+
+    // Auto-Share, falls in den Social-Settings aktiviert
+    if socialSharingSettings.autoShareWorkouts {
+      shareLatestWorkout()
+    }
+    detectAndShareNewPRs(from: summary)
+
+    saveAll()
   }
 
   func toggleSet(exerciseID: UUID, setID: UUID) {
@@ -1697,6 +2229,7 @@ final class GainsStore: ObservableObject {
 
   func toggleChallengeJoined() {
     joinedChallenge.toggle()
+    saveAll()
   }
 
   func toggleLike(postID: UUID) {
@@ -1833,6 +2366,7 @@ final class GainsStore: ObservableObject {
       favoriteRecipeIDs.insert(recipeID)
       proteinProgress = min(220, rounded(proteinProgress + 2))
     }
+    saveAll()
   }
 
   func toggleTrackerConnection(_ trackerID: UUID) {
@@ -1856,6 +2390,7 @@ final class GainsStore: ObservableObject {
       lastProgressEvent =
         "Tracker verbunden. Deine Vitaldaten werden jetzt im Progress-Bereich aktualisiert."
     }
+    saveAll()
   }
 
   private func toggleAppleHealthConnection() {
@@ -1959,16 +2494,192 @@ final class GainsStore: ObservableObject {
     }
   }
 
+  // MARK: - Social Sharing Settings
+
+  func setAutoShareWorkouts(_ enabled: Bool) {
+    socialSharingSettings.autoShareWorkouts = enabled
+    saveAll()
+  }
+
+  func setAutoShareRuns(_ enabled: Bool) {
+    socialSharingSettings.autoShareRuns = enabled
+    saveAll()
+  }
+
+  func setAutoSharePersonalRecords(_ enabled: Bool) {
+    socialSharingSettings.autoSharePersonalRecords = enabled
+    saveAll()
+  }
+
+  func setShareLocationWithRuns(_ enabled: Bool) {
+    socialSharingSettings.shareLocationWithRuns = enabled
+    saveAll()
+  }
+
+  func setSharingVisibility(_ visibility: SharingVisibility) {
+    socialSharingSettings.visibility = visibility
+    saveAll()
+  }
+
+  // MARK: - Forum
+
+  func createForumThread(category: ForumCategory, title: String, body: String, location: String? = nil) {
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedTitle.isEmpty else { return }
+
+    let thread = ForumThread(
+      id: UUID(),
+      category: category,
+      title: trimmedTitle,
+      body: trimmedBody,
+      author: userName,
+      handle: "@julius.gains",
+      createdAt: Date(),
+      location: location?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+      replies: [],
+      likeCount: 0
+    )
+    forumThreads.insert(thread, at: 0)
+    saveAll()
+  }
+
+  func addReply(to threadID: UUID, body: String) {
+    let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty,
+          let index = forumThreads.firstIndex(where: { $0.id == threadID }) else { return }
+    let reply = ForumReply(
+      id: UUID(),
+      author: userName,
+      handle: "@julius.gains",
+      body: trimmed,
+      createdAt: Date()
+    )
+    forumThreads[index].replies.append(reply)
+    saveAll()
+  }
+
+  func toggleForumLike(threadID: UUID) {
+    guard let index = forumThreads.firstIndex(where: { $0.id == threadID }) else { return }
+    forumThreads[index].likeCount += 1
+    saveAll()
+  }
+
+  // MARK: - Meetups
+
+  func createMeetup(
+    sport: MeetupSport,
+    title: String,
+    locationName: String,
+    startsAt: Date,
+    pace: String?,
+    notes: String,
+    maxParticipants: Int
+  ) {
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedLocation = locationName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmedTitle.isEmpty, !trimmedLocation.isEmpty else { return }
+
+    let meetup = Meetup(
+      id: UUID(),
+      sport: sport,
+      title: trimmedTitle,
+      locationName: trimmedLocation,
+      startsAt: startsAt,
+      pace: pace?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
+      hostHandle: "@julius.gains",
+      hostName: userName,
+      notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
+      maxParticipants: max(2, maxParticipants),
+      participantHandles: ["@julius.gains"]
+    )
+    meetups.insert(meetup, at: 0)
+    joinedMeetupIDs.insert(meetup.id)
+    saveAll()
+  }
+
+  func toggleMeetupParticipation(meetupID: UUID) {
+    guard let index = meetups.firstIndex(where: { $0.id == meetupID }) else { return }
+    let ownHandle = "@julius.gains"
+    if meetups[index].participantHandles.contains(ownHandle) {
+      meetups[index].participantHandles.removeAll { $0 == ownHandle }
+      joinedMeetupIDs.remove(meetupID)
+    } else if meetups[index].participantHandles.count < meetups[index].maxParticipants {
+      meetups[index].participantHandles.append(ownHandle)
+      joinedMeetupIDs.insert(meetupID)
+    }
+    saveAll()
+  }
+
+  var upcomingMeetups: [Meetup] {
+    meetups
+      .filter { $0.startsAt >= Date().addingTimeInterval(-3600) }
+      .sorted { $0.startsAt < $1.startsAt }
+  }
+
+  func threads(in category: ForumCategory) -> [ForumThread] {
+    forumThreads.filter { $0.category == category }
+  }
+
+  // MARK: - Personal Records
+
+  func detectAndShareNewPRs(from summary: CompletedWorkoutSummary) {
+    guard socialSharingSettings.autoSharePersonalRecords else { return }
+
+    var newRecords: [(exercise: String, weight: Double)] = []
+    for exercise in summary.exercises where exercise.topWeight > 0 {
+      let priorBest = workoutHistory
+        .dropFirst()  // skip the just-inserted summary
+        .flatMap { $0.exercises }
+        .filter { $0.name == exercise.name }
+        .map(\.topWeight)
+        .max() ?? 0
+      if exercise.topWeight > priorBest {
+        newRecords.append((exercise.name, exercise.topWeight))
+      }
+    }
+
+    guard !newRecords.isEmpty else { return }
+
+    let title = newRecords.count == 1
+      ? "Neuer PR: \(newRecords[0].exercise)"
+      : "\(newRecords.count) neue Personal Records"
+    let detail = newRecords
+      .map { "\($0.exercise): \(Int($0.weight)) kg" }
+      .joined(separator: " · ")
+
+    let post = CommunityPost(
+      id: UUID(),
+      author: userName,
+      handle: "@julius.gains",
+      type: .progress,
+      title: title,
+      detail: detail,
+      timeAgo: "gerade eben",
+      placeholderSymbol: "trophy.fill",
+      highlightMetrics: newRecords.prefix(3).map {
+        CommunityMetric(label: $0.exercise, value: "\(Int($0.weight)) kg")
+      },
+      reactions: 0,
+      comments: 0,
+      shares: 0
+    )
+    communityPosts.insert(post, at: 0)
+  }
+
   func toggleNotificationsEnabled() {
     notificationsEnabled.toggle()
+    saveAll()
   }
 
   func toggleHealthAutoSyncEnabled() {
     healthAutoSyncEnabled.toggle()
+    saveAll()
   }
 
   func toggleStudyBasedCoachingEnabled() {
     studyBasedCoachingEnabled.toggle()
+    saveAll()
   }
 
   func cycleAppearanceMode() {
@@ -1980,6 +2691,7 @@ final class GainsStore: ObservableObject {
 
     let nextIndex = (currentIndex + 1) % allModes.count
     appearanceMode = allModes[nextIndex]
+    saveAll()
   }
 
   func logWeightCheckIn() {
@@ -1998,6 +2710,7 @@ final class GainsStore: ObservableObject {
 
     lastProgressEvent =
       "Gewicht aktualisiert: \(String(format: "%.1f", currentWeight)) kg sind jetzt eingetragen."
+    saveAll()
   }
 
   func logWaistCheckIn() {
@@ -2013,6 +2726,7 @@ final class GainsStore: ObservableObject {
 
     lastProgressEvent =
       "Taillenmaß eingetragen: \(String(format: "%.1f", waistMeasurement)) cm im aktuellen Check-in."
+    saveAll()
   }
 
   func syncVitalData() {
@@ -2058,6 +2772,7 @@ final class GainsStore: ObservableObject {
     proteinProgress = min(220, rounded(proteinProgress + 25))
     lastProgressEvent =
       "Protein-Check-in gespeichert: \(Int(proteinProgress)) g sind heute jetzt erfasst."
+    saveAll()
   }
 
   func shareLatestRun() {
@@ -2257,34 +2972,8 @@ final class GainsStore: ObservableObject {
     }
   }
 
-  private static func seedNutritionEntries(for today: Date) -> [NutritionEntry] {
-    let calendar = Calendar.current
-    let breakfastTime = calendar.date(bySettingHour: 8, minute: 10, second: 0, of: today) ?? today
-    let lunchTime = calendar.date(bySettingHour: 13, minute: 0, second: 0, of: today) ?? today
-
-    return [
-      NutritionEntry(
-        id: UUID(),
-        title: "Overnight Oats Gains",
-        mealType: .breakfast,
-        loggedAt: breakfastTime,
-        calories: 458,
-        protein: 39,
-        carbs: 42,
-        fat: 14
-      ),
-      NutritionEntry(
-        id: UUID(),
-        title: "High Protein Chicken Bowl",
-        mealType: .lunchDinner,
-        loggedAt: lunchTime,
-        calories: 612,
-        protein: 54,
-        carbs: 48,
-        fat: 18
-      ),
-    ]
-  }
+  // A1: `seedNutritionEntries` und `seedCompletedDates` sind als Demo-Funktionen
+  // in den DEBUG-Block oben gewandert (`demoNutritionEntries` / `demoCompletedDates`).
 
   private func updateCurrentWeight(by delta: Double) {
     let newWeight = rounded(currentWeight + delta)
@@ -2332,103 +3021,318 @@ final class GainsStore: ObservableObject {
     return Weekday(rawValue: weekdayValue) ?? .monday
   }
 
+  // MARK: - Evidence-based Planner Engine
+  //
+  // Quellen / Studienlage, die in die Heuristik einfließen:
+  //   • Schoenfeld, Ogborn & Krieger (2016/2017) – Frequenz ≥ 2× / Muskel & Volumen-Dosis-Wirkung.
+  //   • Helms et al. (2018) – RIR-Steuerung & Periodisierung im Hypertrophy-/Strength-Block.
+  //   • Grgic et al. (2018) – Rest-Pausen für Hypertrophie & Maximalkraft.
+  //   • Seiler (2010) / Stöggl & Sperlich (2014) – polarisiertes Cardio-Training (80/20).
+  //   • Gibala et al. (2012) – HIIT-Adaptionen bei wenig Zeit.
+
+  /// Ein einziger Aufruf liefert die "Hauptempfehlung" mit Studien-Werten,
+  /// optional ergänzt um Cardio-Begleitempfehlungen für Hybrid.
   private func strengthRecommendations(for days: [Weekday]) -> [PlannerRecommendation] {
-    switch days.count {
-    case 1:
-      return [
-        PlannerRecommendation(
-          title: "Kraft-Fokus Ganzkörper",
-          detail: "Eine große Ganzkörper-Session pro Woche mit Fokus auf Grundübungen.",
-          weekdays: days)
-      ]
-    case 2:
-      return [
-        PlannerRecommendation(
-          title: "Kraft-Fokus Upper / Lower",
-          detail: "Zwei klare Einheiten für Oberkörper und Unterkörper.", weekdays: days)
-      ]
-    case 3:
-      return [
-        PlannerRecommendation(
-          title: "Kraft-Fokus Push / Pull / Beine",
-          detail: "Drei klassische Krafteinheiten mit klarer Priorität auf Progression.",
-          weekdays: days)
-      ]
-    case 4:
-      return [
-        PlannerRecommendation(
-          title: "Kraft-Fokus Upper / Lower x2",
-          detail: "Vier Einheiten mit starker Frequenz pro Muskelgruppe.", weekdays: days)
-      ]
-    default:
-      return [
-        PlannerRecommendation(
-          title: "Kraft-Fokus High Frequency",
-          detail: "Hohe Kraftfrequenz mit 5 oder mehr Sessions und klarer Gym-Priorität.",
-          weekdays: days)
-      ]
-    }
+    let strengthDays = days
+    return [strengthEvidenceRecommendation(for: strengthDays)]
   }
 
   private func cardioRecommendations(for days: [Weekday]) -> [PlannerRecommendation] {
-    switch days.count {
-    case 1:
-      return [
-        PlannerRecommendation(
-          title: "Cardio Athlet Start",
-          detail: "Eine längere Ausdauereinheit mit Fokus auf Grundlagenausdauer.", weekdays: days)
-      ]
-    case 2:
-      return [
-        PlannerRecommendation(
-          title: "Cardio Athlet Easy + Tempo", detail: "Ein lockerer und ein zügiger Cardio-Tag.",
-          weekdays: days)
-      ]
-    case 3:
-      return [
-        PlannerRecommendation(
-          title: "Cardio Athlet Easy + Intervalle + Long",
-          detail: "Drei Cardio-Tage mit sinnvoller Verteilung von locker bis intensiv.",
-          weekdays: days)
-      ]
-    default:
-      return [
-        PlannerRecommendation(
-          title: "Cardio Athlet Split", detail: "Mix aus easy, Tempo, Intervallen und langem Lauf.",
-          weekdays: days)
-      ]
-    }
+    [cardioEvidenceRecommendation(for: days)]
   }
 
   private func hybridRecommendations(for days: [Weekday]) -> [PlannerRecommendation] {
-    switch days.count {
-    case 2:
-      return [
-        PlannerRecommendation(
-          title: "Hybrid Athlet 1 / 1", detail: "Eine Kraft- und eine Cardio-Einheit.",
-          weekdays: days)
-      ]
-    case 3:
-      return [
-        PlannerRecommendation(
-          title: "Hybrid Athlet 2 / 1", detail: "Zwei Krafteinheiten plus ein Cardio-Tag.",
-          weekdays: days)
-      ]
-    case 4:
-      return [
-        PlannerRecommendation(
-          title: "Hybrid Athlet 2 / 2",
-          detail: "Ausgewogener Hybrid-Plan mit gleicher Priorität für beide Reize.", weekdays: days
-        )
-      ]
-    default:
-      return [
-        PlannerRecommendation(
-          title: "Hybrid Athlet 3 / 2",
-          detail: "Kraft priorisiert, Cardio bleibt als zweiter Leistungsblock erhalten.",
-          weekdays: days)
-      ]
+    let split = hybridSplit(for: days.count)
+    let strengthDays = Array(days.prefix(split.strength))
+    let cardioDays = Array(days.dropFirst(split.strength))
+
+    var result: [PlannerRecommendation] = []
+    if !strengthDays.isEmpty {
+      result.append(strengthEvidenceRecommendation(for: strengthDays))
     }
+    if !cardioDays.isEmpty {
+      result.append(cardioEvidenceRecommendation(for: cardioDays))
+    }
+    return result
+  }
+
+  // MARK: - Wissenschaftliche Stellschrauben
+
+  /// Sätze pro Muskelgruppe pro Woche – Schoenfeld 2017 Meta-Analyse.
+  /// Basisrange wird durch Recovery & Priorisierung modifiziert.
+  var weeklySetsPerMuscleGroupRange: ClosedRange<Int> {
+    let baseRange: ClosedRange<Int>
+    switch plannerSettings.experience {
+    case .beginner:     baseRange = 8...12
+    case .intermediate: baseRange = 12...18
+    case .advanced:     baseRange = 16...22
+    }
+
+    let multiplier = plannerSettings.recoveryCapacity.volumeMultiplier
+    let lower = max(6, Int(round(Double(baseRange.lowerBound) * multiplier)))
+    let upper = max(lower + 2, Int(round(Double(baseRange.upperBound) * multiplier)))
+    return lower...upper
+  }
+
+  /// Empfohlene Frequenz pro Muskelgruppe (Schoenfeld 2016).
+  var recommendedFrequencyPerMuscleGroup: Int {
+    switch plannerSettings.experience {
+    case .beginner:     return 2
+    case .intermediate: return 2
+    case .advanced:     return 3
+    }
+  }
+
+  /// Wiederholungs-Range nach Ziel × Erfahrung.
+  var recommendedRepRange: ClosedRange<Int> {
+    switch plannerSettings.goal {
+    case .muscleGain:
+      return plannerSettings.experience == .beginner ? 8...12 : 6...12
+    case .fatLoss:
+      return 8...15
+    case .performance:
+      return plannerSettings.experience == .beginner ? 5...8 : 3...6
+    }
+  }
+
+  /// Reps-in-Reserve-Steuerung (Helms 2018).
+  var recommendedRIRRange: ClosedRange<Int> {
+    switch plannerSettings.goal {
+    case .muscleGain:
+      return plannerSettings.experience == .advanced ? 0...2 : 1...3
+    case .fatLoss:
+      return 1...2
+    case .performance:
+      return 0...2
+    }
+  }
+
+  /// Pausen nach Goal & Übungstyp – Grgic 2018.
+  var recommendedRestSecondsCompound: Int {
+    switch plannerSettings.goal {
+    case .muscleGain:  return 150
+    case .fatLoss:     return 90
+    case .performance: return 240
+    }
+  }
+
+  var recommendedRestSecondsIsolation: Int {
+    switch plannerSettings.goal {
+    case .muscleGain:  return 90
+    case .fatLoss:     return 60
+    case .performance: return 120
+    }
+  }
+
+  /// Rahmenbedingungen für die Strength-Empfehlung.
+  private func strengthEvidenceRecommendation(for days: [Weekday]) -> PlannerRecommendation {
+    guard !days.isEmpty else {
+      return PlannerRecommendation(
+        title: "Kraft pausiert", detail: "Aktuell ist kein Krafttag eingeplant.", weekdays: [])
+    }
+
+    let split = pickSplitName(for: days.count)
+    let setsRange = weeklySetsPerMuscleGroupRange
+    let frequency = recommendedFrequencyPerMuscleGroup
+    let rir = recommendedRIRRange
+    let reps = recommendedRepRange
+
+    let priorityNote: String
+    if !plannerSettings.prioritizedMuscles.isEmpty {
+      let names = plannerSettings.prioritizedMuscles
+        .map(\.title)
+        .sorted()
+        .joined(separator: ", ")
+      priorityNote = " · Priorität \(names) (+30 % Volumen)"
+    } else {
+      priorityNote = ""
+    }
+
+    let detail =
+      "\(split) · \(setsRange.lowerBound)–\(setsRange.upperBound) Sätze pro Muskel & Woche · "
+      + "\(reps.lowerBound)–\(reps.upperBound) Wiederholungen, RIR \(rir.lowerBound)–\(rir.upperBound)\(priorityNote)."
+
+    let evidence =
+      "Schoenfeld 2016/17 (Frequenz ≥ \(frequency)× / Muskel) · Helms 2018 (RIR-Steuerung) · "
+      + "Grgic 2018 (Pausen ≈ \(recommendedRestSecondsCompound)s Compound / \(recommendedRestSecondsIsolation)s Isolation)."
+
+    return PlannerRecommendation(
+      title: "Kraft · \(split)",
+      detail: detail,
+      weekdays: days,
+      setsPerMuscleGroupRange: setsRange,
+      frequencyPerMuscleGroup: frequency,
+      repRange: reps,
+      rirRange: rir,
+      restSecondsCompound: recommendedRestSecondsCompound,
+      restSecondsIsolation: recommendedRestSecondsIsolation,
+      evidenceNote: evidence
+    )
+  }
+
+  /// Empfehlung für reine Lauf-Tage – polarisierte / pyramidale Verteilung.
+  private func cardioEvidenceRecommendation(for days: [Weekday]) -> PlannerRecommendation {
+    guard !days.isEmpty else {
+      return PlannerRecommendation(
+        title: "Lauf pausiert", detail: "Kein Cardio-Tag in dieser Woche.", weekdays: [])
+    }
+
+    let kmTarget = plannerSettings.weeklyKilometerTarget
+    let model = plannerSettings.runIntensityModel
+    let kinds = runSessionKinds(for: days.count)
+    let kindLabels = kinds.map(\.shortLabel).joined(separator: " · ")
+
+    let detail =
+      "\(model.title) · \(days.count) Läufe (\(kindLabels)) · "
+      + "Wochenziel ≈ \(kmTarget) km. Easy/Long ≤ 75 % HFmax, Tempo 84 – 88 %, Intervalle ≥ 92 %."
+
+    let evidence: String
+    switch model {
+    case .polarized80_20:
+      evidence = "Seiler 2010 & Stöggl/Sperlich 2014 – polarisiertes 80/20 maximiert VO₂max."
+    case .pyramidal:
+      evidence = "Esteve-Lanao 2017 – pyramidales Modell für submax. Renndistanzen."
+    case .threshold:
+      evidence = "Billat 2001 – Threshold-Block für 5–10 K Spezifität."
+    case .minimalist:
+      evidence = "Gibala 2012 – wenige hochintensive HIIT-Einheiten verbessern VO₂max."
+    }
+
+    return PlannerRecommendation(
+      title: "Lauf · \(model.title)",
+      detail: detail,
+      weekdays: days,
+      weeklyKilometerTarget: kmTarget,
+      evidenceNote: evidence
+    )
+  }
+
+  // MARK: - Split- & Session-Verteilung
+
+  /// Wählt das beste Split-Layout, abhängig von User-Wahl, Frequenz, Erfahrung & Equipment.
+  private func pickSplitName(for sessionCount: Int) -> String {
+    let preference = plannerSettings.splitPreference
+    let equipment = plannerSettings.equipment
+
+    // Equipment-Constraint: Bodyweight & Dumbbells eignen sich für Frequenz-Ganzkörper-Pläne.
+    let lightEquipment = (equipment == .bodyweight || equipment == .dumbbellsOnly)
+
+    if preference != .auto {
+      return preference.title
+    }
+
+    switch sessionCount {
+    case ...1: return "Ganzkörper"
+    case 2:    return lightEquipment ? "Ganzkörper × 2" : "Upper / Lower"
+    case 3:
+      if plannerSettings.experience == .beginner || lightEquipment {
+        return "Ganzkörper × 3"
+      }
+      return "Push / Pull / Legs"
+    case 4:
+      return lightEquipment ? "Ganzkörper × 4" : "Upper / Lower × 2"
+    case 5:
+      if plannerSettings.experience == .advanced && !lightEquipment {
+        return "PPL + Upper / Lower"
+      }
+      return "Upper / Lower + Ganzkörper"
+    case 6:
+      return "Push / Pull / Legs × 2"
+    default:
+      return "High-Frequency"
+    }
+  }
+
+  /// Verteilung der Lauf-Einheiten gemäß gewähltem Intensitätsmodell.
+  func runSessionKinds(for runCount: Int) -> [PlannedSessionKind] {
+    guard runCount > 0 else { return [] }
+    switch plannerSettings.runIntensityModel {
+    case .polarized80_20:
+      switch runCount {
+      case 1:  return [.easyRun]
+      case 2:  return [.easyRun, .tempoRun]
+      case 3:  return [.easyRun, .intervalRun, .longRun]
+      case 4:  return [.easyRun, .easyRun, .intervalRun, .longRun]
+      case 5:  return [.easyRun, .easyRun, .tempoRun, .intervalRun, .longRun]
+      default: return Array(repeating: PlannedSessionKind.easyRun, count: runCount - 3)
+        + [.tempoRun, .intervalRun, .longRun]
+      }
+    case .pyramidal:
+      switch runCount {
+      case 1:  return [.easyRun]
+      case 2:  return [.easyRun, .tempoRun]
+      case 3:  return [.easyRun, .tempoRun, .longRun]
+      case 4:  return [.easyRun, .tempoRun, .easyRun, .longRun]
+      default: return Array(repeating: PlannedSessionKind.easyRun, count: runCount - 2)
+        + [.tempoRun, .longRun]
+      }
+    case .threshold:
+      switch runCount {
+      case 1:  return [.tempoRun]
+      case 2:  return [.tempoRun, .longRun]
+      case 3:  return [.easyRun, .tempoRun, .longRun]
+      default: return Array(repeating: PlannedSessionKind.tempoRun, count: max(1, runCount - 2))
+        + [.easyRun, .longRun]
+      }
+    case .minimalist:
+      switch runCount {
+      case 1:  return [.intervalRun]
+      case 2:  return [.intervalRun, .longRun]
+      default: return [.easyRun, .intervalRun, .longRun]
+        + Array(repeating: PlannedSessionKind.tempoRun, count: max(0, runCount - 3))
+      }
+    }
+  }
+
+  /// Hybrid-Verteilung – wie viele Tage gehen an Kraft, wie viele an Cardio.
+  private func hybridSplit(for total: Int) -> (strength: Int, cardio: Int) {
+    switch total {
+    case ...1: return (1, 0)
+    case 2:    return (1, 1)
+    case 3:    return (2, 1)
+    case 4:    return (2, 2)
+    case 5:    return (3, 2)
+    case 6:    return (4, 2)
+    default:   return (max(0, total - 2), 2)
+    }
+  }
+
+  /// Ordnet jedem geplanten Tag eine konkrete Session-Art zu (Kraft / verschiedene Lauftypen).
+  /// Wird vom weekly schedule sowie der UI genutzt.
+  var plannedSessionKinds: [Weekday: PlannedSessionKind] {
+    let days = scheduledPlannerDays
+    guard !days.isEmpty else { return [:] }
+
+    var result: [Weekday: PlannedSessionKind] = [:]
+
+    switch plannerSettings.trainingFocus {
+    case .strength:
+      for d in days { result[d] = .strength }
+    case .cardio:
+      let kinds = runSessionKinds(for: days.count)
+      for (i, d) in days.enumerated() {
+        result[d] = i < kinds.count ? kinds[i] : .easyRun
+      }
+    case .hybrid:
+      let split = hybridSplit(for: days.count)
+      let runKinds = runSessionKinds(for: split.cardio)
+      for (i, d) in days.enumerated() {
+        if i < split.strength {
+          result[d] = .strength
+        } else {
+          let runIdx = i - split.strength
+          result[d] = runIdx < runKinds.count ? runKinds[runIdx] : .easyRun
+        }
+      }
+    }
+
+    return result
+  }
+
+  /// Entscheidet, ob ein Tag eine Lauf-Session ist, und liefert ggf. die Lauf-Vorlage.
+  func runTemplate(for weekday: Weekday) -> RunTemplate? {
+    guard let kind = plannedSessionKinds[weekday], kind.isRun else { return nil }
+    return RunTemplate.template(for: kind)
   }
 
   private var minimumSessionsPerWeek: Int {
@@ -2546,12 +3450,4 @@ final class GainsStore: ObservableObject {
     recordDays = max(recordDays, streakDays)
   }
 
-  private static func seedCompletedDates(relativeTo today: Date) -> Set<Date> {
-    let calendar = Calendar.current
-    let offsets = [0, -1, -2, -4, -5, -7, -8, -9, -11]
-    return Set(
-      offsets.compactMap { offset in
-        calendar.date(byAdding: .day, value: offset, to: today).map { calendar.startOfDay(for: $0) }
-      })
-  }
 }
