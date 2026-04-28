@@ -449,9 +449,14 @@ struct GymPlanTab: View {
           }
         }
       } label: {
-        Image(systemName: "ellipsis.circle.fill")
-          .font(.system(size: 22, weight: .semibold))
-          .foregroundStyle(GainsColor.lime)
+        HStack(spacing: 6) {
+          Text("Wählen")
+            .font(GainsFont.label(9))
+            .tracking(1.0)
+          Image(systemName: "ellipsis.circle.fill")
+            .font(.system(size: 20, weight: .semibold))
+        }
+        .foregroundStyle(GainsColor.lime)
       }
     }
     .padding(14)
