@@ -42,10 +42,6 @@ struct GymTodayTab: View {
         secondaryActionsRow
 
         contextCard
-
-        if let last = store.lastCompletedWorkout {
-          lastWorkoutBanner(last)
-        }
       }
     }
   }
