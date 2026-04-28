@@ -29,8 +29,11 @@ struct ProfileView: View {
   @State private var diagnosticsShareItem: DiagnosticsShareItem? = nil
 
   var body: some View {
+    // Konsistenz: gleicher animierter Hintergrund wie in den restlichen
+    // Tabs, statt einer einfachen Background-Color. Vorher fühlte sich das
+    // Profil dadurch optisch wie ein Fremdkörper an.
     ZStack {
-      GainsColor.background.ignoresSafeArea()
+      GainsAppBackground()
 
       ScrollView(showsIndicators: false) {
         VStack(alignment: .leading, spacing: 22) {
@@ -258,7 +261,7 @@ struct ProfileView: View {
       Text(isConnected ? "VERBUNDEN" : "VERBINDEN")
         .font(GainsFont.label(10))
         .tracking(1.4)
-        .foregroundStyle(isConnected ? GainsColor.ink : GainsColor.lime)
+        .foregroundStyle(isConnected ? GainsColor.onLime : GainsColor.lime)
         .frame(width: 96, height: 30)
         .background(isConnected ? GainsColor.lime : GainsColor.elevated)
         .clipShape(Capsule())
@@ -365,18 +368,8 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
 
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        Button {
-          store.cycleAppearanceMode()
-        } label: {
-          settingsRow(
-            icon: "circle.lefthalf.filled",
-            title: "Darstellung",
-            value: store.appearanceMode.title
-          )
-        }
-        .buttonStyle(.plain)
+        // A8: Darstellungs-Row entfernt — App läuft jetzt Dark-Only,
+        // Picker hätte keine Wirkung mehr.
 
         Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
 

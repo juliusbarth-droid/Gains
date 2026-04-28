@@ -8,6 +8,10 @@ struct HomeView: View {
   @State private var isShowingWorkoutTracker = false
   @State private var isShowingRunTracker = false
   @State private var isShowingProfile = false
+  // Fortschritt öffnet wieder als eigenes Sheet — die frühere Inline-
+  // Expansion auf dem Home-Screen hat den Startbildschirm zu lang gemacht
+  // und das Design der Karte gegenüber den anderen Home-Karten zu sehr
+  // hervorgehoben. Jetzt ist Fortschritt eine Tür wie Workout/Lauf.
   @State private var isShowingProgress = false
   @State private var arrangingPlan: WorkoutPlan?
 
@@ -34,6 +38,7 @@ struct HomeView: View {
           quickStartSection
           weekSection
           quickLinks
+          progressSection
         }
         .padding(.horizontal, 24)
         .padding(.top, 8)
@@ -93,6 +98,21 @@ struct HomeView: View {
       RunTrackerView()
         .environmentObject(store)
     }
+    .sheet(isPresented: $isShowingProgress) {
+      NavigationStack {
+        ProgressView()
+          .environmentObject(store)
+          .environmentObject(navigation)
+          .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+              Button("Fertig") {
+                isShowingProgress = false
+              }
+              .foregroundStyle(GainsColor.ink)
+            }
+          }
+      }
+    }
     .sheet(isPresented: $isShowingProfile) {
       NavigationStack {
         ProfileView()
@@ -107,49 +127,114 @@ struct HomeView: View {
           }
       }
     }
-    .sheet(isPresented: $isShowingProgress) {
-      NavigationStack {
-        ProgressView()
-          .environmentObject(store)
-          .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-              Button("Fertig") {
-                isShowingProgress = false
-              }
-              .foregroundStyle(GainsColor.ink)
-            }
-          }
+  }
+
+  // MARK: - Editorial Hero (Date + Greeting + Live KPI HUD)
+  //
+  // A8: Der Editorial-Hero auf dem Home-Screen ist die identitätsstiftende
+  // Bühne der App. Er kombiniert:
+  //   1. Eyebrow-Row mit pulsierendem Lime-Punkt + Datum + Status-Chip
+  //      (Live-Workout / Plan / Rest) — gibt sofort Antwort: "Was läuft jetzt?"
+  //   2. Display-Greeting mit verlaufendem Lime-Akzent auf dem Namen.
+  //   3. Greeting-Line als gewohnte Body-Zeile.
+  //   4. KPI-HUD-Strip (Streak / Sessions / Volumen) — Live-Werte in
+  //      Mono-Numerik, immer sichtbar.
+
+  private var editorialHero: some View {
+    VStack(alignment: .leading, spacing: 22) {
+      // 1. Eyebrow-Row mit Pulse + Datum + Status
+      HStack(spacing: 10) {
+        PulsingDot(coreSize: 6, haloSize: 16)
+        Text("\(currentDateParts.day) · \(currentDateParts.date) · \(currentDateParts.week)")
+          .gainsEyebrow(GainsColor.softInk, size: 12, tracking: 1.4)
+        Spacer(minLength: 8)
+        heroStatusChip
+      }
+
+      // 2. Greeting mit Lime-Akzent
+      greetingDisplay
+
+      // 3. Greeting-Line — sekundärer Body, 15pt mit lineSpacing 3.
+      Text(todayGreetingLine)
+        .gainsBody(secondary: true)
+        .lineLimit(3)
+        .padding(.trailing, 12)
+
+      // 4. KPI-HUD-Strip
+      GainsKPIStrip(items: heroKPIItems)
+    }
+  }
+
+  /// Greeting im Display-Stil — der Name bekommt einen Lime→Cyan-Gradient,
+  /// damit der Home-Screen-Hero sofort als Brand-Moment lesbar ist.
+  @ViewBuilder
+  private var greetingDisplay: some View {
+    let hasName = !store.userName.isEmpty
+
+    VStack(alignment: .leading, spacing: 0) {
+      Text(hasName ? "Los geht's," : "Los geht's.")
+        .font(GainsFont.display(46))
+        .foregroundStyle(GainsColor.ink)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+
+      if hasName {
+        Text("\(store.userName).")
+          .font(GainsFont.display(46))
+          .foregroundStyle(
+            LinearGradient(
+              colors: [GainsColor.lime, GainsColor.accentCool],
+              startPoint: .leading,
+              endPoint: .trailing
+            )
+          )
+          .lineLimit(1)
+          .minimumScaleFactor(0.6)
+          .shadow(color: GainsColor.lime.opacity(0.35), radius: 18, x: 0, y: 0)
+      }
+    }
+    .fixedSize(horizontal: false, vertical: true)
+  }
+
+  /// Status-Chip rechts oben — zeigt sofort, wo der User gerade steht
+  /// (Live-Workout/Run, geplantes Training, Rest-Tag, flexibler Tag).
+  @ViewBuilder
+  private var heroStatusChip: some View {
+    if store.activeWorkout != nil {
+      GainsGlowChip("LIVE", icon: "dumbbell.fill")
+    } else if store.activeRun != nil {
+      GainsGlowChip("LIVE RUN", icon: "figure.run", accent: GainsColor.ember)
+    } else {
+      switch store.todayPlannedDay.status {
+      case .planned:
+        GainsGlowChip("PLAN", icon: "play.fill")
+      case .rest:
+        GainsGlowChip("REST", icon: "leaf.fill", accent: GainsColor.accentCool)
+      case .flexible:
+        GainsGlowChip("FLEX", icon: "infinity", accent: GainsColor.accentCool)
       }
     }
   }
 
-  // MARK: - Editorial Hero (Date + Greeting)
-
-  private var editorialHero: some View {
-    VStack(alignment: .leading, spacing: 20) {
-      HStack(spacing: 8) {
-        Circle()
-          .fill(GainsColor.lime)
-          .frame(width: 5, height: 5)
-        Text("\(currentDateParts.day) · \(currentDateParts.date) · \(currentDateParts.week)")
-          .gainsEyebrow(GainsColor.softInk, size: 12, tracking: 1.4)
-      }
-
-      Text(store.userName.isEmpty ? "Los geht's." : "Los geht's,\n\(store.userName).")
-        .font(GainsFont.display(46))
-        .foregroundStyle(GainsColor.ink)
-        .lineLimit(3)
-        .minimumScaleFactor(0.6)
-        .lineSpacing(-4)
-        .fixedSize(horizontal: false, vertical: true)
-
-      Text(todayGreetingLine)
-        .font(GainsFont.body(16))
-        .foregroundStyle(GainsColor.softInk)
-        .lineSpacing(2)
-        .lineLimit(3)
-        .padding(.trailing, 12)
-    }
+  /// Live-KPI-Items für den Hero-HUD-Strip.
+  private var heroKPIItems: [GainsKPIStripItem] {
+    [
+      GainsKPIStripItem(
+        label: "Streak",
+        value: "\(store.streakDays) T",
+        icon: "flame.fill"
+      ),
+      GainsKPIStripItem(
+        label: "Sessions",
+        value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)",
+        icon: "bolt.fill"
+      ),
+      GainsKPIStripItem(
+        label: "Volumen",
+        value: String(format: "%.1f t", store.weeklyVolumeTons),
+        icon: "scalemass.fill"
+      ),
+    ]
   }
 
   // MARK: - Active Workout Line (minimal)
@@ -159,48 +244,58 @@ struct HomeView: View {
       isShowingWorkoutTracker = true
     } label: {
       HStack(spacing: 12) {
-        Circle()
-          .fill(GainsColor.lime)
-          .frame(width: 7, height: 7)
+        PulsingDot(coreSize: 7, haloSize: 22)
         Text("WORKOUT LÄUFT")
-          .gainsEyebrow(GainsColor.ink, size: 12, tracking: 1.4)
+          .gainsEyebrow(GainsColor.lime, size: 12, tracking: 1.6)
         Text("·")
           .font(GainsFont.label(10))
           .foregroundStyle(GainsColor.mutedInk)
         Text(
           "\(store.activeWorkout?.completedSets ?? 0)/\(store.activeWorkout?.totalSets ?? 0) Sätze"
         )
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.softInk)
+        .font(GainsFont.metricMono(13))
+        .foregroundStyle(GainsColor.ink)
         .lineLimit(1)
 
         Spacer(minLength: 0)
 
         Text("Weiter")
-          .font(GainsFont.label(11))
-          .tracking(1.4)
-          .foregroundStyle(GainsColor.moss)
+          .font(GainsFont.eyebrow(11))
+          .tracking(1.5)
+          .foregroundStyle(GainsColor.lime)
         Image(systemName: "arrow.right")
-          .font(.system(size: 11, weight: .heavy))
-          .foregroundStyle(GainsColor.moss)
+          .font(.system(size: 12, weight: .heavy))
+          .foregroundStyle(GainsColor.lime)
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 14)
-      .background(GainsColor.lime.opacity(0.16))
+      // Glow + Border bewusst leiser als der Hero darüber — der Banner soll
+      // präsent bleiben (Live-Status), aber nicht mit dem Hero um Aufmerksamkeit
+      // konkurrieren. Vorher: 0.10/0.45/Glow 14·0.18 — wirkte als zweite Bühne.
+      .background(GainsColor.lime.opacity(0.08))
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .strokeBorder(GainsColor.lime.opacity(0.32), lineWidth: 0.7)
+      )
       .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .shadow(color: GainsColor.lime.opacity(0.10), radius: 8, x: 0, y: 0)
+      .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("Aktives Workout fortsetzen")
+    .accessibilityValue(
+      "\(store.activeWorkout?.completedSets ?? 0) von \(store.activeWorkout?.totalSets ?? 0) Sätzen"
+    )
   }
 
   // MARK: - Week Section (simplified, editorial)
 
   private var weekSection: some View {
     VStack(alignment: .leading, spacing: 18) {
-      sectionHeading(
-        "WOCHE",
-        trailing:
-          "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) SESSIONS · STREAK \(store.streakDays) TAGE"
-      )
+      // Trailing zeigte vorher Sessions+Streak — exakt das, was schon im
+      // KPI-Hero steht. Hier reicht die Wochen-Verortung (KW), die Punkte
+      // unter den Tagen tragen den Rest.
+      sectionHeading("WOCHE", trailing: currentDateParts.week)
 
       HStack(spacing: 4) {
         ForEach(store.homeWeekDays) { day in
@@ -232,20 +327,25 @@ struct HomeView: View {
                 .opacity(weekDayDotColor(for: day) == .clear ? 0 : 1)
             }
             .frame(maxWidth: .infinity)
+            // Ohne contentShape ist nur die 36pt-Zelle wirklich klickbar —
+            // die ganze Spalte (Label + Zelle + Dot) wird damit zur Tap-Fläche.
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
+          .accessibilityLabel("\(day.shortLabel) \(day.dayNumber)")
+          .accessibilityAddTraits(isSelectedCalendarDay(day) ? .isSelected : [])
         }
       }
 
       if store.selectedCalendarDay != nil {
-        VStack(alignment: .leading, spacing: 6) {
+        // Spacing 6 → 8: Headline und Beschreibung lesen sich als zwei klare
+        // Stufen.
+        VStack(alignment: .leading, spacing: 8) {
           Text(store.selectedCalendarHeadline)
-            .font(GainsFont.title(18))
-            .foregroundStyle(GainsColor.ink)
+            .gainsHeadline()
 
           Text(store.selectedCalendarDescription)
-            .font(GainsFont.body(13))
-            .foregroundStyle(GainsColor.softInk)
+            .gainsBody(secondary: true)
             .lineLimit(2)
 
           if store.canToggleSelectedCalendarDate {
@@ -257,9 +357,7 @@ struct HomeView: View {
                   store.selectedCalendarDayIsCompleted
                     ? "Als offen markieren" : "Als erledigt markieren"
                 )
-                .font(GainsFont.label(11))
-                .tracking(1.4)
-                .foregroundStyle(GainsColor.lime)
+                .gainsCaption(GainsColor.lime)
 
                 Image(systemName: "arrow.right")
                   .font(.system(size: 10, weight: .heavy))
@@ -279,9 +377,17 @@ struct HomeView: View {
   private func weekDayShape(for day: DayProgress) -> some View {
     switch day.status {
     case .today:
-      Circle().fill(GainsColor.lime)
+      // A8: HEUTE-Zelle bekommt einen weichen Lime-Glow — sticht aus der
+      // Wochenreihe als „aktive Zelle" heraus.
+      Circle()
+        .fill(GainsColor.lime)
+        .shadow(color: GainsColor.lime.opacity(0.55), radius: 10)
     case .completed:
-      Circle().fill(GainsColor.ctaSurface)
+      Circle()
+        .fill(GainsColor.ctaSurface)
+        .overlay(
+          Circle().strokeBorder(GainsColor.lime.opacity(0.5), lineWidth: 0.8)
+        )
     case .planned:
       Circle().strokeBorder(GainsColor.lime, lineWidth: 1.4)
     case .flexible:
@@ -298,7 +404,9 @@ struct HomeView: View {
   private func weekDayTextColor(for day: DayProgress) -> Color {
     switch day.status {
     case .today: return GainsColor.onLime
-    case .completed: return GainsColor.card
+    // A8: completed-Tage füllen mit `ctaSurface` (dunkel) — Foreground muss
+    // hell sein, nicht `card` (war im Light-Only-Erbe gemeint).
+    case .completed: return GainsColor.onCtaSurface
     case .rest: return GainsColor.mutedInk
     default: return GainsColor.ink
     }
@@ -309,7 +417,11 @@ struct HomeView: View {
     return indicatorColor(for: day)
   }
 
-  // MARK: - Quick Links (Coach / Community / Fortschritt)
+  // MARK: - Quick Links (Training / Community)
+  //
+  // Vorher waren diese Zeilen mit "Coach" beschriftet und sprangen ins
+  // Gym, bzw. "Community" öffnete versehentlich das Progress-Capture-Sheet.
+  // Beides ist behoben: die Labels stimmen jetzt mit der Zielsicht überein.
 
   private var quickLinks: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -317,27 +429,112 @@ struct HomeView: View {
 
       VStack(spacing: 0) {
         quickLinkRow(
-          label: "Coach",
+          label: "Training",
           value: store.coachHeadline
         ) {
           navigation.openTraining(workspace: .kraft)
         }
         quickLinkRow(
           label: "Community",
-          value: store.communityHighlightHeadline
-        ) {
-          navigation.presentCapture(kind: .progress)
-        }
-        quickLinkRow(
-          label: "Fortschritt",
-          value:
-            "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions · +\(store.personalRecordCount) PRs",
+          value: store.communityHighlightHeadline,
           isLast: true
         ) {
-          isShowingProgress = true
+          navigation.openCommunity()
         }
       }
     }
+  }
+
+  // MARK: - Fortschritt (öffnet als eigenes Sheet)
+  //
+  // Die Karte verwendet bewusst denselben editorialStartRow-Look wie
+  // „Jetzt starten" (Workout/Lauf) und „Mehr" (Quicklinks): kleines
+  // Eyebrow + großer Display-Titel + dünne Metrik-Zeile + Pfeil-Kreis.
+  // So fügt sich der Fortschritts-Eintrag nahtlos in den Rhythmus des
+  // Home-Screens ein, statt mit Ring/Glow/Gradient-Border eine eigene
+  // Hierarchie-Stufe aufzumachen. Beim Tap öffnet sich `ProgressView` als
+  // Sheet — die volle Detailtiefe lebt damit getrennt vom Home-Screen.
+
+  private var progressSection: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      sectionHeading("FORTSCHRITT")
+
+      VStack(spacing: 0) {
+        progressOpenRow
+      }
+    }
+  }
+
+  private var progressOpenRow: some View {
+    Button {
+      isShowingProgress = true
+    } label: {
+      HStack(alignment: .center, spacing: 16) {
+        VStack(alignment: .leading, spacing: 8) {
+          HStack(spacing: 8) {
+            Circle()
+              .fill(GainsColor.lime)
+              .frame(width: 5, height: 5)
+            Text("DIESE WOCHE")
+              .gainsEyebrow(GainsColor.softInk, size: 12, tracking: 1.4)
+          }
+
+          Text(progressDisplayTitle)
+            .font(GainsFont.display(32))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+
+          // Metrik-Zeile: kleinere Caption-Stufe, damit der Display-Titel
+          // klar dominiert und die Hierarchie spürbar ist.
+          Text(progressMetricLine)
+            .gainsCaption()
+            .lineLimit(1)
+            .truncationMode(.tail)
+        }
+
+        Spacer(minLength: 0)
+
+        Image(systemName: "arrow.up.right")
+          .font(.system(size: 14, weight: .heavy))
+          .foregroundStyle(GainsColor.ink)
+          .frame(width: 46, height: 46)
+          .overlay(
+            Circle().stroke(GainsColor.border.opacity(0.55), lineWidth: 1)
+          )
+      }
+      .padding(.vertical, 18)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("Fortschritt öffnen")
+    .accessibilityValue("\(progressDisplayTitle), \(progressMetricLine)")
+  }
+
+  /// Anteil der erreichten Wochen-Sessions am Wochenziel — geclamped auf
+  /// 0…1. Wird für den Status-Titel auf der Karte gebraucht.
+  private var weeklyProgressRatio: Double {
+    let goal = max(store.weeklyGoalCount, 1)
+    return min(Double(store.weeklySessionsCompleted) / Double(goal), 1.0)
+  }
+
+  /// Display-Titel für die Fortschritts-Karte — bewusst sentence-case
+  /// (passend zu "Workout"/"Lauf"), nicht uppercase wie ein Eyebrow.
+  private var progressDisplayTitle: String {
+    let ratio = weeklyProgressRatio
+    if store.weeklySessionsCompleted >= store.weeklyGoalCount && store.weeklyGoalCount > 0 {
+      return "Ziel erreicht"
+    }
+    if ratio >= 0.66 { return "Auf Kurs" }
+    if ratio >= 0.34 { return "In Bewegung" }
+    if store.weeklySessionsCompleted == 0 { return "Startbereit" }
+    return "Warmup"
+  }
+
+  /// Metrik-Zeile unter dem Display-Titel — gleicher Slot wie bei
+  /// Workout/Lauf, mit Sessions + Streak als kompakter Teaser.
+  private var progressMetricLine: String {
+    "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions · Streak \(store.streakDays) T"
   }
 
   private func quickLinkRow(
@@ -356,7 +553,7 @@ struct HomeView: View {
             .frame(width: 96, alignment: .leading)
 
           Text(value)
-            .font(GainsFont.body(14))
+            .font(GainsFont.body)
             .foregroundStyle(GainsColor.ink)
             .lineLimit(1)
             .truncationMode(.tail)
@@ -364,10 +561,13 @@ struct HomeView: View {
           Spacer(minLength: 0)
 
           Image(systemName: "arrow.up.right")
-            .font(.system(size: 11, weight: .heavy))
+            .font(.system(size: 12, weight: .heavy))
             .foregroundStyle(GainsColor.softInk)
         }
         .padding(.vertical, 16)
+        // Rectangle als Tap-Region — sonst sind Lücken zwischen den Texten
+        // und vor dem Pfeil nicht klickbar.
+        .contentShape(Rectangle())
 
         if !isLast {
           Rectangle()
@@ -377,6 +577,7 @@ struct HomeView: View {
       }
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("\(label): \(value)")
   }
 
   // MARK: - Top Bar
@@ -390,15 +591,22 @@ struct HomeView: View {
       Button {
         isShowingProfile = true
       } label: {
-        Text(store.userName.isEmpty ? "·" : String(store.userName.prefix(1)).uppercased())
-          .font(GainsFont.label(13))
-          .foregroundStyle(GainsColor.ink)
-          .frame(width: 38, height: 38)
-          .background(
-            Circle().stroke(GainsColor.border.opacity(0.55), lineWidth: 1)
-          )
+        // Sichtbarer Avatar bleibt 38pt — die Tap-Region wächst aber auf 44pt
+        // (HIG-Minimum), damit der Profilzugriff nicht knapp am Wordmark
+        // verfehlt wird.
+        ZStack {
+          Circle()
+            .stroke(GainsColor.border.opacity(0.55), lineWidth: 1)
+            .frame(width: 38, height: 38)
+          Text(store.userName.isEmpty ? "·" : String(store.userName.prefix(1)).uppercased())
+            .font(GainsFont.label(13))
+            .foregroundStyle(GainsColor.ink)
+        }
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("Profil öffnen")
     }
   }
 
@@ -495,9 +703,10 @@ struct HomeView: View {
               .lineLimit(1)
               .minimumScaleFactor(0.7)
 
+            // Metrik-Zeile auf Caption-Stufe — klares Hierarchie-Gefälle
+            // unter dem 32pt-Display-Titel.
             Text(metric)
-              .font(GainsFont.body(13))
-              .foregroundStyle(GainsColor.softInk)
+              .gainsCaption()
               .lineLimit(1)
               .truncationMode(.tail)
           }
@@ -513,6 +722,7 @@ struct HomeView: View {
             )
         }
         .padding(.vertical, 18)
+        .contentShape(Rectangle())
 
         if !isLast {
           Rectangle()
@@ -522,6 +732,9 @@ struct HomeView: View {
       }
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("\(eyebrow) — \(title)")
+    .accessibilityValue(metric)
+    .accessibilityAddTraits(isActive ? .isSelected : [])
   }
 
   private func startFreeWorkout() {
@@ -563,24 +776,6 @@ struct HomeView: View {
     }
   }
 
-  private func startOrResumeRun() {
-    isShowingRunTracker = true
-  }
-
-  private func startOrResumeWorkout() {
-    if store.activeWorkout != nil {
-      isShowingWorkoutTracker = true
-    } else {
-      isShowingWorkoutChooser = true
-    }
-  }
-
-  private func launchWorkout(_ plan: WorkoutPlan) {
-    store.startWorkout(from: plan)
-    isShowingWorkoutChooser = false
-    isShowingWorkoutTracker = true
-  }
-
   private func presentArrange(for plan: WorkoutPlan) {
     if store.activeWorkout == nil {
       store.startWorkout(from: plan)
@@ -604,7 +799,7 @@ struct HomeView: View {
   private func indicatorColor(for day: DayProgress) -> Color {
     switch day.status {
     case .today:
-      return GainsColor.ctaSurface
+      return .clear
     case .planned, .completed:
       return GainsColor.lime
     case .flexible:
@@ -743,8 +938,7 @@ private struct WorkoutArrangeView: View {
           VStack(spacing: 12) {
             SwiftUI.ProgressView()
             Text("Workout wird vorbereitet ...")
-              .font(GainsFont.body(13))
-              .foregroundStyle(GainsColor.softInk)
+              .gainsBody(secondary: true)
           }
         }
       }
@@ -794,8 +988,7 @@ private struct WorkoutArrangeView: View {
       }
 
       Text("Reihenfolge ändern, Übungen entfernen oder hinzufügen – dann starten.")
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.softInk)
+        .gainsBody(secondary: true)
         .lineLimit(2)
         .padding(.top, 2)
     }

@@ -27,6 +27,13 @@ enum OnboardingStep: Int, CaseIterable, Identifiable {
   var total: Int { OnboardingStep.allCases.count }
 }
 
+// Wahl im Onboarding-Trainingsschritt: Engine erzeugt den Plan automatisch
+// oder der Nutzer baut die Wochenstruktur selbst zusammen.
+enum OnboardingPlanMode: String {
+  case automatic
+  case manual
+}
+
 struct OnboardingView: View {
   @EnvironmentObject private var store: GainsStore
   @AppStorage("gains_hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -44,6 +51,17 @@ struct OnboardingView: View {
   @State private var goal: WorkoutPlanningGoal = .muscleGain
   @State private var nutritionGoal: NutritionGoal = .muscleGain
   @State private var sessionsPerWeek: Int = 4
+  @State private var planMode: OnboardingPlanMode = .automatic
+  @State private var showsCustomPlanBuilder = false
+
+  // Permissions-Status
+  @State private var notificationsState: NotificationsPermissionState = .idle
+
+  enum NotificationsPermissionState {
+    case idle
+    case granted
+    case denied
+  }
 
   var body: some View {
     ZStack {
@@ -341,11 +359,86 @@ struct OnboardingView: View {
           title: "Bluetooth",
           reason: "Verbindet HF-Sensoren wie Polar oder Wahoo, um deine Live-Herzfrequenz beim Training zu zeigen."
         )
-        permissionCard(
-          icon: "bell.fill",
-          title: "Mitteilungen",
-          reason: "Dezent — nur Workout-Reminder, wenn du sie aktivierst. Keine Marketing-Pings."
-        )
+        notificationsPermissionCard
+      }
+    }
+  }
+
+  // Eigene Karte für Mitteilungen — die einzige Permission, für die es im
+  // späteren Flow keinen natürlichen Trigger-Moment gibt (Standort wird beim
+  // Lauf-Start gefragt, BLE beim Sensor-Pairing, Health beim ersten Sync).
+  // Hier kann der Nutzer die Permission direkt aus dem Onboarding heraus
+  // erteilen, ohne nachher die Settings durchsuchen zu müssen.
+  private var notificationsPermissionCard: some View {
+    Button {
+      requestNotificationsAuthorization()
+    } label: {
+      HStack(alignment: .top, spacing: 14) {
+        Image(systemName: "bell.fill")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(GainsColor.lime)
+          .frame(width: 40, height: 40)
+          .background(Circle().fill(GainsColor.lime.opacity(0.14)))
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text("Mitteilungen")
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+          Text(notificationsCardReason)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        notificationsCardTrailing
+      }
+      .padding(14)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .disabled(notificationsState != .idle)
+  }
+
+  private var notificationsCardReason: String {
+    switch notificationsState {
+    case .idle:
+      return "Dezent — nur Workout-Reminder und Streak-Save am Abend. Tippe zum Aktivieren."
+    case .granted:
+      return "Aktiviert. Du kannst die Reminder jederzeit im Profil wieder ausschalten."
+    case .denied:
+      return "Abgelehnt. Du kannst sie später in den iOS-Einstellungen freigeben."
+    }
+  }
+
+  @ViewBuilder
+  private var notificationsCardTrailing: some View {
+    switch notificationsState {
+    case .idle:
+      Image(systemName: "chevron.right")
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(GainsColor.softInk)
+    case .granted:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.system(size: 18, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+    case .denied:
+      Image(systemName: "exclamationmark.triangle.fill")
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundStyle(.orange)
+    }
+  }
+
+  private func requestNotificationsAuthorization() {
+    NotificationsManager.shared.requestAuthorization { granted in
+      notificationsState = granted ? .granted : .denied
+      if granted {
+        NotificationsManager.shared.refreshSchedule(for: store)
       }
     }
   }
@@ -435,7 +528,122 @@ struct OnboardingView: View {
           }
         }
       }
+
+      // Plan-Modus: Auto vs. Selbst erstellen.
+      // Wir bieten dem Nutzer hier explizit die Wahl, damit niemand erst
+      // im PLAN-Tab erfahren muss, dass es eine manuelle Variante gibt.
+      VStack(alignment: .leading, spacing: 10) {
+        Text("WIE WILLST DU DEINEN PLAN?")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+
+        VStack(spacing: 8) {
+          planModeRow(
+            mode: .automatic,
+            title: "Auto-Plan",
+            description: "Wir verteilen Trainings, Pausen und ggf. Läufe optimal auf die Woche — basierend auf Ziel und Frequenz."
+          )
+          planModeRow(
+            mode: .manual,
+            title: "Selbst erstellen",
+            description: "Du wählst pro Wochentag selbst: Krafttraining, Lauf-Typ oder Frei. Volle Kontrolle, ohne Wizard."
+          )
+        }
+
+        if planMode == .manual {
+          Button {
+            showsCustomPlanBuilder = true
+          } label: {
+            HStack(spacing: 8) {
+              Image(systemName: store.plannerSettings.isManualPlan ? "checkmark.circle.fill" : "slider.horizontal.3")
+                .font(.system(size: 13, weight: .bold))
+              Text(store.plannerSettings.isManualPlan
+                   ? "Plan bearbeiten"
+                   : "Plan jetzt selbst zusammenstellen")
+                .font(GainsFont.label(12))
+                .tracking(1.2)
+              Spacer(minLength: 0)
+              Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .opacity(0.7)
+            }
+            .foregroundStyle(GainsColor.onLime)
+            .padding(.horizontal, 14)
+            .frame(height: 48)
+            .frame(maxWidth: .infinity)
+            .background(GainsColor.lime)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          }
+          .buttonStyle(.plain)
+
+          if store.plannerSettings.isManualPlan {
+            HStack(spacing: 8) {
+              Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(GainsColor.lime)
+              Text("Eigener Plan gespeichert · \(store.plannerSettings.manualSessionKinds.count) Trainingstage")
+                .font(GainsFont.label(11))
+                .foregroundStyle(GainsColor.softInk)
+            }
+          } else {
+            Text("Du kannst es auch später im PLAN-Tab nachholen.")
+              .font(GainsFont.body(11))
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+      }
     }
+    .sheet(isPresented: $showsCustomPlanBuilder) {
+      CustomPlanBuilderSheet()
+        .environmentObject(store)
+    }
+  }
+
+  // Card-artige Auswahl-Reihe für den Plan-Modus.
+  private func planModeRow(
+    mode: OnboardingPlanMode,
+    title: String,
+    description: String
+  ) -> some View {
+    let isSelected = planMode == mode
+    return Button {
+      withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+        planMode = mode
+      }
+    } label: {
+      HStack(alignment: .top, spacing: 14) {
+        Image(systemName: mode == .automatic ? "wand.and.stars" : "slider.horizontal.3")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
+          .frame(width: 40, height: 40)
+          .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14)))
+
+        VStack(alignment: .leading, spacing: 4) {
+          Text(title)
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+          Text(description)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
+      }
+      .padding(14)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .stroke(
+            isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
+            lineWidth: 1
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+    .buttonStyle(.plain)
   }
 
   private func goalRow(_ planning: WorkoutPlanningGoal, nutrition: NutritionGoal, description: String) -> some View {
@@ -589,10 +797,16 @@ struct OnboardingView: View {
       store.userName = trimmedName
     }
 
-    // Trainings-Settings übernehmen
+    // Trainings-Settings übernehmen.
+    // Wenn der Nutzer im Onboarding einen manuellen Plan gespeichert hat,
+    // hat `applyManualPlan(...)` `sessionsPerWeek` schon auf die tatsächliche
+    // Anzahl Trainingstage gesetzt und `isManualPlan = true` markiert. Wir
+    // wollen das hier NICHT mit der Onboarding-Frequenz überschreiben.
     var settings = store.plannerSettings
     settings.goal = goal
-    settings.sessionsPerWeek = sessionsPerWeek
+    if !settings.isManualPlan {
+      settings.sessionsPerWeek = sessionsPerWeek
+    }
     store.plannerSettings = settings
 
     store.saveAll()

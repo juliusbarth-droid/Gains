@@ -19,6 +19,7 @@ extension MuscleGroup: Codable {}
 extension WorkoutLimitation: Codable {}
 extension RunningGoal: Codable {}
 extension RunIntensityModel: Codable {}
+extension PlannedSessionKind: Codable {}
 
 extension WorkoutPlanSource: Codable {
   private enum RawValue: String, Codable {
@@ -201,6 +202,7 @@ extension WorkoutPlannerSettings: Codable {
     case experience, equipment, splitPreference, recoveryCapacity
     case prioritizedMuscles, limitations
     case runningGoal, runIntensityModel, weeklyKilometerTarget
+    case isManualPlan, manualSessionKinds
   }
 
   func encode(to encoder: Encoder) throws {
@@ -231,6 +233,13 @@ extension WorkoutPlannerSettings: Codable {
     try c.encode(runningGoal,            forKey: .runningGoal)
     try c.encode(runIntensityModel,      forKey: .runIntensityModel)
     try c.encode(weeklyKilometerTarget,  forKey: .weeklyKilometerTarget)
+
+    try c.encode(isManualPlan, forKey: .isManualPlan)
+    // [Weekday: PlannedSessionKind] → [String: String] (rawValues als Keys)
+    let manual = Dictionary(uniqueKeysWithValues: manualSessionKinds.map {
+      (String($0.key.rawValue), $0.value.rawValue)
+    })
+    try c.encode(manual, forKey: .manualSessionKinds)
   }
 
   init(from decoder: Decoder) throws {
@@ -271,6 +280,16 @@ extension WorkoutPlannerSettings: Codable {
     runningGoal           = try c.decodeIfPresent(RunningGoal.self,        forKey: .runningGoal)           ?? defaults.runningGoal
     runIntensityModel     = try c.decodeIfPresent(RunIntensityModel.self,  forKey: .runIntensityModel)     ?? defaults.runIntensityModel
     weeklyKilometerTarget = try c.decodeIfPresent(Int.self,                forKey: .weeklyKilometerTarget) ?? defaults.weeklyKilometerTarget
+
+    // Migration für manuellen Plan: ältere Datensätze haben die Felder
+    // noch nicht — Defaults greifen, der Wizard-Flow bleibt aktiv.
+    isManualPlan = try c.decodeIfPresent(Bool.self, forKey: .isManualPlan) ?? defaults.isManualPlan
+    let rawManual = try c.decodeIfPresent([String: String].self, forKey: .manualSessionKinds) ?? [:]
+    manualSessionKinds = Dictionary(uniqueKeysWithValues: rawManual.compactMap { key, val -> (Weekday, PlannedSessionKind)? in
+      guard let raw = Int(key), let day = Weekday(rawValue: raw),
+            let kind = PlannedSessionKind(rawValue: val) else { return nil }
+      return (day, kind)
+    })
   }
 }
 
@@ -336,7 +355,7 @@ extension CompletedWorkoutSummary: Codable {
 
 extension RunSplit: Codable {
   enum CodingKeys: String, CodingKey {
-    case id, index, distanceKm, durationMinutes, averageHeartRate
+    case id, index, distanceKm, durationMinutes, averageHeartRate, isManualLap
   }
 
   // A5: id/index Pflicht, Messwerte fallen auf 0 zurück.
@@ -347,6 +366,7 @@ extension RunSplit: Codable {
     distanceKm       = try c.decodeIfPresent(Double.self,     forKey: .distanceKm)       ?? 0
     durationMinutes  = try c.decodeIfPresent(Int.self,        forKey: .durationMinutes)  ?? 0
     averageHeartRate = try c.decodeIfPresent(Int.self,        forKey: .averageHeartRate) ?? 0
+    isManualLap      = try c.decodeIfPresent(Bool.self,       forKey: .isManualLap)      ?? false
   }
 
   func encode(to encoder: Encoder) throws {
@@ -356,6 +376,9 @@ extension RunSplit: Codable {
     try c.encode(distanceKm,       forKey: .distanceKm)
     try c.encode(durationMinutes,  forKey: .durationMinutes)
     try c.encode(averageHeartRate, forKey: .averageHeartRate)
+    if isManualLap {
+      try c.encode(isManualLap,    forKey: .isManualLap)
+    }
   }
 }
 
@@ -369,6 +392,7 @@ extension CompletedRunSummary: Codable {
   enum CodingKeys: String, CodingKey {
     case id, title, routeName, finishedAt, distanceKm, durationMinutes
     case elevationGain, averageHeartRate, routeCoordinates, splits
+    case intensity, feel, note, hrZoneSecondsBuckets
   }
 
   // A5: id/title/finishedAt Pflicht; routeName, Messwerte und Routen-Coords
@@ -376,6 +400,8 @@ extension CompletedRunSummary: Codable {
   init(from decoder: Decoder) throws {
     let c    = try decoder.container(keyedBy: CodingKeys.self)
     let coords = try c.decodeIfPresent([CodableCoordinate].self, forKey: .routeCoordinates) ?? []
+    let intensityRaw = try c.decodeIfPresent(String.self,        forKey: .intensity)
+    let feelRaw      = try c.decodeIfPresent(Int.self,           forKey: .feel)
     self.init(
       id:               try c.decode(UUID.self,                       forKey: .id),
       title:            try c.decode(String.self,                     forKey: .title),
@@ -386,7 +412,11 @@ extension CompletedRunSummary: Codable {
       elevationGain:    try c.decodeIfPresent(Int.self,               forKey: .elevationGain)    ?? 0,
       averageHeartRate: try c.decodeIfPresent(Int.self,               forKey: .averageHeartRate) ?? 0,
       routeCoordinates: coords.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) },
-      splits:           try c.decodeIfPresent([RunSplit].self,        forKey: .splits)           ?? []
+      splits:           try c.decodeIfPresent([RunSplit].self,        forKey: .splits)           ?? [],
+      intensity:        intensityRaw.flatMap { RunIntensity(rawValue: $0) } ?? .free,
+      feel:             feelRaw.flatMap { RunFeel(rawValue: $0) },
+      note:             try c.decodeIfPresent(String.self,            forKey: .note)             ?? "",
+      hrZoneSecondsBuckets: try c.decodeIfPresent([Int].self,         forKey: .hrZoneSecondsBuckets) ?? [0,0,0,0,0]
     )
   }
 
@@ -403,6 +433,86 @@ extension CompletedRunSummary: Codable {
     let coords = routeCoordinates.map { CodableCoordinate(latitude: $0.latitude, longitude: $0.longitude) }
     try c.encode(coords,           forKey: .routeCoordinates)
     try c.encode(splits,           forKey: .splits)
+    try c.encode(intensity.rawValue, forKey: .intensity)
+    if let feel { try c.encode(feel.rawValue, forKey: .feel) }
+    if !note.isEmpty { try c.encode(note,    forKey: .note) }
+    if hrZoneSecondsBuckets.contains(where: { $0 > 0 }) {
+      try c.encode(hrZoneSecondsBuckets, forKey: .hrZoneSecondsBuckets)
+    }
+  }
+}
+
+// MARK: - SavedRoute Codable
+
+extension SavedRoute: Codable {
+  enum CodingKeys: String, CodingKey {
+    case id, title, note, distanceKm, elevationGain, surface, createdAt, coordinates, timesRun
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    let coords = try c.decodeIfPresent([CodableCoordinate].self, forKey: .coordinates) ?? []
+    self.init(
+      id:            try c.decode(UUID.self,                      forKey: .id),
+      title:         try c.decodeIfPresent(String.self,           forKey: .title)         ?? "Route",
+      note:          try c.decodeIfPresent(String.self,           forKey: .note)          ?? "",
+      distanceKm:    try c.decodeIfPresent(Double.self,           forKey: .distanceKm)    ?? 0,
+      elevationGain: try c.decodeIfPresent(Int.self,              forKey: .elevationGain) ?? 0,
+      surface:       try c.decodeIfPresent(RouteSurface.self,     forKey: .surface)       ?? .mixed,
+      createdAt:     try c.decodeIfPresent(Date.self,             forKey: .createdAt)     ?? Date(),
+      coordinates:   coords.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) },
+      timesRun:      try c.decodeIfPresent(Int.self,              forKey: .timesRun)      ?? 0
+    )
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(id,            forKey: .id)
+    try c.encode(title,         forKey: .title)
+    try c.encode(note,          forKey: .note)
+    try c.encode(distanceKm,    forKey: .distanceKm)
+    try c.encode(elevationGain, forKey: .elevationGain)
+    try c.encode(surface,       forKey: .surface)
+    try c.encode(createdAt,     forKey: .createdAt)
+    let coords = coordinates.map { CodableCoordinate(latitude: $0.latitude, longitude: $0.longitude) }
+    try c.encode(coords,        forKey: .coordinates)
+    try c.encode(timesRun,      forKey: .timesRun)
+  }
+}
+
+// MARK: - RunSegment Codable
+
+extension RunSegment: Codable {
+  enum CodingKeys: String, CodingKey {
+    case id, title, note, coordinates, distanceKm, elevationGain, createdAt, isAutoCreated
+  }
+
+  init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    let coords = try c.decodeIfPresent([CodableCoordinate].self, forKey: .coordinates) ?? []
+    self.init(
+      id:            try c.decode(UUID.self,             forKey: .id),
+      title:         try c.decodeIfPresent(String.self,  forKey: .title)         ?? "Segment",
+      note:          try c.decodeIfPresent(String.self,  forKey: .note)          ?? "",
+      coordinates:   coords.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) },
+      distanceKm:    try c.decodeIfPresent(Double.self,  forKey: .distanceKm)    ?? 0,
+      elevationGain: try c.decodeIfPresent(Int.self,     forKey: .elevationGain) ?? 0,
+      createdAt:     try c.decodeIfPresent(Date.self,    forKey: .createdAt)     ?? Date(),
+      isAutoCreated: try c.decodeIfPresent(Bool.self,    forKey: .isAutoCreated) ?? false
+    )
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: CodingKeys.self)
+    try c.encode(id,            forKey: .id)
+    try c.encode(title,         forKey: .title)
+    try c.encode(note,          forKey: .note)
+    let coords = coordinates.map { CodableCoordinate(latitude: $0.latitude, longitude: $0.longitude) }
+    try c.encode(coords,        forKey: .coordinates)
+    try c.encode(distanceKm,    forKey: .distanceKm)
+    try c.encode(elevationGain, forKey: .elevationGain)
+    try c.encode(createdAt,     forKey: .createdAt)
+    try c.encode(isAutoCreated, forKey: .isAutoCreated)
   }
 }
 
@@ -436,6 +546,11 @@ enum PersistenceKey {
   static let forumThreads         = "gains_forumThreads"
   static let meetups              = "gains_meetups"
   static let joinedMeetupIDs      = "gains_joinedMeetupIDs"
+  // Strava-Erweiterung: Routen, Segmente, strukturierte Workouts
+  static let savedRoutes          = "gains_savedRoutes"
+  static let runSegments          = "gains_runSegments"
+  static let runSegmentEfforts    = "gains_runSegmentEfforts"
+  static let structuredRunWorkouts = "gains_structuredRunWorkouts"
   /// A5: Schema-Version, mit der die persistierten Daten geschrieben wurden.
   /// Wird beim App-Start gegen `PersistenceMigrator.currentVersion` geprüft.
   static let schemaVersion        = "gains_schemaVersion"
@@ -504,13 +619,49 @@ extension String {
 
 extension UserDefaults {
   func encodedSave<T: Encodable>(_ value: T, forKey key: String) {
-    guard let data = try? JSONEncoder().encode(value) else { return }
+    guard let data = try? JSONEncoder().encode(value) else {
+      #if DEBUG
+      print("[GainsPersistence] ⚠️ Encoding fehlgeschlagen für Key '\(key)' (\(T.self)) — Daten werden nicht gespeichert.")
+      #endif
+      return
+    }
     set(data, forKey: key)
   }
 
   func decodedLoad<T: Decodable>(_ type: T.Type, forKey key: String) -> T? {
     guard let data = data(forKey: key) else { return nil }
     return try? JSONDecoder().decode(type, from: data)
+  }
+
+  /// A5: Decodiert ein [UUID: [T]]-Dictionary tolerant — korrupte Values werden
+  /// übersprungen statt das ganze Dictionary zu verwerfen. Gibt nil zurück, wenn
+  /// unter dem Key kein JSON-Objekt liegt.
+  ///
+  /// Verwendet statt `decodedLoad([UUID: [T]].self, forKey:)` für Dictionaries
+  /// (z.B. runSegmentEfforts), bei denen ein einzelner kaputter Wert nicht alle
+  /// anderen Einträge mitreißen darf.
+  func decodedLoadLenientUUIDDictionary<T: Decodable>(_ elementType: T.Type, forKey key: String) -> [UUID: [T]]? {
+    guard let data = data(forKey: key) else { return nil }
+    let decoder = JSONDecoder()
+    // Schneller Pfad: alles kompatibel → direkt decodieren.
+    if let result = try? decoder.decode([String: [T]].self, from: data) {
+      let mapped = result.compactMap { k, v -> (UUID, [T])? in
+        guard let uuid = UUID(uuidString: k) else { return nil }
+        return (uuid, v)
+      }
+      return mapped.isEmpty ? nil : Dictionary(uniqueKeysWithValues: mapped)
+    }
+    // Fallback: Key für Key decodieren — korrupte Values einzeln überspringen.
+    guard let raw = try? JSONSerialization.jsonObject(with: data),
+          let dict = raw as? [String: Any] else { return nil }
+    var result: [UUID: [T]] = [:]
+    for (k, v) in dict {
+      guard let uuid = UUID(uuidString: k),
+            let valueData = try? JSONSerialization.data(withJSONObject: v),
+            let elements = try? decoder.decode([T].self, from: valueData) else { continue }
+      result[uuid] = elements
+    }
+    return result.isEmpty ? nil : result
   }
 
   /// A5: Decodiert ein Array tolerant — wenn einzelne Elemente nicht decodierbar

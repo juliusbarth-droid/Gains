@@ -409,7 +409,7 @@ struct WearablePickerSheet: View {
   private var stateColor: Color {
     switch ble.scanState {
     case .connected:            return GainsColor.lime
-    case .scanning:             return Color.blue
+    case .scanning:             return GainsColor.accentCool
     case .connecting:           return GainsColor.ember
     case .failed:               return GainsColor.ember
     case .bluetoothUnavailable: return GainsColor.ember

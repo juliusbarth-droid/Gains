@@ -193,25 +193,25 @@ struct CommunityView: View {
     VStack(alignment: .leading, spacing: 14) {
       SlashLabel(
         parts: ["LIVE", "CHALLENGE"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.card.opacity(0.75))
+        secondaryColor: GainsColor.onCtaSurface.opacity(0.75))
 
       Text(viewModel.challengeTitle)
         .font(GainsFont.title(28))
-        .foregroundStyle(GainsColor.card)
+        .foregroundStyle(GainsColor.onCtaSurface)
 
       Text("\(store.challengeParticipantsCount) aktive Mitglieder")
         .font(GainsFont.body())
-        .foregroundStyle(GainsColor.card.opacity(0.8))
+        .foregroundStyle(GainsColor.onCtaSurface.opacity(0.8))
 
       HStack(spacing: 8) {
         ForEach(viewModel.challengeBenefits, id: \.self) { benefit in
           Text(benefit)
             .font(GainsFont.label(9))
             .tracking(1.4)
-            .foregroundStyle(GainsColor.card.opacity(0.82))
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.82))
             .padding(.horizontal, 10)
             .frame(height: 26)
-            .background(GainsColor.card.opacity(0.08))
+            .background(GainsColor.onCtaSurface.opacity(0.08))
             .clipShape(Capsule())
         }
       }
@@ -222,14 +222,14 @@ struct CommunityView: View {
         Text(store.joinedChallenge ? "Challenge verlassen" : "Challenge beitreten")
           .font(GainsFont.label(12))
           .tracking(1.5)
-          .foregroundStyle(store.joinedChallenge ? GainsColor.ink : GainsColor.lime)
+          .foregroundStyle(store.joinedChallenge ? GainsColor.onLime : GainsColor.lime)
           .frame(maxWidth: .infinity)
           .frame(height: 48)
-          .background(store.joinedChallenge ? GainsColor.lime : GainsColor.card.opacity(0.14))
+          .background(store.joinedChallenge ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.14))
           .overlay {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
               .stroke(
-                store.joinedChallenge ? GainsColor.lime : GainsColor.card.opacity(0.28),
+                store.joinedChallenge ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.28),
                 lineWidth: 1)
           }
           .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
@@ -626,13 +626,13 @@ private struct CommunityFeedCard: View {
         .overlay {
           Image(systemName: post.placeholderSymbol)
             .font(.system(size: 72, weight: .medium))
-            .foregroundStyle(GainsColor.card)
+            .foregroundStyle(GainsColor.onCtaSurface)
         }
 
       Text("\(post.type.title)-Post")
         .font(GainsFont.label(9))
         .tracking(1.8)
-        .foregroundStyle(GainsColor.card.opacity(0.8))
+        .foregroundStyle(GainsColor.onCtaSurface.opacity(0.8))
         .padding(16)
     }
   }

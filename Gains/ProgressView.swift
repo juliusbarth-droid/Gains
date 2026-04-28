@@ -16,7 +16,30 @@ private enum ProgressSurface: String, CaseIterable, Identifiable {
   }
 }
 
+/// Vollbild-Variante des Fortschritts (mit Wordmark, Hintergrund und ScrollView).
+/// Wird aktuell nicht mehr direkt angezeigt — der Fortschritt erscheint nur noch
+/// als aufklappbarer Bereich auf dem Home-Screen via `ProgressContentView`.
+/// Bleibt als Wrapper bestehen, falls künftig wieder ein eigenständiges
+/// Fortschritts-Surface gebraucht wird.
 struct ProgressView: View {
+  var body: some View {
+    GainsScreen {
+      VStack(alignment: .leading, spacing: 20) {
+        screenHeader(
+          eyebrow: "BODY / REFLECTION",
+          title: "Fortschritt",
+          subtitle: "Training, Gewicht und Readiness auf einen Blick."
+        )
+        ProgressContentView()
+      }
+    }
+  }
+}
+
+/// Inhaltsteil des Fortschritts ohne `GainsScreen`-Wrapper und ohne Header,
+/// damit er sich problemlos in andere Screens (z. B. den Home-Screen als
+/// aufklappbarer Bereich) einbetten lässt.
+struct ProgressContentView: View {
   @EnvironmentObject private var store: GainsStore
   @EnvironmentObject private var navigation: AppNavigationStore
   @State private var selectedSurface: ProgressSurface = .overview
@@ -26,28 +49,20 @@ struct ProgressView: View {
   private let vitalColumns   = Array(repeating: GridItem(.flexible(), spacing: 12), count: 2)
 
   var body: some View {
-    GainsScreen {
-      VStack(alignment: .leading, spacing: 20) {
-        screenHeader(
-          eyebrow: "BODY / REFLECTION",
-          title: "Fortschritt",
-          subtitle: "Training, Gewicht und Readiness auf einen Blick."
-        )
+    VStack(alignment: .leading, spacing: 20) {
+      weekHeroCard
+      sessionDotsStrip
+      compactStatsRow
 
-        weekHeroCard
-        sessionDotsStrip
-        compactStatsRow
+      collapsibleProgressSection(
+        title: "Check-ins",
+        subtitle: "Gewicht, Taille, Protein und Vitals",
+        isExpanded: $showsQuickCheckIns,
+        content: { quickActionsSection }
+      )
 
-        collapsibleProgressSection(
-          title: "Check-ins",
-          subtitle: "Gewicht, Taille, Protein und Vitals",
-          isExpanded: $showsQuickCheckIns,
-          content: { quickActionsSection }
-        )
-
-        surfacePicker
-        visibleContent
-      }
+      surfacePicker
+      visibleContent
     }
   }
 
@@ -58,14 +73,14 @@ struct ProgressView: View {
       SlashLabel(
         parts: ["WOCHE", weekLabel, "TRAINING"],
         primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.card.opacity(0.6)
+        secondaryColor: GainsColor.onCtaSurface.opacity(0.6)
       )
 
       HStack(alignment: .center, spacing: 16) {
         // Ring
         ZStack {
           Circle()
-            .stroke(GainsColor.card.opacity(0.15), lineWidth: 11)
+            .stroke(GainsColor.onCtaSurface.opacity(0.15), lineWidth: 11)
           Circle()
             .trim(from: 0, to: weekProgress)
             .stroke(GainsColor.lime, style: StrokeStyle(lineWidth: 11, lineCap: .round))
@@ -74,11 +89,11 @@ struct ProgressView: View {
           VStack(spacing: 0) {
             Text("\(store.weeklySessionsCompleted)")
               .font(GainsFont.display(38))
-              .foregroundStyle(GainsColor.card)
+              .foregroundStyle(GainsColor.onCtaSurface)
             Text("/ \(store.weeklyGoalCount)")
               .font(GainsFont.label(11))
               .tracking(1.2)
-              .foregroundStyle(GainsColor.card.opacity(0.55))
+              .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
           }
         }
         .frame(width: 110, height: 110)
@@ -91,7 +106,7 @@ struct ProgressView: View {
 
           Text(motivationText)
             .font(GainsFont.body(13))
-            .foregroundStyle(GainsColor.card.opacity(0.76))
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.76))
             .lineLimit(3)
         }
       }
@@ -109,7 +124,7 @@ struct ProgressView: View {
         .foregroundStyle(GainsColor.lime)
         .frame(maxWidth: .infinity)
         .frame(height: 44)
-        .background(GainsColor.card.opacity(0.1))
+        .background(GainsColor.onCtaSurface.opacity(0.1))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
       }
       .buttonStyle(.plain)
@@ -243,7 +258,7 @@ struct ProgressView: View {
             Text(surface.title)
               .font(GainsFont.label(10))
               .tracking(1.5)
-              .foregroundStyle(selectedSurface == surface ? GainsColor.ink : GainsColor.softInk)
+              .foregroundStyle(selectedSurface == surface ? GainsColor.onLime : GainsColor.softInk)
               .padding(.horizontal, 16)
               .frame(height: 38)
               .background(selectedSurface == surface ? GainsColor.lime : GainsColor.card)

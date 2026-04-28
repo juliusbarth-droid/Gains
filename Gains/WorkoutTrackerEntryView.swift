@@ -236,12 +236,12 @@ struct WorkoutTrackerEntryView: View {
 
         Text("Workout für dich zusammenstellen")
           .font(GainsFont.title(20))
-          .foregroundStyle(GainsColor.card)
+          .foregroundStyle(GainsColor.onCtaSurface)
           .multilineTextAlignment(.leading)
 
         Text("Wähle aus über \(ExerciseLibraryItem.fullCatalog.count) Übungen, sortiert nach Muskelgruppe und Equipment.")
           .font(GainsFont.body(13))
-          .foregroundStyle(GainsColor.card.opacity(0.78))
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.78))
           .multilineTextAlignment(.leading)
           .lineLimit(3)
 

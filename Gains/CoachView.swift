@@ -1,5 +1,15 @@
 import SwiftUI
 
+// MARK: - CoachView (DEPRECATED, Phase B)
+//
+// Diese View ist aktuell **nicht** in der App-Navigation eingebunden.
+// In der laufenden Version werden Coach-Inhalte (Headline, Recommendations)
+// inline auf dem Home-Screen und im PLAN-Tab gerendert. Diese eigenständige
+// CoachView bleibt als Referenz für ein späteres dediziertes Coach-Surface
+// (Phase B) erhalten — sie nicht löschen, aber auch nicht versuchen, sie
+// per Quicklink zu erreichen, das endete in der Vergangenheit damit, dass
+// Buttons mit dem Label "Coach" in Wahrheit ins Gym gesprungen sind.
+
 struct CoachView: View {
   @EnvironmentObject private var store: GainsStore
   let viewModel: CoachViewModel
@@ -44,7 +54,7 @@ struct CoachView: View {
       RoundedRectangle(cornerRadius: 26, style: .continuous)
         .stroke(GainsColor.lime.opacity(0.22), lineWidth: 1)
     }
-    .foregroundStyle(GainsColor.card)
+    .foregroundStyle(GainsColor.onCtaSurface)
   }
 
   private var scoreSection: some View {

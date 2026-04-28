@@ -7,8 +7,13 @@ import SwiftUI
 
 struct RunDetailSheet: View {
   @Environment(\.dismiss) private var dismiss
+  @EnvironmentObject private var store: GainsStore
   let run: CompletedRunSummary
   let onRunAgain: () -> Void
+
+  @State private var showsSaveRouteAlert = false
+  @State private var routeNameDraft: String = ""
+  @State private var savedRouteFlash: Bool = false
 
   var body: some View {
     NavigationStack {
@@ -16,8 +21,21 @@ struct RunDetailSheet: View {
         VStack(alignment: .leading, spacing: 0) {
           mapSection
           statsBlock
+          // Route-Aktionen: speichern als wiederverwendbare Route.
+          if !run.routeCoordinates.isEmpty {
+            routeActionsBlock
+              .padding(.horizontal, 20)
+              .padding(.bottom, 20)
+          }
+          if !run.note.isEmpty || run.feel != nil || run.intensity != .free {
+            feelAndNoteSection
+          }
           if !run.splits.isEmpty {
             splitsSection
+            paceChartSection
+          }
+          if run.hrZoneSecondsBuckets.contains(where: { $0 > 0 }) {
+            hrZonesSection
           }
           achievementsSection
         }
@@ -59,6 +77,59 @@ struct RunDetailSheet: View {
           .buttonStyle(.plain)
         }
       }
+      .alert("Route speichern", isPresented: $showsSaveRouteAlert) {
+        TextField("Routenname", text: $routeNameDraft)
+        Button("Speichern") {
+          let title = routeNameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+          let final = title.isEmpty ? run.routeName : title
+          if store.saveRoute(from: run, title: final) != nil {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+              savedRouteFlash = true
+            }
+          }
+        }
+        Button("Abbrechen", role: .cancel) {}
+      } message: {
+        Text("Du findest die Route danach im Tab „Routen“ – inkl. Heatmap und Verlinkung zu deinen Läufen.")
+      }
+    }
+  }
+
+  // MARK: - Route-Actions
+
+  private var routeActionsBlock: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      sectionHeader("ROUTE")
+
+      Button {
+        if savedRouteFlash {
+          // Schon gespeichert — kein zweiter Save.
+          return
+        }
+        routeNameDraft = run.routeName.isEmpty ? run.title : run.routeName
+        showsSaveRouteAlert = true
+      } label: {
+        HStack(spacing: 10) {
+          Image(systemName: savedRouteFlash ? "checkmark.circle.fill" : "map.fill")
+            .font(.system(size: 14, weight: .semibold))
+          Text(savedRouteFlash ? "Route gespeichert" : "Route speichern")
+            .font(GainsFont.label(11))
+            .tracking(1.2)
+          Spacer()
+          if !savedRouteFlash {
+            Image(systemName: "chevron.right")
+              .font(.system(size: 10, weight: .semibold))
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+        .foregroundStyle(savedRouteFlash ? GainsColor.moss : GainsColor.ink)
+        .padding(.horizontal, 14)
+        .frame(height: 48)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(savedRouteFlash ? GainsColor.lime.opacity(0.18) : GainsColor.card)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      }
+      .buttonStyle(.plain)
     }
   }
 
@@ -67,28 +138,23 @@ struct RunDetailSheet: View {
   private var mapSection: some View {
     ZStack(alignment: .bottomLeading) {
       if run.routeCoordinates.isEmpty {
-        // Placeholder map centered on Munich
-        Map(position: .constant(.region(
-          MKCoordinateRegion(
-            center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
-            span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
-          )
-        )))
-        .frame(height: 240)
-        .overlay(
-          ZStack {
-            Color.black.opacity(0.25)
-            VStack(spacing: 6) {
-              Image(systemName: "map")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.7))
-              Text("Route nicht aufgezeichnet")
-                .font(GainsFont.label(10))
-                .tracking(1.2)
-                .foregroundStyle(.white.opacity(0.7))
-            }
+        // Kein Route-Track aufgezeichnet — wir zeigen einen dezenten
+        // Design-System-Platzhalter statt einer fest auf München zentrierten
+        // Map (vermeidet sowohl die hartcodierten Koordinaten als auch das
+        // unnötige Laden von Map-Tiles, die ohnehin überlagert werden).
+        ZStack {
+          GainsColor.elevated
+          VStack(spacing: 8) {
+            Image(systemName: "map")
+              .font(.system(size: 26, weight: .semibold))
+              .foregroundStyle(GainsColor.softInk)
+            Text("Route nicht aufgezeichnet")
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+              .foregroundStyle(GainsColor.softInk)
           }
-        )
+        }
+        .frame(height: 240)
       } else {
         Map(position: .constant(.region(regionForRoute(run.routeCoordinates)))) {
           MapPolyline(coordinates: run.routeCoordinates)
@@ -325,6 +391,109 @@ struct RunDetailSheet: View {
     )
   }
 
+  // MARK: - Feel & Note
+
+  private var feelAndNoteSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      sectionHeader("EINORDNUNG")
+
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(spacing: 10) {
+          if run.intensity != .free {
+            metaChip(symbol: run.intensity.systemImage, label: run.intensity.title)
+          }
+          if let feel = run.feel {
+            metaChip(symbol: feel.emojiSymbol, label: feel.title)
+          }
+          Spacer(minLength: 0)
+        }
+
+        if !run.note.isEmpty {
+          Text(run.note)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+      }
+      .padding(14)
+      .background(GainsColor.card)
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+    .padding(.horizontal, 20)
+    .padding(.bottom, 20)
+  }
+
+  private func metaChip(symbol: String, label: String) -> some View {
+    HStack(spacing: 6) {
+      Image(systemName: symbol)
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+      Text(label)
+        .font(GainsFont.label(10))
+        .tracking(1.2)
+        .foregroundStyle(GainsColor.ink)
+    }
+    .padding(.horizontal, 10)
+    .frame(height: 28)
+    .background(GainsColor.background.opacity(0.6))
+    .clipShape(Capsule())
+  }
+
+  // MARK: - HR-Zonen-Verteilung
+
+  private var hrZonesSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      sectionHeader("HF-ZONEN")
+
+      VStack(alignment: .leading, spacing: 10) {
+        // Stacked Bar
+        GeometryReader { geo in
+          HStack(spacing: 1) {
+            ForEach(Array(HRZone.allCases.enumerated()), id: \.element) { idx, zone in
+              let fraction = run.hrZoneFractions[safe: idx] ?? 0
+              Rectangle()
+                .fill(zone.color())
+                .frame(width: max(geo.size.width * fraction, fraction > 0 ? 4 : 0), height: 12)
+            }
+          }
+        }
+        .frame(height: 12)
+        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+
+        // Legende
+        VStack(spacing: 6) {
+          ForEach(Array(HRZone.allCases.enumerated()), id: \.element) { idx, zone in
+            let secs = run.hrZoneSecondsBuckets[safe: idx] ?? 0
+            HStack(spacing: 8) {
+              Circle().fill(zone.color()).frame(width: 8, height: 8)
+              Text(zone.title)
+                .font(GainsFont.body(12))
+                .foregroundStyle(GainsColor.ink)
+              Spacer()
+              Text(formatZoneDuration(secs))
+                .font(GainsFont.body(12))
+                .foregroundStyle(GainsColor.softInk)
+                .monospacedDigit()
+            }
+          }
+        }
+      }
+      .padding(14)
+      .background(GainsColor.card)
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+    .padding(.horizontal, 20)
+    .padding(.bottom, 20)
+  }
+
+  private func formatZoneDuration(_ seconds: Int) -> String {
+    guard seconds > 0 else { return "—" }
+    let m = seconds / 60
+    let s = seconds % 60
+    if m == 0 { return "\(s)s" }
+    return String(format: "%d:%02d", m, s)
+  }
+
   // MARK: - Achievements
 
   private var achievementsSection: some View {
@@ -410,18 +579,22 @@ struct RunDetailSheet: View {
   }
 
   private func regionForRoute(_ coordinates: [CLLocationCoordinate2D]) -> MKCoordinateRegion {
-    guard !coordinates.isEmpty else {
-      return MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
-        span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
-      )
-    }
+    // Defensiver Fallback: ein generisches Welt-Fenster statt einer hartcodierten
+    // Stadtmitte — falls die Funktion (entgegen dem aktuellen Aufrufpfad) doch
+    // einmal mit einer leeren Coordinate-Liste aufgerufen wird.
     let lats = coordinates.map(\.latitude)
     let lons = coordinates.map(\.longitude)
-    let minLat = lats.min()!
-    let maxLat = lats.max()!
-    let minLon = lons.min()!
-    let maxLon = lons.max()!
+    guard
+      let minLat = lats.min(),
+      let maxLat = lats.max(),
+      let minLon = lons.min(),
+      let maxLon = lons.max()
+    else {
+      return MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 0, longitude: 0),
+        span: MKCoordinateSpan(latitudeDelta: 60, longitudeDelta: 60)
+      )
+    }
     let center = CLLocationCoordinate2D(
       latitude: (minLat + maxLat) / 2,
       longitude: (minLon + maxLon) / 2
@@ -435,12 +608,48 @@ struct RunDetailSheet: View {
 
   private func personalBests() -> [(String, String)] {
     var prs: [(String, String)] = []
-    if run.distanceKm >= 5 {
-      prs.append(("PACE", paceLabel(run.averagePaceSeconds) + " /km"))
+
+    // Vergleichsbasis: alle bisherigen Läufe AUSSER diesem.
+    let history = store.runHistory.filter { $0.id != run.id }
+
+    // Längster Lauf?
+    if run.distanceKm > 0 {
+      let prevLongest = history.map(\.distanceKm).max() ?? 0
+      if run.distanceKm >= prevLongest, !history.isEmpty {
+        prs.append(("LÄNGSTER LAUF", String(format: "%.2f km", run.distanceKm)))
+      } else if history.isEmpty, run.distanceKm >= 5 {
+        prs.append(("LÄNGSTER LAUF", String(format: "%.2f km", run.distanceKm)))
+      }
     }
+
+    // Schnellste Pace ≥ 5 km — vergleicht nur mit Läufen ≥ 5 km
+    if run.distanceKm >= 5, run.averagePaceSeconds > 0 {
+      let prevBestPace5K = history
+        .filter { $0.distanceKm >= 5 }
+        .map(\.averagePaceSeconds)
+        .filter { $0 > 0 }
+        .min() ?? Int.max
+      if run.averagePaceSeconds <= prevBestPace5K {
+        prs.append(("BESTE PACE 5K+", paceLabel(run.averagePaceSeconds) + " /km"))
+      }
+    }
+
+    // Höhenmeter-Bestwert
     if run.elevationGain > 100 {
-      prs.append(("HÖHE", "\(run.elevationGain) m"))
+      let prevBestElev = history.map(\.elevationGain).max() ?? 0
+      if run.elevationGain >= prevBestElev {
+        prs.append(("HÖHEN-PR", "\(run.elevationGain) m"))
+      }
     }
+
     return prs
+  }
+}
+
+// MARK: - Safe Array Subscript
+
+private extension Array {
+  subscript(safe index: Int) -> Element? {
+    indices.contains(index) ? self[index] : nil
   }
 }

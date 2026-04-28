@@ -10,12 +10,14 @@ struct WorkoutTrackerView: View {
   @State private var activeSetID: UUID?
   @State private var activeSetStartedAt: Date?
   @State private var restTimerEndsAt: Date?
-  @State private var restDuration: Int = 90
+  /// Standard-Satzpause: 2:30 Minuten. Wird per Preset-Reihe oder ±15-Chips angepasst.
+  @State private var restDuration: Int = 150
   @State private var currentTime = Date()
   @State private var isFinishing = false
+  @State private var collapsedExerciseIDs: Set<UUID> = []
+  @State private var formGuideExercise: ExerciseLibraryItem?
 
   private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-  private let restPresets: [Int] = [60, 90, 120, 180]
 
   var body: some View {
     NavigationStack {
@@ -24,19 +26,18 @@ struct WorkoutTrackerView: View {
 
         if let workout = store.activeWorkout {
           ScrollView(showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 22) {
-              header(workout)
-              integratedTimerCard
-              allExercisesSection(workout)
+            VStack(spacing: 14) {
+              commandBar(workout)
+              exercisesList(workout)
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 14)
-            .padding(.bottom, 130)
+            .padding(.horizontal, 18)
+            .padding(.top, 10)
+            .padding(.bottom, 124)
           }
 
           bottomCTA(workout)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            .padding(.horizontal, 18)
+            .padding(.bottom, 18)
         } else {
           VStack(spacing: 12) {
             Image(systemName: "figure.strengthtraining.traditional")
@@ -69,30 +70,42 @@ struct WorkoutTrackerView: View {
             Image(systemName: "chevron.down")
               .font(.system(size: 13, weight: .bold))
               .foregroundStyle(GainsColor.ink)
-              .frame(width: 30, height: 30)
+              .frame(width: 36, height: 36)
               .background(GainsColor.card)
               .clipShape(Circle())
+              .contentShape(Circle())
           }
+          .accessibilityLabel("Schließen")
         }
         ToolbarItem(placement: .principal) {
           Text("STRENGTH TRAINER")
             .font(GainsFont.label(11))
             .tracking(2.2)
             .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
         }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
             isFinishing = true
           } label: {
-            Text("BEENDEN")
-              .font(GainsFont.label(10))
-              .tracking(1.6)
-              .foregroundStyle(GainsColor.ember)
+            HStack(spacing: 5) {
+              Image(systemName: "flag.checkered")
+                .font(.system(size: 10, weight: .heavy))
+              Text("ENDE")
+                .font(GainsFont.label(10))
+                .tracking(1.4)
+            }
+            .foregroundStyle(GainsColor.ember)
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .background(GainsColor.ember.opacity(0.14))
+            .clipShape(Capsule())
+            .contentShape(Capsule())
           }
           .disabled(store.activeWorkout == nil)
+          .accessibilityLabel("Workout beenden")
         }
-      }
-      .toolbar {
         ToolbarItemGroup(placement: .keyboard) {
           Spacer()
           Button("Fertig") {
@@ -102,6 +115,13 @@ struct WorkoutTrackerView: View {
           .font(GainsFont.label(12))
           .foregroundStyle(GainsColor.moss)
         }
+      }
+      .sheet(item: $formGuideExercise) { item in
+        NavigationStack {
+          ExerciseDetailSheet(exercise: item)
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
       }
       .alert("Workout beenden?", isPresented: $isFinishing) {
         Button("Verwerfen", role: .destructive) {
@@ -119,70 +139,72 @@ struct WorkoutTrackerView: View {
     }
   }
 
-  // MARK: - Header
+  // MARK: - Command Bar (Header + Timer + Stats fusioniert)
 
-  private func header(_ workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 16) {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 6) {
-          HStack(spacing: 8) {
-            Circle()
-              .fill(GainsColor.lime)
-              .frame(width: 6, height: 6)
-            Text("LIVE TRAINING")
-              .font(GainsFont.label(10))
-              .tracking(2.2)
-              .foregroundStyle(GainsColor.card.opacity(0.78))
-          }
+  private func commandBar(_ workout: WorkoutSession) -> some View {
+    let isRest = restTimerEndsAt != nil && remainingRestSeconds > 0
+    let isSet = activeSetID != nil
+    let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.9))
 
-          Text(workout.title)
-            .font(GainsFont.display(30))
-            .foregroundStyle(GainsColor.card)
-            .lineLimit(2)
-            .minimumScaleFactor(0.78)
-
-          Text(headerMotivation(for: workout))
-            .font(GainsFont.body(13))
-            .foregroundStyle(GainsColor.card.opacity(0.72))
-            .lineLimit(2)
-        }
-
-        Spacer()
-
-        VStack(alignment: .trailing, spacing: 6) {
-          Text("DAUER")
+    return VStack(alignment: .leading, spacing: 12) {
+      // Zeile 1: LIVE-Chip · Titel · Gesamtdauer
+      HStack(alignment: .center, spacing: 10) {
+        HStack(spacing: 6) {
+          Circle()
+            .fill(GainsColor.lime)
+            .frame(width: 6, height: 6)
+          Text("LIVE")
             .font(GainsFont.label(9))
-            .tracking(1.8)
-            .foregroundStyle(GainsColor.card.opacity(0.66))
-          Text(sessionTimeString(workout.startedAt))
-            .font(GainsFont.display(24))
-            .foregroundStyle(GainsColor.card)
-            .monospacedDigit()
+            .tracking(2)
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
         }
+        .layoutPriority(0)
+
+        Text(workout.title)
+          .font(GainsFont.title(18))
+          .foregroundStyle(GainsColor.onCtaSurface)
+          .lineLimit(1)
+          .minimumScaleFactor(0.78)
+          .layoutPriority(2)
+
+        Spacer(minLength: 6)
+
+        HStack(spacing: 4) {
+          Image(systemName: "clock")
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
+          Text(sessionTimeString(workout.startedAt))
+            .font(GainsFont.title(15))
+            .monospacedDigit()
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.92))
+        }
+        .layoutPriority(1)
       }
 
-      progressBar(workout)
+      // Zeile 2: Großer Status-Timer + kontextuelle Actions
+      timerRow(isRest: isRest, isSet: isSet, accent: accent)
 
-      HStack(spacing: 10) {
-        statChip(
-          label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)",
-          accent: GainsColor.lime,
-          isDark: true
+      // Optionaler Pause-Fortschrittsbalken
+      if isRest {
+        SwiftUI.ProgressView(
+          value: Double(remainingRestSeconds),
+          total: Double(max(restDuration, 1))
         )
-        statChip(
-          label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg",
-          accent: GainsColor.card,
-          isDark: true
-        )
-        statChip(
-          label: "HF",
-          value: healthKit.liveHeartRate.map { "\($0)" } ?? "--",
-          accent: GainsColor.ember,
-          isDark: true
-        )
+        .tint(GainsColor.ember)
+        .frame(height: 4)
       }
+
+      // Trennlinie (Hairline)
+      Rectangle()
+        .fill(GainsColor.onCtaSurface.opacity(0.08))
+        .frame(height: 0.5)
+        .padding(.vertical, 2)
+
+      // Zeile 3: Inline-Stats (Sätze · Volumen · HF) als kompakte Pills
+      statsRow(workout)
     }
-    .padding(20)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 14)
     .background(
       LinearGradient(
         colors: [GainsColor.ctaSurface, GainsColor.surfaceDeep],
@@ -191,330 +213,419 @@ struct WorkoutTrackerView: View {
       )
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 28, style: .continuous)
-        .stroke(GainsColor.lime.opacity(0.2), lineWidth: 1)
+      RoundedRectangle(cornerRadius: 22, style: .continuous)
+        .stroke(accent.opacity(isRest || isSet ? 0.32 : 0.18), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    .shadow(color: accent.opacity(isRest || isSet ? 0.16 : 0), radius: 18, x: 0, y: 10)
+    .animation(.easeInOut(duration: 0.18), value: isRest)
+    .animation(.easeInOut(duration: 0.18), value: isSet)
   }
 
-  private func progressBar(_ workout: WorkoutSession) -> some View {
-    GeometryReader { proxy in
+  private func timerRow(isRest: Bool, isSet: Bool, accent: Color) -> some View {
+    HStack(alignment: .center, spacing: 12) {
+      VStack(alignment: .leading, spacing: 4) {
+        Text(statusLabel(isRest: isRest, isSet: isSet))
+          .font(GainsFont.label(9))
+          .tracking(2)
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+        Text(currentTimerLabel(isRest: isRest, isSet: isSet))
+          .font(.system(size: 44, weight: .semibold, design: .rounded))
+          .monospacedDigit()
+          .foregroundStyle(accent)
+          .lineLimit(1)
+          .minimumScaleFactor(0.7)
+      }
+
+      Spacer(minLength: 8)
+
+      contextActions(isRest: isRest, isSet: isSet)
+    }
+  }
+
+  @ViewBuilder
+  private func contextActions(isRest: Bool, isSet: Bool) -> some View {
+    if isRest {
+      VStack(spacing: 6) {
+        HStack(spacing: 6) {
+          adjustChip("−15", tone: .neutral) { adjustRest(by: -15) }
+          adjustChip("+15", tone: .neutral) { adjustRest(by: 15) }
+        }
+        adjustChip("ÜBERSPRINGEN", tone: .accent) {
+          restTimerEndsAt = nil
+        }
+      }
+    } else if isSet {
+      adjustChip("STOP", tone: .accent) {
+        stopActiveSet()
+      }
+    } else if let bpm = healthKit.liveHeartRate {
+      HStack(spacing: 4) {
+        Image(systemName: "heart.fill")
+          .font(.system(size: 9, weight: .bold))
+          .foregroundStyle(GainsColor.ember)
+        Text("\(bpm)")
+          .font(GainsFont.title(15))
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.onCtaSurface)
+        Text("BPM")
+          .font(GainsFont.label(8))
+          .tracking(1.6)
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+      }
+      .padding(.horizontal, 10)
+      .padding(.vertical, 6)
+      .background(GainsColor.ember.opacity(0.18))
+      .clipShape(Capsule())
+    }
+  }
+
+  private enum AdjustTone { case neutral, accent }
+
+  private func adjustChip(_ title: String, tone: AdjustTone, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      Text(title)
+        .font(GainsFont.label(10))
+        .tracking(1.4)
+        .foregroundStyle(tone == .accent ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.85))
+        .frame(minWidth: 60, minHeight: 32)
+        .padding(.horizontal, 12)
+        .background(
+          tone == .accent
+            ? GainsColor.lime.opacity(0.18)
+            : GainsColor.onCtaSurface.opacity(0.1)
+        )
+        .clipShape(Capsule())
+        .contentShape(Capsule())
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func statsRow(_ workout: WorkoutSession) -> some View {
+    HStack(spacing: 10) {
+      inlineStat(
+        label: "SÄTZE",
+        value: "\(workout.completedSets)/\(workout.totalSets)",
+        accent: GainsColor.lime
+      )
+      inlineStat(
+        label: "VOLUMEN",
+        value: "\(Int(workout.totalVolume)) kg",
+        accent: GainsColor.accentCool
+      )
+      inlineStat(
+        label: "Ø HF",
+        value: healthKit.liveHeartRate.map { "\($0)" } ?? "--",
+        accent: GainsColor.ember
+      )
+
+      Spacer(minLength: 0)
+
+      // Mini-Progress: Anteil der erledigten Sätze
       let progress: CGFloat =
         workout.totalSets == 0 ? 0 : CGFloat(workout.completedSets) / CGFloat(workout.totalSets)
-      ZStack(alignment: .leading) {
-        Capsule()
-          .fill(GainsColor.card.opacity(0.14))
-          .frame(height: 7)
-        Capsule()
-          .fill(GainsColor.lime)
-          .frame(width: max(proxy.size.width * progress, progress > 0 ? 10 : 0), height: 7)
+      ZStack {
+        Circle()
+          .stroke(GainsColor.onCtaSurface.opacity(0.18), lineWidth: 3)
+          .frame(width: 32, height: 32)
+        Circle()
+          .trim(from: 0, to: max(progress, 0.001))
+          .stroke(
+            GainsColor.lime, style: StrokeStyle(lineWidth: 3, lineCap: .round)
+          )
+          .frame(width: 32, height: 32)
+          .rotationEffect(.degrees(-90))
+        Text("\(Int(progress * 100))")
+          .font(GainsFont.label(9))
+          .tracking(0.6)
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.onCtaSurface)
       }
     }
-    .frame(height: 7)
   }
 
-  private func statChip(label: String, value: String, accent: Color = GainsColor.lime, isDark: Bool = false) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(label)
-        .font(GainsFont.label(9))
-        .tracking(1.6)
-        .foregroundStyle(isDark ? GainsColor.card.opacity(0.62) : GainsColor.softInk)
-
-      Text(value)
-        .font(GainsFont.title(16))
-        .foregroundStyle(isDark ? GainsColor.card : GainsColor.ink)
-        .monospacedDigit()
-        .lineLimit(1)
-        .minimumScaleFactor(0.7)
-
-      Capsule()
-        .fill(accent.opacity(isDark ? 0.95 : 0.8))
-        .frame(width: 28, height: 4)
+  private func inlineStat(label: String, value: String, accent: Color) -> some View {
+    HStack(spacing: 6) {
+      RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+        .fill(accent)
+        .frame(width: 3, height: 22)
+      VStack(alignment: .leading, spacing: 1) {
+        Text(label)
+          .font(GainsFont.label(8))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
+        Text(value)
+          .font(GainsFont.title(13))
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.onCtaSurface)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
+      }
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 12)
-    .padding(.vertical, 12)
-    .background(isDark ? GainsColor.card.opacity(0.08) : GainsColor.card)
-    .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .stroke((isDark ? GainsColor.card : GainsColor.border).opacity(0.16), lineWidth: 1)
-    )
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
-  // MARK: - Unified session body
+  // MARK: - Übungsliste (kompakte, einheitliche Karten)
 
-  /// Zeigt Timer+Pause in einer integrierten Karte (kein Tab-Switch nötig).
   @ViewBuilder
-  private func allExercisesSection(_ workout: WorkoutSession) -> some View {
+  private func exercisesList(_ workout: WorkoutSession) -> some View {
     let currentID = currentExerciseID(in: workout)
 
     if nextPending(in: workout) == nil {
       finishedCard
     }
 
-    VStack(spacing: 14) {
-      ForEach(workout.exercises) { exercise in
-        if let pending = nextPending(in: workout), exercise.id == currentID {
-          activeExerciseCard(pending.exercise, focusSet: pending.set)
-        } else {
-          exerciseDetailCard(exercise)
-        }
+    VStack(spacing: 10) {
+      ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
+        exerciseCard(
+          exercise,
+          index: index + 1,
+          isActive: exercise.id == currentID,
+          focusSetID: exercise.id == currentID ? nextPending(in: workout)?.set.id : nil
+        )
       }
     }
   }
 
-  /// Timer + Pause-Presets in einer einzigen integrierten Karte.
-  private var integratedTimerCard: some View {
-    let isRest = (restTimerEndsAt != nil) && remainingRestSeconds > 0
-    let isSet = activeSetID != nil
-    let mainLabel: String = {
-      if isRest { return "PAUSE" }
-      if isSet { return "SATZ AKTIV" }
-      return "BEREIT"
-    }()
-    let mainTime: String = {
-      if isRest { return restTimerLabel }
-      if isSet { return elapsedLabel(since: activeSetStartedAt) }
-      return "00:00"
-    }()
-    let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.softInk)
+  private func exerciseCard(
+    _ exercise: TrackedExercise, index: Int, isActive: Bool, focusSetID: UUID?
+  ) -> some View {
+    let completed = exercise.sets.filter(\.isCompleted).count
+    let total = exercise.sets.count
+    let isAllDone = completed == total && total > 0
+    let isCollapsed = collapsedExerciseIDs.contains(exercise.id) && !isActive
+    let accentBorder: Color =
+      isActive ? GainsColor.lime.opacity(0.55)
+      : (isAllDone ? GainsColor.moss.opacity(0.45) : GainsColor.border.opacity(0.45))
 
-    return VStack(alignment: .leading, spacing: 18) {
+    return VStack(alignment: .leading, spacing: 12) {
+      // Header (kein verschachtelter Button — Tap-Gesture für Collapse)
+      HStack(alignment: .center, spacing: 12) {
+        // Index-Badge + Titel-Block ist tappable für Collapse
+        HStack(alignment: .center, spacing: 12) {
+          Text("\(index)")
+            .font(GainsFont.title(13))
+            .monospacedDigit()
+            .foregroundStyle(
+              isAllDone ? GainsColor.onLime : (isActive ? GainsColor.onLime : GainsColor.ink)
+            )
+            .frame(width: 28, height: 28)
+            .background(
+              isAllDone
+                ? GainsColor.moss
+                : (isActive ? GainsColor.lime : GainsColor.background.opacity(0.8))
+            )
+            .clipShape(Circle())
 
-      // ── Status-Zeile ──────────────────────────────────────────────
-      HStack(spacing: 10) {
-        Circle()
-          .fill(accent)
-          .frame(width: 8, height: 8)
-        Text(mainLabel)
-          .font(GainsFont.label(10))
-          .tracking(2)
-          .foregroundStyle(GainsColor.card.opacity(0.7))
-        Spacer()
-        if let bpm = healthKit.liveHeartRate {
-          HStack(spacing: 4) {
-            Image(systemName: "heart.fill")
-              .font(.system(size: 9, weight: .semibold))
-              .foregroundStyle(GainsColor.ember)
-            Text("\(bpm) bpm")
-              .font(GainsFont.label(10))
-              .tracking(1.2)
-              .foregroundStyle(GainsColor.card.opacity(0.85))
+          VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+              Text(exercise.name)
+                .font(GainsFont.title(15))
+                .foregroundStyle(GainsColor.ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
+              if isActive {
+                Text("AKTIV")
+                  .font(GainsFont.label(8))
+                  .tracking(1.4)
+                  .foregroundStyle(GainsColor.onLime)
+                  .padding(.horizontal, 6)
+                  .frame(height: 16)
+                  .background(GainsColor.lime)
+                  .clipShape(Capsule())
+              }
+            }
+            HStack(spacing: 6) {
+              Text(exercise.targetMuscle.uppercased())
+                .font(GainsFont.label(9))
+                .tracking(1.4)
+                .foregroundStyle(GainsColor.softInk)
+              progressDots(exercise: exercise)
+            }
           }
-          .padding(.horizontal, 10)
-          .frame(height: 28)
-          .background(GainsColor.ember.opacity(0.15))
-          .clipShape(Capsule())
         }
-        if isRest {
-          Button { restTimerEndsAt = nil } label: {
-            Text("ÜBERSPRINGEN")
-              .font(GainsFont.label(10))
-              .tracking(1.6)
-              .foregroundStyle(GainsColor.lime)
+        .contentShape(Rectangle())
+        .onTapGesture {
+          guard !isActive else { return }
+          if collapsedExerciseIDs.contains(exercise.id) {
+            collapsedExerciseIDs.remove(exercise.id)
+          } else {
+            collapsedExerciseIDs.insert(exercise.id)
+          }
+        }
+
+        Spacer(minLength: 6)
+
+        // Info-Button zeigt die Ausführung als Sheet
+        Button {
+          openFormGuide(for: exercise)
+        } label: {
+          Image(systemName: "book.closed.fill")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.lime)
+            .frame(width: 32, height: 32)
+            .background(GainsColor.lime.opacity(0.16))
+            .clipShape(Circle())
+            .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Ausführung anzeigen")
+
+        Text("\(completed)/\(total)")
+          .font(GainsFont.title(14))
+          .monospacedDigit()
+          .foregroundStyle(isAllDone ? GainsColor.moss : GainsColor.ink)
+
+        if !isActive {
+          Button {
+            if collapsedExerciseIDs.contains(exercise.id) {
+              collapsedExerciseIDs.remove(exercise.id)
+            } else {
+              collapsedExerciseIDs.insert(exercise.id)
+            }
+          } label: {
+            Image(systemName: isCollapsed ? "chevron.down" : "chevron.up")
+              .font(.system(size: 11, weight: .bold))
+              .foregroundStyle(GainsColor.softInk)
+              .frame(width: 30, height: 30)
+              .background(GainsColor.background.opacity(0.7))
+              .clipShape(Circle())
+              .contentShape(Circle())
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel(isCollapsed ? "Übung ausklappen" : "Übung einklappen")
+        }
+      }
+
+      if !isCollapsed {
+        // Letztes Mal Hinweis + "Ausführung"-Hinweis bei aktiver Übung
+        HStack(spacing: 8) {
+          if let firstSet = exercise.sets.first, !isAllDone {
+            Text(
+              "Ziel: \(formattedWeightInline(firstSet.weight)) kg × \(firstSet.reps) Reps"
+            )
+            .font(GainsFont.label(10))
+            .tracking(0.6)
+            .foregroundStyle(GainsColor.softInk)
+          }
+
+          if isActive, hasFormGuide(for: exercise) {
+            Spacer(minLength: 4)
+            Button {
+              openFormGuide(for: exercise)
+            } label: {
+              HStack(spacing: 5) {
+                Image(systemName: "play.rectangle.fill")
+                  .font(.system(size: 10, weight: .bold))
+                Text("AUSFÜHRUNG")
+                  .font(GainsFont.label(9))
+                  .tracking(1.2)
+              }
+              .foregroundStyle(GainsColor.onLime)
+              .padding(.horizontal, 10)
+              .frame(height: 24)
+              .background(GainsColor.lime)
+              .clipShape(Capsule())
+            }
+            .buttonStyle(.plain)
+          }
+        }
+
+        VStack(spacing: 6) {
+          ForEach(exercise.sets) { set in
+            CompactSetRow(
+              exerciseID: exercise.id,
+              set: set,
+              isFocused: set.id == focusSetID,
+              isTimerRunning: activeSetID == set.id,
+              onTogglePlay: {
+                toggleSetTimer(for: set.id)
+              },
+              onComplete: {
+                completeSet(exerciseID: exercise.id, set: set)
+              }
+            )
+          }
+        }
+
+        HStack(spacing: 8) {
+          Button {
+            store.addSet(to: exercise.id)
+          } label: {
+            chipButton(icon: "plus", title: "Satz")
+          }
+          .buttonStyle(.plain)
+
+          Button {
+            store.removeLastSet(from: exercise.id)
+          } label: {
+            chipButton(icon: "minus", title: "Satz")
+          }
+          .buttonStyle(.plain)
+          .disabled(exercise.sets.count <= 1)
+          .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
+
+          Spacer()
+
+          if !isAllDone {
+            Button {
+              skipExercise(exercise)
+            } label: {
+              HStack(spacing: 5) {
+                Image(systemName: "forward.fill")
+                  .font(.system(size: 9, weight: .bold))
+                Text("ÜBERSPRINGEN")
+                  .font(GainsFont.label(9))
+                  .tracking(1.2)
+              }
+              .foregroundStyle(GainsColor.softInk)
               .padding(.horizontal, 10)
               .frame(height: 28)
-              .background(GainsColor.lime.opacity(0.18))
-              .clipShape(Capsule())
-          }
-          .buttonStyle(.plain)
-        } else if isSet {
-          Button { stopActiveSet() } label: {
-            Text("STOP")
-              .font(GainsFont.label(10))
-              .tracking(1.6)
-              .foregroundStyle(GainsColor.lime)
-              .padding(.horizontal, 12)
-              .frame(height: 28)
-              .background(GainsColor.lime.opacity(0.18))
-              .clipShape(Capsule())
-          }
-          .buttonStyle(.plain)
-        }
-      }
-
-      // ── Haupt-Timer ───────────────────────────────────────────────
-      Text(mainTime)
-        .font(.system(size: 64, weight: .semibold, design: .rounded))
-        .monospacedDigit()
-        .foregroundStyle(GainsColor.card)
-        .frame(maxWidth: .infinity, alignment: .leading)
-
-      // Fortschrittsbalken (Pause) oder Hinweis-Text
-      if isRest {
-        SwiftUI.ProgressView(value: Double(remainingRestSeconds), total: Double(max(restDuration, 1)))
-          .tint(GainsColor.ember)
-      } else {
-        Text(
-          isSet
-            ? "Saubere Reps. Stop sobald fertig."
-            : "Play-Button am Satz antippen zum Starten."
-        )
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.card.opacity(0.7))
-      }
-
-      // ── Trennlinie ────────────────────────────────────────────────
-      Rectangle()   
-        .fill(GainsColor.card.opacity(0.12))
-        .frame(height: 1)
-
-      // ── Pause-Presets ─────────────────────────────────────────────
-      HStack(spacing: 0) {
-        Text("PAUSE")
-          .font(GainsFont.label(9))
-          .tracking(1.8)
-          .foregroundStyle(GainsColor.card.opacity(0.5))
-
-        Spacer()
-
-        HStack(spacing: 6) {
-          ForEach(restPresets, id: \.self) { seconds in
-            Button {
-              restDuration = seconds
-              if restTimerEndsAt != nil {
-                restTimerEndsAt = Calendar.current.date(
-                  byAdding: .second, value: seconds, to: Date())
-              }
-            } label: {
-              Text(formattedRestPreset(seconds))
-                .font(GainsFont.label(11))
-                .tracking(1.2)
-                .foregroundStyle(restDuration == seconds ? GainsColor.onLime : GainsColor.card.opacity(0.8))
-                .frame(minWidth: 44, minHeight: 30)
-                .background(restDuration == seconds ? GainsColor.lime : GainsColor.card.opacity(0.1))
-                .clipShape(Capsule())
+              .overlay(
+                Capsule()
+                  .stroke(GainsColor.border.opacity(0.55), lineWidth: 1)
+              )
             }
             .buttonStyle(.plain)
           }
         }
       }
     }
-    .padding(20)
+    .padding(.horizontal, 14)
+    .padding(.vertical, 12)
     .background(
-      LinearGradient(
-        colors: [GainsColor.ctaSurface, GainsColor.surfaceDeep],
-        startPoint: .topLeading,
-        endPoint: .bottomTrailing
-      )
+      isActive
+        ? GainsColor.card
+        : (isAllDone ? GainsColor.elevated : GainsColor.card)
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 26, style: .continuous)
-        .stroke(accent.opacity(0.34), lineWidth: 1.1)
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .stroke(accentBorder, lineWidth: isActive ? 1.4 : 1)
     )
-    .shadow(color: accent.opacity(0.1), radius: 16, x: 0, y: 10)
-    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    .animation(.easeInOut(duration: 0.18), value: isCollapsed)
   }
 
-  private func headerMotivation(for workout: WorkoutSession) -> String {
-    let remainingSets = max(workout.totalSets - workout.completedSets, 0)
-
-    if remainingSets == 0 {
-      return "Stark, alle Sätze sind erledigt. Jetzt nur noch sauber abschließen."
-    }
-
-    if remainingSets == 1 {
-      return "Nur noch ein Satz. Zieh ihn sauber durch und mach den Eintrag fertig."
-    }
-
-    return "Noch \(remainingSets) Sätze offen. Fokus auf saubere Reps und konstantes Tempo."
-  }
-
-  private func trackerMetaPill(title: String, accent: Color, usesDarkText: Bool = true) -> some View {
-    Text(title)
-      .font(GainsFont.label(10))
-      .tracking(1.2)
-      .foregroundStyle(usesDarkText ? GainsColor.onLime : GainsColor.card.opacity(0.8))
-      .padding(.horizontal, 10)
-      .frame(height: 28)
-      .background(usesDarkText ? accent : GainsColor.card.opacity(0.12))
-      .clipShape(Capsule())
-  }
-
-
-  private func formattedRestPreset(_ seconds: Int) -> String {
-    let minutes = seconds / 60
-    let rest = seconds % 60
-    if rest == 0 { return "\(minutes):00" }
-    return String(format: "%d:%02d", minutes, rest)
-  }
-
-  private func activeExerciseCard(_ exercise: TrackedExercise, focusSet: TrackedSet) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text("AKTUELLE ÜBUNG")
-            .font(GainsFont.label(10))
-            .tracking(2)
-            .foregroundStyle(GainsColor.softInk)
-          Text(exercise.name)
-            .font(GainsFont.title(22))
-            .foregroundStyle(GainsColor.ink)
-            .lineLimit(2)
-            .minimumScaleFactor(0.78)
-          Text(exercise.targetMuscle.uppercased())
-            .font(GainsFont.label(10))
-            .tracking(1.4)
-            .foregroundStyle(GainsColor.moss)
-        }
-        Spacer()
-        Text("\(exercise.sets.filter(\.isCompleted).count)/\(exercise.sets.count)")
-          .font(GainsFont.title(20))
-          .monospacedDigit()
-          .foregroundStyle(GainsColor.moss)
-      }
-
-      VStack(spacing: 10) {
-        ForEach(exercise.sets) { set in
-          TrackerSetRow(
-            exerciseID: exercise.id,
-            set: set,
-            isFocused: set.id == focusSet.id,
-            isTimerRunning: activeSetID == set.id,
-            onTogglePlay: {
-              toggleSetTimer(for: set.id)
-            },
-            onComplete: {
-              completeSet(exerciseID: exercise.id, set: set)
-            }
-          )
-        }
-      }
-
-      HStack(spacing: 10) {
-        Button {
-          store.addSet(to: exercise.id)
-        } label: {
-          chipButton(icon: "plus", title: "Satz")
-        }
-        .buttonStyle(.plain)
-
-        Button {
-          store.removeLastSet(from: exercise.id)
-        } label: {
-          chipButton(icon: "minus", title: "Satz")
-        }
-        .buttonStyle(.plain)
-        .disabled(exercise.sets.count <= 1)
-        .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
+  private func progressDots(exercise: TrackedExercise) -> some View {
+    HStack(spacing: 4) {
+      ForEach(exercise.sets) { set in
+        Circle()
+          .fill(set.isCompleted ? GainsColor.lime : GainsColor.border.opacity(0.55))
+          .frame(width: 5, height: 5)
       }
     }
-    .padding(18)
-    .gainsCardStyle()
   }
 
   private func chipButton(icon: String, title: String) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: 5) {
       Image(systemName: icon)
-        .font(.system(size: 11, weight: .bold))
+        .font(.system(size: 10, weight: .bold))
       Text(title.uppercased())
-        .font(GainsFont.label(10))
-        .tracking(1.6)
+        .font(GainsFont.label(9))
+        .tracking(1.4)
     }
     .foregroundStyle(GainsColor.ink)
-    .padding(.horizontal, 12)
-    .frame(height: 32)
+    .padding(.horizontal, 10)
+    .frame(height: 28)
     .background(GainsColor.background.opacity(0.85))
     .overlay(
       Capsule()
@@ -523,76 +634,30 @@ struct WorkoutTrackerView: View {
     .clipShape(Capsule())
   }
 
-
   private var finishedCard: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      Text("Alle Sätze sind erledigt")
-        .font(GainsFont.title(20))
-        .foregroundStyle(GainsColor.ink)
-      Text("Stark! Schließe das Workout ab und sicher dir den Eintrag in deiner Historie.")
-        .font(GainsFont.body(13))
-        .foregroundStyle(GainsColor.softInk)
+    HStack(alignment: .center, spacing: 12) {
+      Image(systemName: "checkmark.seal.fill")
+        .font(.system(size: 22, weight: .semibold))
+        .foregroundStyle(GainsColor.moss)
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Alle Sätze erledigt")
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+        Text("Stark – jetzt Workout abschließen.")
+          .font(GainsFont.label(11))
+          .tracking(0.6)
+          .foregroundStyle(GainsColor.softInk)
+      }
+      Spacer()
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(18)
-    .gainsCardStyle(GainsColor.lime.opacity(0.4))
-  }
-
-  private func exerciseDetailCard(_ exercise: TrackedExercise) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text(exercise.name)
-            .font(GainsFont.title(19))
-            .foregroundStyle(GainsColor.ink)
-            .lineLimit(2)
-          Text(exercise.targetMuscle.uppercased())
-            .font(GainsFont.label(10))
-            .tracking(1.6)
-            .foregroundStyle(GainsColor.softInk)
-        }
-
-        Spacer()
-
-        Text("\(exercise.sets.filter(\.isCompleted).count)/\(exercise.sets.count)")
-          .font(GainsFont.title(18))
-          .monospacedDigit()
-          .foregroundStyle(GainsColor.moss)
-      }
-
-      VStack(spacing: 10) {
-        ForEach(exercise.sets) { set in
-          TrackerSetRow(
-            exerciseID: exercise.id,
-            set: set,
-            isFocused: false,
-            isTimerRunning: activeSetID == set.id,
-            onTogglePlay: { toggleSetTimer(for: set.id) },
-            onComplete: { completeSet(exerciseID: exercise.id, set: set) }
-          )
-        }
-      }
-
-      HStack(spacing: 10) {
-        Button {
-          store.addSet(to: exercise.id)
-        } label: {
-          chipButton(icon: "plus", title: "Satz")
-        }
-        .buttonStyle(.plain)
-
-        Button {
-          store.removeLastSet(from: exercise.id)
-        } label: {
-          chipButton(icon: "minus", title: "Satz")
-        }
-        .buttonStyle(.plain)
-        .disabled(exercise.sets.count <= 1)
-        .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
-      }
-    }
-    .padding(18)
-    .gainsCardStyle()
+    .padding(.horizontal, 14)
+    .padding(.vertical, 12)
+    .background(GainsColor.elevated)
+    .overlay(
+      RoundedRectangle(cornerRadius: 18, style: .continuous)
+        .stroke(GainsColor.moss.opacity(0.45), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
   }
 
   // MARK: - Bottom CTA
@@ -621,7 +686,6 @@ struct WorkoutTrackerView: View {
         return
       }
       if isSetActive, let id = activeSetID {
-        // Stop the timer and mark current focus set complete.
         if let pending, pending.set.id == id {
           completeSet(exerciseID: pending.exercise.id, set: pending.set)
         } else {
@@ -654,7 +718,7 @@ struct WorkoutTrackerView: View {
         }
       }
       .padding(.horizontal, 22)
-      .frame(height: 64)
+      .frame(height: 60)
       .background(GainsColor.ctaSurface)
       .overlay(
         RoundedRectangle(cornerRadius: 22, style: .continuous)
@@ -666,7 +730,7 @@ struct WorkoutTrackerView: View {
     .buttonStyle(.plain)
   }
 
-  // MARK: - Logic helpers
+  // MARK: - Logic Helpers
 
   private func currentExerciseID(in workout: WorkoutSession) -> UUID? {
     nextPending(in: workout)?.exercise.id
@@ -711,6 +775,28 @@ struct WorkoutTrackerView: View {
     }
   }
 
+  private func adjustRest(by delta: Int) {
+    guard let end = restTimerEndsAt else { return }
+    let newEnd = Calendar.current.date(byAdding: .second, value: delta, to: end) ?? end
+    if newEnd <= Date() {
+      restTimerEndsAt = nil
+    } else {
+      restTimerEndsAt = newEnd
+    }
+  }
+
+  private func skipExercise(_ exercise: TrackedExercise) {
+    // Markiere alle ausstehenden Sätze als erledigt, um zur nächsten Übung zu springen.
+    for set in exercise.sets where !set.isCompleted {
+      store.toggleSet(exerciseID: exercise.id, setID: set.id)
+    }
+    if let active = activeSetID, exercise.sets.contains(where: { $0.id == active }) {
+      stopActiveSet()
+    }
+    restTimerEndsAt = nil
+    collapsedExerciseIDs.insert(exercise.id)
+  }
+
   private var remainingRestSeconds: Int {
     guard let restTimerEndsAt else { return 0 }
     return max(Int(restTimerEndsAt.timeIntervalSince(currentTime)), 0)
@@ -741,11 +827,73 @@ struct WorkoutTrackerView: View {
     }
     return String(format: "%02d:%02d", minutes, secs)
   }
+
+  private func statusLabel(isRest: Bool, isSet: Bool) -> String {
+    if isRest { return "PAUSE" }
+    if isSet { return "SATZ AKTIV" }
+    return "BEREIT"
+  }
+
+  private func currentTimerLabel(isRest: Bool, isSet: Bool) -> String {
+    if isRest { return restTimerLabel }
+    if isSet { return elapsedLabel(since: activeSetStartedAt) }
+    return "00:00"
+  }
+
+  private func formattedWeightInline(_ value: Double) -> String {
+    if value.truncatingRemainder(dividingBy: 1) == 0 {
+      return "\(Int(value))"
+    }
+    return String(format: "%.1f", value)
+  }
+
+  // MARK: - Form Guide Lookup
+
+  private func libraryItem(for exercise: TrackedExercise) -> ExerciseLibraryItem? {
+    let target = exercise.name.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let exact = ExerciseLibraryItem.fullCatalog.first(where: {
+      $0.name.localizedCaseInsensitiveCompare(target) == .orderedSame
+    }) {
+      return exact
+    }
+    return ExerciseLibraryItem.fullCatalog.first(where: {
+      $0.name.localizedCaseInsensitiveContains(target)
+        || target.localizedCaseInsensitiveContains($0.name)
+    })
+  }
+
+  private func hasFormGuide(for exercise: TrackedExercise) -> Bool {
+    libraryItem(for: exercise) != nil
+  }
+
+  private func openFormGuide(for exercise: TrackedExercise) {
+    if let item = libraryItem(for: exercise) {
+      formGuideExercise = item
+    } else {
+      // Fallback: synthetisches Item, damit der User wenigstens eine Karte sieht
+      formGuideExercise = ExerciseLibraryItem(
+        name: exercise.name,
+        primaryMuscle: exercise.targetMuscle,
+        equipment: "—",
+        defaultSets: exercise.sets.count,
+        defaultReps: exercise.sets.first?.reps ?? 8,
+        suggestedWeight: exercise.sets.first?.weight ?? 0,
+        instructions: [
+          "Für diese Übung liegt aktuell keine Schritt-für-Schritt-Anleitung vor.",
+          "Im nächsten Update zeigen wir hier die Ausführung als Animation."
+        ],
+        tips: [
+          "Konzentriere dich auf saubere Form und kontrolliertes Tempo.",
+          "Nutze einen Spiegel oder filme dich kurz, wenn du unsicher bist."
+        ]
+      )
+    }
+  }
 }
 
-// MARK: - Set row with manual keyboard input
+// MARK: - Compact Set Row mit Steppern
 
-private struct TrackerSetRow: View {
+private struct CompactSetRow: View {
   @EnvironmentObject private var store: GainsStore
 
   let exerciseID: UUID
@@ -759,74 +907,96 @@ private struct TrackerSetRow: View {
   @State private var repsText: String = ""
   @FocusState private var focusedField: Field?
 
-  enum Field: Hashable {
+  private enum Field: Hashable {
     case weight, reps
   }
 
   var body: some View {
+    let isCompleted = set.isCompleted
     let accent: Color = {
-      if set.isCompleted { return GainsColor.moss }
+      if isCompleted { return GainsColor.moss.opacity(0.45) }
       if isTimerRunning { return GainsColor.lime }
-      if isFocused { return GainsColor.lime.opacity(0.55) }
-      return GainsColor.border.opacity(0.45)
+      if isFocused { return GainsColor.lime.opacity(0.5) }
+      return GainsColor.border.opacity(0.4)
     }()
 
-    return HStack(spacing: 12) {
-      VStack(spacing: 2) {
-        Text("S\(set.order)")
-          .font(GainsFont.label(11))
-          .tracking(1.4)
-          .foregroundStyle(set.isCompleted ? GainsColor.onLime : GainsColor.ink)
-      }
-      .frame(width: 36, height: 36)
-      .background(set.isCompleted ? GainsColor.lime : GainsColor.background.opacity(0.85))
-      .clipShape(Circle())
+    return HStack(spacing: 8) {
+      // Set-Index
+      Text("\(set.order)")
+        .font(GainsFont.label(11))
+        .tracking(0.4)
+        .monospacedDigit()
+        .foregroundStyle(
+          isCompleted ? GainsColor.onLime : (isFocused ? GainsColor.onLime : GainsColor.ink)
+        )
+        .frame(width: 28, height: 28)
+        .background(
+          isCompleted
+            ? GainsColor.lime
+            : (isFocused ? GainsColor.lime.opacity(0.85) : GainsColor.background.opacity(0.85))
+        )
+        .clipShape(Circle())
 
-      inputField(
-        title: "KG",
+      // KG mit ±-Steppern
+      stepperBlock(
+        unit: "KG",
         text: $weightText,
         field: .weight,
         keyboard: .decimalPad,
-        commit: commitWeight
+        commit: commitWeight,
+        onMinus: { adjustWeight(by: -2.5) },
+        onPlus: { adjustWeight(by: 2.5) }
       )
 
-      inputField(
-        title: "REPS",
+      // REPS mit ±-Steppern
+      stepperBlock(
+        unit: "REPS",
         text: $repsText,
         field: .reps,
         keyboard: .numberPad,
-        commit: commitReps
+        commit: commitReps,
+        onMinus: { adjustReps(by: -1) },
+        onPlus: { adjustReps(by: 1) }
       )
 
+      // Play / Pause
       Button(action: onTogglePlay) {
         Image(systemName: isTimerRunning ? "pause.fill" : "play.fill")
-          .font(.system(size: 13, weight: .heavy))
+          .font(.system(size: 12, weight: .heavy))
           .foregroundStyle(isTimerRunning ? GainsColor.onLime : GainsColor.lime)
-          .frame(width: 38, height: 38)
+          .frame(width: 36, height: 36)
           .background(isTimerRunning ? GainsColor.lime : GainsColor.ctaSurface)
           .clipShape(Circle())
+          .contentShape(Circle())
       }
       .buttonStyle(.plain)
+      .opacity(isCompleted ? 0.45 : 1)
+      .disabled(isCompleted)
+      .accessibilityLabel(isTimerRunning ? "Satz pausieren" : "Satz starten")
 
+      // Erledigt-Toggle
       Button(action: onComplete) {
-        Image(systemName: set.isCompleted ? "checkmark.circle.fill" : "circle")
-          .font(.system(size: 24, weight: .semibold))
-          .foregroundStyle(set.isCompleted ? GainsColor.moss : GainsColor.softInk)
+        Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 22, weight: .semibold))
+          .foregroundStyle(isCompleted ? GainsColor.moss : GainsColor.softInk)
+          .frame(width: 36, height: 36)
+          .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
+      .accessibilityLabel(isCompleted ? "Satz erledigt" : "Satz als erledigt markieren")
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 12)
+    .padding(.horizontal, 8)
+    .padding(.vertical, 8)
     .background(
-      set.isCompleted
-        ? GainsColor.lime.opacity(0.18)
-        : (isFocused ? GainsColor.background.opacity(0.6) : GainsColor.background.opacity(0.4))
+      isCompleted
+        ? GainsColor.lime.opacity(0.14)
+        : (isFocused ? GainsColor.background.opacity(0.6) : GainsColor.background.opacity(0.35))
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .stroke(accent, lineWidth: isFocused || isTimerRunning ? 1.4 : 1)
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(accent, lineWidth: isFocused || isTimerRunning ? 1.3 : 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     .onAppear {
       weightText = formattedWeight(set.weight)
       repsText = "\(set.reps)"
@@ -843,45 +1013,74 @@ private struct TrackerSetRow: View {
     }
   }
 
-  private func inputField(
-    title: String,
+  private func stepperBlock(
+    unit: String,
     text: Binding<String>,
     field: Field,
     keyboard: UIKeyboardType,
-    commit: @escaping () -> Void
+    commit: @escaping () -> Void,
+    onMinus: @escaping () -> Void,
+    onPlus: @escaping () -> Void
   ) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(title)
-        .font(GainsFont.label(9))
-        .tracking(1.6)
-        .foregroundStyle(GainsColor.softInk)
+    HStack(spacing: 0) {
+      Button(action: onMinus) {
+        Image(systemName: "minus")
+          .font(.system(size: 11, weight: .heavy))
+          .foregroundStyle(GainsColor.softInk)
+          .frame(width: 28, height: 40)
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("\(unit) verringern")
 
-      TextField("0", text: text)
-        .font(GainsFont.title(20))
-        .monospacedDigit()
-        .foregroundStyle(GainsColor.ink)
-        .keyboardType(keyboard)
-        .multilineTextAlignment(.leading)
-        .focused($focusedField, equals: field)
-        .onSubmit(commit)
-        .onChange(of: focusedField) { _, newValue in
-          if newValue != field {
-            commit()
+      VStack(spacing: 1) {
+        Text(unit)
+          .font(GainsFont.label(8))
+          .tracking(1.2)
+          .foregroundStyle(GainsColor.softInk)
+        TextField("0", text: text)
+          .font(GainsFont.title(15))
+          .monospacedDigit()
+          .foregroundStyle(GainsColor.ink)
+          .keyboardType(keyboard)
+          .multilineTextAlignment(.center)
+          .lineLimit(1)
+          .minimumScaleFactor(0.7)
+          .focused($focusedField, equals: field)
+          .submitLabel(.done)
+          .onSubmit(commit)
+          .onChange(of: focusedField) { _, newValue in
+            if newValue != field {
+              commit()
+            }
           }
-        }
+      }
+      .frame(maxWidth: .infinity, minHeight: 40)
+      .padding(.vertical, 2)
+      .contentShape(Rectangle())
+      .onTapGesture {
+        focusedField = field
+      }
+
+      Button(action: onPlus) {
+        Image(systemName: "plus")
+          .font(.system(size: 11, weight: .heavy))
+          .foregroundStyle(GainsColor.softInk)
+          .frame(width: 28, height: 40)
+          .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("\(unit) erhöhen")
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 12)
-    .padding(.vertical, 8)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
+      RoundedRectangle(cornerRadius: 11, style: .continuous)
         .stroke(
-          focusedField == field ? GainsColor.lime.opacity(0.6) : GainsColor.border.opacity(0.4),
+          focusedField == field ? GainsColor.lime.opacity(0.55) : GainsColor.border.opacity(0.4),
           lineWidth: 1
         )
     )
-    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
   }
 
   private func commitWeight() {
@@ -903,6 +1102,21 @@ private struct TrackerSetRow: View {
     } else {
       repsText = "\(set.reps)"
     }
+  }
+
+  private func adjustWeight(by delta: Double) {
+    let base = Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? set.weight
+    let next = max(0, base + delta)
+    let rounded = (next * 2).rounded() / 2  // 0.5er-Schritte
+    store.updateSet(exerciseID: exerciseID, setID: set.id, weight: rounded)
+    weightText = formattedWeight(rounded)
+  }
+
+  private func adjustReps(by delta: Int) {
+    let base = Int(repsText) ?? set.reps
+    let next = max(0, base + delta)
+    store.updateSet(exerciseID: exerciseID, setID: set.id, reps: next)
+    repsText = "\(next)"
   }
 
   private func formattedWeight(_ value: Double) -> String {

@@ -114,16 +114,16 @@ struct CaptureSheet: View {
     VStack(alignment: .leading, spacing: 12) {
       SlashLabel(
         parts: ["AUTO", "FILL"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.card.opacity(0.72))
+        secondaryColor: GainsColor.onCtaSurface.opacity(0.72))
 
       Text(autofillTitle)
         .font(GainsFont.title(26))
-        .foregroundStyle(GainsColor.card)
+        .foregroundStyle(GainsColor.onCtaSurface)
         .lineLimit(2)
 
       Text(autofillSubtitle)
         .font(GainsFont.body(14))
-        .foregroundStyle(GainsColor.card.opacity(0.78))
+        .foregroundStyle(GainsColor.onCtaSurface.opacity(0.78))
         .lineLimit(3)
     }
     .padding(20)
@@ -165,7 +165,9 @@ struct CaptureSheet: View {
         actionTitle: selectedKind.actionTitle
       ) {
         store.shareProgressUpdate()
-        navigation.selectedTab = .progress
+        // Fortschritt-Tab existiert nicht mehr — Home zeigt den
+        // aufklappbaren Fortschritts-Bereich.
+        navigation.selectedTab = .home
         dismiss()
       }
     case .meal:
@@ -240,7 +242,7 @@ struct CaptureSheet: View {
           carbs: Int(carbs) ?? 0,
           fat: Int(fat) ?? 0
         )
-        navigation.selectedTab = .recipes
+        navigation.selectedTab = .nutrition
         dismiss()
       } label: {
         Text(selectedKind.actionTitle)

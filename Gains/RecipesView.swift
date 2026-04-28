@@ -1,5 +1,16 @@
 import SwiftUI
 
+// MARK: - Sort Order
+
+enum RecipeSortOrder: String, CaseIterable {
+  case standard = "Standard"
+  case protein  = "Protein ↑"
+  case calories = "Kalorien ↓"
+  case prep     = "Schnellste"
+}
+
+// MARK: - RecipesView
+
 struct RecipesView: View {
   @EnvironmentObject private var store: GainsStore
   @EnvironmentObject private var navigation: AppNavigationStore
@@ -15,53 +26,51 @@ struct RecipesView: View {
   @State private var maxCalories = 1600.0
   @State private var showsFavoritesOnly = false
   @State private var showsFilterSheet = false
+  @State private var sortOrder: RecipeSortOrder = .standard
 
   var body: some View {
-    NavigationStack {
-      GainsScreen {
-        VStack(alignment: .leading, spacing: 24) {
-          screenHeader(
-            eyebrow: "FUEL / REZEPTE",
-            title: "Rezepte & Inspiration",
-            subtitle: "Mealprep, Airfryer, Schnell-Rezepte – für jedes Ziel das passende Meal."
-          )
+    GainsScreen {
+      VStack(alignment: .leading, spacing: 24) {
+        screenHeader(
+          eyebrow: "FUEL / REZEPTE",
+          title: "Rezepte & Inspiration",
+          subtitle: "Mealprep, Airfryer, Schnell-Rezepte – für jedes Ziel das passende Meal."
+        )
 
-          headerStats
-          searchBar
+        headerStats
+        searchBar
 
-          if !hasAnyFilter {
-            tagBrowserSection
-          }
+        if !hasAnyFilter {
+          tagBrowserSection
+        }
 
-          goalFilterChips
-          activeFiltersSection
+        goalFilterChips
+        sortChips
+        activeFiltersSection
 
-          if hasAnyFilter || !searchText.isEmpty {
-            // Flache Suchergebnisliste
-            filteredListSection
-          } else {
-            // Kuratierter Discovery-Modus
-            featuredSection
-            tagSection(.mealprep)
-            tagSection(.airfryer)
-            tagSection(.quick)
-            allRecipesSection
-          }
+        if hasAnyFilter || !searchText.isEmpty {
+          filteredListSection
+        } else {
+          featuredSection
+          tagSection(.mealprep)
+          tagSection(.airfryer)
+          tagSection(.quick)
+          allRecipesSection
         }
       }
-      .navigationBarTitleDisplayMode(.inline)
-      .sheet(isPresented: $showsFilterSheet) {
-        NavigationStack {
-          RecipeFilterSheet(
-            selectedDietaryStyle: $selectedDietaryStyle,
-            selectedMealType: $selectedMealType,
-            maxPrepMinutes: $maxPrepMinutes,
-            maxCalories: $maxCalories,
-            onReset: resetAllFilters
-          )
-        }
-        .presentationDetents([.large])
+    }
+    .navigationBarTitleDisplayMode(.inline)
+    .sheet(isPresented: $showsFilterSheet) {
+      NavigationStack {
+        RecipeFilterSheet(
+          selectedDietaryStyle: $selectedDietaryStyle,
+          selectedMealType: $selectedMealType,
+          maxPrepMinutes: $maxPrepMinutes,
+          maxCalories: $maxCalories,
+          onReset: resetAllFilters
+        )
       }
+      .presentationDetents([.large])
     }
   }
 
@@ -69,18 +78,9 @@ struct RecipesView: View {
 
   private var headerStats: some View {
     HStack(spacing: 10) {
-      headerStatCard(
-        value: "\(store.recipes.count)",
-        label: "Rezepte"
-      )
-      headerStatCard(
-        value: "\(store.favoriteRecipeIDs.count)",
-        label: "Favoriten"
-      )
-      headerStatCard(
-        value: "\(filteredRecipes.count)",
-        label: "Treffer"
-      )
+      headerStatCard(value: "\(store.recipes.count)", label: "Rezepte")
+      headerStatCard(value: "\(store.favoriteRecipeIDs.count)", label: "Favoriten")
+      headerStatCard(value: "\(filteredRecipes.count)", label: "Treffer")
     }
   }
 
@@ -117,9 +117,7 @@ struct RecipesView: View {
         }
       } label: {
         Image(
-          systemName: searchText.isEmpty
-            ? "slider.horizontal.3"
-            : "xmark.circle.fill"
+          systemName: searchText.isEmpty ? "slider.horizontal.3" : "xmark.circle.fill"
         )
         .foregroundStyle(
           activeFilterCount > 0 && searchText.isEmpty ? GainsColor.lime : GainsColor.softInk
@@ -132,7 +130,7 @@ struct RecipesView: View {
     .gainsCardStyle()
   }
 
-  // MARK: - Tag Browser (große Kategorie-Karten)
+  // MARK: - Tag Browser
 
   private var tagBrowserSection: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -143,16 +141,13 @@ struct RecipesView: View {
       )
 
       LazyVGrid(
-        columns: [
-          GridItem(.flexible(), spacing: 10),
-          GridItem(.flexible(), spacing: 10),
-        ],
+        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
         spacing: 10
       ) {
         tagBrowserCard(.mealprep, accent: Color(hex: "C3B3FF"))
         tagBrowserCard(.airfryer, accent: Color(hex: "E3B96C"))
-        tagBrowserCard(.quick, accent: GainsColor.lime)
-        tagBrowserCard(.budget, accent: Color(hex: "9FD3B0"))
+        tagBrowserCard(.quick,    accent: GainsColor.lime)
+        tagBrowserCard(.budget,   accent: Color(hex: "9FD3B0"))
       }
     }
   }
@@ -203,7 +198,10 @@ struct RecipesView: View {
   private var goalFilterChips: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 10) {
-        filterChip(title: "Alle", isSelected: selectedGoal == nil && !showsFavoritesOnly && selectedTag == nil) {
+        filterChip(
+          title: "Alle",
+          isSelected: selectedGoal == nil && !showsFavoritesOnly && selectedTag == nil
+        ) {
           selectedGoal = nil
           showsFavoritesOnly = false
           selectedTag = nil
@@ -216,17 +214,45 @@ struct RecipesView: View {
         }
 
         ForEach(RecipeTag.allCases) { tag in
-          filterChip(
-            title: tag.title,
-            icon: tag.systemImage,
-            isSelected: selectedTag == tag
-          ) {
+          filterChip(title: tag.title, icon: tag.systemImage, isSelected: selectedTag == tag) {
             selectedTag = selectedTag == tag ? nil : tag
           }
         }
 
         filterChip(title: "Favoriten", icon: "bookmark.fill", isSelected: showsFavoritesOnly) {
           showsFavoritesOnly.toggle()
+        }
+      }
+      .padding(.vertical, 2)
+    }
+  }
+
+  // MARK: - Sort Chips
+
+  private var sortChips: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 8) {
+        Image(systemName: "arrow.up.arrow.down")
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundStyle(GainsColor.softInk)
+          .padding(.leading, 2)
+
+        ForEach(RecipeSortOrder.allCases, id: \.self) { order in
+          Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+              sortOrder = order
+            }
+          } label: {
+            Text(order.rawValue)
+              .font(GainsFont.label(10))
+              .tracking(1.2)
+              .foregroundStyle(sortOrder == order ? GainsColor.moss : GainsColor.softInk)
+              .padding(.horizontal, 14)
+              .frame(height: 32)
+              .background(sortOrder == order ? GainsColor.lime : GainsColor.card)
+              .clipShape(Capsule())
+          }
+          .buttonStyle(.plain)
         }
       }
       .padding(.vertical, 2)
@@ -253,9 +279,7 @@ struct RecipesView: View {
             activeFilterChip("Bis \(Int(maxCalories)) kcal")
           }
 
-          Button {
-            resetAllFilters()
-          } label: {
+          Button { resetAllFilters() } label: {
             Text("Zurücksetzen")
               .font(GainsFont.label(10))
               .tracking(1.4)
@@ -301,7 +325,7 @@ struct RecipesView: View {
     }
   }
 
-  // MARK: - Tag-Sektion (horizontal Scroll)
+  // MARK: - Tag-Sektion
 
   private func tagSection(_ tag: RecipeTag) -> some View {
     let recipes = store.recipes.filter { $0.tags.contains(tag) }
@@ -366,7 +390,7 @@ struct RecipesView: View {
     }
   }
 
-  // MARK: - Alle Rezepte (kompakte vertikale Liste)
+  // MARK: - Alle Rezepte
 
   private var allRecipesSection: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -384,7 +408,7 @@ struct RecipesView: View {
       }
 
       VStack(spacing: 10) {
-        ForEach(store.recipes) { recipe in
+        ForEach(sortedRecipes(store.recipes)) { recipe in
           NavigationLink {
             RecipeDetailView(recipe: recipe)
               .environmentObject(store)
@@ -426,15 +450,9 @@ struct RecipesView: View {
   }
 
   private var filterEyebrowParts: [String] {
-    if let selectedTag {
-      return [selectedTag.title.uppercased(), "REZEPTE"]
-    }
-    if let selectedGoal {
-      return [selectedGoal.title.uppercased(), "REZEPTE"]
-    }
-    if showsFavoritesOnly {
-      return ["FAVORITEN", "REZEPTE"]
-    }
+    if let selectedTag   { return [selectedTag.title.uppercased(), "REZEPTE"] }
+    if let selectedGoal  { return [selectedGoal.title.uppercased(), "REZEPTE"] }
+    if showsFavoritesOnly { return ["FAVORITEN", "REZEPTE"] }
     return ["TREFFER", "REZEPTE"]
   }
 
@@ -466,12 +484,10 @@ struct RecipesView: View {
         HStack {
           Image(systemName: "plus.circle.fill")
             .foregroundStyle(GainsColor.lime)
-
           Text("Als Mahlzeit tracken")
             .font(GainsFont.label(11))
             .tracking(1.3)
             .foregroundStyle(GainsColor.ink)
-
           Spacer()
         }
         .padding(.horizontal, 16)
@@ -500,7 +516,7 @@ struct RecipesView: View {
           .font(GainsFont.label(10))
           .tracking(1.5)
       }
-      .foregroundStyle(isSelected ? GainsColor.ink : GainsColor.softInk)
+      .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.softInk)
       .padding(.horizontal, 16)
       .frame(height: 38)
       .background(isSelected ? GainsColor.lime : GainsColor.card)
@@ -523,66 +539,60 @@ struct RecipesView: View {
   // MARK: - Computed
 
   private var hasAnyFilter: Bool {
-    selectedGoal != nil
-      || selectedTag != nil
-      || showsFavoritesOnly
-      || activeFilterCount > 0
+    selectedGoal != nil || selectedTag != nil || showsFavoritesOnly || activeFilterCount > 0
   }
 
   private var filteredRecipes: [Recipe] {
-    store.recipes.filter { recipe in
-      let matchesGoal = selectedGoal == nil || recipe.goal == selectedGoal
-      let matchesTag = selectedTag == nil || recipe.tags.contains(selectedTag!)
-      let matchesFavorites = !showsFavoritesOnly || store.favoriteRecipeIDs.contains(recipe.id)
-      let matchesDietaryStyle = selectedDietaryStyle == .all || recipe.dietaryStyle == selectedDietaryStyle
+    let base = store.recipes.filter { recipe in
+      let matchesGoal     = selectedGoal == nil || recipe.goal == selectedGoal
+      let matchesTag      = selectedTag.map { recipe.tags.contains($0) } ?? true
+      let matchesFavs     = !showsFavoritesOnly || store.favoriteRecipeIDs.contains(recipe.id)
+      let matchesDiet     = selectedDietaryStyle == .all || recipe.dietaryStyle == selectedDietaryStyle
       let matchesMealType = selectedMealType == nil || recipe.mealType == selectedMealType
-      let search = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-      let matchesSearch =
-        search.isEmpty
+      let search          = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+      let matchesSearch   = search.isEmpty
         || recipe.title.localizedCaseInsensitiveContains(search)
         || recipe.category.localizedCaseInsensitiveContains(search)
         || recipe.goal.title.localizedCaseInsensitiveContains(search)
         || recipe.tags.contains { $0.title.localizedCaseInsensitiveContains(search) }
         || recipe.ingredients.joined(separator: " ").localizedCaseInsensitiveContains(search)
-      let matchesPrep = Double(recipe.prepMinutes) <= maxPrepMinutes
-      let matchesCalories = Double(recipe.calories) <= maxCalories
-      return matchesGoal && matchesTag && matchesSearch && matchesFavorites
-        && matchesDietaryStyle && matchesMealType && matchesPrep && matchesCalories
+      let matchesPrep     = Double(recipe.prepMinutes) <= maxPrepMinutes
+      let matchesCal      = Double(recipe.calories) <= maxCalories
+      return matchesGoal && matchesTag && matchesSearch && matchesFavs
+        && matchesDiet && matchesMealType && matchesPrep && matchesCal
+    }
+    return sortedRecipes(base)
+  }
+
+  private func sortedRecipes(_ recipes: [Recipe]) -> [Recipe] {
+    switch sortOrder {
+    case .standard:  return recipes
+    case .protein:   return recipes.sorted { $0.protein > $1.protein }
+    case .calories:  return recipes.sorted { $0.calories < $1.calories }
+    case .prep:      return recipes.sorted { $0.prepMinutes < $1.prepMinutes }
     }
   }
 
   private var featuredRecipes: [Recipe] {
     let favorites = store.recipes.filter { store.favoriteRecipeIDs.contains($0.id) }
-    if !favorites.isEmpty {
-      return Array(favorites.prefix(6))
-    }
-    return Array(
-      store.recipes
-        .sorted { $0.protein > $1.protein }
-        .prefix(6)
-    )
+    if !favorites.isEmpty { return Array(favorites.prefix(6)) }
+    return Array(store.recipes.sorted { $0.protein > $1.protein }.prefix(6))
   }
 
   private var activeFilterCount: Int {
-    [
-      selectedDietaryStyle != .all,
-      selectedMealType != nil,
-      maxPrepMinutes < 180,
-      maxCalories < 1600,
-    ]
-    .filter { $0 }
-    .count
+    [selectedDietaryStyle != .all, selectedMealType != nil, maxPrepMinutes < 180, maxCalories < 1600]
+      .filter { $0 }.count
   }
 
   private func resetAllFilters() {
-    selectedGoal = nil
-    selectedTag = nil
+    selectedGoal         = nil
+    selectedTag          = nil
     selectedDietaryStyle = .all
-    selectedMealType = nil
-    showsFavoritesOnly = false
-    searchText = ""
-    maxPrepMinutes = 180
-    maxCalories = 1600
+    selectedMealType     = nil
+    showsFavoritesOnly   = false
+    searchText           = ""
+    maxPrepMinutes       = 180
+    maxCalories          = 1600
   }
 }
 
@@ -591,16 +601,15 @@ struct RecipesView: View {
 private struct FeaturedRecipeCard: View {
   @EnvironmentObject private var store: GainsStore
   let recipe: Recipe
+  @State private var didTrack = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       ZStack(alignment: .topTrailing) {
         AsyncImage(url: URL(string: recipe.imageURL)) { phase in
           switch phase {
-          case .success(let image):
-            image.resizable().scaledToFill()
-          default:
-            fallbackArtwork
+          case .success(let image): image.resizable().scaledToFill()
+          default: fallbackArtwork
           }
         }
         .frame(height: 130)
@@ -608,19 +617,16 @@ private struct FeaturedRecipeCard: View {
 
         LinearGradient(
           colors: [Color.clear, GainsColor.ink.opacity(0.7)],
-          startPoint: .center,
-          endPoint: .bottom
+          startPoint: .center, endPoint: .bottom
         )
         .frame(height: 130)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
 
+        // Tag badge (top-right)
         if let primaryTag = recipe.tags.first {
           HStack(spacing: 4) {
-            Image(systemName: primaryTag.systemImage)
-              .font(.system(size: 9, weight: .bold))
-            Text(primaryTag.title.uppercased())
-              .font(GainsFont.label(9))
-              .tracking(1.2)
+            Image(systemName: primaryTag.systemImage).font(.system(size: 9, weight: .bold))
+            Text(primaryTag.title.uppercased()).font(GainsFont.label(9)).tracking(1.2)
           }
           .foregroundStyle(GainsColor.moss)
           .padding(.horizontal, 8)
@@ -630,15 +636,34 @@ private struct FeaturedRecipeCard: View {
           .padding(10)
         }
 
-        VStack(alignment: .leading) {
-          Spacer()
+        // Category label (bottom-left) + Quick-Track button (bottom-right)
+        HStack {
           Text(recipe.category.uppercased())
             .font(GainsFont.label(9))
             .tracking(1.6)
-            .foregroundStyle(GainsColor.card.opacity(0.9))
-            .padding(12)
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.9))
+          Spacer()
+          // Quick-Track button
+          Button {
+            store.logRecipe(recipe)
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { didTrack = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+              withAnimation { didTrack = false }
+            }
+          } label: {
+            Image(systemName: didTrack ? "checkmark" : "plus")
+              .font(.system(size: 12, weight: .bold))
+              .foregroundStyle(didTrack ? GainsColor.moss : GainsColor.lime)
+              .frame(width: 28, height: 28)
+              .background(didTrack ? GainsColor.lime : GainsColor.ink.opacity(0.7))
+              .clipShape(Circle())
+              .scaleEffect(didTrack ? 1.15 : 1.0)
+          }
+          .buttonStyle(.plain)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 10)
+        .padding(.bottom, 10)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .frame(height: 130)
       }
 
@@ -660,8 +685,7 @@ private struct FeaturedRecipeCard: View {
         .foregroundStyle(GainsColor.softInk)
 
         HStack(spacing: 6) {
-          Image(systemName: "clock")
-            .font(.system(size: 10, weight: .semibold))
+          Image(systemName: "clock").font(.system(size: 10, weight: .semibold))
           Text("\(recipe.prepMinutes) Min · \(recipe.servings) Portion\(recipe.servings == 1 ? "" : "en")")
             .font(GainsFont.body(11))
         }
@@ -674,23 +698,20 @@ private struct FeaturedRecipeCard: View {
 
   private var fallbackArtwork: some View {
     RoundedRectangle(cornerRadius: 20, style: .continuous)
-      .fill(
-        LinearGradient(
-          colors: [GainsColor.lime.opacity(0.6), GainsColor.ctaSurface],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .fill(LinearGradient(
+        colors: [GainsColor.lime.opacity(0.6), GainsColor.ctaSurface],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+      ))
       .frame(height: 130)
       .overlay {
         Image(systemName: recipe.placeholderSymbol)
           .font(.system(size: 38, weight: .medium))
-          .foregroundStyle(GainsColor.card)
+          .foregroundStyle(GainsColor.onCtaSurface)
       }
   }
 }
 
-// MARK: - Compact Recipe Row (für „Alle Rezepte"-Liste)
+// MARK: - Compact Recipe Row
 
 private struct CompactRecipeRow: View {
   @EnvironmentObject private var store: GainsStore
@@ -700,10 +721,8 @@ private struct CompactRecipeRow: View {
     HStack(spacing: 14) {
       AsyncImage(url: URL(string: recipe.imageURL)) { phase in
         switch phase {
-        case .success(let image):
-          image.resizable().scaledToFill()
-        default:
-          fallback
+        case .success(let image): image.resizable().scaledToFill()
+        default: fallback
         }
       }
       .frame(width: 72, height: 72)
@@ -722,11 +741,8 @@ private struct CompactRecipeRow: View {
 
         if let tag = recipe.tags.first {
           HStack(spacing: 4) {
-            Image(systemName: tag.systemImage)
-              .font(.system(size: 9, weight: .bold))
-            Text(tag.title.uppercased())
-              .font(GainsFont.label(8))
-              .tracking(1.2)
+            Image(systemName: tag.systemImage).font(.system(size: 9, weight: .bold))
+            Text(tag.title.uppercased()).font(GainsFont.label(8)).tracking(1.2)
           }
           .foregroundStyle(GainsColor.moss)
           .padding(.horizontal, 7)
@@ -750,18 +766,15 @@ private struct CompactRecipeRow: View {
 
   private var fallback: some View {
     RoundedRectangle(cornerRadius: 16, style: .continuous)
-      .fill(
-        LinearGradient(
-          colors: [GainsColor.lime.opacity(0.4), GainsColor.ctaSurface],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .fill(LinearGradient(
+        colors: [GainsColor.lime.opacity(0.4), GainsColor.ctaSurface],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+      ))
       .frame(width: 72, height: 72)
       .overlay {
         Image(systemName: recipe.placeholderSymbol)
           .font(.system(size: 22, weight: .medium))
-          .foregroundStyle(GainsColor.card)
+          .foregroundStyle(GainsColor.onCtaSurface)
       }
   }
 }
@@ -788,11 +801,7 @@ private struct RecipeFilterSheet: View {
         filterGroup(title: "Ernährungsstil") {
           VStack(spacing: 10) {
             ForEach(RecipeDietaryStyle.allCases.filter { $0 != .all }, id: \.self) { style in
-              filterRow(
-                title: style.title,
-                icon: style.systemImage,
-                isSelected: selectedDietaryStyle == style
-              ) {
+              filterRow(title: style.title, icon: style.systemImage, isSelected: selectedDietaryStyle == style) {
                 selectedDietaryStyle = selectedDietaryStyle == style ? .all : style
               }
             }
@@ -802,11 +811,7 @@ private struct RecipeFilterSheet: View {
         filterGroup(title: "Mahlzeittyp") {
           VStack(spacing: 10) {
             ForEach(RecipeMealType.allCases, id: \.self) { mealType in
-              filterRow(
-                title: mealType.title,
-                icon: mealType.systemImage,
-                isSelected: selectedMealType == mealType
-              ) {
+              filterRow(title: mealType.title, icon: mealType.systemImage, isSelected: selectedMealType == mealType) {
                 selectedMealType = selectedMealType == mealType ? nil : mealType
               }
             }
@@ -886,13 +891,10 @@ private struct RecipeFilterSheet: View {
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.softInk)
           .frame(width: 24)
-
         Text(title)
           .font(GainsFont.body())
           .foregroundStyle(isSelected ? GainsColor.ink : GainsColor.softInk)
-
         Spacer()
-
         if isSelected {
           Image(systemName: "checkmark.circle.fill")
             .foregroundStyle(GainsColor.lime)
@@ -915,18 +917,16 @@ private struct RecipeFilterSheet: View {
         .font(GainsFont.label(11))
         .tracking(1.8)
         .foregroundStyle(GainsColor.softInk)
-
       Text(valueText)
         .font(GainsFont.body(14))
         .foregroundStyle(GainsColor.ink)
-
       Slider(value: value, in: range, step: step)
         .tint(GainsColor.lime)
     }
   }
 }
 
-// MARK: - Rezept-Card (große Karte für gefilterte Liste)
+// MARK: - Rezept-Card (große Karte)
 
 private struct RecipeCard: View {
   @EnvironmentObject private var store: GainsStore
@@ -939,21 +939,15 @@ private struct RecipeCard: View {
       HStack(alignment: .top) {
         VStack(alignment: .leading, spacing: 6) {
           HStack(spacing: 8) {
-            recipeBadge(
-              recipe.category.uppercased(),
+            recipeBadge(recipe.category.uppercased(),
               background: GainsColor.background.opacity(0.82),
-              foreground: GainsColor.softInk
-            )
-            recipeBadge(
-              recipe.goal.title.uppercased(),
+              foreground: GainsColor.softInk)
+            recipeBadge(recipe.goal.title.uppercased(),
               background: accentColor(recipe.goal).opacity(0.24),
-              foreground: accentTextColor(recipe.goal)
-            )
-            recipeBadge(
-              recipe.dietaryStyle.title.uppercased(),
+              foreground: accentTextColor(recipe.goal))
+            recipeBadge(recipe.dietaryStyle.title.uppercased(),
               background: GainsColor.lime.opacity(0.18),
-              foreground: GainsColor.moss
-            )
+              foreground: GainsColor.moss)
           }
 
           if !recipe.tags.isEmpty {
@@ -961,11 +955,8 @@ private struct RecipeCard: View {
               HStack(spacing: 6) {
                 ForEach(recipe.tags) { tag in
                   HStack(spacing: 4) {
-                    Image(systemName: tag.systemImage)
-                      .font(.system(size: 9, weight: .bold))
-                    Text(tag.title.uppercased())
-                      .font(GainsFont.label(9))
-                      .tracking(1.2)
+                    Image(systemName: tag.systemImage).font(.system(size: 9, weight: .bold))
+                    Text(tag.title.uppercased()).font(GainsFont.label(9)).tracking(1.2)
                   }
                   .foregroundStyle(GainsColor.softInk)
                   .padding(.horizontal, 8)
@@ -987,17 +978,13 @@ private struct RecipeCard: View {
         Button {
           store.toggleFavoriteRecipe(recipe.id)
         } label: {
-          Image(
-            systemName: store.favoriteRecipeIDs.contains(recipe.id) ? "bookmark.fill" : "bookmark"
-          )
-          .font(.system(size: 20, weight: .semibold))
-          .foregroundStyle(
-            store.favoriteRecipeIDs.contains(recipe.id)
-              ? accentTextColor(recipe.goal) : GainsColor.softInk
-          )
-          .frame(width: 36, height: 36)
-          .background(GainsColor.background.opacity(0.9))
-          .clipShape(Circle())
+          Image(systemName: store.favoriteRecipeIDs.contains(recipe.id) ? "bookmark.fill" : "bookmark")
+            .font(.system(size: 20, weight: .semibold))
+            .foregroundStyle(store.favoriteRecipeIDs.contains(recipe.id)
+              ? accentTextColor(recipe.goal) : GainsColor.softInk)
+            .frame(width: 36, height: 36)
+            .background(GainsColor.background.opacity(0.9))
+            .clipShape(Circle())
         }
         .buttonStyle(.plain)
       }
@@ -1027,41 +1014,29 @@ private struct RecipeCard: View {
     ZStack(alignment: .bottomLeading) {
       AsyncImage(url: URL(string: recipe.imageURL)) { phase in
         switch phase {
-        case .success(let image):
-          image.resizable().scaledToFill()
-        default:
-          fallbackArtwork(height: 164, fontSize: 54)
+        case .success(let image): image.resizable().scaledToFill()
+        default: fallbackArtwork(height: 164, fontSize: 54)
         }
       }
       .frame(height: 164)
       .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
-      LinearGradient(
-        colors: [Color.clear, GainsColor.ink.opacity(0.72)],
-        startPoint: .center,
-        endPoint: .bottom
-      )
-      .frame(height: 164)
-      .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+      LinearGradient(colors: [Color.clear, GainsColor.ink.opacity(0.72)], startPoint: .center, endPoint: .bottom)
+        .frame(height: 164)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 
       Text(recipe.category)
         .font(GainsFont.label(9))
         .tracking(1.8)
-        .foregroundStyle(GainsColor.card.opacity(0.86))
+        .foregroundStyle(GainsColor.onCtaSurface.opacity(0.86))
         .padding(14)
     }
   }
 
   private func recipeStat(_ value: String, _ label: String) -> some View {
     VStack(alignment: .leading, spacing: 4) {
-      Text(value)
-        .font(GainsFont.title(17))
-        .foregroundStyle(GainsColor.ink)
-
-      Text(label)
-        .font(GainsFont.label(9))
-        .tracking(1.8)
-        .foregroundStyle(GainsColor.softInk)
+      Text(value).font(GainsFont.title(17)).foregroundStyle(GainsColor.ink)
+      Text(label).font(GainsFont.label(9)).tracking(1.8).foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(10)
@@ -1083,28 +1058,25 @@ private struct RecipeCard: View {
   private func accentColor(_ goal: RecipeGoal) -> Color {
     switch goal {
     case .highProtein: return GainsColor.lime
-    case .abnehmen: return Color(hex: "9FD3B0")
-    case .zunehmen: return Color(hex: "E3B96C")
+    case .abnehmen:    return Color(hex: "9FD3B0")
+    case .zunehmen:    return Color(hex: "E3B96C")
     }
   }
 
   private func accentTextColor(_ goal: RecipeGoal) -> Color {
     switch goal {
     case .highProtein: return GainsColor.moss
-    case .abnehmen: return Color(hex: "2E6242")
-    case .zunehmen: return Color(hex: "6D4516")
+    case .abnehmen:    return Color(hex: "2E6242")
+    case .zunehmen:    return Color(hex: "6D4516")
     }
   }
 
   private func fallbackArtwork(height: CGFloat, fontSize: CGFloat) -> some View {
     RoundedRectangle(cornerRadius: 24, style: .continuous)
-      .fill(
-        LinearGradient(
-          colors: [accentColor(recipe.goal), GainsColor.ctaSurface],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .fill(LinearGradient(
+        colors: [accentColor(recipe.goal), GainsColor.ctaSurface],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+      ))
       .frame(height: height)
       .overlay(alignment: .topTrailing) {
         Circle()
@@ -1115,16 +1087,31 @@ private struct RecipeCard: View {
       .overlay {
         Image(systemName: recipe.placeholderSymbol)
           .font(.system(size: fontSize, weight: .medium))
-          .foregroundStyle(GainsColor.card)
+          .foregroundStyle(GainsColor.onCtaSurface)
       }
   }
 }
 
 // MARK: - Rezept-Detail
 
-private struct RecipeDetailView: View {
+struct RecipeDetailView: View {
   @EnvironmentObject private var store: GainsStore
   let recipe: Recipe
+
+  @State private var scaledServings: Int
+  @State private var checkedIngredients: Set<Int> = []
+
+  init(recipe: Recipe) {
+    self.recipe = recipe
+    _scaledServings = State(initialValue: recipe.servings)
+  }
+
+  // Skalierungsfaktor – alle Nährwerte werden proportional angepasst
+  private var scale: Double { Double(scaledServings) / Double(max(recipe.servings, 1)) }
+  private var scaledCalories: Int { Int((Double(recipe.calories) * scale).rounded()) }
+  private var scaledProtein:  Int { Int((Double(recipe.protein)  * scale).rounded()) }
+  private var scaledCarbs:    Int { Int((Double(recipe.carbs)    * scale).rounded()) }
+  private var scaledFat:      Int { Int((Double(recipe.fat)      * scale).rounded()) }
 
   var body: some View {
     GainsScreen {
@@ -1132,6 +1119,7 @@ private struct RecipeDetailView: View {
         detailArtwork
 
         VStack(alignment: .leading, spacing: 8) {
+          // Badges
           HStack(spacing: 8) {
             detailBadge(recipe.category.uppercased())
             detailBadge(recipe.goal.title.uppercased(), highlighted: true)
@@ -1143,11 +1131,8 @@ private struct RecipeDetailView: View {
               HStack(spacing: 6) {
                 ForEach(recipe.tags) { tag in
                   HStack(spacing: 4) {
-                    Image(systemName: tag.systemImage)
-                      .font(.system(size: 10, weight: .bold))
-                    Text(tag.title.uppercased())
-                      .font(GainsFont.label(9))
-                      .tracking(1.4)
+                    Image(systemName: tag.systemImage).font(.system(size: 10, weight: .bold))
+                    Text(tag.title.uppercased()).font(GainsFont.label(9)).tracking(1.4)
                   }
                   .foregroundStyle(GainsColor.moss)
                   .padding(.horizontal, 10)
@@ -1163,42 +1148,141 @@ private struct RecipeDetailView: View {
             .font(GainsFont.title(30))
             .foregroundStyle(GainsColor.ink)
 
-          Text("\(recipe.calories) kcal · \(recipe.protein)g Protein · \(recipe.carbs)g Carbs · \(recipe.fat)g Fett")
-            .font(GainsFont.body())
-            .foregroundStyle(GainsColor.softInk)
-
+          // Zeit & Portionen-Zeile
           HStack(spacing: 14) {
             Label("\(recipe.prepMinutes) Min", systemImage: "clock")
-            Label("\(recipe.servings) Portion\(recipe.servings == 1 ? "" : "en")", systemImage: "person.2")
+            Spacer()
+            // Portionen-Stepper
+            HStack(spacing: 0) {
+              Button {
+                withAnimation(.spring(response: 0.3)) {
+                  if scaledServings > 1 { scaledServings -= 1 }
+                }
+              } label: {
+                Image(systemName: "minus")
+                  .font(.system(size: 11, weight: .bold))
+                  .foregroundStyle(scaledServings > 1 ? GainsColor.ink : GainsColor.mutedInk)
+                  .frame(width: 32, height: 32)
+                  .background(GainsColor.elevated)
+                  .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+              }
+              .buttonStyle(.plain)
+              .disabled(scaledServings <= 1)
+
+              Text("\(scaledServings)")
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundStyle(GainsColor.ink)
+                .frame(minWidth: 36)
+                .contentTransition(.numericText())
+                .animation(.spring(response: 0.3), value: scaledServings)
+
+              Button {
+                withAnimation(.spring(response: 0.3)) { scaledServings += 1 }
+              } label: {
+                Image(systemName: "plus")
+                  .font(.system(size: 11, weight: .bold))
+                  .foregroundStyle(GainsColor.ink)
+                  .frame(width: 32, height: 32)
+                  .background(GainsColor.elevated)
+                  .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+              }
+              .buttonStyle(.plain)
+
+              Text("Port.")
+                .font(GainsFont.label(10))
+                .foregroundStyle(GainsColor.softInk)
+                .padding(.leading, 6)
+            }
           }
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
         }
 
+        // Makro-Karte (skaliert mit Portionen)
+        macroCard
+
+        // Zutaten
         VStack(alignment: .leading, spacing: 12) {
-          SlashLabel(
-            parts: ["ZUTATEN", "EINKAUF"],
-            primaryColor: GainsColor.lime,
-            secondaryColor: GainsColor.softInk
-          )
-
-          ForEach(recipe.ingredients, id: \.self) { ingredient in
-            HStack(spacing: 10) {
-              Circle()
-                .fill(GainsColor.lime)
-                .frame(width: 8, height: 8)
-
-              Text(ingredient)
-                .font(GainsFont.body())
-                .foregroundStyle(GainsColor.ink)
-
-              Spacer()
+          HStack {
+            SlashLabel(
+              parts: ["ZUTATEN", "EINKAUF"],
+              primaryColor: GainsColor.lime,
+              secondaryColor: GainsColor.softInk
+            )
+            Spacer()
+            if !checkedIngredients.isEmpty {
+              Button {
+                withAnimation(.spring(response: 0.3)) { checkedIngredients.removeAll() }
+              } label: {
+                Text("Reset")
+                  .font(GainsFont.label(9))
+                  .tracking(1.4)
+                  .foregroundStyle(GainsColor.softInk)
+                  .padding(.horizontal, 10)
+                  .frame(height: 24)
+                  .background(GainsColor.elevated)
+                  .clipShape(Capsule())
+              }
+              .buttonStyle(.plain)
             }
-            .padding(14)
-            .gainsCardStyle()
+          }
+
+          VStack(spacing: 8) {
+            ForEach(Array(recipe.ingredients.enumerated()), id: \.offset) { index, ingredient in
+              Button {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                  if checkedIngredients.contains(index) {
+                    checkedIngredients.remove(index)
+                  } else {
+                    checkedIngredients.insert(index)
+                  }
+                }
+              } label: {
+                HStack(spacing: 12) {
+                  ZStack {
+                    Circle()
+                      .fill(checkedIngredients.contains(index) ? GainsColor.lime : GainsColor.lime.opacity(0.2))
+                      .frame(width: 20, height: 20)
+                    if checkedIngredients.contains(index) {
+                      Image(systemName: "checkmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(GainsColor.moss)
+                    }
+                  }
+
+                  Text(ingredient)
+                    .font(GainsFont.body())
+                    .foregroundStyle(
+                      checkedIngredients.contains(index) ? GainsColor.softInk : GainsColor.ink
+                    )
+                    .strikethrough(checkedIngredients.contains(index), color: GainsColor.softInk)
+
+                  Spacer()
+                }
+                .padding(14)
+                .background(
+                  checkedIngredients.contains(index)
+                    ? GainsColor.elevated
+                    : GainsColor.card
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                  RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                      checkedIngredients.contains(index)
+                        ? GainsColor.lime.opacity(0.3)
+                        : GainsColor.border.opacity(0.0),
+                      lineWidth: 1
+                    )
+                )
+              }
+              .buttonStyle(.plain)
+              .animation(.spring(response: 0.3), value: checkedIngredients.contains(index))
+            }
           }
         }
 
+        // Schritte
         VStack(alignment: .leading, spacing: 12) {
           SlashLabel(
             parts: ["SCHRITTE", "KOCHEN"],
@@ -1215,7 +1299,6 @@ private struct RecipeDetailView: View {
                 .frame(width: 22, height: 22)
                 .background(GainsColor.ctaSurface)
                 .clipShape(Circle())
-
               Text(step)
                 .font(GainsFont.body())
                 .foregroundStyle(GainsColor.ink)
@@ -1226,78 +1309,122 @@ private struct RecipeDetailView: View {
           }
         }
 
-        Button {
-          store.toggleFavoriteRecipe(recipe.id)
-        } label: {
-          Text(
-            store.favoriteRecipeIDs.contains(recipe.id)
-              ? "Als Favorit gespeichert" : "Rezept als Favorit speichern"
-          )
-          .font(GainsFont.label(12))
-          .tracking(1.4)
-          .foregroundStyle(GainsColor.lime)
-          .frame(maxWidth: .infinity)
-          .frame(height: 52)
-          .background(GainsColor.ctaSurface)
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        }
-        .buttonStyle(.plain)
+        // Aktions-Buttons
+        HStack(spacing: 12) {
+          Button {
+            store.toggleFavoriteRecipe(recipe.id)
+          } label: {
+            HStack(spacing: 8) {
+              Image(systemName: store.favoriteRecipeIDs.contains(recipe.id) ? "bookmark.fill" : "bookmark")
+                .font(.system(size: 15, weight: .semibold))
+              Text(store.favoriteRecipeIDs.contains(recipe.id) ? "Gespeichert" : "Merken")
+                .font(GainsFont.label(12))
+                .tracking(1.2)
+            }
+            .foregroundStyle(
+              store.favoriteRecipeIDs.contains(recipe.id) ? accentTextColor(recipe.goal) : GainsColor.lime
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: 52)
+            .background(GainsColor.ctaSurface)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          }
+          .buttonStyle(.plain)
 
-        Button {
-          store.logRecipe(recipe)
-        } label: {
-          Text("Als Mahlzeit tracken")
-            .font(GainsFont.label(12))
-            .tracking(1.4)
+          Button {
+            store.logRecipe(recipe)
+          } label: {
+            HStack(spacing: 8) {
+              Image(systemName: "plus.circle.fill")
+                .font(.system(size: 15, weight: .semibold))
+              Text("Tracken")
+                .font(GainsFont.label(12))
+                .tracking(1.2)
+            }
             .foregroundStyle(GainsColor.moss)
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(GainsColor.lime)
             .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          }
+          .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
       }
     }
   }
+
+  // MARK: Makro-Karte
+
+  private var macroCard: some View {
+    VStack(spacing: 14) {
+      HStack(spacing: 0) {
+        macroCell(value: "\(scaledCalories)", unit: "kcal", label: "Kalorien", color: GainsColor.ink)
+        Rectangle().fill(GainsColor.border.opacity(0.5)).frame(width: 1, height: 44)
+        macroCell(value: "\(scaledProtein)g", unit: "", label: "Protein", color: GainsColor.lime)
+        Rectangle().fill(GainsColor.border.opacity(0.5)).frame(width: 1, height: 44)
+        macroCell(value: "\(scaledCarbs)g", unit: "", label: "Carbs", color: Color(hex: "5BC4F5"))
+        Rectangle().fill(GainsColor.border.opacity(0.5)).frame(width: 1, height: 44)
+        macroCell(value: "\(scaledFat)g", unit: "", label: "Fett", color: Color(hex: "FF8A4A"))
+      }
+      .animation(.spring(response: 0.4), value: scaledServings)
+
+      if scaledServings != recipe.servings {
+        Text("Hochgerechnet für \(scaledServings) Portion\(scaledServings == 1 ? "" : "en") (Originalrezept: \(recipe.servings))")
+          .font(GainsFont.label(9))
+          .tracking(1.2)
+          .foregroundStyle(GainsColor.mutedInk)
+          .frame(maxWidth: .infinity, alignment: .center)
+      }
+    }
+    .padding(16)
+    .gainsCardStyle()
+  }
+
+  private func macroCell(value: String, unit: String, label: String, color: Color) -> some View {
+    VStack(spacing: 4) {
+      Text(value)
+        .font(.system(size: 18, weight: .bold, design: .rounded))
+        .foregroundStyle(color)
+        .contentTransition(.numericText())
+      Text(label)
+        .font(GainsFont.label(9))
+        .tracking(1.4)
+        .foregroundStyle(GainsColor.mutedInk)
+    }
+    .frame(maxWidth: .infinity)
+  }
+
+  // MARK: Detail Artwork
 
   private var detailArtwork: some View {
     ZStack(alignment: .bottomLeading) {
       AsyncImage(url: URL(string: recipe.imageURL)) { phase in
         switch phase {
-        case .success(let image):
-          image.resizable().scaledToFill()
-        default:
-          fallbackArtwork(height: 240, fontSize: 76)
+        case .success(let image): image.resizable().scaledToFill()
+        default: fallbackArtwork(height: 240, fontSize: 76)
         }
       }
       .frame(height: 240)
       .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
 
-      LinearGradient(
-        colors: [Color.clear, GainsColor.ink.opacity(0.72)],
-        startPoint: .center,
-        endPoint: .bottom
-      )
-      .frame(height: 240)
-      .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+      LinearGradient(colors: [Color.clear, GainsColor.ink.opacity(0.72)], startPoint: .center, endPoint: .bottom)
+        .frame(height: 240)
+        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
 
       Text(recipe.category)
         .font(GainsFont.label(10))
         .tracking(2)
-        .foregroundStyle(GainsColor.card.opacity(0.86))
+        .foregroundStyle(GainsColor.onCtaSurface.opacity(0.86))
         .padding(18)
     }
   }
 
   private func fallbackArtwork(height: CGFloat, fontSize: CGFloat) -> some View {
     RoundedRectangle(cornerRadius: 24, style: .continuous)
-      .fill(
-        LinearGradient(
-          colors: [accentColor(recipe.goal), GainsColor.ctaSurface],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      )
+      .fill(LinearGradient(
+        colors: [accentColor(recipe.goal), GainsColor.ctaSurface],
+        startPoint: .topLeading, endPoint: .bottomTrailing
+      ))
       .frame(height: height)
       .overlay(alignment: .topTrailing) {
         Circle()
@@ -1308,7 +1435,7 @@ private struct RecipeDetailView: View {
       .overlay {
         Image(systemName: recipe.placeholderSymbol)
           .font(.system(size: fontSize, weight: .medium))
-          .foregroundStyle(GainsColor.card)
+          .foregroundStyle(GainsColor.onCtaSurface)
       }
   }
 
@@ -1319,27 +1446,23 @@ private struct RecipeDetailView: View {
       .foregroundStyle(highlighted ? accentTextColor(recipe.goal) : GainsColor.softInk)
       .padding(.horizontal, 10)
       .frame(height: 24)
-      .background(
-        highlighted
-          ? accentColor(recipe.goal).opacity(0.24)
-          : GainsColor.background.opacity(0.8)
-      )
+      .background(highlighted ? accentColor(recipe.goal).opacity(0.24) : GainsColor.background.opacity(0.8))
       .clipShape(Capsule())
   }
 
   private func accentColor(_ goal: RecipeGoal) -> Color {
     switch goal {
     case .highProtein: return GainsColor.lime
-    case .abnehmen: return Color(hex: "9FD3B0")
-    case .zunehmen: return Color(hex: "E3B96C")
+    case .abnehmen:    return Color(hex: "9FD3B0")
+    case .zunehmen:    return Color(hex: "E3B96C")
     }
   }
 
   private func accentTextColor(_ goal: RecipeGoal) -> Color {
     switch goal {
     case .highProtein: return GainsColor.moss
-    case .abnehmen: return Color(hex: "2E6242")
-    case .zunehmen: return Color(hex: "6D4516")
+    case .abnehmen:    return Color(hex: "2E6242")
+    case .zunehmen:    return Color(hex: "6D4516")
     }
   }
 }

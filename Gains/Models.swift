@@ -5,9 +5,11 @@ enum AppTab: Hashable {
   case home
   case gym
   case run
-  case recipes
-  case progress
+  case nutrition
   case community
+
+  // Hinweis: `.progress` wurde entfernt — Fortschritt lebt jetzt als
+  // aufklappbarer Bereich auf dem Home-Screen, nicht mehr als eigener Tab.
 
   var title: String {
     switch self {
@@ -17,10 +19,8 @@ enum AppTab: Hashable {
       return "Gym"
     case .run:
       return "Laufen"
-    case .recipes:
+    case .nutrition:
       return "Ernährung"
-    case .progress:
-      return "Fortschritt"
     case .community:
       return "Community"
     }
@@ -78,7 +78,8 @@ enum CaptureKind: String, CaseIterable, Identifiable {
 enum AppWorkoutWorkspace: String, Hashable {
   case kraft
   case laufen
-  case fortschritt
+  // `.fortschritt` wurde entfernt — der Fortschritt-Workspace existiert
+  // nicht mehr; Fortschritt ist jetzt eine Sektion auf dem Home-Screen.
 }
 
 struct EvidenceSource: Identifiable {
@@ -1273,6 +1274,16 @@ struct WorkoutPlannerSettings {
   var runIntensityModel: RunIntensityModel
   var weeklyKilometerTarget: Int
 
+  // ── Manueller Plan ────────────────────────────────────────────────
+  // Wenn `isManualPlan == true` setzt der Nutzer pro Wochentag selbst,
+  // ob/welche Session läuft. Die Auto-Verteilung der Engine wird dann
+  // durch `manualSessionKinds` ersetzt. Krafttage erkennt man an
+  // `manualSessionKinds[day] == .strength`, Lauftage an einem Run-Kind,
+  // Pausen daran, dass kein Eintrag existiert (Day-Pref steht dann auf
+  // .rest). Standardmäßig aus, damit Wizard-Flow unverändert bleibt.
+  var isManualPlan: Bool
+  var manualSessionKinds: [Weekday: PlannedSessionKind]
+
   static let `default` = WorkoutPlannerSettings(
     sessionsPerWeek: 4,
     preferredSessionLength: 60,
@@ -1296,7 +1307,9 @@ struct WorkoutPlannerSettings {
     limitations: [],
     runningGoal: .general,
     runIntensityModel: .polarized80_20,
-    weeklyKilometerTarget: 20
+    weeklyKilometerTarget: 20,
+    isManualPlan: false,
+    manualSessionKinds: [:]
   )
 }
 
@@ -1397,6 +1410,58 @@ struct VitalReading: Identifiable {
   let title: String
   let value: String
   let context: String
+}
+
+// MARK: - Gym Erweiterungen (4-Wochen-Vorschau & Set-History)
+
+/// Eintrag in der 4-Wochen-Vorschau (Gym → PLAN-Tab).
+/// Repräsentiert einen einzelnen Tag mit Kontext für die Anzeige im Streifen.
+struct GymPlanPreviewDay: Identifiable {
+  let id = UUID()
+  let date: Date
+  let weekday: Weekday
+  let status: WorkoutDayStatus
+  let title: String
+  let isToday: Bool
+  let isCompleted: Bool
+  let runTemplate: RunTemplate?
+}
+
+/// Eine Woche der Vorschau, gruppiert für Anzeige als horizontaler Streifen.
+struct GymPlanPreviewWeek: Identifiable {
+  let id = UUID()
+  let weekIndex: Int  // 0 = aktuelle Woche, 1 = nächste, ...
+  let label: String   // "Diese Woche", "Nächste", "in 2 Wo."
+  let days: [GymPlanPreviewDay]
+}
+
+/// Historie pro Übung über alle absolvierten Workouts hinweg.
+/// Genutzt vom Set-History Drilldown im STATS-Tab.
+struct ExerciseHistoryEntry: Identifiable {
+  let id = UUID()
+  let date: Date
+  let workoutTitle: String
+  let topWeight: Double
+  let completedSets: Int
+  let totalReps: Int
+  let totalVolume: Double
+}
+
+/// Volumen-Schwellen je Muskel im Sinne des Renaissance-Periodization-Modells.
+/// (Mike Israetel 2020 — MV / MEV / MAV / MRV).
+struct VolumeLandmarks {
+  let mev: Int   // Minimum Effective Volume — ab hier beginnt Wachstum
+  let mav: Int   // Maximum Adaptive Volume — Sweet Spot Mitte
+  let mrv: Int   // Maximum Recoverable Volume — darüber Recovery-Defizit
+
+  /// Pragmatische Werte basierend auf RP-Empfehlungen, geclampt
+  /// auf das Volumen-Range-Profil der Engine.
+  static func from(range: ClosedRange<Int>) -> VolumeLandmarks {
+    let mev = range.lowerBound
+    let mav = (range.lowerBound + range.upperBound) / 2
+    let mrv = max(range.upperBound + 4, Int(Double(range.upperBound) * 1.25))
+    return VolumeLandmarks(mev: mev, mav: mav, mrv: mrv)
+  }
 }
 
 enum WorkoutPlanSource: Equatable {
@@ -1639,16 +1704,170 @@ struct RunTemplate: Identifiable {
   let systemImage: String
 }
 
+/// Intensität einer Lauf-Einheit. Steuert Pace/HF-Erwartung und Audio-Cues.
+enum RunIntensity: String, CaseIterable, Codable {
+  case easy
+  case tempo
+  case interval
+  case long
+  case recovery
+  case free
+
+  var title: String {
+    switch self {
+    case .easy:     return "Easy"
+    case .tempo:    return "Tempo"
+    case .interval: return "Intervalle"
+    case .long:     return "Long Run"
+    case .recovery: return "Recovery"
+    case .free:     return "Frei"
+    }
+  }
+
+  var shortLabel: String {
+    switch self {
+    case .easy:     return "EASY"
+    case .tempo:    return "TEMPO"
+    case .interval: return "INTERVAL"
+    case .long:     return "LONG"
+    case .recovery: return "RECOVERY"
+    case .free:     return "FREI"
+    }
+  }
+
+  var systemImage: String {
+    switch self {
+    case .easy:     return "figure.run"
+    case .tempo:    return "bolt.heart.fill"
+    case .interval: return "bolt.circle.fill"
+    case .long:     return "map.fill"
+    case .recovery: return "heart.circle.fill"
+    case .free:     return "figure.run.circle"
+    }
+  }
+
+  /// Empfohlener HF-Zonen-Bereich (1–5) für die Einheit.
+  var targetZoneRange: ClosedRange<Int> {
+    switch self {
+    case .recovery: return 1...1
+    case .easy:     return 2...2
+    case .long:     return 2...3
+    case .tempo:    return 3...4
+    case .interval: return 4...5
+    case .free:     return 1...5
+    }
+  }
+}
+
+/// Welches Ziel verfolgt der Lauf?
+enum RunTargetMode: String, Codable, CaseIterable {
+  case free       // kein Ziel
+  case distance   // Ziel-Distanz in km
+  case duration   // Ziel-Dauer in Minuten
+  case pace       // Ziel-Pace in Sekunden/km
+
+  var title: String {
+    switch self {
+    case .free:     return "Frei"
+    case .distance: return "Distanz"
+    case .duration: return "Dauer"
+    case .pace:     return "Pace"
+    }
+  }
+}
+
+/// Subjektives Empfinden nach dem Lauf (1 = leicht, 5 = brutal).
+enum RunFeel: Int, Codable, CaseIterable {
+  case veryEasy = 1
+  case easy = 2
+  case okay = 3
+  case hard = 4
+  case veryHard = 5
+
+  var title: String {
+    switch self {
+    case .veryEasy: return "Sehr leicht"
+    case .easy:     return "Leicht"
+    case .okay:     return "Okay"
+    case .hard:     return "Hart"
+    case .veryHard: return "Sehr hart"
+    }
+  }
+
+  var emojiSymbol: String {
+    switch self {
+    case .veryEasy: return "face.smiling"
+    case .easy:     return "face.smiling.inverse"
+    case .okay:     return "minus.circle"
+    case .hard:     return "flame"
+    case .veryHard: return "flame.fill"
+    }
+  }
+}
+
+/// Herzfrequenz-Zonen 1–5 nach Karvonen-Stil (% der maximalen HF).
+enum HRZone: Int, CaseIterable, Codable {
+  case zone1 = 1
+  case zone2 = 2
+  case zone3 = 3
+  case zone4 = 4
+  case zone5 = 5
+
+  var title: String {
+    switch self {
+    case .zone1: return "Z1 · Regeneration"
+    case .zone2: return "Z2 · Grundlage"
+    case .zone3: return "Z3 · Tempo"
+    case .zone4: return "Z4 · Schwelle"
+    case .zone5: return "Z5 · VO₂max"
+    }
+  }
+
+  var shortLabel: String { "Z\(rawValue)" }
+
+  /// Untere/obere Prozent-Grenze als Anteil der maximalen HF.
+  var fractionRange: ClosedRange<Double> {
+    switch self {
+    case .zone1: return 0.50...0.60
+    case .zone2: return 0.60...0.70
+    case .zone3: return 0.70...0.80
+    case .zone4: return 0.80...0.90
+    case .zone5: return 0.90...1.00
+    }
+  }
+
+  /// Zone für eine konkrete Herzfrequenz bei gegebener maximaler HF.
+  static func zone(for bpm: Int, maxHR: Int) -> HRZone? {
+    guard bpm > 0, maxHR > 0 else { return nil }
+    let fraction = Double(bpm) / Double(maxHR)
+    switch fraction {
+    case ..<0.60:  return .zone1
+    case ..<0.70:  return .zone2
+    case ..<0.80:  return .zone3
+    case ..<0.90:  return .zone4
+    default:       return .zone5
+    }
+  }
+}
+
 struct RunSplit: Identifiable {
   let id: UUID
   let index: Int
   let distanceKm: Double
   let durationMinutes: Int
   let averageHeartRate: Int
+  /// True, wenn der Split durch einen manuellen Lap (Button) entstanden ist.
+  var isManualLap: Bool = false
 
   var paceSeconds: Int {
     guard distanceKm > 0 else { return 0 }
     return Int((Double(durationMinutes) * 60) / distanceKm)
+  }
+
+  /// Genauere Pace inkl. Sekundenanteil — durationSeconds optional übergeben.
+  func paceSeconds(durationSeconds: Int) -> Int {
+    guard distanceKm > 0, durationSeconds > 0 else { return paceSeconds }
+    return Int(Double(durationSeconds) / distanceKm)
   }
 }
 
@@ -1660,17 +1879,44 @@ struct ActiveRunSession: Identifiable {
   let targetDistanceKm: Double
   let targetDurationMinutes: Int
   let targetPaceLabel: String
+  var targetMode: RunTargetMode = .free
+  var targetPaceSeconds: Int = 0
+  var intensity: RunIntensity = .free
   var distanceKm: Double
   var durationMinutes: Int
   var elevationGain: Int
   var currentHeartRate: Int
   var isPaused: Bool
+  var autoPauseEnabled: Bool = true
+  var audioCuesEnabled: Bool = true
   var routeCoordinates: [CLLocationCoordinate2D]
   var splits: [RunSplit]
+  /// HF-Zonen-Verteilung in Sekunden je Zone (1–5). Index 0 = Zone 1.
+  var hrZoneSecondsBuckets: [Int] = [0, 0, 0, 0, 0]
 
   var averagePaceSeconds: Int {
     guard distanceKm > 0 else { return 0 }
     return Int((Double(durationMinutes) * 60) / distanceKm)
+  }
+
+  /// Fortschritt 0–1 in Bezug auf den gewählten Zielmodus.
+  func progressFraction(elapsedSeconds: Int) -> Double {
+    switch targetMode {
+    case .free:
+      return 0
+    case .distance:
+      guard targetDistanceKm > 0 else { return 0 }
+      return min(distanceKm / targetDistanceKm, 1)
+    case .duration:
+      guard targetDurationMinutes > 0 else { return 0 }
+      let elapsedMin = Double(elapsedSeconds) / 60.0
+      return min(elapsedMin / Double(targetDurationMinutes), 1)
+    case .pace:
+      guard targetPaceSeconds > 0, distanceKm > 0 else { return 0 }
+      // 1.0 = exakt im Plan, kleiner = schneller, größer = langsamer
+      let actualPace = Double(elapsedSeconds) / distanceKm
+      return min(Double(targetPaceSeconds) / max(actualPace, 1), 1)
+    }
   }
 }
 
@@ -1685,10 +1931,21 @@ struct CompletedRunSummary: Identifiable {
   let averageHeartRate: Int
   let routeCoordinates: [CLLocationCoordinate2D]
   let splits: [RunSplit]
+  var intensity: RunIntensity = .free
+  var feel: RunFeel? = nil
+  var note: String = ""
+  /// HF-Zonen-Verteilung in Sekunden, Index 0 = Zone 1.
+  var hrZoneSecondsBuckets: [Int] = [0, 0, 0, 0, 0]
 
   var averagePaceSeconds: Int {
     guard distanceKm > 0 else { return 0 }
     return Int((Double(durationMinutes) * 60) / distanceKm)
+  }
+
+  /// Anteil je Zone (0–1). Falls keine Daten vorhanden, alle 0.
+  var hrZoneFractions: [Double] {
+    let total = max(hrZoneSecondsBuckets.reduce(0, +), 1)
+    return hrZoneSecondsBuckets.map { Double($0) / Double(total) }
   }
 }
 
@@ -1806,14 +2063,71 @@ extension ActiveRunSession {
       targetDistanceKm: template.targetDistanceKm,
       targetDurationMinutes: template.targetDurationMinutes,
       targetPaceLabel: template.targetPaceLabel,
+      targetMode: template.targetDistanceKm > 0 ? .distance : .free,
+      targetPaceSeconds: template.targetPaceSecondsDerived,
+      intensity: template.intensityDerived,
       distanceKm: 0,
       durationMinutes: 0,
       elevationGain: 0,
       currentHeartRate: 136,
       isPaused: false,
+      autoPauseEnabled: true,
+      audioCuesEnabled: true,
       routeCoordinates: [],
-      splits: []
+      splits: [],
+      hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
     )
+  }
+
+  /// Frischer Quick-Run ohne Template — der Nutzer wählt im Pre-Run-Setup, was sein Ziel ist.
+  static func freshQuickRun() -> ActiveRunSession {
+    ActiveRunSession(
+      id: UUID(),
+      title: "Freier Lauf",
+      routeName: "Freie Strecke",
+      startedAt: Date(),
+      targetDistanceKm: 0,
+      targetDurationMinutes: 0,
+      targetPaceLabel: "",
+      targetMode: .free,
+      targetPaceSeconds: 0,
+      intensity: .free,
+      distanceKm: 0,
+      durationMinutes: 0,
+      elevationGain: 0,
+      currentHeartRate: 0,
+      isPaused: false,
+      autoPauseEnabled: true,
+      audioCuesEnabled: true,
+      routeCoordinates: [],
+      splits: [],
+      hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
+    )
+  }
+}
+
+extension RunTemplate {
+  /// Versuche, aus dem `targetPaceLabel` eine Sekundenzahl pro km abzuleiten ("4:45 /km").
+  var targetPaceSecondsDerived: Int {
+    let trimmed = targetPaceLabel
+      .components(separatedBy: " ")
+      .first ?? targetPaceLabel
+    let parts = trimmed.split(separator: ":")
+    guard parts.count == 2,
+          let m = Int(parts[0]),
+          let s = Int(parts[1]) else { return 0 }
+    return m * 60 + s
+  }
+
+  /// Heuristische Zuordnung Template → Intensität.
+  var intensityDerived: RunIntensity {
+    let t = title.lowercased()
+    if t.contains("interval") || t.contains("vo") { return .interval }
+    if t.contains("tempo")    { return .tempo }
+    if t.contains("long")     { return .long }
+    if t.contains("recovery") { return .recovery }
+    if t.contains("easy")     { return .easy }
+    return .free
   }
 }
 

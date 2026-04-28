@@ -16,12 +16,24 @@ struct GainsApp: App {
     MetricKitObserver.shared.register()
   }
 
+  // Notifications nach App-Start einmal neu aufstellen, sobald der Store
+  // geladen ist. Das stellt sicher, dass nach Update / Re-Install die
+  // Reminder wieder im System eingetragen sind. Nutzt den existierenden
+  // notificationsEnabled-Flag — wenn er aus ist, cancelt der Manager.
+  private func bootstrapNotifications() {
+    NotificationsManager.shared.refreshSchedule(for: store)
+  }
+
   var body: some Scene {
     WindowGroup {
       ContentView()
         .environmentObject(store)
         .environmentObject(navigation)
-        .preferredColorScheme(store.appearanceMode.preferredColorScheme)
+        // A8: App ist Dark-Only. Der GainsAppearanceMode-State bleibt im
+        // Store erhalten (Migration / Settings-Zukunft), wird hier aber
+        // hartverdrahtet überschrieben — der ProfileView-Picker ist weg.
+        .preferredColorScheme(.dark)
+        .task { bootstrapNotifications() }
         .fullScreenCover(isPresented: Binding(
           get: { !hasCompletedOnboarding },
           set: { newValue in hasCompletedOnboarding = !newValue }

@@ -44,6 +44,14 @@ final class GainsStore: ObservableObject {
   // DEBUG-Demo-Modus erreichbar (siehe `loadDemoData()` unten).
   @Published var workoutHistory: [CompletedWorkoutSummary] = []
   @Published var runHistory: [CompletedRunSummary] = []
+  // Strava-Erweiterung: Routen, Segmente, strukturierte Workouts.
+  @Published var savedRoutes: [SavedRoute] = []
+  @Published var runSegments: [RunSegment] = []
+  /// Effort-Liste pro Segment (segmentID → Efforts, neuste zuerst).
+  @Published var runSegmentEfforts: [UUID: [RunSegmentEffort]] = [:]
+  @Published var structuredRunWorkouts: [StructuredRunWorkout] = StructuredRunWorkout.builtinLibrary
+  /// Aktiv laufendes strukturiertes Workout (nil, wenn kein Workout läuft).
+  @Published var activeStructuredWorkout: ActiveStructuredWorkout? = nil
   @Published var savedWorkoutPlans: [WorkoutPlan] = WorkoutPlan.starterTemplates
   @Published var plannerSettings: WorkoutPlannerSettings = .default
   @Published var completedCoachCheckInIDs: Set<UUID> = []
@@ -132,6 +140,23 @@ final class GainsStore: ObservableObject {
     if let runs = ud.decodedLoadLenient(CompletedRunSummary.self, forKey: PersistenceKey.runHistory) {
       runHistory = runs
     }
+    // Strava-Erweiterung: Routen / Segmente / strukturierte Workouts laden.
+    if let routes = ud.decodedLoadLenient(SavedRoute.self, forKey: PersistenceKey.savedRoutes) {
+      savedRoutes = routes
+    }
+    if let segments = ud.decodedLoadLenient(RunSegment.self, forKey: PersistenceKey.runSegments) {
+      runSegments = segments
+    }
+    // A5: Lenient laden — ein einzelner korrupter Eintrag darf nicht das ganze
+    // Dictionary wegwerfen. Analog zu decodedLoadLenient für Arrays.
+    if let efforts = ud.decodedLoadLenientUUIDDictionary(RunSegmentEffort.self, forKey: PersistenceKey.runSegmentEfforts) {
+      runSegmentEfforts = efforts
+    }
+    if let workouts = ud.decodedLoadLenient(StructuredRunWorkout.self, forKey: PersistenceKey.structuredRunWorkouts) {
+      // Builtin-Workouts immer auffrischen — Custom-Workouts behalten.
+      let custom = workouts.filter { !$0.isBuiltin }
+      structuredRunWorkouts = StructuredRunWorkout.builtinLibrary + custom
+    }
     if let plans = ud.decodedLoad([WorkoutPlan].self, forKey: PersistenceKey.savedWorkoutPlans) {
       savedWorkoutPlans = plans
     }
@@ -212,34 +237,78 @@ final class GainsStore: ObservableObject {
   }
 
   func saveAll() {
+    // Alle aktuellen Werte auf dem Main-Thread snapshotten (Value-Types → sichere Kopien),
+    // dann JSON-Enkodierung und UserDefaults-Schreibzugriff auf einem Utility-Background-
+    // Thread erledigen. Verhindert Main-Thread-Jank bei großen Historien (viele Läufe,
+    // Nutrition-Logs, Routen).
     let ud = UserDefaults.standard
-    ud.set(userName, forKey: PersistenceKey.userName)
-    ud.encodedSave(workoutHistory,    forKey: PersistenceKey.workoutHistory)
-    ud.encodedSave(runHistory,        forKey: PersistenceKey.runHistory)
-    ud.encodedSave(savedWorkoutPlans, forKey: PersistenceKey.savedWorkoutPlans)
-    ud.encodedSave(plannerSettings,   forKey: PersistenceKey.plannerSettings)
-    ud.encodedSave(weightTrend,       forKey: PersistenceKey.weightTrend)
-    ud.encodedSave(Array(connectedTrackerIDs), forKey: PersistenceKey.connectedTrackerIDs)
-    ud.encodedSave(Array(favoriteRecipeIDs),   forKey: PersistenceKey.favoriteRecipeIDs)
-    ud.encodedSave(Array(completedCalendarDates), forKey: PersistenceKey.completedDates)
-    ud.encodedSave(nutritionEntries,  forKey: PersistenceKey.nutritionEntries)
-    ud.encodedSave(nutritionGoal,     forKey: PersistenceKey.nutritionGoal)
-    if let profile = nutritionProfile { ud.encodedSave(profile, forKey: PersistenceKey.nutritionProfile) }
-    ud.set(waistMeasurement,          forKey: PersistenceKey.waistMeasurement)
-    ud.set(bodyFatChange,             forKey: PersistenceKey.bodyFatChange)
-    ud.set(proteinProgress,           forKey: PersistenceKey.proteinProgress)
-    ud.set(streakDays,                forKey: PersistenceKey.streakDays)
-    ud.set(recordDays,                forKey: PersistenceKey.recordDays)
-    ud.set(vitalSyncCount,            forKey: PersistenceKey.vitalSyncCount)
-    ud.set(notificationsEnabled,      forKey: PersistenceKey.notificationsEnabled)
-    ud.set(healthAutoSyncEnabled,     forKey: PersistenceKey.healthAutoSync)
-    ud.set(studyBasedCoachingEnabled, forKey: PersistenceKey.studyCoaching)
-    ud.set(joinedChallenge,           forKey: PersistenceKey.joinedChallenge)
-    ud.set(appearanceMode.rawValue,   forKey: PersistenceKey.appearanceMode)
-    ud.encodedSave(socialSharingSettings, forKey: PersistenceKey.socialSharingSettings)
-    ud.encodedSave(forumThreads,      forKey: PersistenceKey.forumThreads)
-    ud.encodedSave(meetups,           forKey: PersistenceKey.meetups)
-    ud.encodedSave(Array(joinedMeetupIDs), forKey: PersistenceKey.joinedMeetupIDs)
+    let _userName              = self.userName
+    let _workoutHistory        = self.workoutHistory
+    let _runHistory            = self.runHistory
+    let _savedRoutes           = self.savedRoutes
+    let _runSegments           = self.runSegments
+    let _runSegmentEfforts     = self.runSegmentEfforts
+    let _customRunWorkouts     = self.structuredRunWorkouts.filter { !$0.isBuiltin }
+    let _savedWorkoutPlans     = self.savedWorkoutPlans
+    let _plannerSettings       = self.plannerSettings
+    let _weightTrend           = self.weightTrend
+    let _connectedTrackerIDs   = Array(self.connectedTrackerIDs)
+    let _favoriteRecipeIDs     = Array(self.favoriteRecipeIDs)
+    let _completedDates        = Array(self.completedCalendarDates)
+    let _nutritionEntries      = self.nutritionEntries
+    let _nutritionGoal         = self.nutritionGoal
+    let _nutritionProfile      = self.nutritionProfile
+    let _waistMeasurement      = self.waistMeasurement
+    let _bodyFatChange         = self.bodyFatChange
+    let _proteinProgress       = self.proteinProgress
+    let _streakDays            = self.streakDays
+    let _recordDays            = self.recordDays
+    let _vitalSyncCount        = self.vitalSyncCount
+    let _notificationsEnabled  = self.notificationsEnabled
+    let _healthAutoSync        = self.healthAutoSyncEnabled
+    let _studyCoaching         = self.studyBasedCoachingEnabled
+    let _joinedChallenge       = self.joinedChallenge
+    let _appearanceMode        = self.appearanceMode.rawValue
+    let _socialSharing         = self.socialSharingSettings
+    let _forumThreads          = self.forumThreads
+    let _meetups               = self.meetups
+    let _joinedMeetupIDs       = Array(self.joinedMeetupIDs)
+
+    DispatchQueue.global(qos: .utility).async {
+      ud.set(_userName, forKey: PersistenceKey.userName)
+      ud.encodedSave(_workoutHistory,      forKey: PersistenceKey.workoutHistory)
+      ud.encodedSave(_runHistory,          forKey: PersistenceKey.runHistory)
+      // Strava-Erweiterung: Routen / Segmente / strukturierte Workouts.
+      ud.encodedSave(_savedRoutes,         forKey: PersistenceKey.savedRoutes)
+      ud.encodedSave(_runSegments,         forKey: PersistenceKey.runSegments)
+      ud.encodedSave(_runSegmentEfforts,   forKey: PersistenceKey.runSegmentEfforts)
+      // Nur Custom-Workouts persistieren — Builtins werden bei jedem Start neu geladen.
+      ud.encodedSave(_customRunWorkouts,   forKey: PersistenceKey.structuredRunWorkouts)
+      ud.encodedSave(_savedWorkoutPlans,   forKey: PersistenceKey.savedWorkoutPlans)
+      ud.encodedSave(_plannerSettings,     forKey: PersistenceKey.plannerSettings)
+      ud.encodedSave(_weightTrend,         forKey: PersistenceKey.weightTrend)
+      ud.encodedSave(_connectedTrackerIDs, forKey: PersistenceKey.connectedTrackerIDs)
+      ud.encodedSave(_favoriteRecipeIDs,   forKey: PersistenceKey.favoriteRecipeIDs)
+      ud.encodedSave(_completedDates,      forKey: PersistenceKey.completedDates)
+      ud.encodedSave(_nutritionEntries,    forKey: PersistenceKey.nutritionEntries)
+      ud.encodedSave(_nutritionGoal,       forKey: PersistenceKey.nutritionGoal)
+      if let profile = _nutritionProfile { ud.encodedSave(profile, forKey: PersistenceKey.nutritionProfile) }
+      ud.set(_waistMeasurement,            forKey: PersistenceKey.waistMeasurement)
+      ud.set(_bodyFatChange,               forKey: PersistenceKey.bodyFatChange)
+      ud.set(_proteinProgress,             forKey: PersistenceKey.proteinProgress)
+      ud.set(_streakDays,                  forKey: PersistenceKey.streakDays)
+      ud.set(_recordDays,                  forKey: PersistenceKey.recordDays)
+      ud.set(_vitalSyncCount,              forKey: PersistenceKey.vitalSyncCount)
+      ud.set(_notificationsEnabled,        forKey: PersistenceKey.notificationsEnabled)
+      ud.set(_healthAutoSync,              forKey: PersistenceKey.healthAutoSync)
+      ud.set(_studyCoaching,              forKey: PersistenceKey.studyCoaching)
+      ud.set(_joinedChallenge,             forKey: PersistenceKey.joinedChallenge)
+      ud.set(_appearanceMode,              forKey: PersistenceKey.appearanceMode)
+      ud.encodedSave(_socialSharing,       forKey: PersistenceKey.socialSharingSettings)
+      ud.encodedSave(_forumThreads,        forKey: PersistenceKey.forumThreads)
+      ud.encodedSave(_meetups,             forKey: PersistenceKey.meetups)
+      ud.encodedSave(_joinedMeetupIDs,     forKey: PersistenceKey.joinedMeetupIDs)
+    }
   }
 
   // MARK: - Demo-Daten (nur DEBUG)
@@ -292,6 +361,8 @@ final class GainsStore: ObservableObject {
       PersistenceKey.studyCoaching, PersistenceKey.appearanceMode,
       PersistenceKey.joinedChallenge, PersistenceKey.socialSharingSettings,
       PersistenceKey.forumThreads, PersistenceKey.meetups, PersistenceKey.joinedMeetupIDs,
+      PersistenceKey.savedRoutes, PersistenceKey.runSegments,
+      PersistenceKey.runSegmentEfforts, PersistenceKey.structuredRunWorkouts,
       // Auch das Onboarding-Flag und die Community-Waitlist zurücksetzen
       "gains_hasCompletedOnboarding", "gains_communityWaitlist",
       // Schema-Version, damit die Migration beim nächsten Start sauber neu läuft.
@@ -351,10 +422,10 @@ final class GainsStore: ObservableObject {
         if kind.isRun {
           let template = RunTemplate.template(for: kind)
           let title = template?.title ?? kind.title
-          let focus =
-            template != nil
-            ? "\(Int(template!.targetDistanceKm)) km · \(template!.targetPaceLabel)"
-            : kind.title
+          let focus: String = {
+            guard let template else { return kind.title }
+            return "\(Int(template.targetDistanceKm)) km · \(template.targetPaceLabel)"
+          }()
 
           return WorkoutDayPlan(
             weekday: day,
@@ -1727,6 +1798,19 @@ final class GainsStore: ObservableObject {
     activeWorkout = WorkoutSession.fromPlan(plan)
   }
 
+  /// Wiederholt das zuletzt absolvierte Workout — sucht im savedWorkoutPlans
+  /// nach demselben Titel, fällt sonst auf das letzte gespeicherte Plan-Match
+  /// zurück. Kein-op, wenn schon ein Workout aktiv oder noch keine Historie da.
+  /// Returns true wenn ein Workout gestartet wurde.
+  @discardableResult
+  func repeatLastWorkout() -> Bool {
+    guard activeWorkout == nil, let last = workoutHistory.first else { return false }
+    let plan = savedWorkoutPlans.first(where: { $0.title == last.title })
+      ?? currentWorkoutPreview
+    activeWorkout = WorkoutSession.fromPlan(plan)
+    return true
+  }
+
   func discardWorkout() {
     activeWorkout = nil
   }
@@ -1736,8 +1820,11 @@ final class GainsStore: ObservableObject {
     activeRun = ActiveRunSession.fromTemplate(template)
   }
 
+  /// Quick-Run ohne Template — bewusst frei, damit der User im Pre-Run-Setup
+  /// Intensität / Ziel / Audio-Cues selbst wählt.
   func startQuickRun() {
-    startRun(from: runningTemplates[0])
+    guard activeRun == nil else { return }
+    activeRun = ActiveRunSession.freshQuickRun()
   }
 
   func startRunLike(_ run: CompletedRunSummary) {
@@ -1750,18 +1837,122 @@ final class GainsStore: ObservableObject {
       targetDistanceKm: run.distanceKm,
       targetDurationMinutes: run.durationMinutes,
       targetPaceLabel: formattedPace(secondsPerKilometer: run.averagePaceSeconds),
+      targetMode: run.distanceKm > 0 ? .distance : .free,
+      targetPaceSeconds: run.averagePaceSeconds,
+      intensity: run.intensity,
       distanceKm: 0,
       durationMinutes: 0,
       elevationGain: 0,
       currentHeartRate: max(run.averageHeartRate - 8, 120),
       isPaused: false,
+      autoPauseEnabled: true,
+      audioCuesEnabled: true,
       routeCoordinates: [],
-      splits: []
+      splits: [],
+      hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
     )
   }
 
   func discardRun() {
     activeRun = nil
+  }
+
+  /// Verwirft einen aktiven Lauf ohne ihn in die History zu speichern (Stop-Flow).
+  func discardActiveRun() {
+    guard activeRun != nil else { return }
+    activeRun = nil
+    lastProgressEvent = "Lauf verworfen — keine Änderung in der History."
+  }
+
+  // MARK: – Pre-Run Setup
+
+  func setRunIntensity(_ intensity: RunIntensity) {
+    activeRun?.intensity = intensity
+  }
+
+  /// Setzt den Ziel-Modus (Distanz/Zeit/Pace/Frei) inkl. zugehöriger Werte.
+  func setRunTarget(mode: RunTargetMode, distanceKm: Double = 0, durationMinutes: Int = 0, paceSeconds: Int = 0) {
+    guard var run = activeRun else { return }
+    run.targetMode = mode
+    switch mode {
+    case .free:
+      break
+    case .distance:
+      run = ActiveRunSession(
+        id: run.id, title: run.title, routeName: run.routeName, startedAt: run.startedAt,
+        targetDistanceKm: max(distanceKm, 0), targetDurationMinutes: run.targetDurationMinutes,
+        targetPaceLabel: run.targetPaceLabel, targetMode: .distance,
+        targetPaceSeconds: run.targetPaceSeconds, intensity: run.intensity,
+        distanceKm: run.distanceKm, durationMinutes: run.durationMinutes,
+        elevationGain: run.elevationGain, currentHeartRate: run.currentHeartRate,
+        isPaused: run.isPaused, autoPauseEnabled: run.autoPauseEnabled,
+        audioCuesEnabled: run.audioCuesEnabled, routeCoordinates: run.routeCoordinates,
+        splits: run.splits, hrZoneSecondsBuckets: run.hrZoneSecondsBuckets
+      )
+    case .duration:
+      run = ActiveRunSession(
+        id: run.id, title: run.title, routeName: run.routeName, startedAt: run.startedAt,
+        targetDistanceKm: run.targetDistanceKm, targetDurationMinutes: max(durationMinutes, 0),
+        targetPaceLabel: run.targetPaceLabel, targetMode: .duration,
+        targetPaceSeconds: run.targetPaceSeconds, intensity: run.intensity,
+        distanceKm: run.distanceKm, durationMinutes: run.durationMinutes,
+        elevationGain: run.elevationGain, currentHeartRate: run.currentHeartRate,
+        isPaused: run.isPaused, autoPauseEnabled: run.autoPauseEnabled,
+        audioCuesEnabled: run.audioCuesEnabled, routeCoordinates: run.routeCoordinates,
+        splits: run.splits, hrZoneSecondsBuckets: run.hrZoneSecondsBuckets
+      )
+    case .pace:
+      run.targetPaceSeconds = max(paceSeconds, 0)
+    }
+    activeRun = run
+  }
+
+  func setAutoPause(_ enabled: Bool) {
+    activeRun?.autoPauseEnabled = enabled
+  }
+
+  func setAudioCues(_ enabled: Bool) {
+    activeRun?.audioCuesEnabled = enabled
+  }
+
+  // MARK: – Manueller Lap
+
+  /// Fügt einen vom Nutzer ausgelösten Lap an die Splits an. Distanz/Zeit
+  /// werden vom Tracker übergeben (seit dem letzten Lap-Anker).
+  func addManualLap(distanceKm: Double, durationSeconds: Int, heartRate: Int) {
+    guard activeRun != nil, distanceKm > 0 else { return }
+    let split = RunSplit(
+      id: UUID(),
+      index: (activeRun?.splits.count ?? 0) + 1,
+      distanceKm: rounded(distanceKm),
+      durationMinutes: max(Int((Double(durationSeconds) / 60).rounded()), 1),
+      averageHeartRate: max(heartRate, 0),
+      isManualLap: true
+    )
+    activeRun?.splits.append(split)
+  }
+
+  // MARK: – HF-Zonen-Tracking
+
+  /// Maximale Herzfrequenz aus dem Profil (Tanaka 2001: 208 − 0,7 × Alter).
+  /// Fallback 190 bpm, falls kein Profil hinterlegt ist.
+  var estimatedMaxHeartRate: Int {
+    if let age = nutritionProfile?.age, age > 0 {
+      return Int((208.0 - 0.7 * Double(age)).rounded())
+    }
+    return 190
+  }
+
+  /// Erhöht das HF-Zonen-Bucket des aktiven Laufs um 1 Sekunde.
+  /// Vom Live-Screen einmal pro Sekunde aufrufen, solange nicht pausiert.
+  func tickRunHeartRateZone(currentBpm: Int) {
+    guard activeRun != nil, currentBpm > 0 else { return }
+    guard let zone = HRZone.zone(for: currentBpm, maxHR: estimatedMaxHeartRate) else { return }
+    let idx = zone.rawValue - 1
+    var buckets = activeRun?.hrZoneSecondsBuckets ?? [0, 0, 0, 0, 0]
+    if buckets.count < 5 { buckets = [0, 0, 0, 0, 0] }
+    buckets[idx] += 1
+    activeRun?.hrZoneSecondsBuckets = buckets
   }
 
   func toggleRunPause() {
@@ -1836,32 +2027,77 @@ final class GainsStore: ObservableObject {
     }
   }
 
-  func finishRun() {
-    guard let run = activeRun, run.distanceKm > 0 else { return }
+  /// Beendet den aktiven Lauf und speichert ihn als CompletedRunSummary.
+  /// Optional können beim Speichern Name, Notiz und Empfinden überschrieben werden.
+  func finishRun(
+    customTitle: String? = nil,
+    note: String = "",
+    feel: RunFeel? = nil
+  ) {
+    // Bug-Fix: vorher wurde der Lauf still verworfen, sobald die GPS-Distanz
+    // 0 km war — z. B. weil der Nutzer Indoor lief, GPS keinen Fix hatte
+    // oder die Berechtigung erst nach dem Lauf-Start erteilt wurde. Jetzt
+    // wird er auch ohne Distanz gespeichert, solange mindestens eine Minute
+    // gelaufen wurde — der Nutzer behält seinen Lauf in der Historie.
+    guard let run = activeRun, run.distanceKm > 0 || run.durationMinutes >= 1 else { return }
+
+    let trimmedTitle = customTitle?
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .nilIfEmpty ?? run.title
+
+    let avgHR: Int = {
+      // Wenn Splits HF-Daten haben, daraus den Schnitt bilden — sonst Live-HF.
+      let hrSplits = run.splits.filter { $0.averageHeartRate > 0 }
+      guard !hrSplits.isEmpty else { return run.currentHeartRate }
+      let total = hrSplits.reduce(0) { $0 + $1.averageHeartRate }
+      return Int(Double(total) / Double(hrSplits.count))
+    }()
 
     let summary = CompletedRunSummary(
       id: UUID(),
-      title: run.title,
+      title: trimmedTitle,
       routeName: run.routeName,
       finishedAt: Date(),
       distanceKm: run.distanceKm,
       durationMinutes: run.durationMinutes,
       elevationGain: run.elevationGain,
-      averageHeartRate: run.currentHeartRate,
+      averageHeartRate: avgHR,
       routeCoordinates: run.routeCoordinates,
-      splits: run.splits
+      splits: run.splits,
+      intensity: run.intensity,
+      feel: feel,
+      note: note.trimmingCharacters(in: .whitespacesAndNewlines),
+      hrZoneSecondsBuckets: run.hrZoneSecondsBuckets
     )
 
     registerCompletedDay(summary.finishedAt)
     applyRunProgress(from: summary)
     runHistory.insert(summary, at: 0)
+    let runStartedAt = run.startedAt
     activeRun = nil
+    // Strava-Erweiterung: strukturiertes Workout (falls aktiv) freigeben und
+    // Segment-Auto-Matching + Route-Usage-Recount auslösen.
+    activeStructuredWorkout = nil
+    matchSegments(against: summary)
+    recountRouteUsage()
     lastProgressEvent =
       "Lauf gespeichert: \(String(format: "%.1f", summary.distanceKm)) km mit \(formattedPace(secondsPerKilometer: summary.averagePaceSeconds))."
+
+    // Apple Health: Lauf inklusive Distanz und GPS-Route nach HKWorkoutRoute
+    // schreiben — sonst doppeltes Tracking gegenüber Strava / Apple-Workout.
+    HealthKitManager.shared.saveRunWorkout(
+      title: trimmedTitle,
+      start: runStartedAt,
+      end: summary.finishedAt,
+      distanceKm: summary.distanceKm,
+      routeCoordinates: summary.routeCoordinates
+    )
 
     if socialSharingSettings.autoShareRuns {
       shareLatestRun()
     }
+
+    NotificationsManager.shared.refreshSchedule(for: self)
 
     saveAll()
   }
@@ -1888,6 +2124,33 @@ final class GainsStore: ObservableObject {
       }
     }
     saveAll()
+  }
+
+  /// Dupliziert einen bestehenden Workout-Plan als neuen `.custom`-Eintrag
+  /// (mit „(Kopie)" im Titel). Quick-Action im WORKOUTS-Tab — Vorlagen lassen
+  /// sich so als Basis für eigene Pläne übernehmen, ohne sie nachzubauen.
+  @discardableResult
+  func duplicateWorkout(_ plan: WorkoutPlan) -> WorkoutPlan {
+    let copy = WorkoutPlan(
+      id: UUID(),
+      source: .custom,
+      title: "\(plan.title) (Kopie)",
+      focus: plan.focus,
+      split: plan.split,
+      estimatedDurationMinutes: plan.estimatedDurationMinutes,
+      exercises: plan.exercises.map { template in
+        WorkoutExerciseTemplate(
+          name: template.name,
+          targetMuscle: template.targetMuscle,
+          sets: template.sets.map { set in
+            WorkoutSetTemplate(reps: set.reps, suggestedWeight: set.suggestedWeight)
+          }
+        )
+      }
+    )
+    savedWorkoutPlans.insert(copy, at: 0)
+    saveAll()
+    return copy
   }
 
   func updateWorkout(
@@ -2015,9 +2278,18 @@ final class GainsStore: ObservableObject {
     if plannerSettings.weeklyKilometerTarget < runningGoal.defaultWeeklyKilometers {
       plannerSettings.weeklyKilometerTarget = runningGoal.defaultWeeklyKilometers
     }
-    // Alle Tage auf flexible setzen – die Engine verteilt automatisch
-    for day in Weekday.allCases {
-      plannerSettings.dayPreferences[day] = .flexible
+    // Bug-Fix: Wir setzen die Tagespräferenzen NICHT mehr blind auf .flexible
+    // — der PLAN-Tab erlaubt dem Nutzer, jeden Tag explizit als
+    // Training/Frei/Flex zu markieren, und der Wizard fragt das nicht ab.
+    // Vorher hat „Plan übernehmen" diese Einteilung komplett überschrieben.
+    // Nur wenn der Nutzer noch nie Tagespräferenzen gesetzt hat (z.B. erstes
+    // Mal Wizard nach Onboarding), füllen wir mit .flexible vor, damit die
+    // Engine etwas zu verteilen hat.
+    let hasAnyPreference = Weekday.allCases.contains { plannerSettings.dayPreferences[$0] != nil }
+    if !hasAnyPreference {
+      for day in Weekday.allCases {
+        plannerSettings.dayPreferences[day] = .flexible
+      }
     }
     saveAll()
   }
@@ -2032,14 +2304,25 @@ final class GainsStore: ObservableObject {
     saveAll()
   }
 
-  func cycleDayPreference(_ weekday: Weekday) {
-    switch dayPreference(for: weekday) {
-    case .training:
-      plannerSettings.dayPreferences[weekday] = .rest
-    case .rest:
-      plannerSettings.dayPreferences[weekday] = .flexible
-    case .flexible:
-      plannerSettings.dayPreferences[weekday] = .training
+  /// Setzt die Day-Preference direkt (wird vom überarbeiteten PLAN-Tab
+  /// genutzt, wo Training/Frei/Flex als drei sichtbare Buttons gewählt werden,
+  /// statt dem alten verdeckten Tap-Cycle).
+  func setDayPreference(_ preference: WorkoutDayPreference, for weekday: Weekday) {
+    plannerSettings.dayPreferences[weekday] = preference
+
+    // Bei manuellem Plan halten wir die Manual-Map konsistent: ein Tag, der
+    // auf Frei wechselt, verliert seinen Session-Kind-Eintrag; ein Tag, der
+    // ohne Kind auf Training/Flex gehoben wird, fällt auf .strength zurück
+    // (häufigster Default), damit der Tag in der UI nicht leer wirkt.
+    if plannerSettings.isManualPlan {
+      switch preference {
+      case .rest:
+        plannerSettings.manualSessionKinds[weekday] = nil
+      case .training, .flexible:
+        if plannerSettings.manualSessionKinds[weekday] == nil {
+          plannerSettings.manualSessionKinds[weekday] = .strength
+        }
+      }
     }
 
     alignSessionTargetToAvailableDays()
@@ -2058,12 +2341,75 @@ final class GainsStore: ObservableObject {
       plannerSettings.dayPreferences[weekday] = .training
     }
 
+    // Wer im manuellen Plan ein Workout zuweist, will für diesen Tag
+    // klar Krafttraining — ggf. überschriebene Lauf-Markierung wird ersetzt.
+    if plannerSettings.isManualPlan {
+      plannerSettings.manualSessionKinds[weekday] = .strength
+    }
+
     alignSessionTargetToAvailableDays()
     saveAll()
   }
 
   func clearAssignedWorkout(for weekday: Weekday) {
     plannerSettings.dayAssignments[weekday] = nil
+    saveAll()
+  }
+
+  // MARK: - Manueller Wochenplan
+  //
+  // Speichert eine vom Nutzer selbst zusammengestellte Wochenstruktur.
+  // `entries` enthält pro Trainingstag die Session-Art (.strength oder ein
+  // Run-Kind). Tage ohne Eintrag werden als Ruhetage eingetragen.
+  // `assignments` mappt Krafttage auf konkrete WorkoutPlan-IDs.
+
+  func applyManualPlan(
+    entries: [Weekday: PlannedSessionKind],
+    assignments: [Weekday: UUID]
+  ) {
+    // Tagespräferenzen aus den Einträgen ableiten — alles nicht-Trainings-
+    // tag zählt als Frei. Vermeidet, dass alte .flexible-Einträge die
+    // Auto-Verteilung der Engine wieder triggern, falls der Nutzer den
+    // manuellen Modus später deaktiviert.
+    var newPrefs: [Weekday: WorkoutDayPreference] = [:]
+    for day in Weekday.allCases {
+      newPrefs[day] = entries[day] != nil ? .training : .rest
+    }
+    plannerSettings.dayPreferences = newPrefs
+
+    // Assignments übernehmen — aber nur für Tage, die tatsächlich Krafttage
+    // sind. Lauftage haben keine Workout-Bindung.
+    var cleanedAssignments: [Weekday: UUID] = [:]
+    for (day, planID) in assignments where entries[day] == .strength {
+      cleanedAssignments[day] = planID
+    }
+    plannerSettings.dayAssignments = cleanedAssignments
+
+    plannerSettings.manualSessionKinds = entries
+    plannerSettings.isManualPlan = true
+    plannerSettings.sessionsPerWeek = entries.count
+
+    // Trainingsfokus aus dem Mix ableiten — beeinflusst Header-Texte und
+    // Empfehlungs-Karten, lässt die manuelle Verteilung selbst aber unberührt.
+    let strengthCount = entries.values.filter { $0 == .strength }.count
+    let runCount = entries.values.filter { $0.isRun }.count
+    if runCount == 0 {
+      plannerSettings.trainingFocus = .strength
+    } else if strengthCount == 0 {
+      plannerSettings.trainingFocus = .cardio
+    } else {
+      plannerSettings.trainingFocus = .hybrid
+    }
+
+    saveAll()
+  }
+
+  /// Hebt den manuellen Plan auf — die Engine übernimmt wieder die
+  /// Auto-Verteilung anhand der Wizard-Settings. Tagespräferenzen bleiben
+  /// erhalten, weil der Nutzer sonst von vorn anfangen müsste.
+  func clearManualPlan() {
+    plannerSettings.isManualPlan = false
+    plannerSettings.manualSessionKinds = [:]
     saveAll()
   }
 
@@ -2106,10 +2452,12 @@ final class GainsStore: ObservableObject {
 
   func finishWorkout() {
     guard let workout = activeWorkout else { return }
+    let workoutStartedAt = workout.startedAt
+    let workoutFinishedAt = Date()
 
     let summary = CompletedWorkoutSummary(
       title: workout.title,
-      finishedAt: Date(),
+      finishedAt: workoutFinishedAt,
       completedSets: workout.completedSets,
       totalSets: workout.totalSets,
       volume: workout.totalVolume,
@@ -2136,11 +2484,22 @@ final class GainsStore: ObservableObject {
     workoutHistory.insert(summary, at: 0)
     activeWorkout = nil
 
+    // Apple Health: Workout zurückschreiben, damit Gains-Aktivitäten in der
+    // iOS-Health-App und in den Aktivitäts-Ringen auftauchen. Schlägt still
+    // fehl, wenn das Schreibrecht nicht erteilt wurde.
+    HealthKitManager.shared.saveStrengthWorkout(
+      title: workout.title,
+      start: workoutStartedAt,
+      end: workoutFinishedAt
+    )
+
     // Auto-Share, falls in den Social-Settings aktiviert
     if socialSharingSettings.autoShareWorkouts {
       shareLatestWorkout()
     }
     detectAndShareNewPRs(from: summary)
+
+    NotificationsManager.shared.refreshSchedule(for: self)
 
     saveAll()
   }
@@ -2439,8 +2798,9 @@ final class GainsStore: ObservableObject {
   }
 
   func requestContactsAccess() {
-    contactStore.requestAccess(for: .contacts) { granted, _ in
+    contactStore.requestAccess(for: .contacts) { [weak self] granted, _ in
       DispatchQueue.main.async {
+        guard let self else { return }
         self.contactsAccessStatus = CNContactStore.authorizationStatus(for: .contacts)
         if granted {
           self.loadCommunityContacts()
@@ -2670,6 +3030,19 @@ final class GainsStore: ObservableObject {
   func toggleNotificationsEnabled() {
     notificationsEnabled.toggle()
     saveAll()
+
+    // Wenn der Toggle gerade auf `on` gewandert ist und der Nutzer noch
+    // keine Permission erteilt hat, jetzt das System-Prompt anstoßen.
+    // Anschließend in jedem Fall die Schedule neu aufbauen — Manager
+    // canceled selbst, falls Permission fehlt oder Toggle aus ist.
+    if notificationsEnabled {
+      NotificationsManager.shared.requestAuthorization { [weak self] _ in
+        guard let self else { return }
+        NotificationsManager.shared.refreshSchedule(for: self)
+      }
+    } else {
+      NotificationsManager.shared.refreshSchedule(for: self)
+    }
   }
 
   func toggleHealthAutoSyncEnabled() {
@@ -3300,6 +3673,20 @@ final class GainsStore: ObservableObject {
   /// Ordnet jedem geplanten Tag eine konkrete Session-Art zu (Kraft / verschiedene Lauftypen).
   /// Wird vom weekly schedule sowie der UI genutzt.
   var plannedSessionKinds: [Weekday: PlannedSessionKind] {
+    // Manueller Plan überschreibt die Auto-Verteilung der Engine. Wir geben
+    // nur Einträge zurück, deren Tag auch tatsächlich als Trainingstag
+    // angelegt ist (Day-Pref != .rest), damit Run-Templates konsistent
+    // bleiben und kein Geist-Lauf an einem Ruhetag erscheint.
+    if plannerSettings.isManualPlan {
+      var manual: [Weekday: PlannedSessionKind] = [:]
+      for (day, kind) in plannerSettings.manualSessionKinds {
+        if dayPreference(for: day) != .rest {
+          manual[day] = kind
+        }
+      }
+      return manual
+    }
+
     let days = scheduledPlannerDays
     guard !days.isEmpty else { return [:] }
 
@@ -3448,6 +3835,129 @@ final class GainsStore: ObservableObject {
 
     streakDays = streak
     recordDays = max(recordDays, streakDays)
+  }
+
+  // MARK: - Gym: Set-History (Drilldown im STATS-Tab)
+
+  /// Liefert die chronologisch absteigende Historie einer Übung (neueste zuerst)
+  /// über alle abgeschlossenen Workouts hinweg. Zeigt Top-Gewicht, Sätze,
+  /// Reps und Volumen pro Session — Datengrundlage für das Drilldown-Sheet.
+  func setHistory(forExerciseNamed name: String) -> [ExerciseHistoryEntry] {
+    workoutHistory
+      .compactMap { workout -> ExerciseHistoryEntry? in
+        guard let perf = workout.exercises.first(where: { $0.name == name })
+        else { return nil }
+        return ExerciseHistoryEntry(
+          date: workout.finishedAt,
+          workoutTitle: workout.title,
+          topWeight: perf.topWeight,
+          completedSets: perf.completedSets,
+          totalReps: perf.totalReps,
+          totalVolume: perf.totalVolume
+        )
+      }
+      .sorted(by: { $0.date > $1.date })
+  }
+
+  /// Liste aller Übungsnamen, die jemals absolviert wurden — für die
+  /// Sortierung und Anzeige in der Stärke-Übersicht.
+  var allTrackedExerciseNames: [String] {
+    Array(Set(workoutHistory.flatMap { $0.exercises.map(\.name) })).sorted()
+  }
+
+  // MARK: - Gym: 4-Wochen-Plan-Vorschau
+
+  /// Liefert die kommenden 4 Wochen ab Wochenanfang der laufenden Woche.
+  /// Pro Tag wird Status (planned/rest/flexible), Titel und Lauf-Template
+  /// abgeleitet — für die Vorschau im PLAN-Tab.
+  var nextFourWeeksSchedule: [GymPlanPreviewWeek] {
+    let calendar = Calendar.current
+    let today = normalizedDate(Date())
+    let weekday = calendar.component(.weekday, from: today)
+    // .firstWeekday ist meist 1 (Sonntag, US) oder 2 (Montag, DE) —
+    // wir richten manuell auf Montag aus, weil die App das so anzeigt.
+    let daysFromMonday = (weekday + 5) % 7
+    guard let mondayThisWeek = calendar.date(byAdding: .day, value: -daysFromMonday, to: today)
+    else { return [] }
+
+    let plannedDays = Set(scheduledPlannerDays)
+    let runKindByDay = plannedSessionKinds
+
+    return (0..<4).map { weekIndex -> GymPlanPreviewWeek in
+      let label: String
+      switch weekIndex {
+      case 0: label = "Diese Woche"
+      case 1: label = "Nächste Woche"
+      default: label = "in \(weekIndex) Wochen"
+      }
+
+      let days: [GymPlanPreviewDay] = (0..<7).map { offset in
+        let date = calendar.date(byAdding: .day, value: 7 * weekIndex + offset, to: mondayThisWeek)
+          ?? today
+        // 0 = Montag, ..., 6 = Sonntag → in den App-Weekday-Enum mappen.
+        let weekdayEnum: Weekday = {
+          switch offset {
+          case 0: return .monday
+          case 1: return .tuesday
+          case 2: return .wednesday
+          case 3: return .thursday
+          case 4: return .friday
+          case 5: return .saturday
+          default: return .sunday
+          }
+        }()
+
+        let pref = dayPreference(for: weekdayEnum)
+        let isPlannedTraining = plannedDays.contains(weekdayEnum)
+        let runKind = runKindByDay[weekdayEnum]
+
+        let status: WorkoutDayStatus
+        let title: String
+        var runTemplate: RunTemplate?
+
+        if isPlannedTraining {
+          status = .planned
+          if let kind = runKind, kind.isRun {
+            let template = RunTemplate.template(for: kind)
+            runTemplate = template
+            title = template?.title ?? kind.title
+          } else if let assigned = assignedWorkoutPlan(for: weekdayEnum) {
+            title = assigned.title
+          } else {
+            title = "Training"
+          }
+        } else if pref == .rest {
+          status = .rest
+          title = "Frei"
+        } else {
+          status = .flexible
+          title = "Flex"
+        }
+
+        let isCompleted = workoutHistory.contains { calendar.isDate($0.finishedAt, inSameDayAs: date) }
+        let isToday = calendar.isDate(date, inSameDayAs: today)
+
+        return GymPlanPreviewDay(
+          date: date,
+          weekday: weekdayEnum,
+          status: status,
+          title: title,
+          isToday: isToday,
+          isCompleted: isCompleted,
+          runTemplate: runTemplate
+        )
+      }
+
+      return GymPlanPreviewWeek(weekIndex: weekIndex, label: label, days: days)
+    }
+  }
+
+  // MARK: - Gym: MEV/MAV/MRV-Schwellen
+
+  /// Volumen-Landmarks (Renaissance-Periodization-Modell), abgeleitet aus
+  /// dem aktuellen `weeklySetsPerMuscleGroupRange` der Engine.
+  var weeklyVolumeLandmarks: VolumeLandmarks {
+    VolumeLandmarks.from(range: weeklySetsPerMuscleGroupRange)
   }
 
 }

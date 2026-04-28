@@ -37,8 +37,7 @@ private struct ScreenHeaderView: View {
               Image(systemName: showsInfo ? "xmark.circle.fill" : "info.circle")
                 .font(.system(size: 13, weight: .semibold))
               Text(showsInfo ? "Schließen" : "Info")
-                .font(GainsFont.label(10))
-                .tracking(1.2)
+                .gainsCaption(showsInfo ? GainsColor.moss : GainsColor.softInk)
             }
             .foregroundStyle(showsInfo ? GainsColor.moss : GainsColor.softInk)
             .padding(.horizontal, 10)
@@ -62,6 +61,8 @@ private struct ScreenHeaderView: View {
         parts: eyebrow.components(separatedBy: " / "), primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
+      // Hero-Title 30pt — eine Stufe größer als das normale `title`-Token,
+      // weil dies die identitätsstiftende Überschrift eines Tabs ist.
       Text(title)
         .font(GainsFont.title(30))
         .foregroundStyle(GainsColor.ink)
@@ -74,9 +75,7 @@ private struct ScreenHeaderView: View {
             .foregroundStyle(GainsColor.lime)
 
           Text(subtitle)
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.softInk)
-            .lineSpacing(2)
+            .gainsBody(secondary: true)
             .lineLimit(2)
 
           Spacer()

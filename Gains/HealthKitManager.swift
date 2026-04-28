@@ -1,3 +1,4 @@
+import CoreLocation
 import Combine
 import Foundation
 import HealthKit
@@ -68,11 +69,176 @@ final class HealthKitManager: ObservableObject {
       HKObjectType.workoutType(),
     ]
 
-    healthStore.requestAuthorization(toShare: [], read: readTypes) { success, error in
+    // Schreibrechte: Workouts (Kraft + Lauf) sowie die zugehörigen
+    // Energie-/Distanz-Samples. Damit landen Gains-Aktivitäten in Apple
+    // Health und werden nicht mehr doppelt erfasst.
+    let writeTypes: Set<HKSampleType> = [
+      HKObjectType.workoutType(),
+      activeEnergyType,
+      distanceType,
+    ]
+
+    healthStore.requestAuthorization(toShare: writeTypes, read: readTypes) { success, error in
       DispatchQueue.main.async {
         completion(success, error?.localizedDescription)
       }
     }
+  }
+
+  // MARK: - Workout Write
+
+  /// Liefert true, wenn der Nutzer mindestens das Workout-Schreibrecht erteilt hat.
+  /// Apple macht den Lese-Status absichtlich opak — den Schreib-Status dürfen wir abfragen.
+  var canWriteWorkouts: Bool {
+    guard isAvailable else { return false }
+    return healthStore.authorizationStatus(for: HKObjectType.workoutType()) == .sharingAuthorized
+  }
+
+  /// Speichert ein Krafttraining als HKWorkout in Apple Health.
+  /// `totalEnergyKcal` ist optional — wenn die App keine Schätzung hat, einfach 0 übergeben.
+  func saveStrengthWorkout(
+    title: String,
+    start: Date,
+    end: Date,
+    totalEnergyKcal: Double = 0
+  ) {
+    guard canWriteWorkouts else { return }
+
+    let builder = HKWorkoutBuilder(
+      healthStore: healthStore,
+      configuration: workoutConfiguration(activity: .traditionalStrengthTraining),
+      device: .local()
+    )
+    var metadata: [String: Any] = [HKMetadataKeyWorkoutBrandName: "Gains"]
+    if !title.isEmpty {
+      metadata["GainsWorkoutTitle"] = title
+    }
+
+    builder.beginCollection(withStart: start) { success, _ in
+      guard success else { return }
+
+      var samples: [HKSample] = []
+      if totalEnergyKcal > 0,
+         let type = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
+        let quantity = HKQuantity(unit: .kilocalorie(), doubleValue: totalEnergyKcal)
+        samples.append(HKQuantitySample(type: type, quantity: quantity, start: start, end: end))
+      }
+
+      let finalize: () -> Void = {
+        builder.addMetadata(metadata) { _, _ in
+          builder.endCollection(withEnd: end) { ended, _ in
+            guard ended else { return }
+            builder.finishWorkout { _, _ in }
+          }
+        }
+      }
+
+      if samples.isEmpty {
+        finalize()
+      } else {
+        builder.add(samples) { _, _ in finalize() }
+      }
+    }
+  }
+
+  /// Speichert einen Lauf als HKWorkout inklusive Distanz, optionaler Energie
+  /// und — wenn vorhanden — der GPS-Route. Die Route wird als `HKWorkoutRoute`
+  /// an das Workout gehängt, damit sie in der iOS-Health-App sichtbar wird.
+  func saveRunWorkout(
+    title: String,
+    start: Date,
+    end: Date,
+    distanceKm: Double,
+    totalEnergyKcal: Double = 0,
+    routeCoordinates: [CLLocationCoordinate2D] = []
+  ) {
+    guard canWriteWorkouts else { return }
+
+    let builder = HKWorkoutBuilder(
+      healthStore: healthStore,
+      configuration: workoutConfiguration(activity: .running),
+      device: .local()
+    )
+    var metadata: [String: Any] = [HKMetadataKeyWorkoutBrandName: "Gains"]
+    if !title.isEmpty {
+      metadata["GainsWorkoutTitle"] = title
+    }
+
+    builder.beginCollection(withStart: start) { [weak self] success, _ in
+      guard success, let self else { return }
+
+      var samples: [HKSample] = []
+      if distanceKm > 0,
+         let distanceType = HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning) {
+        let quantity = HKQuantity(unit: .meterUnit(with: .kilo), doubleValue: distanceKm)
+        samples.append(
+          HKQuantitySample(type: distanceType, quantity: quantity, start: start, end: end))
+      }
+      if totalEnergyKcal > 0,
+         let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
+        let quantity = HKQuantity(unit: .kilocalorie(), doubleValue: totalEnergyKcal)
+        samples.append(HKQuantitySample(type: energyType, quantity: quantity, start: start, end: end))
+      }
+
+      let finalizeWorkout: (HKWorkout?) -> Void = { workout in
+        guard let workout, !routeCoordinates.isEmpty else { return }
+        self.attachRoute(routeCoordinates, start: start, end: end, to: workout)
+      }
+
+      let endAndFinish: () -> Void = {
+        builder.addMetadata(metadata) { _, _ in
+          builder.endCollection(withEnd: end) { ended, _ in
+            guard ended else { return }
+            builder.finishWorkout { workout, _ in
+              finalizeWorkout(workout)
+            }
+          }
+        }
+      }
+
+      if samples.isEmpty {
+        endAndFinish()
+      } else {
+        builder.add(samples) { _, _ in endAndFinish() }
+      }
+    }
+  }
+
+  // MARK: - Route attachment
+
+  private func attachRoute(
+    _ coordinates: [CLLocationCoordinate2D],
+    start: Date,
+    end: Date,
+    to workout: HKWorkout
+  ) {
+    let routeBuilder = HKWorkoutRouteBuilder(healthStore: healthStore, device: .local())
+    let totalSeconds = max(end.timeIntervalSince(start), 1)
+    let count = Double(max(coordinates.count, 1))
+    let locations = coordinates.enumerated().map { index, coordinate -> CLLocation in
+      let progress = count > 1 ? Double(index) / (count - 1) : 0
+      let timestamp = start.addingTimeInterval(progress * totalSeconds)
+      return CLLocation(
+        coordinate: coordinate,
+        altitude: 0,
+        horizontalAccuracy: 5,
+        verticalAccuracy: -1,
+        timestamp: timestamp
+      )
+    }
+    guard !locations.isEmpty else { return }
+
+    routeBuilder.insertRouteData(locations) { success, _ in
+      guard success else { return }
+      routeBuilder.finishRoute(with: workout, metadata: nil) { _, _ in }
+    }
+  }
+
+  private func workoutConfiguration(activity: HKWorkoutActivityType) -> HKWorkoutConfiguration {
+    let config = HKWorkoutConfiguration()
+    config.activityType = activity
+    config.locationType = activity == .running ? .outdoor : .indoor
+    return config
   }
 
   func loadSnapshot(completion: @escaping (Result<HealthSnapshot, Error>) -> Void) {
