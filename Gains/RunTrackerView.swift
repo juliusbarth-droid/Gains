@@ -362,7 +362,7 @@ private struct PreRunSetupView: View {
       Text("LAUF")
         .gainsEyebrow(GainsColor.softInk, size: 12, tracking: 2.4)
 
-      Text("Bereit?")
+      Text("Lauf starten")
         .font(.system(size: 38, weight: .semibold))
         .foregroundStyle(GainsColor.ink)
 
