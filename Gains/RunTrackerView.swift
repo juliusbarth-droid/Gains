@@ -456,7 +456,7 @@ private struct PreRunSetupView: View {
   private var targetDetailRow: some View {
     switch targetMode {
     case .free:
-      Text("Du läufst frei — kein Distanz- oder Zeit-Ziel.")
+      Text("Freier Lauf mit normalem Live-Tracking, nur ohne festes Distanz-, Zeit- oder Pace-Ziel.")
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
         .padding(.vertical, 4)
