@@ -656,7 +656,7 @@ struct HomeView: View {
 
         editorialStartRow(
           eyebrow: "CARDIO",
-          title: store.activeRun == nil ? "Lauf" : "Run öffnen",
+          title: store.activeRun == nil ? "Lauf starten" : "Run öffnen",
           metric: store.activeRun == nil
             ? "GPS · Outdoor"
             : String(
