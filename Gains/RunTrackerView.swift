@@ -385,7 +385,7 @@ private struct PreRunSetupView: View {
       let s = pace % 60
       parts.append(String(format: "Ø %d:%02d /km", m, s))
     }
-    return parts.isEmpty ? "Wähle Intensität und Ziel — du kannst später jederzeit anpassen." : parts.joined(separator: "  ·  ")
+    return parts.isEmpty ? "Wähle Intensität, Ziel und Optionen. Alles lässt sich später anpassen." : parts.joined(separator: "  ·  ")
   }
 
   // MARK: Intensity
