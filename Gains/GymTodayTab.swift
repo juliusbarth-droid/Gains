@@ -29,7 +29,6 @@ struct GymTodayTab: View {
         // damit nichts gegen die offene Session konkurriert.
         liveSessionCard
         liveSecondaryActionsRow
-        compactWeeklyPulse
       } else {
         // Default-Modus: Hero → Wochenpuls (Key-Metriken direkt sichtbar) →
         // Sekundäre Aktionen → Kontext → Letztes Training.
