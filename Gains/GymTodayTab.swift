@@ -437,7 +437,6 @@ struct GymTodayTab: View {
   @ViewBuilder
   private func muscleDoseCard(plan: WorkoutPlan) -> some View {
     let entries: [GymMuscleDoseEntry] = .from(plan: plan)
-    let totalSets = plan.exercises.reduce(0) { $0 + $1.sets.count }
 
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .firstTextBaseline) {
@@ -447,7 +446,7 @@ struct GymTodayTab: View {
           secondaryColor: GainsColor.softInk
         )
         Spacer()
-        Text("\(plan.exercises.count) Übungen · \(totalSets) Sätze")
+        Text("\(plan.exercises.count) Übungen")
           .font(GainsFont.label(9))
           .tracking(1.2)
           .foregroundStyle(GainsColor.softInk)
