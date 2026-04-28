@@ -105,15 +105,21 @@ struct GymView: View {
   // MARK: - Header
 
   private var gymHeaderTitle: String {
+    if let activeWorkout = store.activeWorkout {
+      return activeWorkout.title.uppercased()
+    }
+
     let day = store.todayPlannedDay
     switch day.status {
     case .planned:
-      if let run = day.runTemplate {
-        return run.title.uppercased()
+      if let workout = day.workoutPlan {
+        return workout.title.uppercased()
       }
-      return day.workoutPlan?.title.uppercased() ?? day.title.uppercased()
-    case .rest:     return "Freier Tag"
-    case .flexible: return "Flex Day"
+      return "KRAFT HEUTE"
+    case .rest:
+      return "Freier Tag"
+    case .flexible:
+      return "Flex Day"
     }
   }
 
