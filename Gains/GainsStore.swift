@@ -1210,7 +1210,7 @@ final class GainsStore: ObservableObject {
     let plannedSessions = scheduledPlannerDays.count
 
     if plannedSessions == 0 {
-      return "Aktuell ist keine Trainingseinheit eingeplant."
+      return "Plane jetzt deine erste Trainingswoche"
     }
 
     return "\(plannedSessions) Tage · Priorität \(plannerSettings.trainingFocus.title)"
