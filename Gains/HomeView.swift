@@ -645,7 +645,7 @@ struct HomeView: View {
         if store.activeWorkout == nil {
           editorialStartRow(
             eyebrow: "KRAFT",
-            title: "Workout",
+            title: "Training starten",
             metric: quickWorkoutPreviewLabel,
             accent: GainsColor.lime,
             isActive: false,
