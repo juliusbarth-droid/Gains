@@ -8,6 +8,7 @@ struct HomeView: View {
   @State private var isShowingWorkoutTracker = false
   @State private var isShowingRunTracker = false
   @State private var isShowingProfile = false
+  @State private var showsWeekDetails = false
   // Fortschritt öffnet wieder als eigenes Sheet — die frühere Inline-
   // Expansion auf dem Home-Screen hat den Startbildschirm zu lang gemacht
   // und das Design der Karte gegenüber den anderen Home-Karten zu sehr
@@ -337,34 +338,50 @@ struct HomeView: View {
       }
 
       if store.selectedCalendarDay != nil {
-        // Spacing 6 → 8: Headline und Beschreibung lesen sich als zwei klare
-        // Stufen.
-        VStack(alignment: .leading, spacing: 8) {
-          Text(store.selectedCalendarHeadline)
-            .gainsHeadline()
-
-          Text(store.selectedCalendarDescription)
-            .gainsBody(secondary: true)
-            .lineLimit(2)
-
-          if store.canToggleSelectedCalendarDate {
-            Button {
-              store.toggleSelectedCalendarDayCompletion()
-            } label: {
-              HStack(spacing: 6) {
-                Text(
-                  store.selectedCalendarDayIsCompleted
-                    ? "Als offen markieren" : "Als erledigt markieren"
-                )
-                .gainsCaption(GainsColor.lime)
-
-                Image(systemName: "arrow.right")
-                  .font(.system(size: 10, weight: .heavy))
-                  .foregroundStyle(GainsColor.lime)
-              }
-              .padding(.top, 4)
+        VStack(alignment: .leading, spacing: 10) {
+          Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+              showsWeekDetails.toggle()
             }
-            .buttonStyle(.plain)
+          } label: {
+            HStack(spacing: 8) {
+              Text(store.selectedCalendarHeadline)
+                .gainsHeadline()
+
+              Spacer(minLength: 0)
+
+              Image(systemName: showsWeekDetails ? "chevron.up" : "chevron.down")
+                .font(.system(size: 11, weight: .heavy))
+                .foregroundStyle(GainsColor.softInk)
+            }
+            .contentShape(Rectangle())
+          }
+          .buttonStyle(.plain)
+
+          if showsWeekDetails {
+            Text(store.selectedCalendarDescription)
+              .gainsBody(secondary: true)
+              .lineLimit(2)
+
+            if store.canToggleSelectedCalendarDate {
+              Button {
+                store.toggleSelectedCalendarDayCompletion()
+              } label: {
+                HStack(spacing: 6) {
+                  Text(
+                    store.selectedCalendarDayIsCompleted
+                      ? "Als offen markieren" : "Als erledigt markieren"
+                  )
+                  .gainsCaption(GainsColor.lime)
+
+                  Image(systemName: "arrow.right")
+                    .font(.system(size: 10, weight: .heavy))
+                    .foregroundStyle(GainsColor.lime)
+                }
+                .padding(.top, 2)
+              }
+              .buttonStyle(.plain)
+            }
           }
         }
         .padding(.top, 4)
