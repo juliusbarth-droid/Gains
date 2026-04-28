@@ -459,7 +459,8 @@ struct HomeView: View {
         quickLinkRow(
           label: "Community",
           value: "Kommt später",
-          isLast: true
+          isLast: true,
+          isMuted: true
         ) {
           navigation.openCommunity()
         }
@@ -553,6 +554,7 @@ struct HomeView: View {
     label: String,
     value: String,
     isLast: Bool = false,
+    isMuted: Bool = false,
     action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
@@ -566,13 +568,13 @@ struct HomeView: View {
 
           Text(value)
             .font(GainsFont.body)
-            .foregroundStyle(GainsColor.ink)
+            .foregroundStyle(isMuted ? GainsColor.softInk : GainsColor.ink)
             .lineLimit(1)
             .truncationMode(.tail)
 
           Spacer(minLength: 0)
 
-          Image(systemName: "arrow.up.right")
+          Image(systemName: isMuted ? "clock" : "arrow.up.right")
             .font(.system(size: 12, weight: .heavy))
             .foregroundStyle(GainsColor.softInk)
         }
