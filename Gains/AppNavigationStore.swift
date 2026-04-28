@@ -31,8 +31,10 @@ final class AppNavigationStore: ObservableObject {
     pendingCaptureKind = kind
   }
 
-  /// Wechselt in den Community-Tab.
+  /// Öffnet Community vorerst nicht mehr über einen eigenen Tab, sondern
+  /// fällt auf Home zurück, damit Navigation nie auf einen versteckten
+  /// Zielzustand zeigt.
   func openCommunity() {
-    selectedTab = .community
+    selectedTab = .home
   }
 }
