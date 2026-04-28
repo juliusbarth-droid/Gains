@@ -1223,7 +1223,7 @@ final class GainsStore: ObservableObject {
   var plannerPrimaryRecommendation: PlannerRecommendation {
     plannerRecommendations.first
       ?? PlannerRecommendation(
-        title: "Plan offen", detail: "Wähle Sessions und Fokus.", weekdays: [])
+        title: "Plan offen", detail: "Lege zuerst Trainingstage fest und wähle dann deinen Fokus.", weekdays: [])
   }
 
   var plannerRecommendations: [PlannerRecommendation] {
