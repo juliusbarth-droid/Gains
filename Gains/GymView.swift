@@ -117,9 +117,9 @@ struct GymView: View {
       }
       return "KRAFT HEUTE"
     case .rest:
-      return "Freier Tag"
+      return "RUHETAG"
     case .flexible:
-      return "Flex Day"
+      return "FLEX-TAG"
     }
   }
 
