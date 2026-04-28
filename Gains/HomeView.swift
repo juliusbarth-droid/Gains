@@ -640,17 +640,17 @@ struct HomeView: View {
       sectionHeading("JETZT STARTEN")
 
       VStack(spacing: 0) {
-        editorialStartRow(
-          eyebrow: "KRAFT",
-          title: store.activeWorkout == nil ? "Workout" : "Live",
-          metric: store.activeWorkout == nil
-            ? quickWorkoutPreviewLabel
-            : "\(store.activeWorkout?.completedSets ?? 0)/\(store.activeWorkout?.totalSets ?? 0) Sätze",
-          accent: GainsColor.lime,
-          isActive: store.activeWorkout != nil,
-          isLast: false,
-          action: startFreeWorkout
-        )
+        if store.activeWorkout == nil {
+          editorialStartRow(
+            eyebrow: "KRAFT",
+            title: "Workout",
+            metric: quickWorkoutPreviewLabel,
+            accent: GainsColor.lime,
+            isActive: false,
+            isLast: false,
+            action: startFreeWorkout
+          )
+        }
 
         editorialStartRow(
           eyebrow: "CARDIO",
