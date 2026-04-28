@@ -654,11 +654,11 @@ struct HomeView: View {
 
         editorialStartRow(
           eyebrow: "CARDIO",
-          title: store.activeRun == nil ? "Lauf" : "Live",
+          title: store.activeRun == nil ? "Lauf" : "Run öffnen",
           metric: store.activeRun == nil
             ? "GPS · Outdoor"
             : String(
-              format: "%.1f km · %02d:%02d",
+              format: "%.1f km · %02d:%02d live",
               store.activeRun?.distanceKm ?? 0,
               (store.activeRun?.durationMinutes ?? 0) / 60,
               (store.activeRun?.durationMinutes ?? 0) % 60
