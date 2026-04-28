@@ -458,7 +458,7 @@ struct HomeView: View {
         }
         quickLinkRow(
           label: "Community",
-          value: store.communityHighlightHeadline,
+          value: "Kommt später",
           isLast: true
         ) {
           navigation.openCommunity()
