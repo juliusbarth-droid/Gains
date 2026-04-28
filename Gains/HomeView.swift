@@ -37,8 +37,7 @@ struct HomeView: View {
           }
           quickStartSection
           weekSection
-          quickLinks
-          progressSection
+          secondarySection
         }
         .padding(.horizontal, 24)
         .padding(.top, 8)
@@ -423,11 +422,17 @@ struct HomeView: View {
   // Gym, bzw. "Community" öffnete versehentlich das Progress-Capture-Sheet.
   // Beides ist behoben: die Labels stimmen jetzt mit der Zielsicht überein.
 
-  private var quickLinks: some View {
+  private var secondarySection: some View {
     VStack(alignment: .leading, spacing: 12) {
       sectionHeading("MEHR")
 
       VStack(spacing: 0) {
+        progressOpenRow
+
+        Rectangle()
+          .fill(GainsColor.border.opacity(0.45))
+          .frame(height: 1)
+
         quickLinkRow(
           label: "Training",
           value: store.coachHeadline
@@ -454,16 +459,6 @@ struct HomeView: View {
   // Home-Screens ein, statt mit Ring/Glow/Gradient-Border eine eigene
   // Hierarchie-Stufe aufzumachen. Beim Tap öffnet sich `ProgressView` als
   // Sheet — die volle Detailtiefe lebt damit getrennt vom Home-Screen.
-
-  private var progressSection: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      sectionHeading("FORTSCHRITT")
-
-      VStack(spacing: 0) {
-        progressOpenRow
-      }
-    }
-  }
 
   private var progressOpenRow: some View {
     Button {
