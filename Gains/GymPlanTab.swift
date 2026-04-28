@@ -288,7 +288,7 @@ struct GymPlanTab: View {
       legendChip(color: GainsColor.accentCool, label: "Flex")
       legendChip(color: GainsColor.softInk.opacity(0.65), label: "Frei")
       Spacer()
-      Text("Tippen zum Ändern")
+      Text("Tippen für Optionen")
         .font(GainsFont.label(8))
         .tracking(0.8)
         .foregroundStyle(GainsColor.softInk.opacity(0.7))
