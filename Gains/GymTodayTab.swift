@@ -160,20 +160,7 @@ struct GymTodayTab: View {
 
   @ViewBuilder
   private var secondaryActionsRow: some View {
-    let hasHistory = !store.workoutHistory.isEmpty
-
     HStack(spacing: 10) {
-      if hasHistory {
-        secondaryActionButton(
-          icon: "arrow.counterclockwise",
-          title: "Letztes"
-        ) {
-          if store.repeatLastWorkout() {
-            isShowingWorkoutTracker = true
-          }
-        }
-      }
-
       secondaryActionButton(
         icon: "calendar.badge.clock",
         title: "Plan"
@@ -188,13 +175,11 @@ struct GymTodayTab: View {
         selectedTab = .workouts
       }
 
-      if !hasHistory {
-        secondaryActionButton(
-          icon: "chart.bar.fill",
-          title: "Stats"
-        ) {
-          selectedTab = .stats
-        }
+      secondaryActionButton(
+        icon: "chart.bar.fill",
+        title: "Stats"
+      ) {
+        selectedTab = .stats
       }
     }
   }
