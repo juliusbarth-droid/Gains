@@ -259,7 +259,7 @@ struct GymPlanTab: View {
         icon: "dumbbell.fill",
         iconBackground: GainsColor.lime,
         iconForeground: GainsColor.onLime,
-        label: "Train",
+        label: "Kraft",
         labelColor: GainsColor.lime
       )
     case .flexible:
@@ -267,7 +267,7 @@ struct GymPlanTab: View {
         icon: "arrow.triangle.2.circlepath",
         iconBackground: GainsColor.accentCool.opacity(0.22),
         iconForeground: GainsColor.accentCool,
-        label: "Flex",
+        label: "Flexi",
         labelColor: GainsColor.accentCool
       )
     case .rest:
@@ -275,7 +275,7 @@ struct GymPlanTab: View {
         icon: "moon.zzz.fill",
         iconBackground: GainsColor.background.opacity(0.6),
         iconForeground: GainsColor.softInk,
-        label: "Frei",
+        label: "Ruhe",
         labelColor: GainsColor.softInk
       )
     }
@@ -283,10 +283,10 @@ struct GymPlanTab: View {
 
   private var plannerLegend: some View {
     HStack(spacing: 10) {
-      legendChip(color: GainsColor.lime, label: "Train")
+      legendChip(color: GainsColor.lime, label: "Kraft")
       legendChip(color: GainsColor.moss, label: "Lauf")
-      legendChip(color: GainsColor.accentCool, label: "Flex")
-      legendChip(color: GainsColor.softInk.opacity(0.65), label: "Frei")
+      legendChip(color: GainsColor.accentCool, label: "Flexi")
+      legendChip(color: GainsColor.softInk.opacity(0.65), label: "Ruhe")
       Spacer()
       Text("Tippen für Optionen")
         .font(GainsFont.label(8))
