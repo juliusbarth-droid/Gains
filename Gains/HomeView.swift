@@ -544,10 +544,10 @@ struct HomeView: View {
     return "Warmup"
   }
 
-  /// Metrik-Zeile unter dem Display-Titel — gleicher Slot wie bei
-  /// Workout/Lauf, mit Sessions + Streak als kompakter Teaser.
+  /// Metrik-Zeile unter dem Display-Titel — Sessions reichen hier als
+  /// kompakter Fortschrittsanker. Streak lebt bereits im Hero-KPI-Strip.
   private var progressMetricLine: String {
-    "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions · Streak \(store.streakDays) T"
+    "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions diese Woche"
   }
 
   private func quickLinkRow(
