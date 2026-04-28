@@ -375,7 +375,7 @@ struct GymPlanTab: View {
         EmptyStateView(
           style: .inline,
           title: "Noch keine Trainingstage",
-          message: "Setze oben Tage auf Training oder Flex – dann kannst du jedem Tag ein konkretes Workout zuweisen.",
+          message: "Setze oben zuerst Trainingstage fest, dann kannst du jedem Kraft-Tag ein konkretes Workout zuweisen.",
           icon: "calendar"
         )
       } else {
