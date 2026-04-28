@@ -45,7 +45,7 @@ struct GymPlanTab: View {
       eyebrow: ["PLAN", isManual ? "MANUELL" : "STATUS"],
       title: store.plannerSummaryHeadline,
       subtitle: store.plannerSummaryDescription,
-      primaryCtaTitle: isManual ? "Plan bearbeiten" : "Plan-Wizard öffnen",
+      primaryCtaTitle: isManual ? "Plan bearbeiten" : "Plan erstellen",
       primaryCtaIcon: isManual ? "slider.horizontal.3" : "wand.and.stars",
       primaryCtaAction: {
         if isManual {
