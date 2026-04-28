@@ -61,7 +61,7 @@ struct RunTrackerView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button("Schließen") {
+          Button(phase == .live ? "Beenden" : "Schließen") {
             if phase == .live {
               showsStopSheet = true
             } else {
