@@ -440,7 +440,7 @@ struct HomeView: View {
   // Beides ist behoben: die Labels stimmen jetzt mit der Zielsicht überein.
 
   private var secondarySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: 8) {
       sectionHeading("MEHR")
 
       VStack(spacing: 0) {
@@ -516,7 +516,7 @@ struct HomeView: View {
             Circle().stroke(GainsColor.border.opacity(0.55), lineWidth: 1)
           )
       }
-      .padding(.vertical, 18)
+      .padding(.vertical, 16)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
@@ -578,7 +578,7 @@ struct HomeView: View {
             .font(.system(size: 12, weight: .heavy))
             .foregroundStyle(GainsColor.softInk)
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 14)
         // Rectangle als Tap-Region — sonst sind Lücken zwischen den Texten
         // und vor dem Pfeil nicht klickbar.
         .contentShape(Rectangle())
