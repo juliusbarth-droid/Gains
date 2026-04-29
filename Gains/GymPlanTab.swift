@@ -428,7 +428,7 @@ struct GymPlanTab: View {
         Text(assigned?.title ?? defaultAssignmentLabel(for: day, kind: plannedKind))
           .font(GainsFont.body(13))
           .foregroundStyle(assigned == nil ? GainsColor.softInk : GainsColor.moss)
-          .lineLimit(1)
+          .lineLimit(2)
       }
 
       Spacer()
