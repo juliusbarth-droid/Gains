@@ -1203,7 +1203,7 @@ final class GainsStore: ObservableObject {
   }
 
   var plannerAssignedDaysCount: Int {
-    scheduledPlannerDays.filter { assignedWorkoutPlan(for: $0) != nil }.count
+    scheduledPlannerDays.filter { plannerSettings.dayAssignments[$0] != nil }.count
   }
 
   var plannerSummaryHeadline: String {
