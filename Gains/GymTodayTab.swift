@@ -67,7 +67,7 @@ struct GymTodayTab: View {
       }
       secondaryActionButton(
         icon: "chart.bar.fill",
-        title: "Stats"
+        title: "Daten"
       ) {
         selectedTab = .stats
       }
