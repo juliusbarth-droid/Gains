@@ -81,10 +81,14 @@ struct HomeView: View {
       WorkoutArrangeView(
         plan: plan,
         onStart: {
-          pendingAfterArrange = { isShowingWorkoutTracker = true }
+          pendingAfterArrange = {
+            isShowingWorkoutTracker = true
+            pendingAfterArrange = nil
+          }
           arrangingPlan = nil
         },
         onCancel: {
+          pendingAfterArrange = nil
           store.discardWorkout()
           arrangingPlan = nil
         }
