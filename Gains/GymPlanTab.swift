@@ -492,7 +492,7 @@ struct GymPlanTab: View {
       if kind.isRun { return "Lauf · \(kind.title)" }
       return "Automatisch · \(kind.title)"
     }
-    return "Automatisch geplant"
+    return "Workout wird automatisch vorgeschlagen"
   }
 
   // MARK: - Wissenschafts-/Evidence-Block
