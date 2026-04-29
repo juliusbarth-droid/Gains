@@ -547,7 +547,7 @@ struct HomeView: View {
   /// Metrik-Zeile unter dem Display-Titel — Sessions reichen hier als
   /// kompakter Fortschrittsanker. Streak lebt bereits im Hero-KPI-Strip.
   private var progressMetricLine: String {
-    "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions diese Woche"
+    "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten diese Woche"
   }
 
   private func quickLinkRow(
