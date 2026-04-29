@@ -138,7 +138,7 @@ struct WorkoutHubView: View {
       eyebrow: ["LAUFEN", "RUN"],
       title: store.runningHeadline,
       subtitle: isLive
-        ? "Tracker läuft im Hintergrund — auf das Banner unten tippen, um Karte und Splits zu öffnen."
+        ? "Öffne den aktiven Run für Karte, Splits und Live-Steuerung."
         : nil,
       primaryCtaTitle: isLive ? "Run öffnen" : "Lauf starten",
       primaryCtaIcon: isLive ? "play.fill" : "record.circle.fill",
