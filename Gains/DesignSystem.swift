@@ -417,7 +417,7 @@ struct GainsAppBackground: View {
         // Lime-Glow oben-links
         RadialGradient(
           colors: [
-            GainsColor.lime.opacity(0.10),
+            GainsColor.lime.opacity(0.07),
             GainsColor.lime.opacity(0.0)
           ],
           center: .init(x: 0.18, y: 0.10),
@@ -430,7 +430,7 @@ struct GainsAppBackground: View {
         // Cyan-Glow unten-rechts
         RadialGradient(
           colors: [
-            GainsColor.accentCool.opacity(0.07),
+            GainsColor.accentCool.opacity(0.05),
             GainsColor.accentCool.opacity(0.0)
           ],
           center: .init(x: 0.85, y: 0.92),
@@ -442,7 +442,7 @@ struct GainsAppBackground: View {
 
         // Sehr dezentes vertikales Grid
         HUDGrid()
-          .opacity(0.5)
+          .opacity(0.35)
           .ignoresSafeArea()
 
         // Vignette
