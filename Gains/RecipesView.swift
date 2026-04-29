@@ -331,7 +331,8 @@ struct RecipesView: View {
   // MARK: - Tag-Sektion
 
   private func tagSection(_ tag: RecipeTag) -> some View {
-    let recipes = Array(store.recipes.filter { $0.tags.contains(tag) }.prefix(4))
+    let allRecipes = store.recipes.filter { $0.tags.contains(tag) }
+    let recipes = Array(allRecipes.prefix(4))
     return Group {
       if !recipes.isEmpty {
         VStack(alignment: .leading, spacing: 12) {
@@ -360,7 +361,7 @@ struct RecipesView: View {
                 selectedTag = tag
               }
             } label: {
-              Text("Alle \(recipes.count)")
+              Text("Alle \(allRecipes.count)")
                 .font(GainsFont.label(10))
                 .tracking(1.4)
                 .foregroundStyle(GainsColor.moss)
