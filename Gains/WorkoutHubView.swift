@@ -121,7 +121,7 @@ struct WorkoutHubView: View {
   private var trainHeader: some View {
     screenHeader(
       eyebrow: "RUN / CARDIO",
-      title: store.activeRun == nil ? "Lauf sauber starten" : "Run öffnen",
+      title: store.activeRun == nil ? "Lauf starten" : "Run öffnen",
       subtitle: "Routen, Segmente, strukturierte Workouts und Pace-Zonen — alles in einem Hub."
     )
   }
