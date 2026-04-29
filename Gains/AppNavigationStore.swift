@@ -16,6 +16,7 @@ final class AppNavigationStore: ObservableObject {
     case .laufen:
       selectedTab = .run
     case .kraft:
+      pendingGymTab = nil
       selectedTab = .gym
     }
   }
