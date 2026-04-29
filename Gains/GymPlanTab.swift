@@ -391,6 +391,7 @@ struct GymPlanTab: View {
     let plannedKind = store.plannedSessionKinds[day]
     let isToday = day == .today
     let isRunDay = plannedKind?.isRun == true
+    let hasMissingAssignment = !isRunDay && assigned == nil && store.plannerSettings.dayAssignments[day] != nil
 
     return HStack(spacing: 14) {
       ZStack {
@@ -425,9 +426,9 @@ struct GymPlanTab: View {
               .clipShape(Capsule())
           }
         }
-        Text(assigned?.title ?? defaultAssignmentLabel(for: day, kind: plannedKind))
+        Text(assignmentLabel(for: day, assigned: assigned, kind: plannedKind, hasMissingAssignment: hasMissingAssignment))
           .font(GainsFont.body(13))
-          .foregroundStyle(assigned == nil ? GainsColor.softInk : GainsColor.moss)
+          .foregroundStyle(hasMissingAssignment ? GainsColor.ember : (assigned == nil ? GainsColor.softInk : GainsColor.moss))
           .lineLimit(2)
       }
 
@@ -462,6 +463,17 @@ struct GymPlanTab: View {
     }
     .padding(14)
     .gainsCardStyle(isToday ? GainsColor.lime.opacity(0.08) : GainsColor.card)
+  }
+
+  private func assignmentLabel(
+    for day: Weekday,
+    assigned: WorkoutPlan?,
+    kind: PlannedSessionKind?,
+    hasMissingAssignment: Bool
+  ) -> String {
+    if let assigned { return assigned.title }
+    if hasMissingAssignment { return "Zugewiesenes Workout nicht mehr verfügbar" }
+    return defaultAssignmentLabel(for: day, kind: kind)
   }
 
   private func defaultAssignmentLabel(for day: Weekday, kind: PlannedSessionKind?) -> String {
