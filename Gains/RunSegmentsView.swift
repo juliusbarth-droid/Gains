@@ -27,6 +27,7 @@ struct RunSegmentsTab: View {
               segmentCard(segment)
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Öffnet Segmentdetails mit Bestzeit und Versuchen")
           }
         }
       }
