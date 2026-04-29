@@ -2353,6 +2353,7 @@ final class GainsStore: ObservableObject {
 
   func clearAssignedWorkout(for weekday: Weekday) {
     plannerSettings.dayAssignments[weekday] = nil
+    alignSessionTargetToAvailableDays()
     saveAll()
   }
 
