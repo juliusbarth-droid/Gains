@@ -21,6 +21,7 @@ struct RunWorkoutsTab: View {
             workoutCard(workout)
           }
           .buttonStyle(.plain)
+          .accessibilityHint("Öffnet Workoutdetails mit Ablauf und Pace-Vorgaben")
         }
       }
     }
