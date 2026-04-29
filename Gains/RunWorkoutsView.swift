@@ -56,7 +56,7 @@ struct RunWorkoutsTab: View {
               .font(GainsFont.title(17))
               .foregroundStyle(GainsColor.ink)
             if !workout.isBuiltin {
-              Text("CUSTOM")
+              Text("EIGEN")
                 .font(GainsFont.label(8))
                 .tracking(1.2)
                 .foregroundStyle(GainsColor.lime)
