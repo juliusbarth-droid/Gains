@@ -38,6 +38,7 @@ struct HomeView: View {
           }
           quickStartSection
           weekSection
+          progressSection
           secondarySection
         }
         .padding(.horizontal, 24)
@@ -439,17 +440,18 @@ struct HomeView: View {
   // Gym, bzw. "Community" öffnete versehentlich das Progress-Capture-Sheet.
   // Beides ist behoben: die Labels stimmen jetzt mit der Zielsicht überein.
 
+  private var progressSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      sectionHeading("FORTSCHRITT")
+      progressOpenRow
+    }
+  }
+
   private var secondarySection: some View {
     VStack(alignment: .leading, spacing: 8) {
       sectionHeading("MEHR")
 
       VStack(spacing: 0) {
-        progressOpenRow
-
-        Rectangle()
-          .fill(GainsColor.border.opacity(0.45))
-          .frame(height: 1)
-
         quickLinkRow(
           label: "Training",
           value: store.coachHeadline
