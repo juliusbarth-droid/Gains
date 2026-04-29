@@ -2123,6 +2123,7 @@ final class GainsStore: ObservableObject {
         plannerSettings.dayAssignments[weekday] = nil
       }
     }
+    alignSessionTargetToAvailableDays()
     saveAll()
   }
 
