@@ -39,8 +39,8 @@ enum RunHubTab: String, CaseIterable, Identifiable {
     case .feed:     return "FEED"
     case .routes:   return "ROUTEN"
     case .segments: return "SEGMENTE"
-    case .workouts: return "WORKOUTS"
-    case .stats:    return "STATS"
+    case .workouts: return "PLÄNE"
+    case .stats:    return "DATEN"
     }
   }
 }
