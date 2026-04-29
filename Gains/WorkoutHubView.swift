@@ -244,32 +244,48 @@ struct WorkoutHubView: View {
 
   private var tabPicker: some View {
     HStack(spacing: 0) {
-      ForEach(RunHubTab.allCases) { tab in
+      ForEach(Array(RunHubTab.allCases.enumerated()), id: \.element) { index, tab in
+        let isActive = selectedTab == tab
+        let isNextActive = index < RunHubTab.allCases.count - 1 && selectedTab == RunHubTab.allCases[index + 1]
+        let showsTrailingDivider = index < RunHubTab.allCases.count - 1 && !isActive && !isNextActive
+
         Button {
           withAnimation(.spring(response: 0.28, dampingFraction: 0.85)) {
             selectedTab = tab
           }
         } label: {
           Text(tab.label)
-            .font(GainsFont.eyebrow(10))
-            .tracking(1.4)
-            .foregroundStyle(selectedTab == tab ? GainsColor.onLime : GainsColor.softInk)
+            .font(GainsFont.label(10))
+            .tracking(1.3)
+            .foregroundStyle(isActive ? GainsColor.onLime : GainsColor.softInk)
             .lineLimit(1)
             .minimumScaleFactor(0.85)
             .frame(maxWidth: .infinity)
-            .frame(height: 38)
+            .frame(height: 42)
+            .padding(.horizontal, 4)
             .background(
-              selectedTab == tab
-                ? GainsColor.lime
-                : GainsColor.background.opacity(0.0)
+              RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isActive ? GainsColor.lime : Color.clear)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(alignment: .trailing) {
+              if showsTrailingDivider {
+                Rectangle()
+                  .fill(GainsColor.border.opacity(0.45))
+                  .frame(width: 1, height: 20)
+                  .offset(x: 0.5)
+              }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
       }
     }
     .padding(4)
     .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .strokeBorder(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
     .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
   }
 
