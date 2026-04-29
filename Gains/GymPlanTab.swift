@@ -440,8 +440,14 @@ struct GymPlanTab: View {
             Text("Wird aus dem Plan abgeleitet")
           }
         } else {
-          ForEach(store.savedWorkoutPlans) { plan in
-            Button(plan.title) { store.assignWorkout(plan, to: day) }
+          if store.savedWorkoutPlans.isEmpty {
+            Section("Keine Workouts") {
+              Text("Erstelle zuerst ein Workout im Workouts-Tab.")
+            }
+          } else {
+            ForEach(store.savedWorkoutPlans) { plan in
+              Button(plan.title) { store.assignWorkout(plan, to: day) }
+            }
           }
           if assigned != nil {
             Divider()
