@@ -37,7 +37,9 @@ struct RecipesView: View {
           subtitle: "Mealprep, Airfryer, Schnell-Rezepte – für jedes Ziel das passende Meal."
         )
 
-        headerStats
+        if hasAnyFilter || !searchText.isEmpty {
+          headerStats
+        }
         searchBar
 
         if !hasAnyFilter {
