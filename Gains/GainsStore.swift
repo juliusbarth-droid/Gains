@@ -2121,6 +2121,9 @@ final class GainsStore: ObservableObject {
     for weekday in plannerSettings.dayAssignments.keys {
       if plannerSettings.dayAssignments[weekday] == plan.id {
         plannerSettings.dayAssignments[weekday] = nil
+        if plannerSettings.isManualPlan {
+          plannerSettings.manualSessionKinds[weekday] = nil
+        }
       }
     }
     alignSessionTargetToAvailableDays()
