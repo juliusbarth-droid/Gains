@@ -78,7 +78,7 @@ struct WorkoutTrackerView: View {
           .accessibilityLabel("Schließen")
         }
         ToolbarItem(placement: .principal) {
-          Text("STRENGTH TRAINER")
+          Text("KRAFT-TRAINER")
             .font(GainsFont.label(11))
             .tracking(2.2)
             .foregroundStyle(GainsColor.ink)
