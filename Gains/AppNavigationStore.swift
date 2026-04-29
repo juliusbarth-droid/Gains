@@ -24,6 +24,7 @@ final class AppNavigationStore: ObservableObject {
 
   /// Springt direkt in den PLAN-Sub-Tab des Gym-Bereichs.
   func openPlanner() {
+    pendingCaptureKind = nil
     pendingGymTab = .plan
     selectedTab = .gym
   }
