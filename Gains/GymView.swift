@@ -8,9 +8,9 @@ import SwiftUI
 
 enum GymTab: String, CaseIterable {
   case heute    = "HEUTE"
-  case workouts = "WORKOUTS"
+  case workouts = "PLÄNE"
   case plan     = "PLAN"
-  case stats    = "STATS"
+  case stats    = "DATEN"
 }
 
 // MARK: - GymView
