@@ -57,7 +57,6 @@ struct RecipesView: View {
           tagSection(.mealprep)
           tagSection(.airfryer)
           tagSection(.quick)
-          allRecipesSection
         }
       }
     }
