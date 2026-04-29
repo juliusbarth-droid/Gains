@@ -45,7 +45,9 @@ struct RecipesView: View {
         }
 
         goalFilterChips
-        sortChips
+        if hasAnyFilter || !searchText.isEmpty {
+          sortChips
+        }
         activeFiltersSection
 
         if hasAnyFilter || !searchText.isEmpty {
