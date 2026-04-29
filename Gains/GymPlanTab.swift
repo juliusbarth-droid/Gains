@@ -466,7 +466,7 @@ struct GymPlanTab: View {
   private func defaultAssignmentLabel(for day: Weekday, kind: PlannedSessionKind?) -> String {
     if let kind {
       if kind.isRun { return "Lauf · \(kind.title)" }
-      return "Auto · \(kind.title)"
+      return "Automatisch · \(kind.title)"
     }
     return "Automatisch geplant"
   }
