@@ -54,6 +54,8 @@ struct WorkoutHubView: View {
   @State private var presentedWorkout: StructuredRunWorkout? = nil
   @State private var showsSegmentCreator = false
   @State private var selectedTab: RunHubTab = .feed
+  @State private var pendingAfterSelectedRun: (() -> Void)? = nil
+  @State private var pendingAfterPresentedWorkout: (() -> Void)? = nil
 
   var body: some View {
     GainsScreen {
@@ -77,17 +79,11 @@ struct WorkoutHubView: View {
       RunTrackerView()
         .environmentObject(store)
     }
-    .sheet(item: $selectedRun) { run in
+    .sheet(item: $selectedRun, onDismiss: { runPending(&pendingAfterSelectedRun) }) { run in
       RunDetailSheet(run: run) {
         store.startRunLike(run)
+        pendingAfterSelectedRun = { isShowingRunTracker = true }
         selectedRun = nil
-        // Stabilitäts-Fix: sheet(item:) und sheet(isPresented:) im gleichen
-        // Render-Zyklus zu flippen ist flaky — das ausgehende Sheet-Dismiss
-        // überlappt mit dem neuen Present. Kleines Delay gibt SwiftUI Zeit,
-        // die Animation sauber abzuschließen, bevor der Tracker öffnet.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-          isShowingRunTracker = true
-        }
       }
       .environmentObject(store)
     }
@@ -99,14 +95,10 @@ struct WorkoutHubView: View {
       RunSegmentDetailSheet(segment: segment)
         .environmentObject(store)
     }
-    .sheet(item: $presentedWorkout) { workout in
+    .sheet(item: $presentedWorkout, onDismiss: { runPending(&pendingAfterPresentedWorkout) }) { workout in
       StructuredWorkoutDetailSheet(workout: workout) {
+        pendingAfterPresentedWorkout = { isShowingRunTracker = true }
         presentedWorkout = nil
-        // Selbes Fix-Pattern wie bei selectedRun: Dismiss-Animation abwarten,
-        // bevor der Tracker-Sheet geöffnet wird.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-          isShowingRunTracker = true
-        }
       }
       .environmentObject(store)
     }
@@ -150,6 +142,12 @@ struct WorkoutHubView: View {
       ],
       trailingBadge: { heroBadge(isLive: isLive) }
     )
+  }
+
+  private func runPending(_ action: inout (() -> Void)?) {
+    let next = action
+    action = nil
+    next?()
   }
 
   @ViewBuilder
