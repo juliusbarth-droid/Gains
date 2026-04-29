@@ -12,11 +12,12 @@ final class AppNavigationStore: ObservableObject {
   /// Lauf-Hub. Default ist Kraft, weil der Home-Screen primär ins Gym
   /// verlinkt.
   func openTraining(workspace: AppWorkoutWorkspace = .kraft) {
+    pendingGymTab = nil
+
     switch workspace {
     case .laufen:
       selectedTab = .run
     case .kraft:
-      pendingGymTab = nil
       selectedTab = .gym
     }
   }
