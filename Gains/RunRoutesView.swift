@@ -44,6 +44,7 @@ struct RunRoutesTab: View {
               routeCard(route)
             }
             .buttonStyle(.plain)
+            .accessibilityHint("Öffnet Routendetails mit Karte und Analyse")
           }
         }
       }
