@@ -56,7 +56,7 @@ struct GymPlanTab: View {
       },
       metrics: [
         .init("EINHEITEN", "\(store.trainingDaysCount)/Wo."),
-        .init("DAUER",     "\(store.plannerSettings.preferredSessionLength) Min"),
+        .init("WORKOUTS",  "\(store.plannerAssignedDaysCount) zugewiesen"),
         .init("FOKUS",     store.plannerSettings.trainingFocus.shortTitle),
       ],
       trailingBadge: {
