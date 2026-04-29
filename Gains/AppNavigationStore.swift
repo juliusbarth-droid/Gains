@@ -37,6 +37,7 @@ final class AppNavigationStore: ObservableObject {
   /// fällt auf Home zurück, damit Navigation nie auf einen versteckten
   /// Zielzustand zeigt.
   func openCommunity() {
+    pendingGymTab = nil
     selectedTab = .home
   }
 }
