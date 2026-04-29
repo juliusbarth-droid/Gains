@@ -451,7 +451,7 @@ struct GymPlanTab: View {
         }
       } label: {
         HStack(spacing: 6) {
-          Text(isRunDay ? "Info" : "Wählen")
+          Text(isRunDay ? "Info" : "Workout wählen")
             .font(GainsFont.label(9))
             .tracking(1.0)
           Image(systemName: "ellipsis.circle.fill")
