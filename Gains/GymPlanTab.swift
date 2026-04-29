@@ -440,6 +440,11 @@ struct GymPlanTab: View {
             Text("Wird aus dem Plan abgeleitet")
           }
         } else {
+          if hasMissingAssignment {
+            Section("Zuweisung prüfen") {
+              Text("Das bisher verknüpfte Workout ist nicht mehr verfügbar.")
+            }
+          }
           if store.savedWorkoutPlans.isEmpty {
             Section("Keine Workouts") {
               Text("Erstelle zuerst ein Workout im Workouts-Tab.")
