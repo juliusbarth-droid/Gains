@@ -438,14 +438,15 @@ struct GymPlanTab: View {
           Section("Lauf-Tag (auto)") {
             Text("Wird aus dem Plan abgeleitet")
           }
-        }
-        ForEach(store.savedWorkoutPlans) { plan in
-          Button(plan.title) { store.assignWorkout(plan, to: day) }
-        }
-        if assigned != nil {
-          Divider()
-          Button("Zuweisung entfernen", role: .destructive) {
-            store.clearAssignedWorkout(for: day)
+        } else {
+          ForEach(store.savedWorkoutPlans) { plan in
+            Button(plan.title) { store.assignWorkout(plan, to: day) }
+          }
+          if assigned != nil {
+            Divider()
+            Button("Zuweisung entfernen", role: .destructive) {
+              store.clearAssignedWorkout(for: day)
+            }
           }
         }
       } label: {
