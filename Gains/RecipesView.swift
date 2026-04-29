@@ -329,7 +329,7 @@ struct RecipesView: View {
   // MARK: - Tag-Sektion
 
   private func tagSection(_ tag: RecipeTag) -> some View {
-    let recipes = store.recipes.filter { $0.tags.contains(tag) }
+    let recipes = Array(store.recipes.filter { $0.tags.contains(tag) }.prefix(4))
     return Group {
       if !recipes.isEmpty {
         VStack(alignment: .leading, spacing: 12) {
