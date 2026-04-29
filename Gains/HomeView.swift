@@ -458,7 +458,7 @@ struct HomeView: View {
         }
         quickLinkRow(
           label: "Community",
-          value: "Kommt später",
+          value: "Warteliste offen",
           isLast: true,
           isMuted: true
         ) {
