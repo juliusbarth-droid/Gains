@@ -140,7 +140,7 @@ struct WorkoutHubView: View {
       subtitle: isLive
         ? "Tracker läuft im Hintergrund — auf das Banner unten tippen, um Karte und Splits zu öffnen."
         : nil,
-      primaryCtaTitle: isLive ? "Lauf weiter tracken" : "Aktivität aufzeichnen",
+      primaryCtaTitle: isLive ? "Lauf weiter tracken" : "Lauf starten",
       primaryCtaIcon: isLive ? "play.fill" : "record.circle.fill",
       primaryCtaAction: { startOrResumeRun() },
       metrics: [
