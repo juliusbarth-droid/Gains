@@ -584,6 +584,7 @@ private struct FeaturedRecipeCard: View {
   @EnvironmentObject private var store: GainsStore
   let recipe: Recipe
   @State private var didTrack = false
+  @State private var trackFeedbackToken = UUID()
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -628,8 +629,11 @@ private struct FeaturedRecipeCard: View {
           // Quick-Track button
           Button {
             store.logRecipe(recipe)
+            let token = UUID()
+            trackFeedbackToken = token
             withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) { didTrack = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+              guard trackFeedbackToken == token else { return }
               withAnimation { didTrack = false }
             }
           } label: {
