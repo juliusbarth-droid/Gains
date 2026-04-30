@@ -46,8 +46,8 @@ struct RecipesView: View {
           tagBrowserSection
         }
 
-        goalFilterChips
         if hasAnyFilter || !searchText.isEmpty {
+          goalFilterChips
           sortChips
         }
         activeFiltersSection
