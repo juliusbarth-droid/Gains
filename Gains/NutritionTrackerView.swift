@@ -803,13 +803,19 @@ struct FoodSearchSheet: View {
               icon: "barcode.viewfinder",
               label: "Barcode scannen",
               color: Color(hex: "5BC4F5")
-            ) { showsBarcodeScanner = true }
+            ) {
+              selectedFood = nil
+              showsBarcodeScanner = true
+            }
 
             scanActionButton(
               icon: "camera.viewfinder",
               label: "KI-Fotoerkennung",
               color: GainsColor.lime
-            ) { showsPhotoRecognition = true }
+            ) {
+              selectedFood = nil
+              showsPhotoRecognition = true
+            }
           }
           .padding(.horizontal, 20)
           .padding(.bottom, 12)
