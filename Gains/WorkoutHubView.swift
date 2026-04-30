@@ -909,6 +909,7 @@ struct WorkoutHubView: View {
     if store.activeRun == nil {
       store.startQuickRun()
     }
+    isShowingRunTracker = false
     isShowingRunTracker = true
   }
 }
