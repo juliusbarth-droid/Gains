@@ -573,6 +573,7 @@ struct CalorienTrackerView: View {
 
             Button {
               pendingMealType = mealType
+              showsFoodSearch = false
               showsPhotoRecognition = true
             } label: {
               HStack(spacing: 6) {
