@@ -463,6 +463,7 @@ struct GymWorkoutsTab: View {
         if store.activeWorkout == nil {
           store.startWorkout(from: plan)
         }
+        isShowingWorkoutTracker = false
         isShowingWorkoutTracker = true
       } label: {
         Image(systemName: isActive ? "play.fill" : "arrow.right")
