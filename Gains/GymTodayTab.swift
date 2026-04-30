@@ -237,6 +237,7 @@ struct GymTodayTab: View {
 
   private func handlePrimaryAction(day: WorkoutDayPlan, isLive: Bool) {
     if isLive {
+      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
       return
     }
@@ -256,15 +257,18 @@ struct GymTodayTab: View {
           return
         }
       }
+      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
       return
     }
 
     if let plan = store.todayPlannedWorkout {
       store.startWorkout(from: plan)
+      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
     } else if let fallback = store.savedWorkoutPlans.first {
       store.startWorkout(from: fallback)
+      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
     } else {
       isShowingWorkoutBuilder = true
