@@ -65,6 +65,7 @@ struct RunTrackerView: View {
             if phase == .live {
               showsStopSheet = true
             } else {
+              showsStopSheet = false
               cancelCountdown()
               stopTracking()
               if store.activeRun != nil {
