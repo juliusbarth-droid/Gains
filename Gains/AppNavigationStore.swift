@@ -31,6 +31,7 @@ final class AppNavigationStore: ObservableObject {
 
   /// Öffnet das globale Capture-Sheet mit dem gewünschten Inhaltstyp.
   func presentCapture(kind: CaptureKind = .workout) {
+    pendingGymTab = nil
     pendingCaptureKind = kind
   }
 
