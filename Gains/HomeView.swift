@@ -81,6 +81,7 @@ struct HomeView: View {
       WorkoutArrangeView(
         plan: plan,
         onStart: {
+          isShowingWorkoutTracker = false
           pendingAfterArrange = {
             isShowingWorkoutTracker = true
             pendingAfterArrange = nil
