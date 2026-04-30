@@ -446,8 +446,17 @@ struct RecipesView: View {
       if filteredRecipes.isEmpty {
         emptyState
       } else {
-        ForEach(filteredRecipes) { recipe in
-          recipeTrackingCard(recipe)
+        VStack(spacing: 10) {
+          ForEach(filteredRecipes) { recipe in
+            NavigationLink {
+              RecipeDetailView(recipe: recipe)
+                .environmentObject(store)
+            } label: {
+              CompactRecipeRow(recipe: recipe)
+                .environmentObject(store)
+            }
+            .buttonStyle(.plain)
+          }
         }
       }
     }
@@ -469,37 +478,6 @@ struct RecipesView: View {
       actionLabel: "Filter zurücksetzen",
       action: { resetAllFilters() }
     )
-  }
-
-  private func recipeTrackingCard(_ recipe: Recipe) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      NavigationLink {
-        RecipeDetailView(recipe: recipe)
-          .environmentObject(store)
-      } label: {
-        RecipeCard(recipe: recipe)
-          .environmentObject(store)
-      }
-      .buttonStyle(.plain)
-
-      Button {
-        store.logRecipe(recipe)
-      } label: {
-        HStack {
-          Image(systemName: "plus.circle.fill")
-            .foregroundStyle(GainsColor.lime)
-          Text("Als Mahlzeit tracken")
-            .font(GainsFont.label(11))
-            .tracking(1.3)
-            .foregroundStyle(GainsColor.ink)
-          Spacer()
-        }
-        .padding(.horizontal, 16)
-        .frame(height: 50)
-        .gainsInteractiveCardStyle()
-      }
-      .buttonStyle(.plain)
-    }
   }
 
   // MARK: - Filter Chips
