@@ -807,6 +807,7 @@ struct FoodSearchSheet: View {
               color: Color(hex: "5BC4F5")
             ) {
               selectedFood = nil
+              showsPhotoRecognition = false
               showsBarcodeScanner = true
             }
 
