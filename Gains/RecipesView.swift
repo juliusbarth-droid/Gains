@@ -557,8 +557,8 @@ struct RecipesView: View {
 
   private var featuredRecipes: [Recipe] {
     let favorites = store.recipes.filter { store.favoriteRecipeIDs.contains($0.id) }
-    if !favorites.isEmpty { return Array(favorites.prefix(6)) }
-    return Array(store.recipes.sorted { $0.protein > $1.protein }.prefix(6))
+    if !favorites.isEmpty { return Array(favorites.prefix(4)) }
+    return Array(store.recipes.sorted { $0.protein > $1.protein }.prefix(4))
   }
 
   private var activeFilterCount: Int {
