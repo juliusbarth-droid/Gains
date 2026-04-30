@@ -817,6 +817,7 @@ struct FoodSearchSheet: View {
               color: GainsColor.lime
             ) {
               selectedFood = nil
+              showsBarcodeScanner = false
               showsPhotoRecognition = true
             }
           }
