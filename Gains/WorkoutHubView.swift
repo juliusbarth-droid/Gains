@@ -356,6 +356,7 @@ struct WorkoutHubView: View {
   private func templateCard(_ template: RunTemplate) -> some View {
     Button {
       store.startRun(from: template)
+      isShowingRunTracker = false
       isShowingRunTracker = true
     } label: {
       HStack(spacing: 12) {
