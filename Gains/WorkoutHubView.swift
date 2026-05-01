@@ -523,6 +523,7 @@ struct WorkoutHubView: View {
       // 4. Footer-Action
       Button {
         store.startRunLike(run)
+        isShowingRunTracker = false
         isShowingRunTracker = true
       } label: {
         HStack(spacing: 6) {
