@@ -228,7 +228,10 @@ struct WorkoutHubView: View {
         HeroPrimaryCTAButton(
           title: "Tracker & Karte öffnen",
           icon: "map.fill",
-          action: { isShowingRunTracker = true }
+          action: {
+            isShowingRunTracker = false
+            isShowingRunTracker = true
+          }
         )
       }
       .padding(16)
