@@ -17,8 +17,16 @@ struct GymPlanTab: View {
 
   @Binding var showsPlanWizard: Bool
   @Binding var showsCustomPlanBuilder: Bool
+  /// Wird gehoben, wenn `WeekdayDetailSheet` ein Workout startet — Parent
+  /// (GymView) öffnet daraufhin den `WorkoutTrackerView`-Sheet. Optional,
+  /// damit ältere Aufrufstellen nicht angepasst werden müssen.
+  @Binding var isShowingWorkoutTracker: Bool
 
   @State private var showsFourWeekPreview = false
+  /// Aktueller Tap-Selektor für `WeekdayDetailSheet`. `weekday + referenceDate`
+  /// bilden zusammen die Identity, sodass z.B. „Mo dieser Woche" und „Mo in
+  /// 3 Wochen" jeweils ein eigenes Sheet öffnen.
+  @State private var weekdaySelection: WeekdaySheetSelection?
 
   var body: some View {
     VStack(alignment: .leading, spacing: 22) {
@@ -28,6 +36,15 @@ struct GymPlanTab: View {
       evidenceSection
       fourWeekPreviewSection
       runningSummary
+      RunGoalPlannerSection()
+    }
+    .sheet(item: $weekdaySelection) { selection in
+      WeekdayDetailSheet(
+        weekday: selection.weekday,
+        referenceDate: selection.referenceDate,
+        isShowingWorkoutTracker: $isShowingWorkoutTracker
+      )
+      .environmentObject(store)
     }
   }
 
@@ -169,24 +186,16 @@ struct GymPlanTab: View {
     let isRunDay = kind?.isRun == true
     let style = plannerCardStyle(for: pref, isRun: isRunDay)
 
-    return Menu {
-      Section(day.title) {
-        Button {
-          store.setDayPreference(.training, for: day)
-        } label: {
-          Label("Trainingstag", systemImage: "dumbbell.fill")
-        }
-        Button {
-          store.setDayPreference(.flexible, for: day)
-        } label: {
-          Label("Flexibel", systemImage: "arrow.triangle.2.circlepath")
-        }
-        Button {
-          store.setDayPreference(.rest, for: day)
-        } label: {
-          Label("Ruhetag", systemImage: "moon.zzz.fill")
-        }
-      }
+    // 2026-05-01: Vorher öffnete der Tap-auf-Tag ein verstecktes Menu mit drei
+    // Status-Optionen (Training/Flex/Rest). Jetzt führt der Tap in das
+    // `WeekdayDetailSheet`, das Status, zugewiesenen Plan, Lauf-Daten und den
+    // Primary-CTA bündelt — die drei Status-Optionen sind dort als sichtbarer
+    // Switcher umgezogen.
+    return Button {
+      weekdaySelection = WeekdaySheetSelection(
+        weekday: day,
+        referenceDate: dateForCurrentWeek(weekday: day)
+      )
     } label: {
       VStack(spacing: 6) {
         Text(day.shortLabel)
@@ -334,6 +343,21 @@ struct GymPlanTab: View {
       return "—"
     }
     return "\(cal.component(.day, from: date))"
+  }
+
+  /// Liefert das konkrete Datum für einen Wochentag in der aktuellen Woche.
+  /// Wird vom Tap auf eine Wochenkarte genutzt, damit `WeekdayDetailSheet`
+  /// Datum + Wochentag kennt (z.B. „MO · 5. MAI" statt nur „Montag").
+  private func dateForCurrentWeek(weekday: Weekday) -> Date {
+    let cal = Self.plannerCalendar
+    let today = Date()
+    guard
+      let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
+      let date = cal.date(byAdding: .day, value: Self.offsetFromMonday(for: weekday), to: weekStart)
+    else {
+      return today
+    }
+    return cal.startOfDay(for: date)
   }
 
   private static func offsetFromMonday(for day: Weekday) -> Int {

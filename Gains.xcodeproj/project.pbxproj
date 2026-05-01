@@ -53,6 +53,13 @@
 		AF0000000000000000000001 /* RunSegmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000002 /* RunSegmentsView.swift */; };
 		AG0000000000000000000001 /* RunWorkoutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AG0000000000000000000002 /* RunWorkoutsView.swift */; };
 		AH0000000000000000000001 /* CustomPlanBuilderSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AH0000000000000000000002 /* CustomPlanBuilderSheet.swift */; };
+		AI0000000000000000000001 /* AppleFoundationModelsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AI0000000000000000000002 /* AppleFoundationModelsClient.swift */; };
+		AJ0000000000000000000001 /* GeminiFoodVisionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AJ0000000000000000000002 /* GeminiFoodVisionClient.swift */; };
+		AK0000000000000000000001 /* GainsCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = AK0000000000000000000002 /* GainsCharts.swift */; };
+		AL0000000000000000000001 /* GainsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AL0000000000000000000002 /* GainsSheet.swift */; };
+		AM0000000000000000000001 /* RunGoalPlanModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AM0000000000000000000002 /* RunGoalPlanModels.swift */; };
+		AN0000000000000000000001 /* RunGoalPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0000000000000000000002 /* RunGoalPlanView.swift */; };
+		AO0000000000000000000001 /* WeekdayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AO0000000000000000000002 /* WeekdayDetailSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -104,6 +111,13 @@
 		AF0000000000000000000002 /* RunSegmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSegmentsView.swift; sourceTree = "<group>"; };
 		AG0000000000000000000002 /* RunWorkoutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunWorkoutsView.swift; sourceTree = "<group>"; };
 		AH0000000000000000000002 /* CustomPlanBuilderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPlanBuilderSheet.swift; sourceTree = "<group>"; };
+		AI0000000000000000000002 /* AppleFoundationModelsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelsClient.swift; sourceTree = "<group>"; };
+		AJ0000000000000000000002 /* GeminiFoodVisionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiFoodVisionClient.swift; sourceTree = "<group>"; };
+		AK0000000000000000000002 /* GainsCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsCharts.swift; sourceTree = "<group>"; };
+		AL0000000000000000000002 /* GainsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsSheet.swift; sourceTree = "<group>"; };
+		AM0000000000000000000002 /* RunGoalPlanModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunGoalPlanModels.swift; sourceTree = "<group>"; };
+		AN0000000000000000000002 /* RunGoalPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunGoalPlanView.swift; sourceTree = "<group>"; };
+		AO0000000000000000000002 /* WeekdayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekdayDetailSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +177,9 @@
 				AH0000000000000000000002 /* CustomPlanBuilderSheet.swift */,
 				XX0000000000000000000002 /* GymExerciseHistorySheet.swift */,
 				YY0000000000000000000002 /* GymSharedComponents.swift */,
+				AM0000000000000000000002 /* RunGoalPlanModels.swift */,
+				AN0000000000000000000002 /* RunGoalPlanView.swift */,
+				AO0000000000000000000002 /* WeekdayDetailSheet.swift */,
 				BB0000000000000000000002 /* ProfileView.swift */,
 				KK0000000000000000000002 /* BLEHeartRateManager.swift */,
 				LL0000000000000000000002 /* WearablePickerSheet.swift */,
@@ -172,6 +189,10 @@
 				PP0000000000000000000002 /* OnboardingView.swift */,
 				QQ0000000000000000000002 /* MetricKitObserver.swift */,
 				ZZ0000000000000000000002 /* NotificationsManager.swift */,
+				AI0000000000000000000002 /* AppleFoundationModelsClient.swift */,
+				AJ0000000000000000000002 /* GeminiFoodVisionClient.swift */,
+				AK0000000000000000000002 /* GainsCharts.swift */,
+				AL0000000000000000000002 /* GainsSheet.swift */,
 				RR0000000000000000000002 /* PrivacyInfo.xcprivacy */,
 				CC0000000000000000000002 /* HealthKitManager.swift */,
 				CC0000000000000000000003 /* Gains.entitlements */,
@@ -301,6 +322,13 @@
 				AE0000000000000000000001 /* RunRoutesView.swift in Sources */,
 				AF0000000000000000000001 /* RunSegmentsView.swift in Sources */,
 				AG0000000000000000000001 /* RunWorkoutsView.swift in Sources */,
+				AI0000000000000000000001 /* AppleFoundationModelsClient.swift in Sources */,
+				AJ0000000000000000000001 /* GeminiFoodVisionClient.swift in Sources */,
+				AK0000000000000000000001 /* GainsCharts.swift in Sources */,
+				AL0000000000000000000001 /* GainsSheet.swift in Sources */,
+				AM0000000000000000000001 /* RunGoalPlanModels.swift in Sources */,
+				AN0000000000000000000001 /* RunGoalPlanView.swift in Sources */,
+				AO0000000000000000000001 /* WeekdayDetailSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

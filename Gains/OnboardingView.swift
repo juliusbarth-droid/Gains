@@ -809,7 +809,13 @@ struct OnboardingView: View {
     }
     store.plannerSettings = settings
 
-    store.saveAll()
-    hasCompletedOnboarding = true
+    // 2026-05-01: P0-5-Fix. Vorher: `saveAll()` (async) + `hasCompletedOnboarding=true`
+    // (sync). Wenn der Tester die App im Sekundenbruchteil zwischen den beiden
+    // Zeilen killt, war die AppStorage-Flag persistiert aber Profil/Settings
+    // nicht — App startete dann mit leerem Profil und Default-Werten.
+    // Jetzt: Flag erst setzen, wenn Save garantiert durch ist.
+    store.saveAll {
+      hasCompletedOnboarding = true
+    }
   }
 }

@@ -225,18 +225,18 @@ struct RunSegmentsTab: View {
   }
 
   private func segmentRegion(_ segment: RunSegment) -> MKCoordinateRegion {
-    guard !segment.coordinates.isEmpty else {
-      return MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
-        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
-      )
-    }
+    let fallback = MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
+      span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+    )
+    // Stabilitäts-Hardening: Force-unwraps auf .min()/.max() entfernt.
+    guard !segment.coordinates.isEmpty else { return fallback }
     let lats = segment.coordinates.map(\.latitude)
     let lons = segment.coordinates.map(\.longitude)
-    let minLat = lats.min()!
-    let maxLat = lats.max()!
-    let minLon = lons.min()!
-    let maxLon = lons.max()!
+    guard
+      let minLat = lats.min(), let maxLat = lats.max(),
+      let minLon = lons.min(), let maxLon = lons.max()
+    else { return fallback }
     return MKCoordinateRegion(
       center: CLLocationCoordinate2D(
         latitude: (minLat + maxLat) / 2,
@@ -483,18 +483,17 @@ struct RunSegmentDetailSheet: View {
   }
 
   private var region: MKCoordinateRegion {
-    guard !segment.coordinates.isEmpty else {
-      return MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
-        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
-      )
-    }
+    let fallback = MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
+      span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+    )
+    guard !segment.coordinates.isEmpty else { return fallback }
     let lats = segment.coordinates.map(\.latitude)
     let lons = segment.coordinates.map(\.longitude)
-    let minLat = lats.min()!
-    let maxLat = lats.max()!
-    let minLon = lons.min()!
-    let maxLon = lons.max()!
+    guard
+      let minLat = lats.min(), let maxLat = lats.max(),
+      let minLon = lons.min(), let maxLon = lons.max()
+    else { return fallback }
     return MKCoordinateRegion(
       center: CLLocationCoordinate2D(
         latitude: (minLat + maxLat) / 2,

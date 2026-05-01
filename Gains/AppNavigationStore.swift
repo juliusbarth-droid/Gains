@@ -30,6 +30,14 @@ final class AppNavigationStore: ObservableObject {
     selectedTab = .gym
   }
 
+  /// Wechselt in den Ernährungs-Tab — wird vom Home-Screen aus über die
+  /// Tap-Zone der Nutrition-Card aufgerufen.
+  func openNutrition() {
+    pendingCaptureKind = nil
+    pendingGymTab = nil
+    selectedTab = .nutrition
+  }
+
   /// Öffnet das globale Capture-Sheet mit dem gewünschten Inhaltstyp.
   func presentCapture(kind: CaptureKind = .workout) {
     pendingGymTab = nil

@@ -248,18 +248,22 @@ struct RunRoutesTab: View {
   }
 
   private func routeRegion(_ route: SavedRoute) -> MKCoordinateRegion {
-    guard !route.coordinates.isEmpty else {
-      return MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
-        span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
-      )
-    }
+    let fallback = MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
+      span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
+    )
+    // Stabilitäts-Hardening: Force-unwraps auf .min()/.max() entfernt.
+    // Auch wenn der `isEmpty`-Guard die Crashes praktisch ausschließt,
+    // schützt das nil-Coalescing zusätzlich gegen Edge-Cases (z. B. NaN-
+    // Koordinaten aus älteren Persistenzdaten, die `.min()/.max()` mit
+    // einem Optional auswerten könnten).
+    guard !route.coordinates.isEmpty else { return fallback }
     let lats = route.coordinates.map(\.latitude)
     let lons = route.coordinates.map(\.longitude)
-    let minLat = lats.min()!
-    let maxLat = lats.max()!
-    let minLon = lons.min()!
-    let maxLon = lons.max()!
+    guard
+      let minLat = lats.min(), let maxLat = lats.max(),
+      let minLon = lons.min(), let maxLon = lons.max()
+    else { return fallback }
     return MKCoordinateRegion(
       center: CLLocationCoordinate2D(
         latitude: (minLat + maxLat) / 2,
@@ -513,18 +517,17 @@ struct SavedRouteDetailSheet: View {
   }
 
   private var routeRegion: MKCoordinateRegion {
-    guard !route.coordinates.isEmpty else {
-      return MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
-        span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
-      )
-    }
+    let fallback = MKCoordinateRegion(
+      center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
+      span: MKCoordinateSpan(latitudeDelta: 0.04, longitudeDelta: 0.04)
+    )
+    guard !route.coordinates.isEmpty else { return fallback }
     let lats = route.coordinates.map(\.latitude)
     let lons = route.coordinates.map(\.longitude)
-    let minLat = lats.min()!
-    let maxLat = lats.max()!
-    let minLon = lons.min()!
-    let maxLon = lons.max()!
+    guard
+      let minLat = lats.min(), let maxLat = lats.max(),
+      let minLon = lons.min(), let maxLon = lons.max()
+    else { return fallback }
     return MKCoordinateRegion(
       center: CLLocationCoordinate2D(
         latitude: (minLat + maxLat) / 2,

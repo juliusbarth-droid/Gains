@@ -1693,6 +1693,15 @@ struct CompletedExercisePerformance: Identifiable {
   let totalVolume: Double
 }
 
+/// Cardio-Modalität eines Lauf-/Rad-Slots. Ermöglicht es, den Run-Tracker
+/// für Bike-Sessions wiederzuverwenden, ohne die History zu vermischen —
+/// `WeekdayDetailSheet` und der Wochen-Plan unterscheiden Lauf- vs. Rad-Tag
+/// über dieses Feld.
+enum CardioModality: String, Codable {
+  case run
+  case bike
+}
+
 struct RunTemplate: Identifiable {
   let id: UUID
   let title: String
@@ -1702,6 +1711,31 @@ struct RunTemplate: Identifiable {
   let targetDurationMinutes: Int
   let targetPaceLabel: String
   let systemImage: String
+  /// Optional — wenn `nil`, wird der Slot wie ein klassischer Lauf
+  /// behandelt (Default für ältere Templates ohne explizite Modalität).
+  let modality: CardioModality?
+
+  init(
+    id: UUID = UUID(),
+    title: String,
+    subtitle: String,
+    routeName: String,
+    targetDistanceKm: Double,
+    targetDurationMinutes: Int,
+    targetPaceLabel: String,
+    systemImage: String,
+    modality: CardioModality? = .run
+  ) {
+    self.id = id
+    self.title = title
+    self.subtitle = subtitle
+    self.routeName = routeName
+    self.targetDistanceKm = targetDistanceKm
+    self.targetDurationMinutes = targetDurationMinutes
+    self.targetPaceLabel = targetPaceLabel
+    self.systemImage = systemImage
+    self.modality = modality
+  }
 }
 
 /// Intensität einer Lauf-Einheit. Steuert Pace/HF-Erwartung und Audio-Cues.

@@ -455,4 +455,63 @@ extension GainsStore {
   func endStructuredWorkout() {
     activeStructuredWorkout = nil
   }
+
+  // MARK: - Goal-Trainingsplan
+  //
+  // Nutzer setzt Distanz × Pace × Datum → Generator baut Sessions (Base /
+  // Build / Peak / Taper). Es gibt höchstens einen aktiven Plan — Setzen
+  // eines neuen Plans überschreibt den alten. `togglePlanSessionCompletion`
+  // wird sowohl von der UI (Tap auf Checkmark) als auch ggf. später von
+  // einem Auto-Match-Hook (CompletedRunSummary → PlannedRunSession) gerufen.
+
+  /// Setzt einen neuen Goal-Plan. Generiert die Session-Liste anhand der
+  /// Eingaben — bestehender Plan wird überschrieben (auch ein laufender).
+  func setRunGoalPlan(
+    title: String,
+    targetDistanceKm: Double,
+    targetPaceSeconds: Int,
+    targetDate: Date,
+    weeklyBaseKm: Double,
+    sessionsPerWeek: Int
+  ) {
+    let sessions = RunGoalPlanGenerator.generateSessions(
+      targetDistanceKm: targetDistanceKm,
+      targetPaceSeconds: targetPaceSeconds,
+      targetDate: targetDate,
+      weeklyBaseKm: weeklyBaseKm,
+      sessionsPerWeek: sessionsPerWeek
+    )
+    runGoalPlan = RunGoalPlan(
+      title: title.trimmingCharacters(in: .whitespacesAndNewlines),
+      targetDistanceKm: targetDistanceKm,
+      targetPaceSeconds: targetPaceSeconds,
+      targetDate: targetDate,
+      startedAt: Calendar.current.startOfDay(for: Date()),
+      weeklyBaseKm: weeklyBaseKm,
+      sessionsPerWeek: sessionsPerWeek,
+      sessions: sessions
+    )
+    saveAll()
+  }
+
+  /// Beendet den aktiven Goal-Plan komplett. UI zeigt danach wieder den
+  /// Empty-State („Trainings-Ziel setzen").
+  func clearRunGoalPlan() {
+    runGoalPlan = nil
+    saveAll()
+  }
+
+  /// Toggle für den Erledigt-Status einer einzelnen Session. UI nutzt das
+  /// für Tap auf den Checkmark-Button.
+  func togglePlanSessionCompletion(_ sessionID: UUID) {
+    guard var plan = runGoalPlan else { return }
+    guard let idx = plan.sessions.firstIndex(where: { $0.id == sessionID }) else { return }
+    plan.sessions[idx].isCompleted.toggle()
+    if !plan.sessions[idx].isCompleted {
+      // Auto-Match-Verbindung beim Zurücknehmen ebenfalls lösen.
+      plan.sessions[idx].completedRunID = nil
+    }
+    runGoalPlan = plan
+    saveAll()
+  }
 }

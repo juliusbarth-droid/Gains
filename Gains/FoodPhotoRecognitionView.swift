@@ -42,9 +42,25 @@ struct FoodPhotoRecognitionSheet: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .principal) {
-          Text("KI-Fotoerkennung")
-            .font(GainsFont.label(15))
-            .foregroundStyle(GainsColor.ink)
+          // 2026-04-29: BETA-Badge neben dem Titel — die KI-Erkennung
+          // ist noch in Erprobung (Foundation-Models-Image-API auf iOS 26
+          // ist neu, Genauigkeit variiert je nach Foto und Gericht).
+          // Honest-Signal an den User damit er weiß, dass Fehler
+          // möglich sind und manuelles Korrigieren erwartbar ist.
+          HStack(spacing: 6) {
+            Text("KI-Fotoerkennung")
+              .font(GainsFont.label(15))
+              .foregroundStyle(GainsColor.ink)
+            Text("BETA")
+              .font(.system(size: 9, weight: .bold, design: .rounded))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.lime)
+              .padding(.horizontal, 5)
+              .padding(.vertical, 2)
+              .background(GainsColor.lime.opacity(0.18))
+              .clipShape(Capsule())
+              .overlay(Capsule().stroke(GainsColor.lime.opacity(0.45), lineWidth: 0.5))
+          }
         }
         ToolbarItem(placement: .navigationBarLeading) {
           Button("Abbrechen") { dismiss() }
@@ -97,9 +113,20 @@ struct FoodPhotoRecognitionSheet: View {
         }
 
         VStack(spacing: 8) {
-          Text("Mahlzeit fotografieren")
-            .font(GainsFont.title(22))
-            .foregroundStyle(GainsColor.ink)
+          HStack(spacing: 8) {
+            Text("Mahlzeit fotografieren")
+              .font(GainsFont.title(22))
+              .foregroundStyle(GainsColor.ink)
+            Text("BETA")
+              .font(.system(size: 9, weight: .bold, design: .rounded))
+              .tracking(0.8)
+              .foregroundStyle(GainsColor.lime)
+              .padding(.horizontal, 6)
+              .padding(.vertical, 2)
+              .background(GainsColor.lime.opacity(0.18))
+              .clipShape(Capsule())
+              .overlay(Capsule().stroke(GainsColor.lime.opacity(0.45), lineWidth: 0.5))
+          }
           Text("Die KI erkennt Lebensmittel auf dem Foto\nund schlägt dir die passenden Kalorien vor.")
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.softInk)
@@ -172,16 +199,25 @@ struct FoodPhotoRecognitionSheet: View {
       }
       .padding(.horizontal, 24)
 
-      // Info chip
-      HStack(spacing: 6) {
-        Image(systemName: "info.circle")
-          .font(.system(size: 11))
-          .foregroundStyle(GainsColor.mutedInk)
-        Text("KI-Erkennung nutzt Apple Vision + Gains Lebensmitteldatenbank")
-          .font(.system(size: 11))
-          .foregroundStyle(GainsColor.mutedInk)
+      // Info-Chip — wechselt das Wording je nach aktivem Pfad und
+      // weist transparent auf den BETA-Status hin. Apple Foundation
+      // Models hat höchste Prio (on-device, gratis), dann Gemini wenn
+      // explizit per Key konfiguriert, sonst Apple-Vision-Fallback.
+      VStack(spacing: 6) {
+        HStack(spacing: 6) {
+          Image(systemName: aiInfoChipIcon)
+            .font(.system(size: 11))
+            .foregroundStyle(aiInfoChipColor)
+          Text(aiInfoChipText)
+            .font(.system(size: 11))
+            .foregroundStyle(GainsColor.mutedInk)
+        }
+        Text("Beta — Ergebnisse bitte vor dem Loggen prüfen.")
+          .font(.system(size: 10))
+          .foregroundStyle(GainsColor.mutedInk.opacity(0.8))
       }
       .padding(.horizontal, 24)
+      .multilineTextAlignment(.center)
 
       Spacer()
     }
@@ -241,11 +277,20 @@ struct FoodPhotoRecognitionSheet: View {
               Text(suggestions.isEmpty ? "Nichts erkannt" : "\(suggestions.count) Lebensmittel erkannt")
                 .font(GainsFont.label(14))
                 .foregroundStyle(GainsColor.ink)
+              Text("BETA")
+                .font(.system(size: 8, weight: .bold, design: .rounded))
+                .tracking(0.6)
+                .foregroundStyle(GainsColor.lime)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 1)
+                .background(GainsColor.lime.opacity(0.18))
+                .clipShape(Capsule())
             }
-            Text("Wähle die passenden aus oder suche manuell.")
+            Text("Wähle die passenden aus oder suche manuell. KI-Vorschläge können fehlerhaft sein — Gramm und Werte vor dem Loggen kurz prüfen.")
               .font(GainsFont.label(12))
               .foregroundStyle(GainsColor.softInk)
-              .lineLimit(3)
+              .lineLimit(4)
+              .fixedSize(horizontal: false, vertical: true)
           }
         }
         .padding(16)
@@ -337,16 +382,44 @@ struct FoodPhotoRecognitionSheet: View {
     }
   }
 
+  // MARK: AI Info-Chip Helpers
+  //
+  // Liefert Icon/Farbe/Text für die kleine Statuszeile unten am Idle-Screen,
+  // damit der User weiß welche Engine gerade aktiv wäre. Reihenfolge:
+  // Apple Foundation Models (iOS 26 + Apple Intelligence, on-device,
+  // gratis) → Gemini (nur wenn Key konfiguriert) → Apple-Vision-Fallback.
+
+  private var aiInfoChipIcon: String {
+    if AppleFoundationModelsClient.isAvailable { return "sparkles" }
+    if GeminiFoodVisionClient.isAvailable { return "sparkles" }
+    return "info.circle"
+  }
+
+  private var aiInfoChipColor: Color {
+    if AppleFoundationModelsClient.isAvailable || GeminiFoodVisionClient.isAvailable {
+      return GainsColor.lime
+    }
+    return GainsColor.mutedInk
+  }
+
+  private var aiInfoChipText: String {
+    if AppleFoundationModelsClient.isAvailable {
+      return "On-Device-KI erkennt Lebensmittel + schätzt Gramm"
+    }
+    if GeminiFoodVisionClient.isAvailable {
+      return "Cloud-KI erkennt Lebensmittel + schätzt Gramm"
+    }
+    return "Schnellerkennung — beste Qualität auf iPhone 15 Pro+"
+  }
+
   // MARK: Analysis
 
   private func startAnalysis(image: UIImage) {
     withAnimation { photoState = .analyzing(image) }
-    FoodImageAnalyzer.analyze(image: image) { suggestions in
-      DispatchQueue.main.async {
-        withAnimation {
-          // Always go to result view — even if empty, user can search manually
-          photoState = .result(image, suggestions)
-        }
+    FoodImageAnalyzer.analyze(image: image, mealHint: mealType.geminiHint) { suggestions in
+      withAnimation {
+        // Always go to result view — even if empty, user can search manually
+        photoState = .result(image, suggestions)
       }
     }
   }
@@ -737,6 +810,11 @@ private struct PhotoSuggestionCard: View {
 
 private struct ScanningDotsView: View {
   @State private var phase = 0
+  // Stabilitäts-Fix: Timer-Referenz halten, sonst lief der Timer endlos
+  // weiter — auch nach Dismiss der View. Jetzt explizit in `onDisappear`
+  // invalidieren, damit kein orphaned Timer den `phase`-State eines
+  // bereits verworfenen View-Snapshots mutiert.
+  @State private var animationTimer: Timer?
 
   var body: some View {
     HStack(spacing: 8) {
@@ -750,9 +828,14 @@ private struct ScanningDotsView: View {
       }
     }
     .onAppear {
-      Timer.scheduledTimer(withTimeInterval: 0.45, repeats: true) { _ in
+      animationTimer?.invalidate()
+      animationTimer = Timer.scheduledTimer(withTimeInterval: 0.45, repeats: true) { _ in
         phase = (phase + 1) % 3
       }
+    }
+    .onDisappear {
+      animationTimer?.invalidate()
+      animationTimer = nil
     }
   }
 }
@@ -806,42 +889,172 @@ struct RecognizedFoodSuggestion: Identifiable {
 
 enum FoodImageAnalyzer {
 
-  static func analyze(image: UIImage, completion: @escaping ([RecognizedFoodSuggestion]) -> Void) {
-    guard let cgImage = image.cgImage else {
-      completion([]); return
+  /// Drei-Stufen-Pipeline, in dieser Reihenfolge:
+  ///   1. Apple Foundation Models (iOS 26 + Apple Intelligence) — on-device,
+  ///      gratis, kein Setup. Beste Qualität ohne Netz/Key.
+  ///   2. Gemini Vision API — nur wenn ein Key konfiguriert ist (im
+  ///      Default-Flow inaktiv, da wir die Key-UI entfernt haben). Bleibt
+  ///      als Code drin für späteren hardcoded-Backup-Pfad oder Backend-Proxy.
+  ///   3. Apple Vision (`VNClassifyImageRequest`) mit Saliency-Cropping +
+  ///      Multi-Region-Pass — der echte Offline-Fallback.
+  ///
+  /// `mealHint` hilft den LLM-Pfaden beim Frühstück nicht erst Hauptgerichte
+  /// zu schlagen; die Apple-Vision-Stufe ignoriert ihn.
+  ///
+  /// Completion läuft IMMER auf Main, damit Caller direkt UI-State setzen
+  /// können ohne weiteres `DispatchQueue.main.async`.
+  static func analyze(image: UIImage,
+                      mealHint: String? = nil,
+                      completion: @escaping ([RecognizedFoodSuggestion]) -> Void) {
+
+    // PRIO 1: Apple Foundation Models (on-device, gratis).
+    if AppleFoundationModelsClient.isAvailable {
+      Task.detached(priority: .userInitiated) {
+        do {
+          let suggestions = try await AppleFoundationModelsClient.analyze(image: image, mealHint: mealHint)
+          await MainActor.run {
+            if suggestions.isEmpty {
+              tryGeminiOrLocal(image: image, mealHint: mealHint, completion: completion)
+            } else {
+              completion(suggestions)
+            }
+          }
+        } catch {
+          await MainActor.run {
+            tryGeminiOrLocal(image: image, mealHint: mealHint, completion: completion)
+          }
+        }
+      }
+      return
     }
 
-    let request = VNClassifyImageRequest { request, error in
-      var suggestions: [RecognizedFoodSuggestion] = []
+    tryGeminiOrLocal(image: image, mealHint: mealHint, completion: completion)
+  }
 
-      if error == nil, let observations = request.results as? [VNClassificationObservation] {
+  /// Stufen 2+3: Gemini wenn Key konfiguriert, sonst direkt Apple Vision.
+  private static func tryGeminiOrLocal(image: UIImage,
+                                        mealHint: String?,
+                                        completion: @escaping ([RecognizedFoodSuggestion]) -> Void) {
+    if GeminiFoodVisionClient.isAvailable {
+      Task.detached(priority: .userInitiated) {
+        do {
+          let suggestions = try await GeminiFoodVisionClient.analyze(image: image, mealHint: mealHint)
+          await MainActor.run {
+            if suggestions.isEmpty {
+              localAnalyze(image: image, completion: completion)
+            } else {
+              completion(suggestions)
+            }
+          }
+        } catch {
+          await MainActor.run {
+            localAnalyze(image: image, completion: completion)
+          }
+        }
+      }
+    } else {
+      localAnalyze(image: image, completion: completion)
+    }
+  }
+
+  /// Apple-Vision-Pfad mit Saliency-Cropping + Multi-Region-Pass.
+  /// Statt nur das Gesamtbild zu klassifizieren (verwässert durch
+  /// Tisch/Hintergrund) crawlen wir hier den salienten Bereich + das
+  /// Center-Crop und mergen die Vorschläge nach höchster Confidence.
+  /// Letzter Fallback ist die Farbheuristik wenn alles leer bleibt.
+  private static func localAnalyze(image: UIImage,
+                                    completion: @escaping ([RecognizedFoodSuggestion]) -> Void) {
+    DispatchQueue.global(qos: .userInitiated).async {
+      let crops = saliencyAndCenterCrops(from: image)
+      var bestByName: [String: RecognizedFoodSuggestion] = [:]
+
+      for crop in crops {
+        guard let cg = crop.cgImage else { continue }
+        let request = VNClassifyImageRequest()
+        request.usesCPUOnly = false
+
+        let handler = VNImageRequestHandler(cgImage: cg, options: [:])
+        try? handler.perform([request])
+
+        guard let observations = request.results else { continue }
         let foodObs = observations
-          .filter { $0.confidence > 0.03 }
-          .prefix(40)
+          .filter { $0.confidence > 0.05 }
+          .prefix(30)
 
         for obs in foodObs {
           if let suggestion = mapVisionLabel(obs.identifier, confidence: Double(obs.confidence)) {
-            // Avoid duplicates
-            if !suggestions.contains(where: { $0.name == suggestion.name }) {
-              suggestions.append(suggestion)
+            // Bei Duplikaten gewinnt der Vorschlag mit höherer Confidence
+            // (z. B. wenn Saliency-Crop "chicken" stärker erkennt als
+            // das Vollbild).
+            if let existing = bestByName[suggestion.name] {
+              if suggestion.confidence > existing.confidence {
+                bestByName[suggestion.name] = suggestion
+              }
+            } else {
+              bestByName[suggestion.name] = suggestion
             }
-            if suggestions.count >= 5 { break }
           }
         }
       }
 
-      // Fallback: smart color/texture analysis
+      // Top 5 nach Confidence
+      var suggestions = Array(bestByName.values)
+        .sorted { $0.confidence > $1.confidence }
+        .prefix(5)
+        .map { $0 }
+
+      // Letzter Notnagel: Farbheuristik damit immer was angezeigt wird
       if suggestions.isEmpty {
         suggestions = smartFallbackAnalysis(image: image)
       }
 
-      completion(suggestions)
+      DispatchQueue.main.async { completion(suggestions) }
+    }
+  }
+
+  // MARK: - Saliency & Cropping
+  //
+  // Apple's `VNGenerateAttentionBasedSaliencyImageRequest` liefert eine
+  // Karte der Bereiche, auf die ein Mensch zuerst schauen würde — bei
+  // Foodfotos meist exakt der Teller / das Hauptgericht. Wir nutzen
+  // den ersten Bounding-Box-Vorschlag als Crop und klassifizieren
+  // diesen Ausschnitt zusätzlich zum Gesamtbild + einem Center-Crop.
+
+  private static func saliencyAndCenterCrops(from image: UIImage) -> [UIImage] {
+    var result: [UIImage] = [image]
+
+    // Center-Crop: 70% des Bildes mittig — erwischt fast immer den
+    // Teller selbst, wenn der User halbwegs zentriert fotografiert hat.
+    if let centerCrop = image.centerCropped(toFraction: 0.7) {
+      result.append(centerCrop)
     }
 
-    let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-    DispatchQueue.global(qos: .userInitiated).async {
+    // Saliency-Crop: aufwändiger, aber bei Tellern auf Holztisch /
+    // Restaurant-Setting massiv besser als Center-Crop.
+    if let cg = image.cgImage {
+      let request = VNGenerateAttentionBasedSaliencyImageRequest()
+      let handler = VNImageRequestHandler(cgImage: cg, options: [:])
       try? handler.perform([request])
+
+      if let observation = request.results?.first as? VNSaliencyImageObservation,
+         let salientObject = observation.salientObjects?.first {
+        // boundingBox ist normalisiert (0…1, Vision-Y ist von unten),
+        // wir konvertieren zu UIKit-Koordinaten und croppen.
+        let bb = salientObject.boundingBox
+        let imageSize = CGSize(width: cg.width, height: cg.height)
+        let cropRect = CGRect(
+          x: bb.origin.x * imageSize.width,
+          y: (1 - bb.origin.y - bb.size.height) * imageSize.height,
+          width: bb.size.width * imageSize.width,
+          height: bb.size.height * imageSize.height
+        )
+        if let cropped = cg.cropping(to: cropRect) {
+          result.append(UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation))
+        }
+      }
     }
+
+    return result
   }
 
   // MARK: - Comprehensive Vision label → Gains food mapping
@@ -1095,6 +1308,24 @@ enum FoodImageAnalyzer {
 // MARK: - UIImage average color helper
 
 extension UIImage {
+
+  /// Liefert das mittige Crop des Bildes mit `fraction` (0…1) Kantenlänge —
+  /// z. B. 0.7 → das mittlere 70%-Quadrat (relativ zur kleineren Seite).
+  /// Wird vom Apple-Vision-Pfad genutzt, um den Teller stärker zu
+  /// gewichten als Hintergrund/Tischrand. Liefert nil wenn `cgImage`
+  /// fehlt oder das Crop-Rect ungültig wäre.
+  func centerCropped(toFraction fraction: CGFloat) -> UIImage? {
+    guard let cg = cgImage else { return nil }
+    let w = CGFloat(cg.width)
+    let h = CGFloat(cg.height)
+    let side = min(w, h) * fraction
+    let originX = (w - side) / 2
+    let originY = (h - side) / 2
+    let rect = CGRect(x: originX, y: originY, width: side, height: side)
+    guard let cropped = cg.cropping(to: rect) else { return nil }
+    return UIImage(cgImage: cropped, scale: scale, orientation: imageOrientation)
+  }
+
   func averageColor() -> UIColor? {
     guard let cgImage = cgImage else { return nil }
     let width = 1, height = 1

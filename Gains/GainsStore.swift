@@ -52,6 +52,10 @@ final class GainsStore: ObservableObject {
   @Published var structuredRunWorkouts: [StructuredRunWorkout] = StructuredRunWorkout.builtinLibrary
   /// Aktiv laufendes strukturiertes Workout (nil, wenn kein Workout läuft).
   @Published var activeStructuredWorkout: ActiveStructuredWorkout? = nil
+  /// Aktiver Ziel-Trainingsplan (Distanz × Pace × Datum → Phasen-Plan).
+  /// Nil, wenn der Nutzer keinen Plan gesetzt hat. Persistiert via
+  /// `PersistenceKey.runGoalPlan`.
+  @Published var runGoalPlan: RunGoalPlan? = nil
   @Published var savedWorkoutPlans: [WorkoutPlan] = WorkoutPlan.starterTemplates
   @Published var plannerSettings: WorkoutPlannerSettings = .default
   @Published var completedCoachCheckInIDs: Set<UUID> = []
@@ -157,6 +161,11 @@ final class GainsStore: ObservableObject {
       let custom = workouts.filter { !$0.isBuiltin }
       structuredRunWorkouts = StructuredRunWorkout.builtinLibrary + custom
     }
+    // Goal-Plan (optional) — wenn der Nutzer noch keinen Plan gesetzt hat,
+    // bleibt das Property nil; der UI-Block zeigt dann den Empty-State.
+    if let plan = ud.decodedLoad(RunGoalPlan.self, forKey: PersistenceKey.runGoalPlan) {
+      runGoalPlan = plan
+    }
     if let plans = ud.decodedLoad([WorkoutPlan].self, forKey: PersistenceKey.savedWorkoutPlans) {
       savedWorkoutPlans = plans
     }
@@ -236,7 +245,13 @@ final class GainsStore: ObservableObject {
     }
   }
 
-  func saveAll() {
+  /// Speichert alle Daten asynchron auf einem Utility-Thread.
+  ///
+  /// Wenn ein Pfad sicherstellen muss, dass die Daten geschrieben sind bevor
+  /// er weitermacht (z.B. Onboarding-Finish, das danach `hasCompletedOnboarding`
+  /// auf true setzt — siehe P0-5 Race), ruft er stattdessen `saveAll { … }`
+  /// und führt den Folgeschritt erst im Completion-Block aus.
+  func saveAll(completion: (() -> Void)? = nil) {
     // Alle aktuellen Werte auf dem Main-Thread snapshotten (Value-Types → sichere Kopien),
     // dann JSON-Enkodierung und UserDefaults-Schreibzugriff auf einem Utility-Background-
     // Thread erledigen. Verhindert Main-Thread-Jank bei großen Historien (viele Läufe,
@@ -249,6 +264,7 @@ final class GainsStore: ObservableObject {
     let _runSegments           = self.runSegments
     let _runSegmentEfforts     = self.runSegmentEfforts
     let _customRunWorkouts     = self.structuredRunWorkouts.filter { !$0.isBuiltin }
+    let _runGoalPlan           = self.runGoalPlan
     let _savedWorkoutPlans     = self.savedWorkoutPlans
     let _plannerSettings       = self.plannerSettings
     let _weightTrend           = self.weightTrend
@@ -284,6 +300,13 @@ final class GainsStore: ObservableObject {
       ud.encodedSave(_runSegmentEfforts,   forKey: PersistenceKey.runSegmentEfforts)
       // Nur Custom-Workouts persistieren — Builtins werden bei jedem Start neu geladen.
       ud.encodedSave(_customRunWorkouts,   forKey: PersistenceKey.structuredRunWorkouts)
+      // Goal-Plan: nur schreiben wenn gesetzt, sonst Key explizit löschen, damit
+      // ein "Plan beenden"-Klick nach App-Restart wirklich kein Plan mehr da ist.
+      if let plan = _runGoalPlan {
+        ud.encodedSave(plan,               forKey: PersistenceKey.runGoalPlan)
+      } else {
+        ud.removeObject(forKey: PersistenceKey.runGoalPlan)
+      }
       ud.encodedSave(_savedWorkoutPlans,   forKey: PersistenceKey.savedWorkoutPlans)
       ud.encodedSave(_plannerSettings,     forKey: PersistenceKey.plannerSettings)
       ud.encodedSave(_weightTrend,         forKey: PersistenceKey.weightTrend)
@@ -308,6 +331,13 @@ final class GainsStore: ObservableObject {
       ud.encodedSave(_forumThreads,        forKey: PersistenceKey.forumThreads)
       ud.encodedSave(_meetups,             forKey: PersistenceKey.meetups)
       ud.encodedSave(_joinedMeetupIDs,     forKey: PersistenceKey.joinedMeetupIDs)
+
+      // Completion auf den Main-Thread zurückspielen, damit Caller mit
+      // UI-State arbeiten können (z.B. Onboarding-Finish setzt danach erst
+      // `hasCompletedOnboarding = true`, siehe P0-5).
+      if let completion {
+        DispatchQueue.main.async { completion() }
+      }
     }
   }
 
@@ -1861,6 +1891,11 @@ final class GainsStore: ObservableObject {
   func discardActiveRun() {
     guard activeRun != nil else { return }
     activeRun = nil
+    // 2026-05-01: Wenn ein strukturiertes Workout am Lauf hing (Intervalle /
+    // Phasen), muss es ebenfalls verworfen werden — sonst lädt der nächste
+    // Run-Start die alten Steps wieder, was Tester verwirrt. Root Cause der
+    // letzten „release: clear stop sheet state on run close"-Patches.
+    activeStructuredWorkout = nil
     lastProgressEvent = "Lauf verworfen — keine Änderung in der History."
   }
 
@@ -2457,6 +2492,15 @@ final class GainsStore: ObservableObject {
 
   func finishWorkout() {
     guard let workout = activeWorkout else { return }
+    // 2026-05-01: Schutz gegen leere Geister-Workouts in der History.
+    // Wenn der Nutzer „WORKOUT BEENDEN" tippt ohne einen Satz abgeschlossen
+    // zu haben (z.B. Tracker versehentlich geöffnet), landet sonst ein
+    // 0-Sätze-/0-Volumen-Eintrag in `workoutHistory` und verfälscht Streak,
+    // Wochenring und Stats. In dem Fall sauber verwerfen statt loggen.
+    guard workout.completedSets > 0 else {
+      discardWorkout()
+      return
+    }
     let workoutStartedAt = workout.startedAt
     let workoutFinishedAt = Date()
 

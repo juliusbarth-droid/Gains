@@ -203,7 +203,15 @@ struct CustomPlanBuilderSheet: View {
         ) {
           withAnimation(.spring(response: 0.25)) {
             // Beim ersten Wechsel zu Lauf: Default = Easy Run.
-            let existing = drafts[day]?.kind.isRun == true ? drafts[day]!.kind : .easyRun
+            // Stabilitäts-Hardening: kein Force-Unwrap mehr — explizit als
+            // Optional-Pattern. Verhalten unverändert: wenn aktueller Eintrag
+            // bereits ein Lauf-Kind ist, behalten wir ihn; sonst easyRun.
+            let existing: PlannedSessionKind = {
+              if let current = drafts[day]?.kind, current.isRun {
+                return current
+              }
+              return .easyRun
+            }()
             drafts[day] = DayDraft(kind: existing, workoutPlanID: nil)
           }
         }

@@ -551,6 +551,9 @@ enum PersistenceKey {
   static let runSegments          = "gains_runSegments"
   static let runSegmentEfforts    = "gains_runSegmentEfforts"
   static let structuredRunWorkouts = "gains_structuredRunWorkouts"
+  /// Goal-Trainingsplan (Distanz × Pace × Datum → Wochen-Sessions).
+  /// Optional — nicht jeder Nutzer setzt ein Ziel.
+  static let runGoalPlan          = "gains_runGoalPlan"
   /// A5: Schema-Version, mit der die persistierten Daten geschrieben wurden.
   /// Wird beim App-Start gegen `PersistenceMigrator.currentVersion` geprüft.
   static let schemaVersion        = "gains_schemaVersion"

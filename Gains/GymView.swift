@@ -59,7 +59,8 @@ struct GymView: View {
         case .plan:
           GymPlanTab(
             showsPlanWizard: $showsPlanWizard,
-            showsCustomPlanBuilder: $showsCustomPlanBuilder
+            showsCustomPlanBuilder: $showsCustomPlanBuilder,
+            isShowingWorkoutTracker: $isShowingWorkoutTracker
           )
         case .stats:
           GymStatsTab(

@@ -1302,9 +1302,11 @@ struct HeroPrimaryCTAButton: View {
     }
     .buttonStyle(HeroPrimaryCTAButtonStyle())
     .onAppear {
-      // Langsame Atmung (~2,4 s pro Halbzyklus). Bewusst nicht aggressiv,
-      // damit die App nicht „zappelt" — sieht eher aus wie Standby-LED.
-      withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
+      // A12 (Anti-Blend): Atmung von 2,4 s → 3,2 s pro Halbzyklus.
+      // Langsamer = ruhiger im peripheren Sehen. Der Button signalisiert
+      // weiterhin „bereit zu starten", ohne aktiv um Aufmerksamkeit zu
+      // betteln. Bewusst nicht aggressiv — eher Standby-LED als Disco.
+      withAnimation(.easeInOut(duration: 3.2).repeatForever(autoreverses: true)) {
         breathing = true
       }
     }
@@ -1315,11 +1317,17 @@ struct HeroPrimaryCTAButton: View {
       // 1. Atmender Halo hinter der Pille (sitzt unten in der ZStack-
       //    Reihenfolge, damit er von der Pille überdeckt wird und nur
       //    aussen rausragt). Skaliert leicht in der Animation.
+      //
+      // A12 (Anti-Blend): Halo-Intensität deutlich runtergenommen
+      // (0.18→0.10 / 0.32→0.20) und Blur etwas kleiner (22→16). Vorher
+      // war das in dunkler Umgebung der lauteste Akzent der App und hat
+      // bei kurzem Hinschauen geblendet. Jetzt eher subtiler Lime-Schein,
+      // der dem Button Tiefe gibt statt ihn zu überstrahlen.
       RoundedRectangle(cornerRadius: 18, style: .continuous)
         .fill(GainsColor.lime)
-        .opacity(breathing ? 0.32 : 0.18)
-        .blur(radius: breathing ? 22 : 14)
-        .scaleEffect(x: breathing ? 1.02 : 0.97, y: breathing ? 1.10 : 0.95)
+        .opacity(breathing ? 0.20 : 0.10)
+        .blur(radius: breathing ? 16 : 11)
+        .scaleEffect(x: breathing ? 1.01 : 0.97, y: breathing ? 1.06 : 0.95)
         .padding(-2)
 
       // 2. Hauptpille mit Lime-Gradient
@@ -1340,7 +1348,10 @@ struct HeroPrimaryCTAButton: View {
       .overlay(topInnerHighlight)
       .overlay(insetStroke)
       .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-      .shadow(color: GainsColor.lime.opacity(0.42), radius: 18, x: 0, y: 6)
+      // A12 (Anti-Blend): Lime-Drop-Shadow von (0.42, r=18) auf (0.22, r=12)
+      // gedimmt. Schwarzer Stützschatten bleibt — der trägt die Plastizität,
+      // ohne zu glühen.
+      .shadow(color: GainsColor.lime.opacity(0.22), radius: 12, x: 0, y: 5)
       .shadow(color: Color.black.opacity(0.45), radius: 10, x: 0, y: 4)
     }
   }
@@ -1361,7 +1372,11 @@ struct HeroPrimaryCTAButton: View {
         Image(systemName: icon)
           .font(.system(size: 17, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
-          .shadow(color: GainsColor.lime.opacity(0.65), radius: 6)
+          // A12 (Anti-Blend): Icon-Glow von 0.65 auf 0.32 gedimmt — vorher
+          // war das Lime-Icon auf der dunklen Plate ein zweiter heller
+          // Punkt direkt neben der Halo-Pille. Jetzt nur noch sanfter
+          // Schein, der das Icon vom Hintergrund abhebt.
+          .shadow(color: GainsColor.lime.opacity(0.32), radius: 4)
       }
       .frame(width: 44, height: 44)
     } else {
@@ -1399,13 +1414,18 @@ struct HeroPrimaryCTAButton: View {
 
   /// Schmaler Highlight-Bogen am oberen Rand — fängt das „Licht" ein
   /// und macht die Pille plastisch ohne Schatten zu falsifizieren.
+  ///
+  /// A12 (Anti-Blend): Top-Stop von 0.55 auf 0.28 weisses Highlight
+  /// reduziert. Das war der Hauptverdächtige für den „glossy/glaring"-
+  /// Eindruck — die Pille sah wie hinter einer Lackschicht aus. Jetzt
+  /// nur noch dezente Lichtkante, plastisch ohne aufdringlich zu sein.
   private var topInnerHighlight: some View {
     RoundedRectangle(cornerRadius: 16, style: .continuous)
       .strokeBorder(
         LinearGradient(
           colors: [
-            Color.white.opacity(0.55),
-            Color.white.opacity(0.05)
+            Color.white.opacity(0.28),
+            Color.white.opacity(0.03)
           ],
           startPoint: .top,
           endPoint: .center
@@ -1426,11 +1446,15 @@ struct HeroPrimaryCTAButton: View {
 
 /// Press-State für `HeroPrimaryCTAButton`. Skaliert leicht und drückt
 /// den Halo zusammen — gibt dem Tap echtes haptisches Feedback.
+///
+/// A12 (Anti-Blend): Da der Ruhezustand jetzt deutlich gedimmt ist, wurde
+/// der Press-Sprung minimal verstärkt (Scale 0.97 → 0.96, Brightness
+/// -0.04 → -0.06), damit der Tap weiterhin spürbar quittiert wird.
 private struct HeroPrimaryCTAButtonStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
-      .brightness(configuration.isPressed ? -0.04 : 0)
+      .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+      .brightness(configuration.isPressed ? -0.06 : 0)
       .animation(.spring(response: 0.22, dampingFraction: 0.78), value: configuration.isPressed)
   }
 }
