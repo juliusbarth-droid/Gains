@@ -1825,7 +1825,20 @@ final class GainsStore: ObservableObject {
       return "Plane jetzt deine erste Trainingswoche"
     }
 
-    return "\(plannedSessions) Tage · Priorität \(plannerSettings.trainingFocus.title)"
+    let strengthDays = scheduledPlannerDays.filter { plannedSessionKinds[$0]?.isRun != true }.count
+    let assignedStrengthDays = scheduledPlannerDays.filter {
+      plannedSessionKinds[$0]?.isRun != true && plannerSettings.dayAssignments[$0] != nil
+    }.count
+    let openStrengthDays = max(strengthDays - assignedStrengthDays, 0)
+
+    if strengthDays > 0 {
+      if openStrengthDays == 0 {
+        return "\(plannedSessions) Tage · Krafttage komplett hinterlegt"
+      }
+      return "\(plannedSessions) Tage · \(openStrengthDays) Krafttage noch offen"
+    }
+
+    return "\(plannedSessions) Tage · Fokus \(plannerSettings.trainingFocus.title)"
   }
 
   var plannerSummaryDescription: String {
