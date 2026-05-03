@@ -108,7 +108,7 @@ private enum ProgressHero {
 struct ProgressView: View {
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 20) {
+      LazyVStack(alignment: .leading, spacing: 20) {
         screenHeader(
           eyebrow: "BODY / REFLECTION",
           title: "Fortschritt",
@@ -116,6 +116,7 @@ struct ProgressView: View {
         )
         ProgressContentView()
       }
+      .frame(maxWidth: .infinity, alignment: .leading)
     }
   }
 }
@@ -131,7 +132,7 @@ struct ProgressContentView: View {
   @State private var coachInsightIndex: Int = 0
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    LazyVStack(alignment: .leading, spacing: 22) {
       heroBanner
       coachInsightCard
       readinessRow
@@ -145,6 +146,7 @@ struct ProgressContentView: View {
       // wenn heute geplant ist → Plan, sonst → Training starten.
       progressFooterCTA
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   /// Footer-CTA, der am Ende der ProgressContentView den nächsten Schritt
