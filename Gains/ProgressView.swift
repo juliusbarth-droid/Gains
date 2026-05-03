@@ -1511,11 +1511,12 @@ struct ProgressContentView: View {
             icon: "clock.arrow.circlepath"
           )
         } else {
-          VStack(spacing: 6) {
+          LazyVStack(spacing: 6) {
             ForEach(merged.prefix(5)) { entry in
               historyRowCompact(entry)
             }
           }
+          .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
     }
