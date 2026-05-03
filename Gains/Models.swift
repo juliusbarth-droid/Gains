@@ -4104,6 +4104,66 @@ extension RecipesViewModel {
         tags: [.quick, .oneOnePan, .budget, .postWorkout],
         servings: 1
       ),
+      Recipe(
+        id: UUID(uuidString: "30000003-0000-0000-0000-000000000013")!,
+        title: "Cottage Cheese Kartoffel Bowl",
+        category: "Lunch",
+        goal: .highProtein,
+        dietaryStyle: .vegetarian,
+        mealType: .lunch,
+        imageURL:
+          "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1200&q=80",
+        placeholderSymbol: "leaf.fill",
+        prepMinutes: 14,
+        calories: 486,
+        protein: 38,
+        carbs: 49,
+        fat: 14,
+        ingredients: [
+          "250 g Kartoffeln",
+          "200 g körniger Frischkäse",
+          "2 Eier",
+          "100 g Gurke",
+          "Schnittlauch, Salz, Pfeffer",
+        ],
+        steps: [
+          "Kartoffeln in der Mikrowelle oder im Topf garen.",
+          "Eier hart kochen und halbieren.",
+          "Alles mit Gurke und körnigem Frischkäse in einer Bowl anrichten.",
+        ],
+        tags: [.quick, .budget, .mealprep, .postWorkout],
+        servings: 1
+      ),
+      Recipe(
+        id: UUID(uuidString: "30000003-0000-0000-0000-000000000014")!,
+        title: "Protein Porridge Banane",
+        category: "Breakfast",
+        goal: .highProtein,
+        dietaryStyle: .vegetarian,
+        mealType: .breakfast,
+        imageURL:
+          "https://images.unsplash.com/photo-1517673400267-0251440c45dc?auto=format&fit=crop&w=1200&q=80",
+        placeholderSymbol: "sun.max.fill",
+        prepMinutes: 7,
+        calories: 437,
+        protein: 35,
+        carbs: 53,
+        fat: 9,
+        ingredients: [
+          "60 g Haferflocken",
+          "250 ml Milch",
+          "30 g Whey",
+          "1 Banane",
+          "Zimt",
+        ],
+        steps: [
+          "Haferflocken mit Milch 3 bis 4 Minuten aufkochen.",
+          "Kurz abkühlen lassen und Whey einrühren.",
+          "Mit Banane und Zimt servieren.",
+        ],
+        tags: [.quick, .budget, .postWorkout, .mealprep],
+        servings: 1
+      ),
     ]
   )
 }
