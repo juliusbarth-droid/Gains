@@ -490,6 +490,8 @@ struct GymPlanWizardSheet: View {
         .gainsCardStyle(GainsColor.card)
         .padding(.horizontal, GainsSpacing.xl)
 
+        weeklyOverviewCard
+
         VStack(alignment: .leading, spacing: 0) {
           Text("WISSENSCHAFTLICHE PARAMETER")
             .font(GainsFont.label(9))
@@ -787,6 +789,158 @@ struct GymPlanWizardSheet: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
+  }
+
+  private var weeklyOverviewCard: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      Text("WOCHE IM ÜBERBLICK")
+        .font(GainsFont.label(9))
+        .tracking(1.6)
+        .foregroundStyle(GainsColor.softInk)
+
+      VStack(spacing: GainsSpacing.xsPlus) {
+        ForEach(Weekday.allCases) { day in
+          weeklyOverviewRow(day)
+        }
+      }
+    }
+    .padding(GainsSpacing.l)
+    .gainsCardStyle(GainsColor.card)
+    .padding(.horizontal, GainsSpacing.xl)
+  }
+
+  private func weeklyOverviewRow(_ day: Weekday) -> some View {
+    let kind = previewSessionKinds[day]
+    let isPlanned = kind != nil
+
+    return HStack(spacing: GainsSpacing.s) {
+      Text(day.shortLabel)
+        .font(GainsFont.label(10))
+        .tracking(1.4)
+        .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+        .frame(width: 28, alignment: .leading)
+
+      Circle()
+        .fill(previewAccent(for: kind))
+        .frame(width: 8, height: 8)
+
+      Text(previewTitle(for: kind))
+        .font(GainsFont.body(13))
+        .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+
+      Spacer()
+
+      if isPlanned {
+        Text(previewMeta(for: kind))
+          .font(GainsFont.label(9))
+          .tracking(1.0)
+          .foregroundStyle(GainsColor.softInk)
+      }
+    }
+    .padding(.vertical, 2)
+  }
+
+  private var previewScheduledDays: [Weekday] {
+    switch sessionsPerWeek {
+    case ...0:
+      return []
+    case 1:
+      return [.wednesday]
+    case 2:
+      return [.tuesday, .friday]
+    case 3:
+      return [.monday, .wednesday, .friday]
+    case 4:
+      return [.monday, .tuesday, .thursday, .saturday]
+    case 5:
+      return [.monday, .tuesday, .thursday, .friday, .sunday]
+    case 6:
+      return [.monday, .tuesday, .wednesday, .friday, .saturday, .sunday]
+    default:
+      return Weekday.allCases
+    }
+  }
+
+  private var previewSessionKinds: [Weekday: PlannedSessionKind] {
+    let days = previewScheduledDays
+    guard !days.isEmpty else { return [:] }
+
+    var result: [Weekday: PlannedSessionKind] = [:]
+
+    switch trainingFocus {
+    case .strength:
+      for day in days { result[day] = .strength }
+    case .cardio:
+      let kinds = previewRunSessionKinds(for: days.count)
+      for (index, day) in days.enumerated() {
+        result[day] = index < kinds.count ? kinds[index] : .easyRun
+      }
+    case .hybrid:
+      let strengthCount: Int = {
+        switch days.count {
+        case ...1: return 1
+        case 2: return 1
+        case 3: return 2
+        case 4: return 2
+        case 5: return 3
+        case 6: return 4
+        default: return max(days.count - 2, 0)
+        }
+      }()
+      let runKinds = previewRunSessionKinds(for: max(days.count - strengthCount, 0))
+      for (index, day) in days.enumerated() {
+        if index < strengthCount {
+          result[day] = .strength
+        } else {
+          let runIndex = index - strengthCount
+          result[day] = runIndex < runKinds.count ? runKinds[runIndex] : .easyRun
+        }
+      }
+    }
+
+    return result
+  }
+
+  private func previewRunSessionKinds(for count: Int) -> [PlannedSessionKind] {
+    switch count {
+    case ...0:
+      return []
+    case 1:
+      return [.longRun]
+    case 2:
+      return [.easyRun, .longRun]
+    case 3:
+      return [.easyRun, .tempoRun, .longRun]
+    case 4:
+      return [.easyRun, .tempoRun, .intervalRun, .longRun]
+    default:
+      return [.easyRun, .tempoRun, .recoveryRun, .intervalRun, .longRun]
+    }
+  }
+
+  private func previewTitle(for kind: PlannedSessionKind?) -> String {
+    guard let kind else { return "Frei / Puffer" }
+    switch kind {
+    case .strength:
+      return "Krafttraining"
+    default:
+      return kind.title
+    }
+  }
+
+  private func previewMeta(for kind: PlannedSessionKind?) -> String {
+    guard let kind else { return "" }
+    switch kind {
+    case .strength:
+      return autoSplitName
+    default:
+      return "ca. \(sessionLength) Min"
+    }
+  }
+
+  private func previewAccent(for kind: PlannedSessionKind?) -> Color {
+    guard let kind else { return GainsColor.softInk.opacity(0.35) }
+    return kind.isRun ? GainsColor.moss : GainsColor.lime
   }
 
   private func summaryRow(icon: String, label: String, value: String) -> some View {
