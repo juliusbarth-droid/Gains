@@ -15,10 +15,10 @@ struct RunRoutesTab: View {
   @Binding var presentedRoute: SavedRoute?
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
       heatmapSection
 
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         SlashLabel(
           parts: ["GESPEICHERTE", "ROUTEN"],
           primaryColor: GainsColor.lime,
@@ -36,7 +36,7 @@ struct RunRoutesTab: View {
           message: "Starte einen GPS-Lauf — du kannst die Strecke beim Speichern als Route übernehmen."
         )
       } else {
-        VStack(spacing: 14) {
+        VStack(spacing: GainsSpacing.m) {
           ForEach(store.savedRoutes) { route in
             Button {
               presentedRoute = route
@@ -54,7 +54,7 @@ struct RunRoutesTab: View {
   // MARK: Heatmap
 
   private var heatmapSection: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["HEATMAP", "DEINE WEGE"],
@@ -92,7 +92,7 @@ struct RunRoutesTab: View {
       .overlay(
         ZStack {
           Color.black.opacity(0.25)
-          VStack(spacing: 6) {
+          VStack(spacing: GainsSpacing.xs) {
             Image(systemName: "map")
               .font(.system(size: 22, weight: .semibold))
               .foregroundStyle(.white.opacity(0.8))
@@ -101,7 +101,7 @@ struct RunRoutesTab: View {
               .tracking(1.0)
               .foregroundStyle(.white.opacity(0.85))
               .multilineTextAlignment(.center)
-              .padding(.horizontal, 30)
+              .padding(.horizontal, GainsSpacing.xl)
           }
         }
       )
@@ -175,7 +175,7 @@ struct RunRoutesTab: View {
           Color(.tertiarySystemBackground).frame(height: 130)
         }
 
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Image(systemName: route.surface.systemImage)
             .font(.system(size: 10, weight: .semibold))
           Text(route.surface.title.uppercased())
@@ -183,16 +183,16 @@ struct RunRoutesTab: View {
             .tracking(1.2)
         }
         .foregroundStyle(GainsColor.onLime)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, GainsSpacing.xsPlus)
         .frame(height: 22)
         .background(GainsColor.lime)
         .clipShape(Capsule())
-        .padding(10)
+        .padding(GainsSpacing.tight)
       }
 
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         HStack(alignment: .top) {
-          VStack(alignment: .leading, spacing: 4) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
             Text(route.title)
               .font(GainsFont.title(18))
               .foregroundStyle(GainsColor.ink)
@@ -220,7 +220,7 @@ struct RunRoutesTab: View {
           routeStat(label: "GELAUFEN", value: "\(route.timesRun)", unit: "×")
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
     }
     .gainsCardStyle()
     .overlay(
@@ -294,10 +294,10 @@ struct SavedRouteDetailSheet: View {
         VStack(spacing: 0) {
           mapHeader
 
-          VStack(alignment: .leading, spacing: 18) {
+          VStack(alignment: .leading, spacing: GainsSpacing.l) {
             statsBlock
 
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: GainsSpacing.tight) {
               SlashLabel(
                 parts: ["VERWANDTE", "LÄUFE"],
                 primaryColor: GainsColor.lime,
@@ -310,7 +310,7 @@ struct SavedRouteDetailSheet: View {
 
             relatedRunsList
           }
-          .padding(20)
+          .padding(GainsSpacing.l)
         }
       }
       .background(GainsColor.background.ignoresSafeArea())
@@ -400,7 +400,7 @@ struct SavedRouteDetailSheet: View {
   }
 
   private var statsBlock: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text(route.title)
         .font(GainsFont.title(26))
         .foregroundStyle(GainsColor.ink)
@@ -421,15 +421,15 @@ struct SavedRouteDetailSheet: View {
           .frame(width: 1, height: 36)
         sheetStat(label: "GELAUFEN", value: "\(route.timesRun)", unit: "×")
       }
-      .padding(.vertical, 14)
-      .padding(.horizontal, 12)
+      .padding(.vertical, GainsSpacing.m)
+      .padding(.horizontal, GainsSpacing.s)
       .background(GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
   }
 
   private func sheetStat(label: String, value: String, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(8))
         .tracking(1.4)
@@ -461,12 +461,12 @@ struct SavedRouteDetailSheet: View {
         Text("Sobald du diese Route wieder läufst, taucht der Lauf hier auf.")
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
-          .padding(14)
+          .padding(GainsSpacing.m)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(GainsColor.card)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       } else {
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           ForEach(related) { run in
             relatedRunRow(run)
           }
@@ -476,7 +476,7 @@ struct SavedRouteDetailSheet: View {
   }
 
   private func relatedRunRow(_ run: CompletedRunSummary) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: "figure.run")
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
@@ -506,7 +506,7 @@ struct SavedRouteDetailSheet: View {
           .foregroundStyle(GainsColor.softInk)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }

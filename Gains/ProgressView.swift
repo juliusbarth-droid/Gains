@@ -108,7 +108,11 @@ private enum ProgressHero {
 struct ProgressView: View {
   var body: some View {
     GainsScreen {
-      LazyVStack(alignment: .leading, spacing: 20) {
+      // Kein LazyVStack hier: ProgressContentView ist ein einzelner
+      // Block – LazyVStack bringt bei 2 Items keinen Vorteil, erzeugt
+      // aber Layout-Ambiguität wenn innen ebenfalls ein (Lazy)VStack
+      // liegt (verschachtelte Lazy-Stacks können keine Höhen auflösen).
+      VStack(alignment: .leading, spacing: GainsSpacing.l) {
         screenHeader(
           eyebrow: "BODY / REFLECTION",
           title: "Fortschritt",
@@ -132,7 +136,12 @@ struct ProgressContentView: View {
   @State private var coachInsightIndex: Int = 0
 
   var body: some View {
-    LazyVStack(alignment: .leading, spacing: 22) {
+    // VStack statt LazyVStack: Fortschritt-Seite ist eine einzige
+    // zusammenhängende Story-Seite, kein langer Feed. LazyVStack
+    // innerhalb eines anderen (Lazy)VStack bricht die Höhenberechnung
+    // und erzeugt Scroll-Ruckler. VStack lässt SwiftUI alle Höhen
+    // vorab berechnen → flüssiges Scrollen.
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       heroBanner
       coachInsightCard
       readinessRow
@@ -167,7 +176,7 @@ struct ProgressContentView: View {
         navigation.openPlanner()
       }
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         ZStack {
           Circle()
             .fill(GainsColor.lime.opacity(0.18))
@@ -192,7 +201,7 @@ struct ProgressContentView: View {
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.softInk)
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -210,10 +219,10 @@ struct ProgressContentView: View {
     let copy = heroCopy(for: variant)
 
     return ZStack(alignment: .topLeading) {
-      RoundedRectangle(cornerRadius: 28, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
         .fill(GainsColor.ctaSurface)
 
-      RoundedRectangle(cornerRadius: 28, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
         .stroke(variant.accent.opacity(0.22), lineWidth: 1)
 
       // B5 (Hero-Glow per Variante): jede Hero-Variante bringt jetzt eine
@@ -230,10 +239,10 @@ struct ProgressContentView: View {
 
       heroGlowOverlay(variant: variant)
         .allowsHitTesting(false)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
 
-      VStack(alignment: .leading, spacing: 14) {
-        HStack(spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Image(systemName: variant.icon)
             .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(variant.accent)
@@ -252,8 +261,8 @@ struct ProgressContentView: View {
             .font(GainsFont.label(9))
             .tracking(1.4)
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
+            .padding(.horizontal, GainsSpacing.xsPlus)
+            .padding(.vertical, GainsSpacing.xxs)
             .background(GainsColor.onCtaSurface.opacity(0.08))
             .clipShape(Capsule())
         }
@@ -263,7 +272,7 @@ struct ProgressContentView: View {
           .foregroundStyle(GainsColor.onCtaSurface)
           .lineLimit(2)
           .minimumScaleFactor(0.7)
-          .padding(.top, 4)
+          .padding(.top, GainsSpacing.xxs)
 
         Text(copy.subline)
           .font(GainsFont.body(13))
@@ -271,7 +280,7 @@ struct ProgressContentView: View {
           .lineLimit(3)
           .fixedSize(horizontal: false, vertical: true)
 
-        HStack(spacing: 14) {
+        HStack(spacing: GainsSpacing.m) {
           Rectangle()
             .fill(variant.accent.opacity(0.7))
             .frame(width: 44, height: 2)
@@ -288,7 +297,7 @@ struct ProgressContentView: View {
           Button {
             heroAction(for: variant)
           } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: GainsSpacing.xs) {
               Text(copy.cta)
                 .font(GainsFont.label(10))
                 .tracking(1.4)
@@ -296,18 +305,18 @@ struct ProgressContentView: View {
                 .font(.system(size: 10, weight: .bold))
             }
             .foregroundStyle(variant.accent)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 32)
             .background(variant.accent.opacity(0.12))
             .clipShape(Capsule())
           }
           .buttonStyle(.plain)
         }
-        .padding(.top, 4)
+        .padding(.top, GainsSpacing.xxs)
       }
-      .padding(20)
+      .padding(GainsSpacing.l)
     }
-    .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
   }
 
   private func heroCopy(for hero: ProgressHero) -> (headline: String, subline: String, badge: String?, cta: String) {
@@ -583,20 +592,22 @@ struct ProgressContentView: View {
     let safeIndex = insights.isEmpty ? 0 : coachInsightIndex % max(insights.count, 1)
     let current = insights.indices.contains(safeIndex) ? insights[safeIndex] : coachFallback
 
+    let canCycle = insights.count > 1
     return Button {
+      guard canCycle else { return }
       withAnimation(.easeInOut(duration: 0.22)) {
-        coachInsightIndex = (coachInsightIndex + 1) % max(insights.count, 1)
+        coachInsightIndex = (coachInsightIndex + 1) % insights.count
       }
     } label: {
       // B5 (Coach-Insight-Tone): Card bekommt einen subtilen Hintergrund-Wash
       // in der Akzent-Farbe (Lime/Cyan/Ember) plus eine Akzent-Border-Linie
       // links als HUD-Marker. Icon-Plate von 38pt → 44pt mit Halo. Title-Eyebrow
       // mit zusätzlichem Status-Wort („MOMENTUM" / „WARNUNG" / „INFO") nach Tone.
-      HStack(alignment: .top, spacing: 14) {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
         coachIconPlate(icon: current.icon, accent: current.accent)
 
-        VStack(alignment: .leading, spacing: 8) {
-          HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+          HStack(spacing: GainsSpacing.xs) {
             Text("COACH")
               .font(GainsFont.label(9))
               .tracking(1.8)
@@ -613,15 +624,17 @@ struct ProgressContentView: View {
                 .font(GainsFont.label(8))
                 .tracking(1.2)
                 .foregroundStyle(GainsColor.softInk.opacity(0.85))
-                .padding(.horizontal, 6)
+                .padding(.horizontal, GainsSpacing.xs)
                 .frame(height: 16)
                 .background(GainsColor.surfaceDeep.opacity(0.7))
                 .clipShape(Capsule())
             }
             Spacer()
-            Image(systemName: "arrow.triangle.2.circlepath")
-              .font(.system(size: 10, weight: .semibold))
-              .foregroundStyle(current.accent.opacity(0.7))
+            if insights.count > 1 {
+              Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(current.accent.opacity(0.7))
+            }
           }
 
           Text(current.text)
@@ -861,14 +874,14 @@ struct ProgressContentView: View {
   private var readinessRow: some View {
     let vitals = readinessQuickVitals
     if !vitals.isEmpty {
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         SlashLabel(
           parts: ["READINESS", "HEUTE"],
           primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk
         )
 
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           ForEach(vitals.prefix(4)) { vital in
             readinessCell(vital)
           }
@@ -876,7 +889,7 @@ struct ProgressContentView: View {
 
         if !store.hasConnectedAppleHealth {
           Button { store.syncVitalData() } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: "heart.text.square.fill")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(GainsColor.lime)
@@ -890,7 +903,7 @@ struct ProgressContentView: View {
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(GainsColor.border)
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 36)
             .background(GainsColor.card)
             .overlay(
@@ -924,7 +937,7 @@ struct ProgressContentView: View {
 
   private func readinessCell(_ vital: VitalReading) -> some View {
     Button { store.syncVitalData() } label: {
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(vital.title.uppercased())
           .font(GainsFont.label(8))
           .tracking(1.6)
@@ -936,8 +949,8 @@ struct ProgressContentView: View {
           .minimumScaleFactor(0.7)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 10)
-      .padding(.vertical, 10)
+      .padding(.horizontal, GainsSpacing.tight)
+      .padding(.vertical, GainsSpacing.tight)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -951,12 +964,15 @@ struct ProgressContentView: View {
   // MARK: - 4. Pulse-Strip (Wochen-Snapshot in 4 Zellen)
 
   private var pulseStrip: some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       pulseCell(
-        ringValue: weekProgress,
+        ringValue: store.weeklyGoalCount > 0 ? weekProgress : nil,
+        icon: store.weeklyGoalCount == 0 ? "calendar.badge.exclamationmark" : nil,
         title: "PLAN",
-        value: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)",
-        accent: GainsColor.lime
+        value: store.weeklyGoalCount > 0
+          ? "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"
+          : "—",
+        accent: store.weeklyGoalCount > 0 ? GainsColor.lime : GainsColor.softInk
       )
       pulseCell(
         icon: store.streakDays >= 7 ? "flame.fill" : "flame",
@@ -986,7 +1002,7 @@ struct ProgressContentView: View {
     value: String,
     accent: Color
   ) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack {
         if let ring = ringValue {
           ZStack {
@@ -1019,8 +1035,8 @@ struct ProgressContentView: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 11)
-    .padding(.vertical, 11)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -1032,14 +1048,14 @@ struct ProgressContentView: View {
   // MARK: - 5. Drei Story-Karten (Stärke / Körper / Cardio)
 
   private var storyCardsBlock: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["STORY", "DEEP DIVE"],
         primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk
       )
 
-      LazyVStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         strengthStoryCard
         bodyStoryCard
         cardioStoryCard
@@ -1054,7 +1070,7 @@ struct ProgressContentView: View {
     let topExercise = store.exerciseStrengthProgress.first
     let volumes = Array(store.workoutHistory.prefix(6).map(\.volume).reversed())
 
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       HStack(alignment: .firstTextBaseline) {
         VStack(alignment: .leading, spacing: 3) {
           Text("STÄRKE")
@@ -1086,7 +1102,7 @@ struct ProgressContentView: View {
       }
 
       if store.exerciseStrengthProgress.count > 1 {
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           ForEach(Array(store.exerciseStrengthProgress.dropFirst().prefix(3))) { ex in
             HStack {
               Text(ex.exerciseName)
@@ -1105,10 +1121,10 @@ struct ProgressContentView: View {
             }
           }
         }
-        .padding(.top, 4)
+        .padding(.top, GainsSpacing.xxs)
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -1130,7 +1146,7 @@ struct ProgressContentView: View {
     let delta  = latest - first
 
     return Button { store.logWeightCheckIn() } label: {
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         HStack(alignment: .firstTextBaseline) {
           VStack(alignment: .leading, spacing: 3) {
             Text("KÖRPER")
@@ -1159,7 +1175,7 @@ struct ProgressContentView: View {
           emptyHint("Logge dein Gewicht regelmäßig — die Linie braucht mindestens zwei Punkte.")
         }
 
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           Image(systemName: "ruler.fill")
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(GainsColor.accentCool)
@@ -1172,13 +1188,13 @@ struct ProgressContentView: View {
             .tracking(1.2)
             .foregroundStyle(GainsColor.softInk)
           Image(systemName: "chevron.right")
-            .font(.system(size: 9, weight: .semibold))
+            .font(.system(size: 10, weight: .semibold))
             .foregroundStyle(GainsColor.border)
         }
         .contentShape(Rectangle())
         .onTapGesture { store.logWaistCheckIn() }
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
@@ -1208,7 +1224,7 @@ struct ProgressContentView: View {
     Button {
       navigation.openTraining(workspace: .laufen)
     } label: {
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         HStack(alignment: .firstTextBaseline) {
           VStack(alignment: .leading, spacing: 3) {
             Text("CARDIO")
@@ -1241,7 +1257,7 @@ struct ProgressContentView: View {
         }
 
         if let r = latest {
-          HStack(spacing: 12) {
+          HStack(spacing: GainsSpacing.s) {
             Label("\(r.averageHeartRate) bpm", systemImage: "heart.fill")
               .font(GainsFont.body(12))
               .foregroundStyle(GainsColor.softInk)
@@ -1250,12 +1266,12 @@ struct ProgressContentView: View {
               .foregroundStyle(GainsColor.softInk)
             Spacer()
             Image(systemName: "chevron.right")
-              .font(.system(size: 9, weight: .semibold))
+              .font(.system(size: 10, weight: .semibold))
               .foregroundStyle(GainsColor.border)
           }
         }
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
@@ -1276,14 +1292,14 @@ struct ProgressContentView: View {
   @ViewBuilder
   private var goalsSection: some View {
     if !store.currentGoals.isEmpty {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         SlashLabel(
           parts: ["ZIELE", "AKTIV"],
           primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk
         )
 
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           ForEach(store.currentGoals) { goal in
             goalCompactRow(goal)
           }
@@ -1297,8 +1313,8 @@ struct ProgressContentView: View {
     let isDone = progress >= 1.0
 
     return Button { goalAction(for: goal)() } label: {
-      VStack(alignment: .leading, spacing: 8) {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+        HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.tight) {
           Text(goal.title)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
@@ -1327,8 +1343,8 @@ struct ProgressContentView: View {
         }
         .frame(height: 4)
       }
-      .padding(.horizontal, 14)
-      .padding(.vertical, 12)
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.s)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -1345,7 +1361,7 @@ struct ProgressContentView: View {
   private var highlightsSection: some View {
     let highlights = mergedHighlights
     if !highlights.isEmpty {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         SlashLabel(
           parts: ["HIGH", "LIGHTS"],
           primaryColor: GainsColor.lime,
@@ -1357,7 +1373,7 @@ struct ProgressContentView: View {
             highlightRow(h, isLast: index == min(highlights.count, 5) - 1)
           }
         }
-        .padding(14)
+        .padding(GainsSpacing.m)
         .gainsCardStyle()
       }
     }
@@ -1413,7 +1429,7 @@ struct ProgressContentView: View {
   }
 
   private func highlightRow(_ h: HighlightEntry, isLast: Bool) -> some View {
-    HStack(alignment: .top, spacing: 14) {
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
       VStack(spacing: 0) {
         ZStack {
           Circle()
@@ -1428,7 +1444,7 @@ struct ProgressContentView: View {
             .fill(GainsColor.border.opacity(0.4))
             .frame(width: 2)
             .frame(maxHeight: .infinity)
-            .padding(.vertical, 4)
+            .padding(.vertical, GainsSpacing.xxs)
         }
       }
       .frame(width: 28)
@@ -1476,7 +1492,7 @@ struct ProgressContentView: View {
   private var historySection: some View {
     let merged = mergedHistory(filter: historyFilter)
     if !merged.isEmpty || !store.workoutHistory.isEmpty || !store.runHistory.isEmpty {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         HStack {
           SlashLabel(
             parts: ["VERLAUF"],
@@ -1484,7 +1500,7 @@ struct ProgressContentView: View {
             secondaryColor: GainsColor.softInk
           )
           Spacer()
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             ForEach(HistoryFilter.allCases) { filter in
               Button {
                 withAnimation(.easeInOut(duration: 0.15)) { historyFilter = filter }
@@ -1493,7 +1509,7 @@ struct ProgressContentView: View {
                   .font(GainsFont.label(9))
                   .tracking(1.0)
                   .foregroundStyle(historyFilter == filter ? GainsColor.onLime : GainsColor.softInk)
-                  .padding(.horizontal, 10)
+                  .padding(.horizontal, GainsSpacing.tight)
                   .frame(height: 24)
                   .background(historyFilter == filter ? GainsColor.lime : GainsColor.card)
                   .clipShape(Capsule())
@@ -1511,7 +1527,7 @@ struct ProgressContentView: View {
             icon: "clock.arrow.circlepath"
           )
         } else {
-          LazyVStack(spacing: 6) {
+          VStack(spacing: GainsSpacing.xs) {
             ForEach(merged.prefix(5)) { entry in
               historyRowCompact(entry)
             }
@@ -1523,8 +1539,13 @@ struct ProgressContentView: View {
   }
 
   private func historyRowCompact(_ entry: HistoryEntry) -> some View {
-    Button { store.shareProgressUpdate() } label: {
-      HStack(spacing: 12) {
+    Button {
+      switch entry {
+      case .workout: navigation.openTraining(workspace: .kraft)
+      case .run:     navigation.openTraining(workspace: .laufen)
+      }
+    } label: {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: historyIcon(entry))
           .font(.system(size: 11, weight: .semibold))
           .foregroundStyle(historyAccent(entry))
@@ -1550,9 +1571,13 @@ struct ProgressContentView: View {
           .font(GainsFont.label(9))
           .tracking(1.2)
           .foregroundStyle(GainsColor.softInk)
+
+        Image(systemName: "chevron.right")
+          .font(.system(size: 9, weight: .semibold))
+          .foregroundStyle(GainsColor.border)
       }
-      .padding(.horizontal, 12)
-      .padding(.vertical, 10)
+      .padding(.horizontal, GainsSpacing.s)
+      .padding(.vertical, GainsSpacing.tight)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -1624,7 +1649,7 @@ struct ProgressContentView: View {
   }
 
   private func emptyHint(_ message: String) -> some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       Image(systemName: "info.circle")
         .font(.system(size: 10, weight: .semibold))
         .foregroundStyle(GainsColor.softInk)
@@ -1634,21 +1659,36 @@ struct ProgressContentView: View {
         .lineLimit(2)
         .fixedSize(horizontal: false, vertical: true)
     }
-    .padding(.vertical, 4)
+    .padding(.vertical, GainsSpacing.xxs)
   }
 
   private func goalProgressLocal(_ goal: ProgressGoal) -> Double {
     switch goal.title {
     case "Körpergewicht":
-      return min(
-        max((store.startingWeight - goal.current) / max(store.startingWeight - goal.target, 0.1), 0),
-        1
-      )
+      let start  = store.startingWeight
+      let target = goal.target
+      let current = goal.current
+      let totalChange = target - start
+      // Ziel-Richtung bestimmen: Abnahme (totalChange < 0) oder Zunahme (totalChange > 0)
+      guard abs(totalChange) > 0.1 else { return current == target ? 1 : 0 }
+      if totalChange < 0 {
+        // Abnehmen: je näher current an target (kleiner), desto mehr Fortschritt
+        return min(max((start - current) / abs(totalChange), 0), 1)
+      } else {
+        // Zunehmen: je näher current an target (größer), desto mehr Fortschritt
+        return min(max((current - start) / totalChange, 0), 1)
+      }
     case "Taillenumfang":
-      return min(
-        max((store.startingWaist - goal.current) / max(store.startingWaist - goal.target, 0.1), 0),
-        1
-      )
+      let start  = store.startingWaist
+      let target = goal.target
+      let current = goal.current
+      let totalChange = target - start
+      guard abs(totalChange) > 0.1 else { return current == target ? 1 : 0 }
+      if totalChange < 0 {
+        return min(max((start - current) / abs(totalChange), 0), 1)
+      } else {
+        return min(max((current - start) / totalChange, 0), 1)
+      }
     default:
       return min(goal.current / max(goal.target, 0.1), 1)
     }
@@ -1690,6 +1730,9 @@ private struct HeroSparklesView: View {
         sparkle(at: CGPoint(x: proxy.size.width * 0.65, y: proxy.size.height * 0.78), size: 10, phase: phase3)
       }
     }
+    // drawingGroup: GPU-Compositing via Metal — Animation läuft auf
+    // einem separaten Render-Pass, blockiert den Scroll-Thread nicht.
+    .drawingGroup()
     .onAppear {
       withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
         phase1 = true
@@ -1738,6 +1781,7 @@ private struct HeroDualHaloView: View {
           .scaleEffect(pulsing ? 1.08 : 0.94)
       }
     }
+    .drawingGroup()
     .onAppear {
       withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) {
         pulsing = true
@@ -1759,6 +1803,7 @@ private struct HeroPulseRingView: View {
         ring(scale: animating ? 1.8 : 0.6, opacity: animating ? 0.0 : 0.45, center: center)
       }
     }
+    .drawingGroup()
     .onAppear {
       withAnimation(.easeOut(duration: 3.0).repeatForever(autoreverses: false)) {
         animating = true

@@ -8,9 +8,15 @@ import SwiftUI
 
 enum GymTab: String, CaseIterable {
   case heute    = "HEUTE"
-  case workouts = "PLÄNE"
+  // 2026-05-03 (P0-1): „PLÄNE" vs „PLAN" war auf 11pt-Tab-Höhe nicht
+  // unterscheidbar — Plural/Singular gleicher Wortstamm, beide Tabs zeigten
+  // unterschiedliche Inhalte (Bibliothek vs Wochenplanung). Umbenannt:
+  // workouts → „BIBLIOTHEK" (= Vorlagen + eigene Workouts), plan bleibt
+  // „PLAN" (= Wochenstruktur). „DATEN" → „STATS", damit Day-One-Tour /
+  // Action-Button / Wochenpuls-Chevron einheitlich denselben Begriff nutzen.
+  case workouts = "BIBLIOTHEK"
   case plan     = "PLAN"
-  case stats    = "DATEN"
+  case stats    = "STATS"
 }
 
 // MARK: - GymView
@@ -34,7 +40,7 @@ struct GymView: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 20) {
+      VStack(alignment: .leading, spacing: GainsSpacing.l) {
         screenHeader(
           eyebrow: "GYM / KRAFT",
           title: gymHeaderTitle
@@ -113,6 +119,12 @@ struct GymView: View {
     let day = store.todayPlannedDay
     switch day.status {
     case .planned:
+      // 2026-05-03 (P1-9): heroTitle in GymTodayTab prüft zuerst auf
+      // runTemplate — der Top-Header tat es nicht und zeigte z. B. „PUSH",
+      // obwohl der Plan-Tag „TEMPO 8 KM" war. Reihenfolge angeglichen.
+      if let run = day.runTemplate {
+        return run.title.uppercased()
+      }
       if let workout = day.workoutPlan {
         return workout.title.uppercased()
       }
@@ -159,7 +171,7 @@ struct GymView: View {
             .foregroundStyle(isActive ? GainsColor.onLime : GainsColor.softInk)
             .frame(maxWidth: .infinity)
             .frame(height: 42)
-            .padding(.horizontal, 4)
+            .padding(.horizontal, GainsSpacing.xxs)
             .background(
               RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
                 .fill(isActive ? GainsColor.lime : Color.clear)
@@ -183,7 +195,7 @@ struct GymView: View {
         .accessibilityAddTraits(isActive ? .isSelected : [])
       }
     }
-    .padding(4)
+    .padding(GainsSpacing.xxs)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)

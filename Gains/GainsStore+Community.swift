@@ -26,14 +26,14 @@ extension GainsStore {
       title: trimmedTitle,
       body: trimmedBody,
       author: userName,
-      handle: "@julius.gains",
+      handle: userHandle,
       createdAt: Date(),
       location: location?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
       replies: [],
       likeCount: 0
     )
     forumThreads.insert(thread, at: 0)
-    saveAll()
+    scheduleSave()
   }
 
   func addReply(to threadID: UUID, body: String) {
@@ -43,18 +43,29 @@ extension GainsStore {
     let reply = ForumReply(
       id: UUID(),
       author: userName,
-      handle: "@julius.gains",
+      handle: userHandle,
       body: trimmed,
       createdAt: Date()
     )
     forumThreads[index].replies.append(reply)
-    saveAll()
+    scheduleSave()
   }
 
   func toggleForumLike(threadID: UUID) {
     guard let index = forumThreads.firstIndex(where: { $0.id == threadID }) else { return }
-    forumThreads[index].likeCount += 1
-    saveAll()
+    if likedThreadIDs.contains(threadID) {
+      likedThreadIDs.remove(threadID)
+      forumThreads[index].likeCount = max(0, forumThreads[index].likeCount - 1)
+    } else {
+      likedThreadIDs.insert(threadID)
+      forumThreads[index].likeCount += 1
+    }
+    scheduleSave()
+  }
+
+  /// Gibt zurück, ob der aktuelle Nutzer diesen Thread bereits geliked hat.
+  func hasLikedThread(_ threadID: UUID) -> Bool {
+    likedThreadIDs.contains(threadID)
   }
 
   // MARK: - Meetups
@@ -79,20 +90,20 @@ extension GainsStore {
       locationName: trimmedLocation,
       startsAt: startsAt,
       pace: pace?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
-      hostHandle: "@julius.gains",
+      hostHandle: userHandle,
       hostName: userName,
       notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
       maxParticipants: max(2, maxParticipants),
-      participantHandles: ["@julius.gains"]
+      participantHandles: [userHandle]
     )
     meetups.insert(meetup, at: 0)
     joinedMeetupIDs.insert(meetup.id)
-    saveAll()
+    scheduleSave()
   }
 
   func toggleMeetupParticipation(meetupID: UUID) {
     guard let index = meetups.firstIndex(where: { $0.id == meetupID }) else { return }
-    let ownHandle = "@julius.gains"
+    let ownHandle = userHandle
     if meetups[index].participantHandles.contains(ownHandle) {
       meetups[index].participantHandles.removeAll { $0 == ownHandle }
       joinedMeetupIDs.remove(meetupID)
@@ -100,7 +111,7 @@ extension GainsStore {
       meetups[index].participantHandles.append(ownHandle)
       joinedMeetupIDs.insert(meetupID)
     }
-    saveAll()
+    scheduleSave()
   }
 
   var upcomingMeetups: [Meetup] {

@@ -25,6 +25,12 @@ struct GymWorkoutsTab: View {
   @State private var planToDelete: WorkoutPlan? = nil
   @State private var showsFullLibrary = false
 
+  // 2026-05-03 (P0-2): Wenn eine andere Session läuft, war der Play-Button
+  // bisher `.disabled(isBlocked)` — der User tappte und nichts passierte.
+  // Statt silent-no-op zeigen wir jetzt einen Confirm-Dialog: aktuelle
+  // Session beenden und neuen Plan starten? Das macht den Block transparent.
+  @State private var blockedPlanAttempt: WorkoutPlan? = nil
+
   private enum SourceFilter: String, CaseIterable, Identifiable {
     case all     = "ALLE"
     case custom  = "EIGENE"
@@ -50,7 +56,7 @@ struct GymWorkoutsTab: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       header
       searchBar
       filterRow
@@ -65,7 +71,7 @@ struct GymWorkoutsTab: View {
       }
 
       if !custom.isEmpty {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.tight) {
           Text("EIGENE WORKOUTS")
             .font(GainsFont.label(9))
             .tracking(2.0)
@@ -77,7 +83,7 @@ struct GymWorkoutsTab: View {
       }
 
       if !templates.isEmpty && selectedFilter != .custom {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.tight) {
           Text("VORLAGEN")
             .font(GainsFont.label(9))
             .tracking(2.0)
@@ -95,7 +101,7 @@ struct GymWorkoutsTab: View {
                 showsFullLibrary.toggle()
               }
             } label: {
-              HStack(spacing: 6) {
+              HStack(spacing: GainsSpacing.xs) {
                 Text(showsFullLibrary
                   ? "Weniger anzeigen"
                   : "\(templates.count - 3) weitere Vorlagen")
@@ -132,6 +138,32 @@ struct GymWorkoutsTab: View {
     } message: {
       Text("Eigene Workouts werden inklusive Tageszuweisungen entfernt.")
     }
+    // P0-2: Block-Confirm. Aktuell laufender Plan wird beendet, der neue
+    // sofort gestartet — sonst kann der User über die Bibliothek nicht
+    // wechseln, ohne erst den Tracker zu öffnen.
+    .alert(
+      Text("Andere Session läuft"),
+      isPresented: Binding(
+        get: { blockedPlanAttempt != nil },
+        set: { if !$0 { blockedPlanAttempt = nil } }
+      )
+    ) {
+      Button("Abbrechen", role: .cancel) { blockedPlanAttempt = nil }
+      Button("Beenden & wechseln", role: .destructive) {
+        if let plan = blockedPlanAttempt {
+          store.discardWorkout()
+          store.startWorkout(from: plan)
+          isShowingWorkoutTracker = true
+        }
+        blockedPlanAttempt = nil
+      }
+    } message: {
+      if let plan = blockedPlanAttempt, let active = store.activeWorkout {
+        Text("„\(active.title)" läuft gerade. Diese Session beenden und „\(plan.title)" starten?")
+      } else {
+        Text("Eine andere Session läuft gerade.")
+      }
+    }
   }
 
   // MARK: - Header
@@ -156,7 +188,7 @@ struct GymWorkoutsTab: View {
           }
         }
       } label: {
-        HStack(spacing: 4) {
+        HStack(spacing: GainsSpacing.xxs) {
           Image(systemName: "arrow.up.arrow.down")
             .font(.system(size: 10, weight: .bold))
           Text(sortOption.rawValue.uppercased())
@@ -164,7 +196,7 @@ struct GymWorkoutsTab: View {
             .tracking(1.2)
         }
         .foregroundStyle(GainsColor.ink)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, GainsSpacing.s)
         .frame(height: 32)
         .background(GainsColor.card)
         .overlay(
@@ -176,7 +208,7 @@ struct GymWorkoutsTab: View {
       Button {
         isShowingWorkoutBuilder = true
       } label: {
-        HStack(spacing: 4) {
+        HStack(spacing: GainsSpacing.xxs) {
           Image(systemName: "plus")
             .font(.system(size: 11, weight: .bold))
           Text("NEU")
@@ -184,7 +216,7 @@ struct GymWorkoutsTab: View {
             .tracking(1.8)
         }
         .foregroundStyle(GainsColor.onLime)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, GainsSpacing.s)
         .frame(height: 32)
         .background(GainsColor.lime)
         .clipShape(Capsule())
@@ -196,7 +228,7 @@ struct GymWorkoutsTab: View {
   // MARK: - Suchfeld
 
   private var searchBar: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 13, weight: .semibold))
         .foregroundStyle(GainsColor.softInk)
@@ -215,7 +247,7 @@ struct GymWorkoutsTab: View {
         .buttonStyle(.plain)
       }
     }
-    .padding(.horizontal, 14)
+    .padding(.horizontal, GainsSpacing.m)
     .frame(height: 44)
     .background(GainsColor.card)
     .overlay(
@@ -241,7 +273,7 @@ struct GymWorkoutsTab: View {
     let totalTemplates = store.templateWorkoutPlans.count
     let totalMatches = custom.count + templates.count
 
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       Image(systemName: isSearching ? "magnifyingglass" : "books.vertical.fill")
         .font(.system(size: 10, weight: .semibold))
         .foregroundStyle(GainsColor.softInk)
@@ -283,7 +315,7 @@ struct GymWorkoutsTab: View {
   // der visuell gegen den Card-Stack der Liste darunter „verschwommen" hat.
 
   private var filterRow: some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       ForEach(SourceFilter.allCases) { filter in
         Button {
           withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
@@ -294,7 +326,7 @@ struct GymWorkoutsTab: View {
             .font(GainsFont.eyebrow(10))
             .tracking(1.4)
             .foregroundStyle(selectedFilter == filter ? GainsColor.onLime : GainsColor.softInk)
-            .padding(.horizontal, 14)
+            .padding(.horizontal, GainsSpacing.m)
             .frame(height: 32)
             .background(selectedFilter == filter ? GainsColor.lime : GainsColor.card)
             .overlay(
@@ -375,9 +407,9 @@ struct GymWorkoutsTab: View {
     let isMatchingToday = store.todayPlannedWorkout?.id == plan.id
     let lastDate = lastPerformedDate(for: plan)
 
-    return HStack(spacing: 12) {
-      VStack(alignment: .leading, spacing: 6) {
-        HStack(spacing: 8) {
+    return HStack(spacing: GainsSpacing.s) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           GymWorkoutSourceBadge(source: plan.source)
           Text(plan.split.uppercased())
             .font(GainsFont.label(9))
@@ -388,7 +420,7 @@ struct GymWorkoutsTab: View {
               .font(GainsFont.label(8))
               .tracking(1.4)
               .foregroundStyle(GainsColor.moss)
-              .padding(.horizontal, 6)
+              .padding(.horizontal, GainsSpacing.xs)
               .padding(.vertical, 2)
               .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
@@ -404,9 +436,9 @@ struct GymWorkoutsTab: View {
           .lineLimit(1)
 
         if let lastDate {
-          HStack(spacing: 4) {
+          HStack(spacing: GainsSpacing.xxs) {
             Image(systemName: "clock.arrow.circlepath")
-              .font(.system(size: 9, weight: .semibold))
+              .font(.system(size: 10, weight: .semibold))
             Text("Zuletzt: \(relativeLastLabel(lastDate))")
               .font(GainsFont.label(9))
               .tracking(0.8)
@@ -460,11 +492,19 @@ struct GymWorkoutsTab: View {
       }
 
       Button {
-        if store.activeWorkout == nil {
+        // P0-2: drei Pfade.
+        //   isActive  → Tracker einfach (wieder) öffnen.
+        //   isBlocked → andere Session läuft → Confirm-Alert statt no-op.
+        //   sonst     → frisch starten.
+        if isActive {
+          isShowingWorkoutTracker = true
+        } else if isBlocked {
+          UINotificationFeedbackGenerator().notificationOccurred(.warning)
+          blockedPlanAttempt = plan
+        } else {
           store.startWorkout(from: plan)
+          isShowingWorkoutTracker = true
         }
-        isShowingWorkoutTracker = false
-        isShowingWorkoutTracker = true
       } label: {
         Image(systemName: isActive ? "play.fill" : "arrow.right")
           .font(.system(size: 12, weight: .bold))
@@ -474,9 +514,10 @@ struct GymWorkoutsTab: View {
           .clipShape(Circle())
       }
       .buttonStyle(.plain)
-      .disabled(isBlocked)
+      // .disabled(isBlocked) bewusst raus: ein Tap darf jetzt einen Dialog
+      // öffnen statt schweigend ins Leere zu laufen.
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
     // Long-Press öffnet identisches Menü — gleiche Aktionen wie der ⋯-Button,
     // funktioniert aber auch wenn der Tap-Bereich klein ist.

@@ -29,17 +29,19 @@ struct GymTodayTab: View {
   @AppStorage(GainsKey.onboardingCompletedAt) private var onboardingCompletedAt: Double = 0
 
   private var isInGymDayOneWindow: Bool {
+    // P1-2 (2026-05-03): 24h-Cap entfernt. Wer abends onboardet und am
+    // nächsten Morgen die App öffnet, hat sonst die Tour verpasst, ohne
+    // jemals ein Workout absolviert zu haben. Bedingung jetzt: Onboarding
+    // ist abgeschlossen UND es liegt noch kein Trainings-Verlauf vor.
+    // Nutrition-Welcome-Card im Welle-2-Build verhält sich genauso.
     guard onboardingCompletedAt > 0 else { return false }
-    let completedAt = Date(timeIntervalSince1970: onboardingCompletedAt)
-    let hoursSince = Date().timeIntervalSince(completedAt) / 3600
-    guard hoursSince >= 0, hoursSince < 24 else { return false }
     if !store.workoutHistory.isEmpty { return false }
     if store.lastCompletedWorkout != nil { return false }
     return true
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       if store.activeWorkout != nil {
         // Live-Modus: Live-Card ist die Bühne. Hero/CTA werden zurückgefahren,
         // damit nichts gegen die offene Session konkurriert.
@@ -81,8 +83,8 @@ struct GymTodayTab: View {
   // der Hero darunter erklärt sich selbst, hier geht es nur um Orientierung.
 
   private var dayOneGymGuide: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "sparkles")
           .font(.system(size: 11, weight: .bold))
           .foregroundStyle(GainsColor.lime)
@@ -95,7 +97,7 @@ struct GymTodayTab: View {
         .foregroundStyle(GainsColor.ink)
         .fixedSize(horizontal: false, vertical: true)
 
-      VStack(spacing: 6) {
+      VStack(spacing: GainsSpacing.xs) {
         dayOneTourRow(icon: "calendar.badge.clock", title: "Plan",
                       detail: "Deine Wochenstruktur — anpassen oder neu bauen.")
         dayOneTourRow(icon: "square.stack.3d.up.fill", title: "Bibliothek",
@@ -104,7 +106,7 @@ struct GymTodayTab: View {
                       detail: "Volumen, Frequenz, persönliche Rekorde.")
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
       LinearGradient(
@@ -121,7 +123,7 @@ struct GymTodayTab: View {
   }
 
   private func dayOneTourRow(icon: String, title: String, detail: String) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Image(systemName: icon)
         .font(.system(size: 11, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
@@ -145,7 +147,7 @@ struct GymTodayTab: View {
   // die Session läuft. Hier nur Bibliothek/Stats als Kontextwechsel.
 
   private var liveSecondaryActionsRow: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       secondaryActionButton(
         icon: "calendar.badge.clock",
         title: "Plan"
@@ -158,9 +160,11 @@ struct GymTodayTab: View {
       ) {
         selectedTab = .workouts
       }
+      // P0-3: war „Daten" — angeglichen an Tab-Label „STATS" und an die
+      // Default-Reihe weiter unten, die ebenfalls „Stats" nutzt.
       secondaryActionButton(
         icon: "chart.bar.fill",
-        title: "Daten"
+        title: "Stats"
       ) {
         selectedTab = .stats
       }
@@ -231,10 +235,13 @@ struct GymTodayTab: View {
         .init("SPLIT",   plan.split),
       ]
     case .rest:
+      // P1-1: 3. Slot war früher „STREAK" mit demselben Wert wie „WOCHE" —
+      // Duplikat. Recovery-Day-Hero ist der bessere Platz für den Ernährungs-
+      // Hinweis: heute kein Trainingsreiz, also rückt Protein nach vorn.
       return [
         .init("WOCHE",   "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"),
         .init("VOLUMEN", String(format: "%.1f t", store.weeklyVolumeTons)),
-        .init("STREAK",  "\(store.weeklySessionsCompleted)"),
+        .init("PROTEIN", "\(store.nutritionProteinToday) / \(store.nutritionTargetProtein) g"),
       ]
     case .flexible:
       return [
@@ -253,7 +260,21 @@ struct GymTodayTab: View {
 
   @ViewBuilder
   private var secondaryActionsRow: some View {
-    HStack(spacing: 10) {
+    // 2026-05-03 Intuitivitäts-Sweep P0 C: Repeat-Last-CTA war im
+    // Audit „nicht prominent". Sobald `lastCompletedWorkout` existiert,
+    // bekommt die Default-Reihe einen vierten Button „Letztes wdh.", der
+    // den Tracker mit der vorherigen Session direkt vorlädt — ohne dass
+    // der User durch Plan/Bibliothek navigieren muss.
+    HStack(spacing: GainsSpacing.tight) {
+      if let last = store.lastCompletedWorkout {
+        secondaryActionButton(
+          icon: "arrow.uturn.backward.circle",
+          title: "Wdh."
+        ) {
+          repeatLastWorkout(reference: last)
+        }
+      }
+
       secondaryActionButton(
         icon: "calendar.badge.clock",
         title: "Plan"
@@ -274,6 +295,24 @@ struct GymTodayTab: View {
       ) {
         selectedTab = .stats
       }
+    }
+  }
+
+  // P0 C: Wiederhole die letzte abgeschlossene Session in einem Tap.
+  // GainsStore.repeatLastWorkout() startet das Workout, falls möglich,
+  // sonst Fallback auf Builder.
+  private func repeatLastWorkout(reference: CompletedWorkoutSummary) {
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    if store.repeatLastWorkout() {
+      isShowingWorkoutTracker = true
+    } else if let plan = store.savedWorkoutPlans.first(where: { $0.title == reference.title }) {
+      store.startWorkout(from: plan)
+      isShowingWorkoutTracker = true
+    } else if let any = store.savedWorkoutPlans.first {
+      store.startWorkout(from: any)
+      isShowingWorkoutTracker = true
+    } else {
+      isShowingWorkoutBuilder = true
     }
   }
 
@@ -375,7 +414,7 @@ struct GymTodayTab: View {
     action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: icon)
           .font(.system(size: 12, weight: .semibold))
         Text(title)
@@ -387,7 +426,7 @@ struct GymTodayTab: View {
       .foregroundStyle(GainsColor.ink)
       .frame(maxWidth: .infinity)
       .frame(height: 44)
-      .padding(.horizontal, 12)
+      .padding(.horizontal, GainsSpacing.s)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -403,9 +442,9 @@ struct GymTodayTab: View {
   private var liveSessionCard: some View {
     Group {
       if let session = store.activeWorkout {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: GainsSpacing.m) {
           // Live-Indikator + Fokus + Elapsed Time
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             Circle()
               .fill(GainsColor.lime)
               .frame(width: 8, height: 8)
@@ -422,7 +461,7 @@ struct GymTodayTab: View {
           }
 
           // Titel + Fokus prominent
-          VStack(alignment: .leading, spacing: 4) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
             Text(session.title)
               .font(GainsFont.title(22))
               .foregroundStyle(GainsColor.ink)
@@ -469,7 +508,7 @@ struct GymTodayTab: View {
         // (`GainsRadius.standard` 16, accent-Border statt 1.5pt-Stroke).
         // Der CTA-Button trägt jetzt den Akzent — die Card muss nicht
         // zusätzlich glühen.
-        .padding(18)
+        .padding(GainsSpacing.l)
         .background(GainsColor.card)
         .overlay(
           RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -493,7 +532,7 @@ struct GymTodayTab: View {
   }
 
   private func liveStat(_ label: String, _ value: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(8))
         .tracking(1.5)
@@ -504,7 +543,7 @@ struct GymTodayTab: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity)
-    .padding(.vertical, 10)
+    .padding(.vertical, GainsSpacing.tight)
   }
 
   private func liveStatDivider() -> some View {
@@ -540,7 +579,7 @@ struct GymTodayTab: View {
   private func muscleDoseCard(plan: WorkoutPlan) -> some View {
     let entries: [GymMuscleDoseEntry] = .from(plan: plan)
 
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["DOSIS", "HEUTE"],
@@ -555,7 +594,7 @@ struct GymTodayTab: View {
       }
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           ForEach(entries) { entry in
             muscleChip(name: entry.muscle, sets: entry.sets)
           }
@@ -563,12 +602,12 @@ struct GymTodayTab: View {
         .padding(.vertical, 2)
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   private func muscleChip(name: String, sets: Int) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       Circle()
         .fill(GainsColor.lime)
         .frame(width: 6, height: 6)
@@ -584,14 +623,14 @@ struct GymTodayTab: View {
         .tracking(0.6)
         .foregroundStyle(GainsColor.moss)
     }
-    .padding(.horizontal, 12)
+    .padding(.horizontal, GainsSpacing.s)
     .frame(height: 30)
     .background(GainsColor.background.opacity(0.85))
     .clipShape(Capsule())
   }
 
   private var regenerationHintCard: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["REGENERATION", "TIPP"],
@@ -607,7 +646,7 @@ struct GymTodayTab: View {
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -619,7 +658,7 @@ struct GymTodayTab: View {
     let prevVolume = trend.count >= 2 ? trend[trend.count - 2] : 0
     let trendInfo = volumeTrendDelta(current: currentVolume, previous: prevVolume)
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["WOCHE"],
@@ -637,7 +676,7 @@ struct GymTodayTab: View {
       GymWeekStrip()
 
       // Inline Volumen-Info — keine eigene Zeile mit Riesen-Zahl mehr.
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "scalemass.fill")
           .font(.system(size: 11, weight: .semibold))
           .foregroundStyle(GainsColor.moss)
@@ -658,19 +697,22 @@ struct GymTodayTab: View {
         Button {
           selectedTab = .stats
         } label: {
-          HStack(spacing: 4) {
-            Text("Statistik")
+          HStack(spacing: GainsSpacing.xxs) {
+            // P0-3: Vorher „Statistik" — Tab heißt aber „STATS", Day-One-
+            // Tour und Action-Button sagen ebenfalls „Stats". Drei Begriffe
+            // für denselben Ziel-Tab → einheitlich auf „Stats".
+            Text("Stats")
               .font(GainsFont.label(9))
               .tracking(1.4)
             Image(systemName: "chevron.right")
-              .font(.system(size: 9, weight: .bold))
+              .font(.system(size: 10, weight: .bold))
           }
           .foregroundStyle(GainsColor.moss)
         }
         .buttonStyle(.plain)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -721,7 +763,7 @@ struct GymTodayTab: View {
     return Button {
       selectedTab = .stats
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         ZStack {
           Circle()
             .fill(GainsColor.lime.opacity(0.18))
@@ -752,7 +794,7 @@ struct GymTodayTab: View {
           .font(.system(size: 12, weight: .semibold))
           .foregroundStyle(GainsColor.softInk)
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
     .buttonStyle(.plain)

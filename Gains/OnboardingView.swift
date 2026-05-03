@@ -83,19 +83,19 @@ struct OnboardingView: View {
 
       VStack(spacing: 0) {
         progressBar
-          .padding(.horizontal, 24)
-          .padding(.top, 12)
+          .padding(.horizontal, GainsSpacing.xl)
+          .padding(.top, GainsSpacing.s)
 
         ScrollView(showsIndicators: false) {
           stepContent
-            .padding(.horizontal, 24)
-            .padding(.top, 28)
-            .padding(.bottom, 24)
+            .padding(.horizontal, GainsSpacing.xl)
+            .padding(.top, GainsSpacing.xl)
+            .padding(.bottom, GainsSpacing.xl)
         }
 
         bottomBar
-          .padding(.horizontal, 24)
-          .padding(.bottom, 16)
+          .padding(.horizontal, GainsSpacing.xl)
+          .padding(.bottom, GainsSpacing.m)
       }
     }
     .interactiveDismissDisabled()
@@ -104,7 +104,7 @@ struct OnboardingView: View {
   // MARK: - Progress Bar
 
   private var progressBar: some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       ForEach(OnboardingStep.allCases) { step in
         Capsule()
           .fill(step.index <= currentStep.index ? GainsColor.lime : GainsColor.border.opacity(0.4))
@@ -129,8 +129,8 @@ struct OnboardingView: View {
   // MARK: - Step 1: Welcome
 
   private var welcomeStep: some View {
-    VStack(alignment: .leading, spacing: 24) {
-      VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         Text("WILLKOMMEN")
           .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
 
@@ -147,7 +147,7 @@ struct OnboardingView: View {
           .fixedSize(horizontal: false, vertical: true)
       }
 
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         featureRow(icon: "dumbbell.fill", title: "Krafttraining tracken",
                    description: "Eigene Pläne, vorgefertigte Templates, über 90 Übungen mit Anleitung.")
         featureRow(icon: "figure.run", title: "Läufe per GPS",
@@ -161,14 +161,14 @@ struct OnboardingView: View {
   }
 
   private func featureRow(icon: String, title: String, description: String) -> some View {
-    HStack(alignment: .top, spacing: 14) {
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
       Image(systemName: icon)
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
         .frame(width: 38, height: 38)
         .background(Circle().fill(GainsColor.lime.opacity(0.12)))
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(title)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
@@ -179,7 +179,7 @@ struct OnboardingView: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -191,7 +191,7 @@ struct OnboardingView: View {
   // MARK: - Step 2: Profile
 
   private var profileStep: some View {
-    VStack(alignment: .leading, spacing: 24) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       stepHeader(
         eyebrow: "PROFIL",
         title: "Erzähl uns von dir.",
@@ -199,14 +199,14 @@ struct OnboardingView: View {
       )
 
       // Name
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         Text("DEIN NAME")
           .gainsEyebrow(size: 12, tracking: 1.4)
         TextField("Wie sollen wir dich nennen?", text: $name)
           .font(GainsFont.body(17))
           .foregroundStyle(GainsColor.ink)
-          .padding(.horizontal, 14)
-          .padding(.vertical, 14)
+          .padding(.horizontal, GainsSpacing.m)
+          .padding(.vertical, GainsSpacing.m)
           .background(GainsColor.card)
           .overlay(
             RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -217,10 +217,10 @@ struct OnboardingView: View {
       }
 
       // Sex
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         Text("GESCHLECHT")
           .gainsEyebrow(size: 12, tracking: 1.4)
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(BiologicalSex.allCases, id: \.self) { option in
             sexChip(option)
           }
@@ -228,11 +228,11 @@ struct OnboardingView: View {
       }
 
       // Age / Height / Weight
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         Text("KÖRPERDATEN")
           .gainsEyebrow(size: 12, tracking: 1.4)
 
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           numberStepper(title: "ALTER", unit: "Jahre", value: $age, range: 14...90, step: 1)
           numberStepper(title: "GRÖSSE", unit: "cm", value: $heightCm, range: 130...220, step: 1)
           numberStepper(title: "GEWICHT", unit: "kg", value: $weightKg, range: 35...200, step: 1)
@@ -240,10 +240,10 @@ struct OnboardingView: View {
       }
 
       // Activity Level
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         Text("AKTIVITÄT")
           .gainsEyebrow(size: 12, tracking: 1.4)
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           ForEach(ActivityLevel.allCases, id: \.self) { level in
             activityRow(level)
           }
@@ -257,7 +257,7 @@ struct OnboardingView: View {
     return Button {
       sex = option
     } label: {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Text(option.emoji)
           .font(.system(size: 16))
         Text(option.title)
@@ -278,12 +278,12 @@ struct OnboardingView: View {
   }
 
   private func numberStepper(title: String, unit: String, value: Binding<Int>, range: ClosedRange<Int>, step: Int) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       Text(title)
         .font(GainsFont.label(9))
         .tracking(1.3)
         .foregroundStyle(GainsColor.softInk)
-      HStack(alignment: .firstTextBaseline, spacing: 4) {
+      HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xxs) {
         Text("\(value.wrappedValue)")
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.ink)
@@ -296,7 +296,7 @@ struct OnboardingView: View {
         .tint(GainsColor.lime)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(12)
+    .padding(GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -310,7 +310,7 @@ struct OnboardingView: View {
     return Button {
       activityLevel = level
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Image(systemName: level.systemImage)
           .font(.system(size: 14, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
@@ -333,8 +333,8 @@ struct OnboardingView: View {
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
       }
-      .padding(.horizontal, 14)
-      .padding(.vertical, 12)
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.s)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -351,14 +351,14 @@ struct OnboardingView: View {
   // MARK: - Step 3: Permissions
 
   private var permissionsStep: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       stepHeader(
         eyebrow: "BERECHTIGUNGEN",
         title: "Was Gains braucht.",
         subtitle: "Nichts wird im Hintergrund gesammelt. Du gibst jede Berechtigung erst frei, wenn du das jeweilige Feature nutzen willst."
       )
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         permissionCard(
           icon: "heart.fill",
           title: "Apple Health",
@@ -376,6 +376,19 @@ struct OnboardingView: View {
         )
         notificationsPermissionCard
       }
+
+      // 2026-05-03 Intuitivitäts-Sweep P1-2: Skip-Hint, weil die Karten
+      // selbst keinen Selektions-Affordance haben (sind Info-Cards). Macht
+      // sichtbar, dass „Weiter" jederzeit ohne Berechtigung erlaubt ist.
+      HStack(alignment: .top, spacing: GainsSpacing.xs) {
+        Image(systemName: "info.circle.fill")
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundStyle(GainsColor.mutedInk)
+        Text("Tippe Mitteilungen einzeln an oder ‚Weiter' — alle Berechtigungen lassen sich später jederzeit aktivieren.")
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.mutedInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
     }
   }
 
@@ -388,14 +401,14 @@ struct OnboardingView: View {
     Button {
       requestNotificationsAuthorization()
     } label: {
-      HStack(alignment: .top, spacing: 14) {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
         Image(systemName: "bell.fill")
           .font(.system(size: 14, weight: .semibold))
           .foregroundStyle(GainsColor.lime)
           .frame(width: 40, height: 40)
           .background(Circle().fill(GainsColor.lime.opacity(0.14)))
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text("Mitteilungen")
             .font(GainsFont.title(16))
             .foregroundStyle(GainsColor.ink)
@@ -408,7 +421,7 @@ struct OnboardingView: View {
 
         notificationsCardTrailing
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -459,14 +472,14 @@ struct OnboardingView: View {
   }
 
   private func permissionCard(icon: String, title: String, reason: String) -> some View {
-    HStack(alignment: .top, spacing: 14) {
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
       Image(systemName: icon)
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
         .frame(width: 40, height: 40)
         .background(Circle().fill(GainsColor.lime.opacity(0.14)))
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(title)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
@@ -477,7 +490,7 @@ struct OnboardingView: View {
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -489,17 +502,17 @@ struct OnboardingView: View {
   // MARK: - Step 4: Training
 
   private var trainingStep: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       stepHeader(
         eyebrow: "TRAINING",
         title: "Was willst du erreichen?",
         subtitle: "Wir passen Volumen, Frequenz und Empfehlungen an dein Ziel an. Du kannst es jederzeit ändern."
       )
 
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         Text("HAUPTZIEL")
           .gainsEyebrow(size: 12, tracking: 1.4)
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           goalRow(.muscleGain, nutrition: .muscleGain,
                   description: "Kalorienüberschuss, Volumen-Fokus, schwere Compound-Lifts.")
           goalRow(.fatLoss, nutrition: .fatLoss,
@@ -509,11 +522,11 @@ struct OnboardingView: View {
         }
       }
 
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         Text("TRAININGS PRO WOCHE")
           .gainsEyebrow(size: 12, tracking: 1.4)
 
-        HStack(alignment: .firstTextBaseline, spacing: 6) {
+        HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xs) {
           Text("\(sessionsPerWeek)")
             .font(GainsFont.display(48))
             .foregroundStyle(GainsColor.ink)
@@ -522,7 +535,7 @@ struct OnboardingView: View {
             .foregroundStyle(GainsColor.softInk)
         }
 
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           ForEach(2...6, id: \.self) { count in
             Button {
               sessionsPerWeek = count
@@ -547,11 +560,11 @@ struct OnboardingView: View {
       // Plan-Modus: Auto vs. Selbst erstellen.
       // Wir bieten dem Nutzer hier explizit die Wahl, damit niemand erst
       // im PLAN-Tab erfahren muss, dass es eine manuelle Variante gibt.
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         Text("WIE WILLST DU DEINEN PLAN?")
           .gainsEyebrow(size: 12, tracking: 1.4)
 
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           planModeRow(
             mode: .automatic,
             title: "Auto-Plan",
@@ -568,7 +581,7 @@ struct OnboardingView: View {
           Button {
             showsCustomPlanBuilder = true
           } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: store.plannerSettings.isManualPlan ? "checkmark.circle.fill" : "slider.horizontal.3")
                 .font(.system(size: 13, weight: .bold))
               Text(store.plannerSettings.isManualPlan
@@ -582,7 +595,7 @@ struct OnboardingView: View {
                 .opacity(0.7)
             }
             .foregroundStyle(GainsColor.onLime)
-            .padding(.horizontal, 14)
+            .padding(.horizontal, GainsSpacing.m)
             .frame(height: 48)
             .frame(maxWidth: .infinity)
             .background(GainsColor.lime)
@@ -591,7 +604,7 @@ struct OnboardingView: View {
           .buttonStyle(.plain)
 
           if store.plannerSettings.isManualPlan {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(GainsColor.lime)
@@ -630,7 +643,7 @@ struct OnboardingView: View {
   //      (oder, wenn heute Rest, der nächste Trainingstag).
 
   private var summaryStep: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       summaryHero
       summaryChecklist
       summaryWeekPreview
@@ -642,8 +655,8 @@ struct OnboardingView: View {
     let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
     let displayName = trimmedName.isEmpty ? "" : ", \(trimmedName)"
 
-    return VStack(alignment: .leading, spacing: 12) {
-      HStack(spacing: 8) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "sparkles")
           .font(.system(size: 12, weight: .bold))
           .foregroundStyle(GainsColor.lime)
@@ -676,7 +689,7 @@ struct OnboardingView: View {
       summaryCheckRow(icon: "fork.knife", title: "Ernährungsziele berechnet",
                       detail: nutritionSummaryDetail, isLast: true)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -687,7 +700,7 @@ struct OnboardingView: View {
 
   private func summaryCheckRow(icon: String, title: String, detail: String, isLast: Bool = false) -> some View {
     VStack(spacing: 0) {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         ZStack {
           Circle()
             .fill(GainsColor.lime.opacity(0.14))
@@ -697,7 +710,7 @@ struct OnboardingView: View {
             .foregroundStyle(GainsColor.lime)
         }
         VStack(alignment: .leading, spacing: 2) {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Image(systemName: icon)
               .font(.system(size: 11, weight: .semibold))
               .foregroundStyle(GainsColor.softInk)
@@ -712,7 +725,7 @@ struct OnboardingView: View {
         }
         Spacer(minLength: 0)
       }
-      .padding(.vertical, 8)
+      .padding(.vertical, GainsSpacing.xsPlus)
 
       if !isLast {
         Divider()
@@ -740,11 +753,11 @@ struct OnboardingView: View {
   }
 
   private var summaryWeekPreview: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text("DEINE WOCHE")
         .gainsEyebrow(size: 12, tracking: 1.4)
 
-      VStack(spacing: 8) {
+      VStack(spacing: GainsSpacing.xsPlus) {
         ForEach(store.weeklyWorkoutSchedule, id: \.weekday) { day in
           summaryWeekRow(day)
         }
@@ -776,7 +789,7 @@ struct OnboardingView: View {
       }
     }()
 
-    return HStack(spacing: 12) {
+    return HStack(spacing: GainsSpacing.s) {
       VStack(spacing: 2) {
         Text(day.weekday.shortLabel.uppercased())
           .font(GainsFont.label(10))
@@ -814,13 +827,13 @@ struct OnboardingView: View {
           .font(GainsFont.label(9))
           .tracking(1.2)
           .foregroundStyle(GainsColor.onLime)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 4)
+          .padding(.horizontal, GainsSpacing.xsPlus)
+          .padding(.vertical, GainsSpacing.xxs)
           .background(Capsule().fill(GainsColor.lime))
       }
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.tight)
     .background(
       day.isToday ? GainsColor.lime.opacity(0.06) : GainsColor.card
     )
@@ -871,8 +884,8 @@ struct OnboardingView: View {
       }
     }()
 
-    return VStack(alignment: .leading, spacing: 10) {
-      HStack(spacing: 8) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "arrow.forward.circle.fill")
           .font(.system(size: 12, weight: .bold))
           .foregroundStyle(GainsColor.lime)
@@ -888,7 +901,7 @@ struct OnboardingView: View {
         .foregroundStyle(GainsColor.softInk)
         .fixedSize(horizontal: false, vertical: true)
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
       LinearGradient(
@@ -916,14 +929,14 @@ struct OnboardingView: View {
         planMode = mode
       }
     } label: {
-      HStack(alignment: .top, spacing: 14) {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
         Image(systemName: mode == .automatic ? "wand.and.stars" : "slider.horizontal.3")
           .font(.system(size: 14, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
           .frame(width: 40, height: 40)
           .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14)))
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(title)
             .font(GainsFont.title(16))
             .foregroundStyle(GainsColor.ink)
@@ -938,7 +951,7 @@ struct OnboardingView: View {
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -958,14 +971,14 @@ struct OnboardingView: View {
       goal = planning
       nutritionGoal = nutrition
     } label: {
-      HStack(alignment: .top, spacing: 14) {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
         Image(systemName: nutrition.systemImage)
           .font(.system(size: 14, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
           .frame(width: 40, height: 40)
           .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14)))
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(planning.title)
             .font(GainsFont.title(16))
             .foregroundStyle(GainsColor.ink)
@@ -980,7 +993,7 @@ struct OnboardingView: View {
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -997,7 +1010,7 @@ struct OnboardingView: View {
   // MARK: - Header Helper
 
   private func stepHeader(eyebrow: String, title: String, subtitle: String) -> some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text(eyebrow)
         .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
       Text(title)
@@ -1016,7 +1029,7 @@ struct OnboardingView: View {
   // MARK: - Bottom Bar
 
   private var bottomBar: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       if currentStep != .welcome {
         Button {
           withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
@@ -1042,7 +1055,7 @@ struct OnboardingView: View {
       Button {
         advance()
       } label: {
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Text(currentStep == .summary ? "Los geht's" : "Weiter")
             .font(GainsFont.label(13))
             .tracking(1.4)

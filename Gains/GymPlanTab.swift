@@ -22,21 +22,35 @@ struct GymPlanTab: View {
   /// damit ältere Aufrufstellen nicht angepasst werden müssen.
   @Binding var isShowingWorkoutTracker: Bool
 
-  @State private var showsFourWeekPreview = false
+  // 2026-05-03: Vorschau ist jetzt Default-AUSGEKLAPPT. Vorher haben Nutzer
+  // die 4-Wochen-Vorschau praktisch nie gesehen, weil der Disclosure-Button
+  // unter dem Wissenschafts-Block unauffällig saß. Mit Default-on wird der
+  // Plan-Horizont sichtbar — und die Section ist trotzdem einklappbar, falls
+  // sie stört.
+  @State private var showsFourWeekPreview = true
   /// Aktueller Tap-Selektor für `WeekdayDetailSheet`. `weekday + referenceDate`
   /// bilden zusammen die Identity, sodass z.B. „Mo dieser Woche" und „Mo in
   /// 3 Wochen" jeweils ein eigenes Sheet öffnen.
   @State private var weekdaySelection: WeekdaySheetSelection?
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       planStatusCard
       weeklyPreferencesSection
       assignmentsSection
       evidenceSection
       fourWeekPreviewSection
-      runningSummary
-      RunGoalPlannerSection()
+      // 2026-05-03: Lauf-Block ist jetzt eine zusammenhängende Sektion —
+      // `runningSummary` (Wochenmetriken aus dem Plan) UND der
+      // `RunGoalPlannerSection` (konkretes Lauf-Zielprogramm) erscheinen
+      // gemeinsam ODER gar nicht. Vorher hingen die Lauf-Wochenmetriken
+      // an `trainingFocus != .strength`, der Goal-Planner aber war immer
+      // sichtbar — auch bei Nutzern mit reinem Krafttraining-Fokus, wo der
+      // leere Goal-Setup-State schlicht fehl am Platz war.
+      if showsRunningBlock {
+        runningSummary
+        RunGoalPlannerSection()
+      }
     }
     .sheet(item: $weekdaySelection) { selection in
       WeekdayDetailSheet(
@@ -46,6 +60,16 @@ struct GymPlanTab: View {
       )
       .environmentObject(store)
     }
+  }
+
+  /// Zeigt den Lauf-Block, wenn Cardio Teil des Plans ist ODER der Nutzer
+  /// bereits ein konkretes Lauf-Ziel angelegt hat (auch Strength-Fokus mit
+  /// einem 10K-Ziel als Side-Quest behält dann den Block sichtbar).
+  private var showsRunningBlock: Bool {
+    let isCardio = store.plannerSettings.trainingFocus != .strength
+    let hasGoal = store.runGoalPlan != nil
+    let hasKmTarget = store.plannerSettings.weeklyKilometerTarget > 0
+    return isCardio || hasGoal || hasKmTarget
   }
 
   // MARK: - Plan-Status
@@ -90,7 +114,7 @@ struct GymPlanTab: View {
         // Sekundärer Einstieg neben dem primären CTA. Im Wizard-Modus
         // bietet der Footer den Wechsel zum manuellen Plan; im manuellen
         // Modus den Rückweg zum Wizard.
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           if isManual {
             secondaryCtaButton(
               title: "Auf Wizard zurück",
@@ -118,7 +142,7 @@ struct GymPlanTab: View {
     action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: icon)
           .font(.system(size: 11, weight: .bold))
         Text(title)
@@ -130,7 +154,7 @@ struct GymPlanTab: View {
           .opacity(0.6)
       }
       .foregroundStyle(GainsColor.onCtaSurface)
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 42)
       .frame(maxWidth: .infinity)
       .background(Color.white.opacity(0.06))
@@ -152,7 +176,7 @@ struct GymPlanTab: View {
   // läuft über ein Menu — weniger Buttons, deutlich besser lesbar.
 
   private var weeklyPreferencesSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["WOCHE", "PLANEN"],
@@ -166,15 +190,15 @@ struct GymPlanTab: View {
           .foregroundStyle(GainsColor.softInk)
       }
 
-      VStack(spacing: 12) {
-        HStack(alignment: .top, spacing: 6) {
+      VStack(spacing: GainsSpacing.s) {
+        HStack(alignment: .top, spacing: GainsSpacing.xs) {
           ForEach(Weekday.allCases) { day in
             weekdayCard(day)
           }
         }
         plannerLegend
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
   }
@@ -185,19 +209,43 @@ struct GymPlanTab: View {
     let kind = store.plannedSessionKinds[day]
     let isRunDay = kind?.isRun == true
     let style = plannerCardStyle(for: pref, isRun: isRunDay)
+    let assignedPlan = store.assignedWorkoutPlan(for: day)
+    let runTemplate = store.runTemplate(for: day)
+    // 2026-05-03: Done-Status wird aus workout/runHistory abgeleitet —
+    // wenn an dem Tag in dieser Woche schon trainiert/gelaufen wurde,
+    // ersetzt ein Lime-Check das Status-Icon, und das Status-Label
+    // springt auf „Erledigt".
+    let isCompleted = store.isPlannedSessionCompletedToday(for: day)
+    // Kontextuelles Status-Label statt generischem „Kraft"/„Lauf":
+    // - Erledigt: „Erledigt"
+    // - Kraft mit zugewiesenem Plan: Split-Kürzel des Plans (Push/Pull/…)
+    // - Lauf mit Template: Distanz in km
+    // - Sonst: Default aus PlannerCardStyle
+    let contextLabel: String = {
+      if isCompleted { return "Erledigt" }
+      if !isRunDay, let plan = assignedPlan {
+        return plan.split
+      }
+      if isRunDay, let run = runTemplate {
+        return String(format: "%g km", run.targetDistanceKm)
+      }
+      return style.label
+    }()
 
     // 2026-05-01: Vorher öffnete der Tap-auf-Tag ein verstecktes Menu mit drei
     // Status-Optionen (Training/Flex/Rest). Jetzt führt der Tap in das
     // `WeekdayDetailSheet`, das Status, zugewiesenen Plan, Lauf-Daten und den
     // Primary-CTA bündelt — die drei Status-Optionen sind dort als sichtbarer
     // Switcher umgezogen.
+    // 2026-05-03: Long-Press öffnet zusätzlich ein ContextMenu für Quick-Edits
+    // (Status wechseln, Workout zuweisen, Tag tauschen) ohne den Sheet-Hop.
     return Button {
       weekdaySelection = WeekdaySheetSelection(
         weekday: day,
         referenceDate: dateForCurrentWeek(weekday: day)
       )
     } label: {
-      VStack(spacing: 6) {
+      VStack(spacing: GainsSpacing.xs) {
         Text(day.shortLabel)
           .font(GainsFont.label(8))
           .tracking(1.4)
@@ -209,22 +257,28 @@ struct GymPlanTab: View {
 
         ZStack {
           Circle()
-            .fill(style.iconBackground)
-          Image(systemName: style.icon)
-            .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(style.iconForeground)
+            .fill(isCompleted ? GainsColor.lime : style.iconBackground)
+          if isCompleted {
+            Image(systemName: "checkmark")
+              .font(.system(size: 12, weight: .bold))
+              .foregroundStyle(GainsColor.onLime)
+          } else {
+            Image(systemName: style.icon)
+              .font(.system(size: 12, weight: .bold))
+              .foregroundStyle(style.iconForeground)
+          }
         }
         .frame(width: 28, height: 28)
 
-        Text(style.label)
+        Text(contextLabel)
           .font(GainsFont.label(8))
           .tracking(0.9)
-          .foregroundStyle(style.labelColor)
+          .foregroundStyle(isCompleted ? GainsColor.moss : style.labelColor)
           .lineLimit(1)
-          .minimumScaleFactor(0.85)
+          .minimumScaleFactor(0.7)
       }
-      .padding(.vertical, 10)
-      .padding(.horizontal, 4)
+      .padding(.vertical, GainsSpacing.tight)
+      .padding(.horizontal, GainsSpacing.xxs)
       .frame(maxWidth: .infinity)
       .background(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -240,6 +294,66 @@ struct GymPlanTab: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .contextMenu { weekdayQuickMenu(day) }
+  }
+
+  // MARK: - Long-Press Quick-Menu
+  //
+  // 2026-05-03: Reduziert Sheet-Hops für die häufigsten Anpassungen.
+  // Statt Tap → Sheet → Status-Switcher → Workout-Liste → Fertig kann
+  // der Nutzer per Long-Press direkt den Status wechseln, ein Workout
+  // zuweisen oder den Tag mit einem anderen tauschen. Bewusst flache
+  // Button-Liste mit Submenus statt Section-Header — robuster über
+  // iOS-Versionen hinweg und im ContextMenu-Popover gut lesbar.
+  @ViewBuilder
+  private func weekdayQuickMenu(_ day: Weekday) -> some View {
+    let pref = store.dayPreference(for: day)
+
+    Button {
+      store.setDayPreference(.training, for: day)
+    } label: {
+      Label("Training", systemImage: pref == .training ? "checkmark" : "dumbbell.fill")
+    }
+    Button {
+      store.setDayPreference(.flexible, for: day)
+    } label: {
+      Label("Flexibel", systemImage: pref == .flexible ? "checkmark" : "arrow.triangle.2.circlepath")
+    }
+    Button {
+      store.setDayPreference(.rest, for: day)
+    } label: {
+      Label("Ruhe", systemImage: pref == .rest ? "checkmark" : "moon.zzz.fill")
+    }
+
+    Divider()
+
+    if pref == .training,
+       store.plannedSessionKinds[day]?.isRun != true,
+       !store.savedWorkoutPlans.isEmpty {
+      Menu {
+        ForEach(store.savedWorkoutPlans) { plan in
+          Button(plan.title) { store.assignWorkout(plan, to: day) }
+        }
+        if store.assignedWorkoutPlan(for: day) != nil {
+          Divider()
+          Button("Zuweisung entfernen", role: .destructive) {
+            store.clearAssignedWorkout(for: day)
+          }
+        }
+      } label: {
+        Label("Workout zuweisen…", systemImage: "dumbbell")
+      }
+    }
+
+    Menu {
+      ForEach(Weekday.allCases.filter { $0 != day }) { other in
+        Button(other.title) {
+          store.swapDayAssignments(day, other)
+        }
+      }
+    } label: {
+      Label("Tag tauschen mit…", systemImage: "arrow.left.arrow.right")
+    }
   }
 
   // Hält die Status→Style-Logik an einem Ort, damit Card und Legende
@@ -291,21 +405,22 @@ struct GymPlanTab: View {
   }
 
   private var plannerLegend: some View {
-    HStack(spacing: 10) {
+    // P2-5 (2026-05-03): „Tippen · Lang-Press = Schnellaktion"-Hint raus.
+    // Die Karten sind durch Lime-Border auf today, Card-Surface und Icons
+    // sichtbar tap-affordant. Auf 4-Inch-Devices brach die Zeile außerdem
+    // um. Wenn das Long-Press-Pattern erklärt werden muss, gehört es in
+    // den Day-One-Tooltip — nicht permanent als Subzeile.
+    HStack(spacing: GainsSpacing.tight) {
       legendChip(color: GainsColor.lime, label: "Kraft")
       legendChip(color: GainsColor.moss, label: "Lauf")
       legendChip(color: GainsColor.accentCool, label: "Flexi")
       legendChip(color: GainsColor.softInk.opacity(0.65), label: "Ruhe")
       Spacer()
-      Text("Tippen für Optionen")
-        .font(GainsFont.label(8))
-        .tracking(0.8)
-        .foregroundStyle(GainsColor.softInk.opacity(0.7))
     }
   }
 
   private func legendChip(color: Color, label: String) -> some View {
-    HStack(spacing: 4) {
+    HStack(spacing: GainsSpacing.xxs) {
       Circle()
         .fill(color)
         .frame(width: 6, height: 6)
@@ -338,7 +453,7 @@ struct GymPlanTab: View {
     let today = Date()
     guard
       let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
-      let date = cal.date(byAdding: .day, value: Self.offsetFromMonday(for: day), to: weekStart)
+      let date = cal.date(byAdding: .day, value: day.mondayOffset, to: weekStart)
     else {
       return "—"
     }
@@ -353,23 +468,11 @@ struct GymPlanTab: View {
     let today = Date()
     guard
       let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
-      let date = cal.date(byAdding: .day, value: Self.offsetFromMonday(for: weekday), to: weekStart)
+      let date = cal.date(byAdding: .day, value: weekday.mondayOffset, to: weekStart)
     else {
       return today
     }
     return cal.startOfDay(for: date)
-  }
-
-  private static func offsetFromMonday(for day: Weekday) -> Int {
-    switch day {
-    case .monday:    return 0
-    case .tuesday:   return 1
-    case .wednesday: return 2
-    case .thursday:  return 3
-    case .friday:    return 4
-    case .saturday:  return 5
-    case .sunday:    return 6
-    }
   }
 
   private static let plannerCalendar: Calendar = {
@@ -388,7 +491,7 @@ struct GymPlanTab: View {
   // MARK: - Workout-Zuweisungen
 
   private var assignmentsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["WORKOUTS", "ZUWEISEN"],
         primaryColor: GainsColor.lime,
@@ -417,7 +520,7 @@ struct GymPlanTab: View {
     let isRunDay = plannedKind?.isRun == true
     let hasMissingAssignment = !isRunDay && assigned == nil && store.plannerSettings.dayAssignments[day] != nil
 
-    return HStack(spacing: 14) {
+    return HStack(spacing: GainsSpacing.m) {
       ZStack {
         Circle()
           .fill(isToday ? GainsColor.lime : GainsColor.background.opacity(0.85))
@@ -435,7 +538,7 @@ struct GymPlanTab: View {
       }
 
       VStack(alignment: .leading, spacing: 3) {
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Text(day.title)
             .font(GainsFont.title(16))
             .foregroundStyle(GainsColor.ink)
@@ -444,7 +547,7 @@ struct GymPlanTab: View {
               .font(GainsFont.label(8))
               .tracking(1.4)
               .foregroundStyle(GainsColor.moss)
-              .padding(.horizontal, 6)
+              .padding(.horizontal, GainsSpacing.xs)
               .padding(.vertical, 2)
               .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
@@ -486,7 +589,7 @@ struct GymPlanTab: View {
           }
         }
       } label: {
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           // G3-Fix (2026-05-01): Klarere Action-Labels — „Workout
           // wählen" war passiv, „Workout zuweisen" beschreibt die
           // Wirkung des Tippens auf den Tag.
@@ -499,7 +602,7 @@ struct GymPlanTab: View {
         .foregroundStyle(GainsColor.lime)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle(isToday ? GainsColor.lime.opacity(0.08) : GainsColor.card)
   }
 
@@ -537,7 +640,7 @@ struct GymPlanTab: View {
     let isCardio = store.plannerSettings.trainingFocus == .cardio
     let kmTarget = store.plannerSettings.weeklyKilometerTarget
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["WISSENSCHAFT", "DOSIS"],
@@ -552,8 +655,8 @@ struct GymPlanTab: View {
       }
 
       LazyVGrid(
-        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-        spacing: 10
+        columns: [GridItem(.flexible(), spacing: GainsSpacing.tight), GridItem(.flexible(), spacing: GainsSpacing.tight)],
+        spacing: GainsSpacing.tight
       ) {
         GainsMetricTile(
           label: isCardio ? "WOCHEN-KM" : "VOLUMEN",
@@ -582,7 +685,7 @@ struct GymPlanTab: View {
       }
 
       if let note = store.plannerPrimaryRecommendation.evidenceNote {
-        HStack(alignment: .top, spacing: 6) {
+        HStack(alignment: .top, spacing: GainsSpacing.xs) {
           Image(systemName: "book.closed.fill")
             .font(.system(size: 10, weight: .semibold))
             .foregroundStyle(GainsColor.moss)
@@ -593,14 +696,19 @@ struct GymPlanTab: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   // MARK: - 4-Wochen-Vorschau (collapsible)
 
   private var fourWeekPreviewSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    // 2026-05-03: Section zeigt jetzt nur die KOMMENDEN Wochen (weekIndex >= 1).
+    // Die aktuelle Woche steckt bereits in `weeklyPreferencesSection` ganz oben —
+    // das Doppeln war redundant und hat den Tab künstlich vergrößert.
+    let upcomingWeeks = store.nextFourWeeksSchedule.filter { $0.weekIndex >= 1 }
+
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Button {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
           showsFourWeekPreview.toggle()
@@ -608,12 +716,12 @@ struct GymPlanTab: View {
       } label: {
         HStack(alignment: .firstTextBaseline) {
           SlashLabel(
-            parts: ["4 WOCHEN", "VORSCHAU"],
+            parts: ["KOMMENDE", "WOCHEN"],
             primaryColor: GainsColor.lime,
             secondaryColor: GainsColor.softInk
           )
           Spacer()
-          HStack(spacing: 4) {
+          HStack(spacing: GainsSpacing.xxs) {
             Text(showsFourWeekPreview ? "Einklappen" : "Anzeigen")
               .font(GainsFont.label(9))
               .tracking(1.2)
@@ -627,8 +735,8 @@ struct GymPlanTab: View {
       .buttonStyle(.plain)
 
       if showsFourWeekPreview {
-        VStack(spacing: 10) {
-          ForEach(store.nextFourWeeksSchedule) { week in
+        VStack(spacing: GainsSpacing.tight) {
+          ForEach(upcomingWeeks) { week in
             fourWeekRow(week)
           }
         }
@@ -637,7 +745,7 @@ struct GymPlanTab: View {
   }
 
   private func fourWeekRow(_ week: GymPlanPreviewWeek) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack {
         Text(week.label.uppercased())
           .font(GainsFont.label(10))
@@ -649,13 +757,13 @@ struct GymPlanTab: View {
           .tracking(1.0)
           .foregroundStyle(GainsColor.softInk)
       }
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         ForEach(week.days) { day in
           previewDayCell(day)
         }
       }
     }
-    .padding(12)
+    .padding(GainsSpacing.s)
     .gainsCardStyle()
   }
 
@@ -682,32 +790,45 @@ struct GymPlanTab: View {
       }
     }()
 
-    return VStack(spacing: 4) {
-      ZStack {
-        Circle()
-          .fill(bg)
-          .frame(width: 30, height: 30)
-        if day.isCompleted {
-          Image(systemName: "checkmark")
-            .font(.system(size: 10, weight: .bold))
-            .foregroundStyle(GainsColor.onLime)
-        } else if day.runTemplate != nil {
-          Image(systemName: "figure.run")
-            .font(.system(size: 11, weight: .bold))
-            .foregroundStyle(fg)
-        } else {
-          Text("\(Calendar.current.component(.day, from: day.date))")
-            .font(.system(size: 10, weight: .semibold, design: .rounded))
-            .foregroundStyle(fg)
+    // 2026-05-03: Vorschau-Zellen sind jetzt tappbar — gleiche Interaktion
+    // wie die Wochenkarten oben. Vorher waren die 30 Tage in der Vorschau
+    // tot, was die Funktion versteckte ("warum sehe ich das, wenn ich nicht
+    // damit interagieren kann?").
+    return Button {
+      weekdaySelection = WeekdaySheetSelection(
+        weekday: day.weekday,
+        referenceDate: day.date
+      )
+    } label: {
+      VStack(spacing: GainsSpacing.xxs) {
+        ZStack {
+          Circle()
+            .fill(bg)
+            .frame(width: 30, height: 30)
+          if day.isCompleted {
+            Image(systemName: "checkmark")
+              .font(.system(size: 10, weight: .bold))
+              .foregroundStyle(GainsColor.onLime)
+          } else if day.runTemplate != nil {
+            Image(systemName: "figure.run")
+              .font(.system(size: 11, weight: .bold))
+              .foregroundStyle(fg)
+          } else {
+            Text("\(Calendar.current.component(.day, from: day.date))")
+              .font(.system(size: 10, weight: .semibold, design: .rounded))
+              .foregroundStyle(fg)
+          }
         }
+        Text(day.weekday.shortLabel)
+          .font(GainsFont.label(8))
+          .tracking(0.6)
+          .foregroundStyle(day.isToday ? GainsColor.ink : GainsColor.softInk)
       }
-      Text(day.weekday.shortLabel)
-        .font(GainsFont.label(8))
-        .tracking(0.6)
-        .foregroundStyle(day.isToday ? GainsColor.ink : GainsColor.softInk)
+      .frame(maxWidth: .infinity)
+      .contentShape(Rectangle())
+      .opacity(isPast && !day.isCompleted ? 0.55 : 1.0)
     }
-    .frame(maxWidth: .infinity)
-    .opacity(isPast && !day.isCompleted ? 0.55 : 1.0)
+    .buttonStyle(.plain)
   }
 
   private func weekRangeLabel(_ week: GymPlanPreviewWeek) -> String {
@@ -724,15 +845,15 @@ struct GymPlanTab: View {
     let kmTarget = store.plannerSettings.weeklyKilometerTarget
 
     if isCardio || kmTarget > 0 {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         SlashLabel(
           parts: ["LAUFEN", "IM PLAN"],
           primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk
         )
 
-        VStack(alignment: .leading, spacing: 10) {
-          HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+          HStack(spacing: GainsSpacing.tight) {
             GainsMetricTile(
               label: "WOCHEN-KM",
               value: "\(kmTarget) km",
@@ -746,7 +867,7 @@ struct GymPlanTab: View {
               style: .subdued
             )
           }
-          HStack(spacing: 10) {
+          HStack(spacing: GainsSpacing.tight) {
             GainsMetricTile(
               label: "LAUFZIEL",
               value: store.plannerSettings.runningGoal.title,

@@ -177,7 +177,7 @@ struct RunTrackerView: View {
     phase = .countdown
     audio.speak("Drei.")
     countdownTimer?.invalidate()
-    countdownTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+    let ct = Timer(timeInterval: 1, repeats: true) { _ in
       countdownValue -= 1
       if countdownValue == 2 { audio.speak("Zwei.") }
       if countdownValue == 1 { audio.speak("Eins.") }
@@ -187,6 +187,8 @@ struct RunTrackerView: View {
         startRunNow()
       }
     }
+    RunLoop.main.add(ct, forMode: .common)
+    countdownTimer = ct
   }
 
   private func cancelCountdown() {
@@ -394,7 +396,7 @@ private struct PreRunSetupView: View {
 
   var body: some View {
     ScrollView(showsIndicators: false) {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         header
 
         modalityPicker
@@ -409,11 +411,11 @@ private struct PreRunSetupView: View {
 
         Color.clear.frame(height: 12)
       }
-      .padding(.horizontal, 24)
-      .padding(.top, 8)
+      .padding(.horizontal, GainsSpacing.xl)
+      .padding(.top, GainsSpacing.xsPlus)
     }
     .safeAreaInset(edge: .bottom) {
-      VStack(spacing: 8) {
+      VStack(spacing: GainsSpacing.xsPlus) {
         modalityStatusRow
         Button {
           applyAndStart()
@@ -428,9 +430,9 @@ private struct PreRunSetupView: View {
         }
         .buttonStyle(.plain)
       }
-      .padding(.horizontal, 20)
-      .padding(.bottom, 18)
-      .padding(.top, 12)
+      .padding(.horizontal, GainsSpacing.l)
+      .padding(.bottom, GainsSpacing.l)
+      .padding(.top, GainsSpacing.s)
       .background(GainsColor.background)
     }
     .onAppear { syncModalityFromActiveRun() }
@@ -445,13 +447,13 @@ private struct PreRunSetupView: View {
   /// (km/h vs. min/km) sowie die GPS-Status-Zeile. Wird im Apply per
   /// `store.setRunModality` in den aktiven Run gespiegelt.
   private var modalityPicker: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text("MODUS")
         .font(GainsFont.label(10))
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(CardioModality.allCases, id: \.self) { modality in
           Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
@@ -467,7 +469,7 @@ private struct PreRunSetupView: View {
   }
 
   private func modalityChip(for modality: CardioModality, isSelected: Bool) -> some View {
-    VStack(spacing: 6) {
+    VStack(spacing: GainsSpacing.xs) {
       Image(systemName: modality.systemImage)
         .font(.system(size: 18, weight: .semibold))
       Text(modality.displayName)
@@ -477,7 +479,7 @@ private struct PreRunSetupView: View {
     }
     .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.ink)
     .frame(maxWidth: .infinity)
-    .padding(.vertical, 12)
+    .padding(.vertical, GainsSpacing.s)
     .background(isSelected ? GainsColor.lime : GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
@@ -508,7 +510,7 @@ private struct PreRunSetupView: View {
   }
 
   private var hfSensorHint: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: "heart.fill")
         .font(.system(size: 16, weight: .semibold))
         .foregroundStyle(GainsColor.accentCool)
@@ -533,7 +535,7 @@ private struct PreRunSetupView: View {
           .font(GainsFont.label(11))
           .tracking(1.2)
           .foregroundStyle(GainsColor.onLime)
-          .padding(.horizontal, 12)
+          .padding(.horizontal, GainsSpacing.s)
           .frame(height: 32)
           .background(GainsColor.accentCool)
           .clipShape(Capsule())
@@ -553,7 +555,7 @@ private struct PreRunSetupView: View {
       .buttonStyle(.plain)
       .accessibilityLabel("Hinweis ausblenden")
     }
-    .padding(12)
+    .padding(GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -571,7 +573,7 @@ private struct PreRunSetupView: View {
     Button {
       applyAndStart()
     } label: {
-      HStack(alignment: .center, spacing: 16) {
+      HStack(alignment: .center, spacing: GainsSpacing.m) {
         ZStack {
           Circle()
             .fill(GainsColor.lime.opacity(0.18))
@@ -580,7 +582,7 @@ private struct PreRunSetupView: View {
             .font(.system(size: 22, weight: .bold))
             .foregroundStyle(GainsColor.onLime)
         }
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text("SOFORT STARTEN")
             .gainsEyebrow(GainsColor.lime, size: 10, tracking: 1.6)
           Text(quickStartHeadline)
@@ -598,7 +600,7 @@ private struct PreRunSetupView: View {
           .font(.system(size: 14, weight: .bold))
           .foregroundStyle(GainsColor.softInk)
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -648,18 +650,18 @@ private struct PreRunSetupView: View {
             .font(.system(size: 12, weight: .bold))
             .foregroundStyle(GainsColor.softInk)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, GainsSpacing.xsPlus)
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
 
       if showsAdvanced {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xl) {
           intensityPicker
           targetSection
           optionsSection
         }
-        .padding(.top, 14)
+        .padding(.top, GainsSpacing.m)
         .transition(.opacity.combined(with: .move(edge: .top)))
       }
     }
@@ -668,7 +670,7 @@ private struct PreRunSetupView: View {
   // MARK: Header
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text(selectedModality.shortLabel)
         .gainsEyebrow(GainsColor.softInk, size: 12, tracking: 2.4)
 
@@ -701,14 +703,14 @@ private struct PreRunSetupView: View {
   // MARK: Intensity
 
   private var intensityPicker: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text("INTENSITÄT")
         .font(GainsFont.label(10))
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(RunIntensity.allCases, id: \.self) { intensity in
             Button { selectedIntensity = intensity } label: {
               intensityChip(for: intensity, isSelected: intensity == selectedIntensity)
@@ -721,14 +723,14 @@ private struct PreRunSetupView: View {
   }
 
   private func intensityChip(for intensity: RunIntensity, isSelected: Bool) -> some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       Image(systemName: intensity.systemImage)
         .font(.system(size: 13, weight: .semibold))
       Text(intensity.title)
         .font(.system(size: 13, weight: .semibold))
     }
     .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.ink)
-    .padding(.horizontal, 14)
+    .padding(.horizontal, GainsSpacing.m)
     .frame(height: 38)
     .background(isSelected ? GainsColor.lime : GainsColor.card)
     .clipShape(Capsule())
@@ -737,13 +739,13 @@ private struct PreRunSetupView: View {
   // MARK: Target
 
   private var targetSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text("ZIEL")
         .font(GainsFont.label(10))
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(RunTargetMode.allCases, id: \.self) { mode in
           Button { targetMode = mode } label: {
             Text(mode.title)
@@ -769,7 +771,7 @@ private struct PreRunSetupView: View {
       Text("Freier Lauf mit normalem Live-Tracking, nur ohne festes Distanz-, Zeit- oder Pace-Ziel.")
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
-        .padding(.vertical, 4)
+        .padding(.vertical, GainsSpacing.xxs)
     case .distance:
       stepperRow(
         label: "Distanz",
@@ -804,7 +806,7 @@ private struct PreRunSetupView: View {
   }
 
   private func stepperRow(label: String, valueText: String, decrement: @escaping () -> Void, increment: @escaping () -> Void) -> some View {
-    HStack(spacing: 14) {
+    HStack(spacing: GainsSpacing.m) {
       Text(label)
         .font(GainsFont.body(14))
         .foregroundStyle(GainsColor.ink)
@@ -836,13 +838,13 @@ private struct PreRunSetupView: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(.vertical, 4)
+    .padding(.vertical, GainsSpacing.xxs)
   }
 
   // MARK: Options
 
   private var optionsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text("OPTIONEN")
         .font(GainsFont.label(10))
         .tracking(1.6)
@@ -879,7 +881,7 @@ private struct PreRunSetupView: View {
       }
       .tint(GainsColor.lime)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
@@ -891,7 +893,7 @@ private struct PreRunSetupView: View {
   @ViewBuilder
   private var modalityStatusRow: some View {
     if selectedModality.isIndoor {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: "house.fill")
           .font(.system(size: 10, weight: .bold))
           .foregroundStyle(GainsColor.softInk)
@@ -902,7 +904,7 @@ private struct PreRunSetupView: View {
         Spacer()
       }
     } else {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         Circle()
           .fill(gpsTracker.canStartTracking ? GainsColor.lime : GainsColor.softInk)
           .frame(width: 6, height: 6)
@@ -958,7 +960,7 @@ private struct CountdownView: View {
   let value: Int
 
   var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: GainsSpacing.m) {
       Text("START IN")
         .font(GainsFont.label(11))
         .tracking(2.0)
@@ -988,7 +990,7 @@ private struct LiveRunView: View {
 
   var body: some View {
     VStack(spacing: 0) {
-      VStack(spacing: 14) {
+      VStack(spacing: GainsSpacing.m) {
         statusRow
 
         Text(formattedRunTime)
@@ -1005,13 +1007,13 @@ private struct LiveRunView: View {
         }
       }
       .frame(maxWidth: .infinity)
-      .padding(.horizontal, 24)
-      .padding(.top, 8)
-      .padding(.bottom, 18)
+      .padding(.horizontal, GainsSpacing.xl)
+      .padding(.top, GainsSpacing.xsPlus)
+      .padding(.bottom, GainsSpacing.l)
 
       routeSection
 
-      VStack(spacing: 16) {
+      VStack(spacing: GainsSpacing.m) {
         liveMetricsRow
         if run.currentHeartRate > 0 {
           hrZoneRow
@@ -1021,9 +1023,9 @@ private struct LiveRunView: View {
           splitsStrip
         }
       }
-      .padding(.horizontal, 20)
-      .padding(.top, 16)
-      .padding(.bottom, 18)
+      .padding(.horizontal, GainsSpacing.l)
+      .padding(.top, GainsSpacing.m)
+      .padding(.bottom, GainsSpacing.l)
       .background(GainsColor.card)
     }
   }
@@ -1031,7 +1033,7 @@ private struct LiveRunView: View {
   // MARK: Status
 
   private var statusRow: some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       Circle()
         .fill(run.isPaused ? GainsColor.softInk : GainsColor.lime)
         .frame(width: 8, height: 8)
@@ -1080,8 +1082,8 @@ private struct LiveRunView: View {
       }
     }()
 
-    return VStack(alignment: .leading, spacing: 8) {
-      HStack(spacing: 10) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+      HStack(spacing: GainsSpacing.tight) {
         Image(systemName: step?.kind.systemImage ?? "figure.run")
           .font(.system(size: 12, weight: .semibold))
           .foregroundStyle(stepColor)
@@ -1090,7 +1092,7 @@ private struct LiveRunView: View {
           .clipShape(Circle())
 
         VStack(alignment: .leading, spacing: 2) {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Text((step?.kind.title ?? "—").uppercased())
               .font(GainsFont.label(10))
               .tracking(1.4)
@@ -1128,7 +1130,7 @@ private struct LiveRunView: View {
       }
       .frame(height: 5)
     }
-    .padding(12)
+    .padding(GainsSpacing.s)
     .background(GainsColor.card.opacity(0.85))
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
@@ -1137,7 +1139,7 @@ private struct LiveRunView: View {
 
   private var targetProgressBar: some View {
     let progress = run.progressFraction(elapsedSeconds: gpsTracker.elapsedSeconds)
-    return VStack(spacing: 4) {
+    return VStack(spacing: GainsSpacing.xxs) {
       GeometryReader { geo in
         ZStack(alignment: .leading) {
           Capsule()
@@ -1210,8 +1212,8 @@ private struct LiveRunView: View {
   /// nachpflegen kann. Tap auf einen Button schiebt den GPS-Tracker hoch und
   /// erzeugt automatisch 1-km-Splits — derselbe Pfad wie beim Outdoor-Lauf.
   private var indoorDistanceTile: some View {
-    VStack(spacing: 18) {
-      VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.l) {
+      VStack(spacing: GainsSpacing.xxs) {
         Text("INDOOR · DISTANZ MANUELL")
           .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.6)
         Text(String(format: "%.2f km", displayedDistance))
@@ -1222,17 +1224,17 @@ private struct LiveRunView: View {
           .foregroundStyle(GainsColor.softInk)
       }
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         indoorStepperButton(label: "−1.0", deltaKm: -1.0)
         indoorStepperButton(label: "−0.5", deltaKm: -0.5)
         indoorStepperButton(label: "+0.5", deltaKm: 0.5, accent: true)
         indoorStepperButton(label: "+1.0", deltaKm: 1.0, accent: true)
       }
-      .padding(.horizontal, 8)
+      .padding(.horizontal, GainsSpacing.xsPlus)
     }
     .frame(maxWidth: .infinity)
-    .padding(.vertical, 28)
-    .padding(.horizontal, 18)
+    .padding(.vertical, GainsSpacing.xl)
+    .padding(.horizontal, GainsSpacing.l)
     .background(GainsColor.card)
   }
 
@@ -1310,7 +1312,7 @@ private struct LiveRunView: View {
   }
 
   private func metric(title: String, value: String, unit: String) -> some View {
-    VStack(spacing: 6) {
+    VStack(spacing: GainsSpacing.xs) {
       Text(title)
         .font(GainsFont.label(10))
         .tracking(1.6)
@@ -1335,7 +1337,7 @@ private struct LiveRunView: View {
 
   private var hrZoneRow: some View {
     let zone = HRZone.zone(for: run.currentHeartRate, maxHR: maxHeartRate)
-    return HStack(spacing: 10) {
+    return HStack(spacing: GainsSpacing.tight) {
       ForEach(HRZone.allCases, id: \.self) { z in
         Circle()
           .fill(z.color(active: zone == z))
@@ -1354,7 +1356,7 @@ private struct LiveRunView: View {
         .foregroundStyle(GainsColor.softInk)
         .lineLimit(1)
     }
-    .padding(.horizontal, 12)
+    .padding(.horizontal, GainsSpacing.s)
     .frame(height: 36)
     .background(GainsColor.background.opacity(0.85))
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -1363,7 +1365,7 @@ private struct LiveRunView: View {
   // MARK: Controls
 
   private var liveControls: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Button(action: onTogglePause) {
         Text(run.isPaused ? "Fortsetzen" : "Pause")
           .font(.system(size: 15, weight: .semibold))
@@ -1408,16 +1410,16 @@ private struct LiveRunView: View {
   private var splitsStrip: some View {
     let splits = displayedSplits.suffix(3)
 
-    return VStack(alignment: .leading, spacing: 8) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("LETZTE SPLITS")
         .font(GainsFont.label(10))
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(Array(splits), id: \.id) { split in
           VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 4) {
+            HStack(spacing: GainsSpacing.xxs) {
               Text(split.isManualLap ? "LAP \(split.index)" : "KM \(split.index)")
                 .font(GainsFont.label(9))
                 .tracking(1.4)
@@ -1438,8 +1440,8 @@ private struct LiveRunView: View {
               .foregroundStyle(GainsColor.softInk)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal, 10)
-          .padding(.vertical, 8)
+          .padding(.horizontal, GainsSpacing.tight)
+          .padding(.vertical, GainsSpacing.xsPlus)
           .background(GainsColor.background.opacity(0.9))
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
@@ -1531,24 +1533,24 @@ private struct StopRunSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xl) {
           summaryHeader
 
-          VStack(alignment: .leading, spacing: 8) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
             Text("NAME")
               .font(GainsFont.label(10))
               .tracking(1.4)
               .foregroundStyle(GainsColor.softInk)
             TextField(run?.title ?? "Lauf", text: $title)
               .textFieldStyle(.plain)
-              .padding(12)
+              .padding(GainsSpacing.s)
               .background(GainsColor.card)
               .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
 
           feelPicker
 
-          VStack(alignment: .leading, spacing: 8) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
             Text("NOTIZ")
               .font(GainsFont.label(10))
               .tracking(1.4)
@@ -1556,12 +1558,12 @@ private struct StopRunSheet: View {
             TextField("Wie hat sich der Lauf angefühlt?", text: $note, axis: .vertical)
               .textFieldStyle(.plain)
               .lineLimit(3...6)
-              .padding(12)
+              .padding(GainsSpacing.s)
               .background(GainsColor.card)
               .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
         }
-        .padding(20)
+        .padding(GainsSpacing.l)
       }
       .background(GainsColor.background.ignoresSafeArea())
       .navigationTitle("Lauf beenden")
@@ -1573,7 +1575,7 @@ private struct StopRunSheet: View {
         }
       }
       .safeAreaInset(edge: .bottom) {
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           Button {
             onSave(title, note, feel)
           } label: {
@@ -1597,14 +1599,14 @@ private struct StopRunSheet: View {
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
               .frame(maxWidth: .infinity)
-              .padding(.horizontal, 4)
+              .padding(.horizontal, GainsSpacing.xxs)
           } else {
             Text("Landet im Feed und in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
               .frame(maxWidth: .infinity)
-              .padding(.horizontal, 4)
+              .padding(.horizontal, GainsSpacing.xxs)
           }
 
           Button {
@@ -1620,9 +1622,9 @@ private struct StopRunSheet: View {
           }
           .buttonStyle(.plain)
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
-        .padding(.top, 8)
+        .padding(.horizontal, GainsSpacing.l)
+        .padding(.bottom, GainsSpacing.m)
+        .padding(.top, GainsSpacing.xsPlus)
         .background(GainsColor.background)
       }
       .confirmationDialog(
@@ -1647,13 +1649,13 @@ private struct StopRunSheet: View {
     let distance = run?.distanceKm ?? 0
     let duration = run?.durationMinutes ?? 0
     let pace = run?.averagePaceSeconds ?? 0
-    return HStack(alignment: .lastTextBaseline, spacing: 16) {
+    return HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.m) {
       summaryCell(value: String(format: "%.2f", distance), unit: "km")
       summaryCell(value: pace > 0 ? String(format: "%d:%02d", pace / 60, pace % 60) : "–:–", unit: "/km")
       summaryCell(value: "\(duration)", unit: "min")
     }
     .frame(maxWidth: .infinity)
-    .padding(.vertical, 4)
+    .padding(.vertical, GainsSpacing.xxs)
   }
 
   private func summaryCell(value: String, unit: String) -> some View {
@@ -1671,16 +1673,16 @@ private struct StopRunSheet: View {
   // MARK: Feel
 
   private var feelPicker: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("WIE WAR'S?")
         .font(GainsFont.label(10))
         .tracking(1.4)
         .foregroundStyle(GainsColor.softInk)
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(RunFeel.allCases, id: \.self) { f in
           Button { feel = (feel == f ? nil : f) } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: GainsSpacing.xxs) {
               Image(systemName: f.emojiSymbol)
                 .font(.system(size: 18, weight: .semibold))
               Text("\(f.rawValue)")
@@ -1688,7 +1690,7 @@ private struct StopRunSheet: View {
                 .tracking(1.0)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
+            .padding(.vertical, GainsSpacing.tight)
             .foregroundStyle(feel == f ? GainsColor.onLime : GainsColor.ink)
             .background(feel == f ? GainsColor.lime : GainsColor.card)
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -2047,10 +2049,14 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
 
   private func startTimer() {
     guard timer == nil else { return }
-    timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+    // .common RunLoop-Modus: Timer feuert auch während Scroll/Touch-Tracking
+    // (UIScrollView wechselt in .tracking-Modus, Default-Timer pausieren dann).
+    let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
       self?.updateDuration()
       self?.checkAutoPause()
     }
+    RunLoop.main.add(t, forMode: .common)
+    timer = t
   }
 
   private func stopTimer() {

@@ -43,7 +43,7 @@ struct GymWeekStrip: View {
   @EnvironmentObject private var store: GainsStore
 
   var body: some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       ForEach(store.weeklyWorkoutSchedule) { day in
         cell(day)
       }
@@ -56,7 +56,7 @@ struct GymWeekStrip: View {
     }
     let isRun = day.runTemplate != nil
 
-    return VStack(spacing: 6) {
+    return VStack(spacing: GainsSpacing.xs) {
       ZStack {
         Circle()
           .fill(background(day, isCompleted: isCompleted))
@@ -154,7 +154,7 @@ struct GymVolumeBar: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       HStack(alignment: .firstTextBaseline) {
         Text(muscle.uppercased())
           .font(GainsFont.label(10))
@@ -203,7 +203,7 @@ struct GymVolumeBar: View {
       }
       .frame(height: 10)
 
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         landmarkLabel("MEV", value: landmarks.mev, color: GainsColor.moss.opacity(0.85))
         landmarkLabel("MAV", value: landmarks.mav, color: GainsColor.moss.opacity(0.6))
         landmarkLabel("MRV", value: landmarks.mrv, color: GainsColor.ember.opacity(0.9))
@@ -220,7 +220,7 @@ struct GymVolumeBar: View {
   }
 
   private func landmarkLabel(_ label: String, value: Int, color: Color) -> some View {
-    HStack(spacing: 4) {
+    HStack(spacing: GainsSpacing.xxs) {
       Rectangle()
         .fill(color)
         .frame(width: 2, height: 8)
@@ -278,7 +278,7 @@ struct GymWorkoutSourceBadge: View {
       .font(GainsFont.label(9))
       .tracking(1.6)
       .foregroundStyle(source == .custom ? GainsColor.moss : GainsColor.softInk)
-      .padding(.horizontal, 10)
+      .padding(.horizontal, GainsSpacing.tight)
       .frame(height: 22)
       .background(source == .custom ? GainsColor.lime.opacity(0.32) : GainsColor.background.opacity(0.85))
       .clipShape(Capsule())

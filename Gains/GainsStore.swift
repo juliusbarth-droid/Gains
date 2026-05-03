@@ -105,6 +105,8 @@ final class GainsStore: ObservableObject {
   @Published var likedPostIDs: Set<UUID> = []
   @Published var commentedPostIDs: Set<UUID> = []
   @Published var sharedPostIDs: Set<UUID> = []
+  /// Gelikte Forum-Threads des aktuellen Nutzers — verhindert Mehrfach-Likes.
+  @Published var likedThreadIDs: Set<UUID> = []
   @Published var favoriteRecipeIDs: Set<UUID> = []
   @Published var connectedTrackerIDs: Set<UUID> = []
   @Published var healthConnectionStatus: HealthConnectionStatus = .disconnected
@@ -132,6 +134,16 @@ final class GainsStore: ObservableObject {
   @Published var bodyFatChange: Double = 0
   @Published var proteinProgress: Double = 0
   @Published var userName: String = ""
+  /// Aus `userName` abgeleiteter Handle für Community-Posts. Ersetzt den
+  /// früheren Hardcode-Wert „@julius.gains" durch einen nutzerabhängigen String.
+  var userHandle: String {
+    let base = userName
+      .lowercased()
+      .components(separatedBy: .whitespacesAndNewlines)
+      .filter { !$0.isEmpty }
+      .joined(separator: ".")
+    return "@\(base.isEmpty ? "gains.user" : base)"
+  }
   /// Profil-Bild als komprimierter JPEG-Blob. nil = Initial-Letter-Avatar.
   /// Wird in den UserDefaults persistiert (Re-Design 2026-05-03 — Profil
   /// kann jetzt Foto + Namen editieren). HomeView-Greeting + ProfileView
@@ -155,6 +167,39 @@ final class GainsStore: ObservableObject {
 
   private let contactStore = CNContactStore()
   private let healthKitManager = HealthKitManager.shared
+
+  // MARK: - Computed-Property-Caches
+  // plannedSessionKinds wird von weeklyWorkoutSchedule UND nextFourWeeksSchedule
+  // aufgerufen — beide werden häufig im selben Render-Pass ausgewertet.
+  // Cache mit plannerSettings + dayPreferences als Invalidierungs-Key.
+  // Invalidierung erfolgt über invalidatePlannerCache() an allen Mutationspunkten.
+  private var _cachedPlannedSessionKinds: [Weekday: PlannedSessionKind]? = nil
+
+  /// Cache invalidieren — muss nach jeder plannerSettings-Mutation aufgerufen werden.
+  func invalidatePlannerCache() {
+    _cachedPlannedSessionKinds = nil
+  }
+
+  // MARK: - Save-Debounce
+  // saveAll() wird an ~78 Stellen aufgerufen. Ohne Debounce führt jede
+  // einzelne Settings-Änderung (z. B. 5 Planner-Toggles hintereinander)
+  // zu 5 vollständigen JSON-Encode + UserDefaults-Write-Zyklen.
+  // Mit einem 0.8s-DispatchWorkItem-Debounce werden Bursts zu einem einzigen
+  // Schreib-Vorgang zusammengefasst; der sofortige saveAll(completion:)-Pfad
+  // (Onboarding-Finish, finishWorkout) bleibt über den force-Parameter erhalten.
+  private var _pendingSaveWork: DispatchWorkItem?
+
+  /// Debounced persistieren. `force: true` schreibt sofort (kein Delay).
+  func scheduleSave(force: Bool = false) {
+    _pendingSaveWork?.cancel()
+    if force {
+      scheduleSave()
+      return
+    }
+    let work = DispatchWorkItem { [weak self] in self?.saveAll() }
+    _pendingSaveWork = work
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: work)
+  }
   // A1: Start-Werte fallen weg — sobald der Nutzer ein Profil/Gewicht
   // eingibt, übernimmt currentWeight die Rolle. Solange das nicht passiert,
   // sind alle progress-bezogenen Berechnungen 0.
@@ -247,6 +292,11 @@ final class GainsStore: ObservableObject {
     if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.favoriteRecipeIDs) {
       favoriteRecipeIDs = Set(ids)
     }
+    // Coach-Check-in-IDs: persistieren damit der Nutzer nach App-Neustart
+    // dieselben Check-ins nicht nochmal bestätigen muss.
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.completedCoachCheckInIDs) {
+      completedCoachCheckInIDs = Set(ids)
+    }
     if let dates = ud.decodedLoad([Date].self, forKey: PersistenceKey.completedDates) {
       _completedCalendarDates = Published(initialValue: Set(dates))
     }
@@ -292,6 +342,18 @@ final class GainsStore: ObservableObject {
     if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.joinedMeetupIDs) {
       joinedMeetupIDs = Set(ids)
     }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.likedThreadIDs) {
+      likedThreadIDs = Set(ids)
+    }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.likedPostIDs) {
+      likedPostIDs = Set(ids)
+    }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.commentedPostIDs) {
+      commentedPostIDs = Set(ids)
+    }
+    if let ids = ud.decodedLoad([UUID].self, forKey: PersistenceKey.sharedPostIDs) {
+      sharedPostIDs = Set(ids)
+    }
     if let rawMode = ud.string(forKey: PersistenceKey.appearanceMode),
        let mode = GainsAppearanceMode(rawValue: rawMode) {
       appearanceMode = mode
@@ -322,9 +384,10 @@ final class GainsStore: ObservableObject {
     let _savedWorkoutPlans     = self.savedWorkoutPlans
     let _plannerSettings       = self.plannerSettings
     let _weightTrend           = self.weightTrend
-    let _connectedTrackerIDs   = Array(self.connectedTrackerIDs)
-    let _favoriteRecipeIDs     = Array(self.favoriteRecipeIDs)
-    let _completedDates        = Array(self.completedCalendarDates)
+    let _connectedTrackerIDs         = Array(self.connectedTrackerIDs)
+    let _favoriteRecipeIDs           = Array(self.favoriteRecipeIDs)
+    let _completedCoachCheckInIDs    = Array(self.completedCoachCheckInIDs)
+    let _completedDates              = Array(self.completedCalendarDates)
     let _nutritionEntries      = self.nutritionEntries
     let _nutritionGoal         = self.nutritionGoal
     let _nutritionProfile      = self.nutritionProfile
@@ -341,8 +404,12 @@ final class GainsStore: ObservableObject {
     let _appearanceMode        = self.appearanceMode.rawValue
     let _socialSharing         = self.socialSharingSettings
     let _forumThreads          = self.forumThreads
+    let _likedThreadIDs        = Array(self.likedThreadIDs)
     let _meetups               = self.meetups
     let _joinedMeetupIDs       = Array(self.joinedMeetupIDs)
+    let _likedPostIDs          = Array(self.likedPostIDs)
+    let _commentedPostIDs      = Array(self.commentedPostIDs)
+    let _sharedPostIDs         = Array(self.sharedPostIDs)
 
     DispatchQueue.global(qos: .utility).async {
       ud.set(_userName, forKey: PersistenceKey.userName)
@@ -371,9 +438,10 @@ final class GainsStore: ObservableObject {
       ud.encodedSave(_savedWorkoutPlans,   forKey: PersistenceKey.savedWorkoutPlans)
       ud.encodedSave(_plannerSettings,     forKey: PersistenceKey.plannerSettings)
       ud.encodedSave(_weightTrend,         forKey: PersistenceKey.weightTrend)
-      ud.encodedSave(_connectedTrackerIDs, forKey: PersistenceKey.connectedTrackerIDs)
-      ud.encodedSave(_favoriteRecipeIDs,   forKey: PersistenceKey.favoriteRecipeIDs)
-      ud.encodedSave(_completedDates,      forKey: PersistenceKey.completedDates)
+      ud.encodedSave(_connectedTrackerIDs,      forKey: PersistenceKey.connectedTrackerIDs)
+      ud.encodedSave(_favoriteRecipeIDs,        forKey: PersistenceKey.favoriteRecipeIDs)
+      ud.encodedSave(_completedCoachCheckInIDs, forKey: PersistenceKey.completedCoachCheckInIDs)
+      ud.encodedSave(_completedDates,           forKey: PersistenceKey.completedDates)
       ud.encodedSave(_nutritionEntries,    forKey: PersistenceKey.nutritionEntries)
       ud.encodedSave(_nutritionGoal,       forKey: PersistenceKey.nutritionGoal)
       if let profile = _nutritionProfile { ud.encodedSave(profile, forKey: PersistenceKey.nutritionProfile) }
@@ -390,8 +458,12 @@ final class GainsStore: ObservableObject {
       ud.set(_appearanceMode,              forKey: PersistenceKey.appearanceMode)
       ud.encodedSave(_socialSharing,       forKey: PersistenceKey.socialSharingSettings)
       ud.encodedSave(_forumThreads,        forKey: PersistenceKey.forumThreads)
+      ud.encodedSave(_likedThreadIDs,      forKey: PersistenceKey.likedThreadIDs)
       ud.encodedSave(_meetups,             forKey: PersistenceKey.meetups)
       ud.encodedSave(_joinedMeetupIDs,     forKey: PersistenceKey.joinedMeetupIDs)
+      ud.encodedSave(_likedPostIDs,        forKey: PersistenceKey.likedPostIDs)
+      ud.encodedSave(_commentedPostIDs,    forKey: PersistenceKey.commentedPostIDs)
+      ud.encodedSave(_sharedPostIDs,       forKey: PersistenceKey.sharedPostIDs)
 
       // Completion auf den Main-Thread zurückspielen, damit Caller mit
       // UI-State arbeiten können (z.B. Onboarding-Finish setzt danach erst
@@ -452,7 +524,9 @@ final class GainsStore: ObservableObject {
       PersistenceKey.notificationsEnabled, PersistenceKey.healthAutoSync,
       PersistenceKey.studyCoaching, PersistenceKey.appearanceMode,
       PersistenceKey.joinedChallenge, PersistenceKey.socialSharingSettings,
-      PersistenceKey.forumThreads, PersistenceKey.meetups, PersistenceKey.joinedMeetupIDs,
+      PersistenceKey.forumThreads, PersistenceKey.likedThreadIDs,
+      PersistenceKey.meetups, PersistenceKey.joinedMeetupIDs,
+      PersistenceKey.likedPostIDs, PersistenceKey.commentedPostIDs, PersistenceKey.sharedPostIDs,
       PersistenceKey.savedRoutes, PersistenceKey.runSegments,
       PersistenceKey.runSegmentEfforts, PersistenceKey.structuredRunWorkouts,
       // Auch das Onboarding-Flag und die Community-Waitlist zurücksetzen
@@ -941,6 +1015,96 @@ final class GainsStore: ObservableObject {
     }
   }
 
+  // MARK: - Bike-/Modality-Aggregate (für modus-bewussten STATS-Tab)
+  //
+  // 2026-05-03 (Cardio-Optim Welle 4): STATS-Tab im Cardio-Hub reagiert auf
+  // den Modus-Toggle. Lauf-Modus zeigt run-only Aggregate (`yearlyRunDistanceKm`),
+  // Rad-Modus zeigt diese parallel — selbe Code-Pfade, andere Slice der
+  // History.
+
+  /// Bike-Distanz pro Tag in den letzten 7 Tagen (oldest → today). Pendant zu
+  /// `weeklyRunsByDay`, aber gefiltert auf Bike-Sessions.
+  var weeklyBikeByDay: [DailyRunDistance] {
+    let calendar = Calendar.current
+    let today = calendar.startOfDay(for: Date())
+    let symbols = calendar.shortWeekdaySymbols
+    return (0..<7).reversed().map { daysAgo -> DailyRunDistance in
+      let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) ?? today
+      let km = bikeOnlyHistory
+        .filter { calendar.isDate($0.finishedAt, inSameDayAs: date) }
+        .reduce(0.0) { $0 + $1.distanceKm }
+      let weekdayIndex = calendar.component(.weekday, from: date) - 1
+      let label = String(symbols[weekdayIndex].prefix(2))
+      return DailyRunDistance(dayLabel: label, km: km, isToday: daysAgo == 0)
+    }
+  }
+
+  /// Run-only Pendant zu `weeklyRunsByDay` (welches eigentlich „Cardio total"
+  /// ist, da auf `runHistory` und nicht auf `runOnlyHistory` filtert). Wird
+  /// im STATS-Tab im Run-Modus genutzt.
+  var weeklyRunOnlyByDay: [DailyRunDistance] {
+    let calendar = Calendar.current
+    let today = calendar.startOfDay(for: Date())
+    let symbols = calendar.shortWeekdaySymbols
+    return (0..<7).reversed().map { daysAgo -> DailyRunDistance in
+      let date = calendar.date(byAdding: .day, value: -daysAgo, to: today) ?? today
+      let km = runOnlyHistory
+        .filter { calendar.isDate($0.finishedAt, inSameDayAs: date) }
+        .reduce(0.0) { $0 + $1.distanceKm }
+      let weekdayIndex = calendar.component(.weekday, from: date) - 1
+      let label = String(symbols[weekdayIndex].prefix(2))
+      return DailyRunDistance(dayLabel: label, km: km, isToday: daysAgo == 0)
+    }
+  }
+
+  /// YTD Bike-Distanz (km).
+  var yearlyBikeDistanceKm: Double {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return bikeOnlyHistory.filter { $0.finishedAt >= startOfYear }.reduce(0) { $0 + $1.distanceKm }
+  }
+
+  /// YTD Bike-Anzahl.
+  var yearlyBikeCount: Int {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return bikeOnlyHistory.filter { $0.finishedAt >= startOfYear }.count
+  }
+
+  /// YTD Bike-Zeit auf dem Rad (Minuten).
+  var yearlyBikeDurationMinutes: Int {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return bikeOnlyHistory.filter { $0.finishedAt >= startOfYear }.reduce(0) { $0 + $1.durationMinutes }
+  }
+
+  /// YTD Bike-Höhenmeter (nur Outdoor-Bike — Indoor hat kein GPS).
+  var yearlyBikeElevationGain: Int {
+    let startOfYear = Calendar.current.date(
+      from: Calendar.current.dateComponents([.year], from: Date())) ?? Date.distantPast
+    return bikeOnlyHistory
+      .filter { $0.finishedAt >= startOfYear && !$0.modality.isIndoor }
+      .reduce(0) { $0 + $1.elevationGain }
+  }
+
+  /// Speed-Verteilung für Rad-Sessions — Bike-Pendant zu `paceZones`.
+  /// Buckets in km/h, damit Nutzer ein Bauchgefühl für ihre Touren bekommen.
+  var bikeSpeedZones: [PaceZoneEntry] {
+    let speeds: [Double] = bikeOnlyHistory.compactMap { entry in
+      guard entry.averagePaceSeconds > 0 else { return nil }
+      return 3600.0 / Double(entry.averagePaceSeconds)
+    }
+    guard !speeds.isEmpty else { return [] }
+    let total = Double(speeds.count)
+    let buckets: [(String, String, Double)] = [
+      ("Recovery", "<18 km/h",   Double(speeds.filter { $0 < 18 }.count) / total),
+      ("Endurance","18–24 km/h", Double(speeds.filter { $0 >= 18 && $0 < 24 }.count) / total),
+      ("Tempo",    "24–30 km/h", Double(speeds.filter { $0 >= 24 && $0 < 30 }.count) / total),
+      ("Hart",     ">30 km/h",   Double(speeds.filter { $0 >= 30 }.count) / total),
+    ]
+    return buckets.filter { $0.2 > 0 }.map { PaceZoneEntry(label: $0.0, description: $0.1, fraction: $0.2) }
+  }
+
   var nutritionTargetCalories: Int {
     if let profile = nutritionProfile { return profile.targetCalories }
     switch nutritionGoal {
@@ -1000,21 +1164,25 @@ final class GainsStore: ObservableObject {
       .sorted(by: { $0.loggedAt > $1.loggedAt })
   }
 
-  var nutritionCaloriesToday: Int {
-    todayNutritionEntries.reduce(0) { $0 + $1.calories }
+  /// Alle Makros für heute in einem einzigen Array-Pass — verhindert
+  /// dass `nutritionCaloriesToday` / `…ProteinToday` / … das Array je
+  /// 4× unabhängig filtern + sortieren (O(n log n) × 4 pro Render-Pass).
+  private var todayMacroTotals: (calories: Int, protein: Int, carbs: Int, fat: Int) {
+    let start = Calendar.current.startOfDay(for: Date())
+    return nutritionEntries
+      .filter { Calendar.current.isDate($0.loggedAt, inSameDayAs: start) }
+      .reduce(into: (calories: 0, protein: 0, carbs: 0, fat: 0)) { acc, e in
+        acc.calories += e.calories
+        acc.protein  += e.protein
+        acc.carbs    += e.carbs
+        acc.fat      += e.fat
+      }
   }
 
-  var nutritionProteinToday: Int {
-    todayNutritionEntries.reduce(0) { $0 + $1.protein }
-  }
-
-  var nutritionCarbsToday: Int {
-    todayNutritionEntries.reduce(0) { $0 + $1.carbs }
-  }
-
-  var nutritionFatToday: Int {
-    todayNutritionEntries.reduce(0) { $0 + $1.fat }
-  }
+  var nutritionCaloriesToday: Int { todayMacroTotals.calories }
+  var nutritionProteinToday:  Int { todayMacroTotals.protein  }
+  var nutritionCarbsToday:    Int { todayMacroTotals.carbs    }
+  var nutritionFatToday:      Int { todayMacroTotals.fat      }
 
   var nutritionProgressHeadline: String {
     if todayNutritionEntries.isEmpty {
@@ -1055,7 +1223,7 @@ final class GainsStore: ObservableObject {
     proteinProgress = min(260, rounded(proteinProgress + Double(recipe.protein)))
     lastProgressEvent =
       "Meal erfasst: \(recipe.title) mit \(recipe.calories) kcal und \(recipe.protein) g Protein."
-    saveAll()
+    scheduleSave()
   }
 
   func logNutritionEntry(
@@ -1078,7 +1246,7 @@ final class GainsStore: ObservableObject {
     proteinProgress = min(260, rounded(proteinProgress + Double(max(0, protein))))
     lastProgressEvent =
       "Eigene Mahlzeit erfasst: \(trimmedTitle) wurde zum Ernährungstracker hinzugefügt."
-    saveAll()
+    scheduleSave()
   }
 
   func setNutritionGoal(_ goal: NutritionGoal) {
@@ -1086,7 +1254,7 @@ final class GainsStore: ObservableObject {
     nutritionProfile?.goal = goal
     lastProgressEvent =
       "Ernährungsziel aktualisiert: \(goal.title). Deine Tagesziele wurden angepasst."
-    saveAll()
+    scheduleSave()
   }
 
   func setNutritionProfile(_ profile: NutritionProfile) {
@@ -1094,19 +1262,19 @@ final class GainsStore: ObservableObject {
     nutritionGoal = profile.goal
     lastProgressEvent =
       "Ernährungsziele personalisiert: \(profile.targetCalories) kcal · \(profile.targetProteinG)g Protein berechnet."
-    saveAll()
+    scheduleSave()
   }
 
   func clearNutritionProfile() {
     nutritionProfile = nil
     lastProgressEvent = "Ernährungsprofil zurückgesetzt. Standardziele werden verwendet."
-    saveAll()
+    scheduleSave()
   }
 
   func removeNutritionEntry(_ id: UUID) {
     nutritionEntries.removeAll { $0.id == id }
     lastProgressEvent = "Ein Ernährungseintrag wurde entfernt."
-    saveAll()
+    scheduleSave()
   }
 
   // MARK: - Nutrition Power-Actions (Welle 3 — 2026-05-03)
@@ -1134,7 +1302,7 @@ final class GainsStore: ObservableObject {
     nutritionEntries.insert(copy, at: 0)
     proteinProgress = min(260, rounded(proteinProgress + Double(max(0, entry.protein))))
     lastProgressEvent = "Wieder geloggt: \(entry.title)."
-    saveAll()
+    scheduleSave()
   }
 
   /// Verschiebt einen Eintrag in eine andere Mahlzeit-Sektion (gleicher Tag).
@@ -1157,7 +1325,7 @@ final class GainsStore: ObservableObject {
     nutritionEntries.removeAll { $0.id == id }
     nutritionEntries.insert(updated, at: 0)
     lastProgressEvent = "\(entry.title) in \(mealType.title) verschoben."
-    saveAll()
+    scheduleSave()
   }
 
   /// Dupliziert einen bestehenden Eintrag — selbe Mahlzeit, neue ID, jetzt
@@ -1165,6 +1333,41 @@ final class GainsStore: ObservableObject {
   func duplicateNutritionEntry(_ id: UUID) {
     guard let entry = nutritionEntries.first(where: { $0.id == id }) else { return }
     repeatNutritionEntry(entry, in: entry.mealType)
+  }
+
+  /// 2026-05-03 Intuitivitäts-Sweep P1-22: Eintrag nachträglich anpassen.
+  /// Statt löschen+neu eintragen scaled der User die Werte direkt — gibt
+  /// neue absolute Werte vor. Protein-Tageshochzähler wird dabei korrekt
+  /// nach Delta nachgezogen (negative Werte werden gefloored auf 0).
+  func updateNutritionEntry(
+    _ id: UUID,
+    calories: Int? = nil,
+    protein: Int? = nil,
+    carbs: Int? = nil,
+    fat: Int? = nil
+  ) {
+    guard let idx = nutritionEntries.firstIndex(where: { $0.id == id }) else { return }
+    let old = nutritionEntries[idx]
+    let newProtein = max(0, protein ?? old.protein)
+    let updated = NutritionEntry(
+      id: old.id,
+      title: old.title,
+      mealType: old.mealType,
+      loggedAt: old.loggedAt,
+      calories: max(0, calories ?? old.calories),
+      protein: newProtein,
+      carbs: max(0, carbs ?? old.carbs),
+      fat: max(0, fat ?? old.fat)
+    )
+    nutritionEntries[idx] = updated
+    // Nur den Tageshochzähler nachziehen, wenn der Eintrag wirklich heute
+    // geloggt war — sonst verfälschen wir den Live-Counter.
+    if Calendar.current.isDateInToday(old.loggedAt) {
+      let delta = newProtein - old.protein
+      proteinProgress = max(0, min(260, rounded(proteinProgress + Double(delta))))
+    }
+    lastProgressEvent = "\(updated.title) angepasst."
+    scheduleSave()
   }
 
   /// Schnell-Eintrag mit nur kcal (+ optional Makros). Mahlzeit kommt aus
@@ -1193,7 +1396,7 @@ final class GainsStore: ObservableObject {
     nutritionEntries.insert(entry, at: 0)
     proteinProgress = min(260, rounded(proteinProgress + Double(max(0, protein))))
     lastProgressEvent = "Schnell-Eintrag erfasst: \(resolvedTitle)."
-    saveAll()
+    scheduleSave()
   }
 
   /// Wenn der User in einen anderen Tag loggt, soll der Zeitstempel den
@@ -2042,7 +2245,7 @@ final class GainsStore: ObservableObject {
   }
 
   var communityHighlightHeadline: String {
-    if let ownPost = communityPosts.first(where: { $0.handle == "@julius.gains" }) {
+    if let ownPost = communityPosts.first(where: { $0.handle == userHandle }) {
       return "Dein letzter Post: \(ownPost.title)"
     }
 
@@ -2541,7 +2744,7 @@ final class GainsStore: ObservableObject {
 
     let workout = WorkoutPlan.custom(title: trimmedName, split: split, exercises: exercises)
     savedWorkoutPlans.insert(workout, at: 0)
-    saveAll()
+    scheduleSave()
     return workout
   }
 
@@ -2557,7 +2760,7 @@ final class GainsStore: ObservableObject {
       }
     }
     alignSessionTargetToAvailableDays()
-    saveAll()
+    scheduleSave()
   }
 
   /// Dupliziert einen bestehenden Workout-Plan als neuen `.custom`-Eintrag
@@ -2583,7 +2786,7 @@ final class GainsStore: ObservableObject {
       }
     )
     savedWorkoutPlans.insert(copy, at: 0)
-    saveAll()
+    scheduleSave()
     return copy
   }
 
@@ -2608,7 +2811,7 @@ final class GainsStore: ObservableObject {
       exercises: updated.exercises
     )
     savedWorkoutPlans[index] = preserved
-    saveAll()
+    scheduleSave()
     return preserved
   }
 
@@ -2616,44 +2819,52 @@ final class GainsStore: ObservableObject {
     let desiredDays = min(max(value, 1), 7)
     rebalancePlannerAvailability(for: desiredDays)
     plannerSettings.sessionsPerWeek = normalizedSessionsPerWeek(desiredDays)
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setPlannerGoal(_ goal: WorkoutPlanningGoal) {
     plannerSettings.goal = goal
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setTrainingFocus(_ focus: WorkoutTrainingFocus) {
     plannerSettings.trainingFocus = focus
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setPreferredSessionLength(_ duration: Int) {
     plannerSettings.preferredSessionLength = duration
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   // MARK: - Studienbasierte Planner-Setter
 
   func setTrainingExperience(_ value: TrainingExperience) {
     plannerSettings.experience = value
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setGymEquipment(_ value: GymEquipment) {
     plannerSettings.equipment = value
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setSplitPreference(_ value: SplitPreference) {
     plannerSettings.splitPreference = value
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setRecoveryCapacity(_ value: RecoveryCapacity) {
     plannerSettings.recoveryCapacity = value
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func toggleMusclePriority(_ muscle: MuscleGroup) {
@@ -2662,7 +2873,8 @@ final class GainsStore: ObservableObject {
     } else {
       plannerSettings.prioritizedMuscles.insert(muscle)
     }
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func toggleLimitation(_ limitation: WorkoutLimitation) {
@@ -2671,7 +2883,8 @@ final class GainsStore: ObservableObject {
     } else {
       plannerSettings.limitations.insert(limitation)
     }
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setRunningGoal(_ goal: RunningGoal) {
@@ -2681,7 +2894,8 @@ final class GainsStore: ObservableObject {
     if plannerSettings.weeklyKilometerTarget < goal.defaultWeeklyKilometers {
       plannerSettings.weeklyKilometerTarget = goal.defaultWeeklyKilometers
     }
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   /// Wendet alle Wizard-Einstellungen auf einmal an und setzt alle Wochentage
@@ -2725,17 +2939,20 @@ final class GainsStore: ObservableObject {
         plannerSettings.dayPreferences[day] = .flexible
       }
     }
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setRunIntensityModel(_ model: RunIntensityModel) {
     plannerSettings.runIntensityModel = model
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func setWeeklyKilometerTarget(_ km: Int) {
     plannerSettings.weeklyKilometerTarget = max(0, min(150, km))
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   /// Setzt die Day-Preference direkt (wird vom überarbeiteten PLAN-Tab
@@ -2760,7 +2977,8 @@ final class GainsStore: ObservableObject {
     }
 
     alignSessionTargetToAvailableDays()
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func assignedWorkoutPlan(for weekday: Weekday) -> WorkoutPlan? {
@@ -2782,13 +3000,83 @@ final class GainsStore: ObservableObject {
     }
 
     alignSessionTargetToAvailableDays()
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func clearAssignedWorkout(for weekday: Weekday) {
     plannerSettings.dayAssignments[weekday] = nil
     alignSessionTargetToAvailableDays()
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
+  }
+
+  // MARK: - Plan-Done-Helpers
+  //
+  // 2026-05-03: Mit der Wochen-Überarbeitung soll jeder geplante Tag
+  // auf einen Blick zeigen, ob er „erledigt" ist — sowohl im PLAN-Tab als
+  // auch in der Home-Heute-Card und der Mini-Wochenleiste. Statt einen
+  // separaten `Set<Date>` einzuführen, leiten wir den Done-Status aus den
+  // bereits vorhandenen `workoutHistory` und `runHistory` ab. Vorher gab es
+  // diesen Check nur inline in `nextFourWeeksSchedule` — und dort _ohne_
+  // Lauf-History, sodass abgeschlossene Läufe nie als ✓ markiert wurden.
+
+  /// Wurde an `date` (Tagesgranularität) bereits ein Krafttraining ODER
+  /// ein Lauf abgeschlossen? Dient als zentrale Done-Quelle für alle
+  /// Plan-/Wochen-/Home-UI-Bausteine.
+  func isPlannedSessionCompleted(on date: Date) -> Bool {
+    let cal = Calendar.current
+    if workoutHistory.contains(where: { cal.isDate($0.finishedAt, inSameDayAs: date) }) {
+      return true
+    }
+    if runHistory.contains(where: { cal.isDate($0.finishedAt, inSameDayAs: date) }) {
+      return true
+    }
+    return false
+  }
+
+  /// Convenience: Done-Check für einen Wochentag in der aktuellen Woche
+  /// (Montag = Wochenstart). Kürzt den Aufruf auf der UI-Seite ab.
+  func isPlannedSessionCompletedToday(for weekday: Weekday) -> Bool {
+    var cal = Calendar(identifier: .iso8601)
+    cal.firstWeekday = 2
+    let today = Date()
+    guard
+      let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
+      let date = cal.date(byAdding: .day, value: weekday.mondayOffset, to: weekStart)
+    else {
+      return false
+    }
+    return isPlannedSessionCompleted(on: date)
+  }
+
+  /// Tauscht zwei Wochentage komplett: Tagespräferenz, Workout-Zuweisung
+  /// und manuelles SessionKind. Genutzt vom WeekdayDetailSheet, damit der
+  /// Nutzer „heute Push, morgen Pull" mit einem Tap umkehren kann, ohne
+  /// erst beide Tage einzeln neu zu konfigurieren.
+  func swapDayAssignments(_ a: Weekday, _ b: Weekday) {
+    guard a != b else { return }
+
+    let prefA = plannerSettings.dayPreferences[a]
+    let prefB = plannerSettings.dayPreferences[b]
+    plannerSettings.dayPreferences[a] = prefB
+    plannerSettings.dayPreferences[b] = prefA
+
+    let assignA = plannerSettings.dayAssignments[a]
+    let assignB = plannerSettings.dayAssignments[b]
+    plannerSettings.dayAssignments[a] = assignB
+    plannerSettings.dayAssignments[b] = assignA
+
+    if plannerSettings.isManualPlan {
+      let kindA = plannerSettings.manualSessionKinds[a]
+      let kindB = plannerSettings.manualSessionKinds[b]
+      plannerSettings.manualSessionKinds[a] = kindB
+      plannerSettings.manualSessionKinds[b] = kindA
+    }
+
+    alignSessionTargetToAvailableDays()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   // MARK: - Manueller Wochenplan
@@ -2836,7 +3124,8 @@ final class GainsStore: ObservableObject {
       plannerSettings.trainingFocus = .hybrid
     }
 
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   /// Hebt den manuellen Plan auf — die Engine übernimmt wieder die
@@ -2845,7 +3134,8 @@ final class GainsStore: ObservableObject {
   func clearManualPlan() {
     plannerSettings.isManualPlan = false
     plannerSettings.manualSessionKinds = [:]
-    saveAll()
+    invalidatePlannerCache()
+    scheduleSave()
   }
 
   func dayPreference(for weekday: Weekday) -> WorkoutDayPreference {
@@ -3109,7 +3399,7 @@ final class GainsStore: ObservableObject {
 
   func toggleChallengeJoined() {
     joinedChallenge.toggle()
-    saveAll()
+    scheduleSave()
   }
 
   func toggleLike(postID: UUID) {
@@ -3149,8 +3439,8 @@ final class GainsStore: ObservableObject {
 
       newPost = CommunityPost(
         id: UUID(),
-        author: "Julius",
-        handle: "@julius.gains",
+        author: userName,
+        handle: userHandle,
         type: .workout,
         title: workout?.title ?? "\(plan.title) eingeplant",
         detail: workout == nil
@@ -3173,8 +3463,8 @@ final class GainsStore: ObservableObject {
       let latestRun = latestCompletedRun
       newPost = CommunityPost(
         id: UUID(),
-        author: "Julius",
-        handle: "@julius.gains",
+        author: userName,
+        handle: userHandle,
         type: .run,
         title: latestRun?.title ?? "Cardio-Check-in geloggt",
         detail: latestRun == nil
@@ -3205,8 +3495,8 @@ final class GainsStore: ObservableObject {
     case .progress:
       newPost = CommunityPost(
         id: UUID(),
-        author: "Julius",
-        handle: "@julius.gains",
+        author: userName,
+        handle: userHandle,
         type: .progress,
         title: "Neues Progress-Update",
         detail:
@@ -3246,7 +3536,7 @@ final class GainsStore: ObservableObject {
       favoriteRecipeIDs.insert(recipeID)
       proteinProgress = min(220, rounded(proteinProgress + 2))
     }
-    saveAll()
+    scheduleSave()
   }
 
   func toggleTrackerConnection(_ trackerID: UUID) {
@@ -3270,7 +3560,7 @@ final class GainsStore: ObservableObject {
       lastProgressEvent =
         "Tracker verbunden. Deine Vitaldaten werden jetzt im Progress-Bereich aktualisiert."
     }
-    saveAll()
+    scheduleSave()
   }
 
   private func toggleAppleHealthConnection() {
@@ -3379,27 +3669,27 @@ final class GainsStore: ObservableObject {
 
   func setAutoShareWorkouts(_ enabled: Bool) {
     socialSharingSettings.autoShareWorkouts = enabled
-    saveAll()
+    scheduleSave()
   }
 
   func setAutoShareRuns(_ enabled: Bool) {
     socialSharingSettings.autoShareRuns = enabled
-    saveAll()
+    scheduleSave()
   }
 
   func setAutoSharePersonalRecords(_ enabled: Bool) {
     socialSharingSettings.autoSharePersonalRecords = enabled
-    saveAll()
+    scheduleSave()
   }
 
   func setShareLocationWithRuns(_ enabled: Bool) {
     socialSharingSettings.shareLocationWithRuns = enabled
-    saveAll()
+    scheduleSave()
   }
 
   func setSharingVisibility(_ visibility: SharingVisibility) {
     socialSharingSettings.visibility = visibility
-    saveAll()
+    scheduleSave()
   }
 
   // MARK: - Personal Records
@@ -3432,7 +3722,7 @@ final class GainsStore: ObservableObject {
     let post = CommunityPost(
       id: UUID(),
       author: userName,
-      handle: "@julius.gains",
+      handle: userHandle,
       type: .progress,
       title: title,
       detail: detail,
@@ -3462,7 +3752,7 @@ final class GainsStore: ObservableObject {
     let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
     guard trimmed != userName else { return }
     userName = trimmed
-    saveAll()
+    scheduleSave()
   }
 
   /// Speichert ein neu gewähltes Profilbild. Komprimiert auf max. 512×512
@@ -3472,7 +3762,7 @@ final class GainsStore: ObservableObject {
   func setUserAvatar(_ image: UIImage?) {
     guard let image else {
       userAvatarData = nil
-      saveAll()
+      scheduleSave()
       return
     }
     let target: CGFloat = 512
@@ -3490,7 +3780,7 @@ final class GainsStore: ObservableObject {
       image.draw(in: CGRect(origin: .zero, size: newSize))
     }
     userAvatarData = resized.jpegData(compressionQuality: 0.7)
-    saveAll()
+    scheduleSave()
   }
 
   /// Convenience: gibt das gespeicherte Profilbild als UIImage zurück
@@ -3502,7 +3792,7 @@ final class GainsStore: ObservableObject {
 
   func toggleNotificationsEnabled() {
     notificationsEnabled.toggle()
-    saveAll()
+    scheduleSave()
 
     // Wenn der Toggle gerade auf `on` gewandert ist und der Nutzer noch
     // keine Permission erteilt hat, jetzt das System-Prompt anstoßen.
@@ -3520,12 +3810,12 @@ final class GainsStore: ObservableObject {
 
   func toggleHealthAutoSyncEnabled() {
     healthAutoSyncEnabled.toggle()
-    saveAll()
+    scheduleSave()
   }
 
   func toggleStudyBasedCoachingEnabled() {
     studyBasedCoachingEnabled.toggle()
-    saveAll()
+    scheduleSave()
   }
 
   func cycleAppearanceMode() {
@@ -3537,7 +3827,7 @@ final class GainsStore: ObservableObject {
 
     let nextIndex = (currentIndex + 1) % allModes.count
     appearanceMode = allModes[nextIndex]
-    saveAll()
+    scheduleSave()
   }
 
   func logWeightCheckIn() {
@@ -3556,7 +3846,7 @@ final class GainsStore: ObservableObject {
 
     lastProgressEvent =
       "Gewicht aktualisiert: \(String(format: "%.1f", currentWeight)) kg sind jetzt eingetragen."
-    saveAll()
+    scheduleSave()
   }
 
   func logWaistCheckIn() {
@@ -3572,7 +3862,7 @@ final class GainsStore: ObservableObject {
 
     lastProgressEvent =
       "Taillenmaß eingetragen: \(String(format: "%.1f", waistMeasurement)) cm im aktuellen Check-in."
-    saveAll()
+    scheduleSave()
   }
 
   func syncVitalData() {
@@ -3618,7 +3908,7 @@ final class GainsStore: ObservableObject {
     proteinProgress = min(220, rounded(proteinProgress + 25))
     lastProgressEvent =
       "Protein-Check-in gespeichert: \(Int(proteinProgress)) g sind heute jetzt erfasst."
-    saveAll()
+    scheduleSave()
   }
 
   func shareLatestRun() {
@@ -4139,7 +4429,15 @@ final class GainsStore: ObservableObject {
 
   /// Ordnet jedem geplanten Tag eine konkrete Session-Art zu (Kraft / verschiedene Lauftypen).
   /// Wird vom weekly schedule sowie der UI genutzt.
+  /// Gecacht — invalidatePlannerCache() nach plannerSettings-Mutationen aufrufen.
   var plannedSessionKinds: [Weekday: PlannedSessionKind] {
+    if let cached = _cachedPlannedSessionKinds { return cached }
+    let result = _computePlannedSessionKinds()
+    _cachedPlannedSessionKinds = result
+    return result
+  }
+
+  private func _computePlannedSessionKinds() -> [Weekday: PlannedSessionKind] {
     // Manueller Plan überschreibt die Auto-Verteilung der Engine. Wir geben
     // nur Einträge zurück, deren Tag auch tatsächlich als Trainingstag
     // angelegt ist (Day-Pref != .rest), damit Run-Templates konsistent
@@ -4350,6 +4648,16 @@ final class GainsStore: ObservableObject {
     let plannedDays = Set(scheduledPlannerDays)
     let runKindByDay = plannedSessionKinds
 
+    // R3: isPlannedSessionCompleted(on:) würde 28× (4×7) über workoutHistory+runHistory
+    // iterieren. Einmalig Set<Date> aus normalisierten Tagen vorbauen → O(1) Lookup.
+    let completedDaySet: Set<Date> = {
+      let cal = Calendar.current
+      var days = Set<Date>()
+      for w in workoutHistory { days.insert(cal.startOfDay(for: w.finishedAt)) }
+      for r in runHistory     { days.insert(cal.startOfDay(for: r.finishedAt)) }
+      return days
+    }()
+
     return (0..<4).map { weekIndex -> GymPlanPreviewWeek in
       let label: String
       switch weekIndex {
@@ -4401,7 +4709,8 @@ final class GainsStore: ObservableObject {
           title = "Flex"
         }
 
-        let isCompleted = workoutHistory.contains { calendar.isDate($0.finishedAt, inSameDayAs: date) }
+        // R3: Batch-Lookup über vorbereitetes completedDaySet statt 28× History-Scan.
+        let isCompleted = completedDaySet.contains(calendar.startOfDay(for: date))
         let isToday = calendar.isDate(date, inSameDayAs: today)
 
         return GymPlanPreviewDay(

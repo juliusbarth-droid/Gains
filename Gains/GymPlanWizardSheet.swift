@@ -54,14 +54,14 @@ struct GymPlanWizardSheet: View {
 
         VStack(spacing: 0) {
           progressBar
-            .padding(.horizontal, 24)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            .padding(.horizontal, GainsSpacing.xl)
+            .padding(.top, GainsSpacing.s)
+            .padding(.bottom, GainsSpacing.xsPlus)
 
           Text("Schritt \(min(step + 1, totalSteps + 1)) von \(totalSteps + 1)")
             .font(GainsFont.label(11))
             .foregroundStyle(GainsColor.mutedInk)
-            .padding(.bottom, 20)
+            .padding(.bottom, GainsSpacing.l)
 
           ZStack {
             Group {
@@ -90,9 +90,9 @@ struct GymPlanWizardSheet: View {
           .frame(maxWidth: .infinity, maxHeight: .infinity)
 
           navigationButtons
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 30)
+            .padding(.horizontal, GainsSpacing.xl)
+            .padding(.top, GainsSpacing.m)
+            .padding(.bottom, GainsSpacing.xl)
         }
       }
       .navigationBarTitleDisplayMode(.inline)
@@ -144,12 +144,12 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 0: Trainingsfokus
 
   private var focusStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Was ist dein Trainingsfokus?",
         subtitle: "Die Engine wählt Split, Volumen und Intensität passend zu deinem Schwerpunkt."
       )
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         ForEach(WorkoutTrainingFocus.allCases, id: \.self) { f in
           wizardChoiceRow(
             icon: focusIcon(f),
@@ -159,7 +159,7 @@ struct GymPlanWizardSheet: View {
           ) { withAnimation(.spring(response: 0.3)) { trainingFocus = f } }
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -167,12 +167,12 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 1: Ziel
 
   private var goalStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Was ist dein Trainingsziel?",
         subtitle: "Bestimmt Wiederholungsbereich, RIR-Steuerung und Übungsauswahl."
       )
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         ForEach(WorkoutPlanningGoal.allCases, id: \.self) { g in
           wizardChoiceRow(
             icon: goalIcon(g),
@@ -182,7 +182,7 @@ struct GymPlanWizardSheet: View {
           ) { withAnimation(.spring(response: 0.3)) { goal = g } }
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -190,12 +190,12 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 2: Erfahrung
 
   private var experienceStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Wie ist dein Trainingsalter?",
         subtitle: "Beeinflusst Split-Komplexität, Volumen und Intensitätssteuerung."
       )
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         ForEach(TrainingExperience.allCases, id: \.self) { exp in
           wizardChoiceRow(
             icon: experienceIcon(exp),
@@ -205,7 +205,7 @@ struct GymPlanWizardSheet: View {
           ) { withAnimation(.spring(response: 0.3)) { experience = exp } }
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -213,14 +213,14 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 3: Equipment
 
   private var equipmentStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Was steht dir zur Verfügung?",
         subtitle: "Limitiert den Übungspool und die empfohlenen Splits."
       )
       LazyVGrid(
-        columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
-        spacing: 12
+        columns: [GridItem(.flexible(), spacing: GainsSpacing.s), GridItem(.flexible(), spacing: GainsSpacing.s)],
+        spacing: GainsSpacing.s
       ) {
         ForEach(GymEquipment.allCases, id: \.self) { equip in
           wizardGridCard(
@@ -231,7 +231,7 @@ struct GymPlanWizardSheet: View {
           ) { withAnimation(.spring(response: 0.3)) { equipment = equip } }
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -239,19 +239,19 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 4: Frequenz + Sessiondauer
 
   private var frequencyStep: some View {
-    VStack(spacing: 28) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Wie oft und wie lange trainierst du?",
         subtitle: "Tage werden automatisch optimal auf die Woche verteilt – du musst nichts zuweisen."
       )
 
-      VStack(spacing: 14) {
+      VStack(spacing: GainsSpacing.m) {
         Text("TRAININGSTAGE PRO WOCHE")
           .font(GainsFont.label(9))
           .tracking(1.6)
           .foregroundStyle(GainsColor.softInk)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal, 24)
+          .padding(.horizontal, GainsSpacing.xl)
 
         Text("\(sessionsPerWeek)")
           .font(.system(size: 64, weight: .bold, design: .rounded))
@@ -259,7 +259,7 @@ struct GymPlanWizardSheet: View {
           .contentTransition(.numericText())
           .animation(.spring(response: 0.3), value: sessionsPerWeek)
 
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           ForEach(2...6, id: \.self) { n in
             Button {
               withAnimation(.spring(response: 0.3)) { sessionsPerWeek = n }
@@ -276,20 +276,20 @@ struct GymPlanWizardSheet: View {
         }
       }
 
-      VStack(spacing: 14) {
+      VStack(spacing: GainsSpacing.m) {
         Text("DAUER PRO EINHEIT")
           .font(GainsFont.label(9))
           .tracking(1.6)
           .foregroundStyle(GainsColor.softInk)
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(.horizontal, 24)
+          .padding(.horizontal, GainsSpacing.xl)
 
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           ForEach([30, 45, 60, 75, 90], id: \.self) { min in
             Button {
               withAnimation(.spring(response: 0.3)) { sessionLength = min }
             } label: {
-              VStack(spacing: 4) {
+              VStack(spacing: GainsSpacing.xxs) {
                 Text("\(min)")
                   .font(GainsFont.title(20))
                   .foregroundStyle(sessionLength == min ? GainsColor.onLime : GainsColor.ink)
@@ -306,7 +306,7 @@ struct GymPlanWizardSheet: View {
             .buttonStyle(.plain)
           }
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
       }
 
       Spacer()
@@ -316,12 +316,12 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 5: Recovery
 
   private var recoveryStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Wie erholst du dich aktuell?",
         subtitle: "Fließt als Volumen-Modifier ein. Ehrlichkeit schützt vor Übertraining."
       )
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         ForEach(RecoveryCapacity.allCases, id: \.self) { cap in
           wizardChoiceRow(
             icon: recoveryIcon(cap),
@@ -331,7 +331,7 @@ struct GymPlanWizardSheet: View {
           ) { withAnimation(.spring(response: 0.3)) { recovery = cap } }
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -339,7 +339,7 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 6: Muskel-Priorität
 
   private var priorityStep: some View {
-    VStack(spacing: 20) {
+    VStack(spacing: GainsSpacing.l) {
       wizardHeader(
         title: "Welche Muskeln sollen mehr bekommen?",
         subtitle: "Optional · 0–2 Schwerpunkte · Priorisierte Muskeln erhalten +30 % Sätze pro Woche."
@@ -347,11 +347,11 @@ struct GymPlanWizardSheet: View {
 
       LazyVGrid(
         columns: [
-          GridItem(.flexible(), spacing: 10),
-          GridItem(.flexible(), spacing: 10),
-          GridItem(.flexible(), spacing: 10)
+          GridItem(.flexible(), spacing: GainsSpacing.tight),
+          GridItem(.flexible(), spacing: GainsSpacing.tight),
+          GridItem(.flexible(), spacing: GainsSpacing.tight)
         ],
-        spacing: 10
+        spacing: GainsSpacing.tight
       ) {
         ForEach(MuscleGroup.allCases) { muscle in
           let selected = prioritizedMuscles.contains(muscle)
@@ -361,7 +361,7 @@ struct GymPlanWizardSheet: View {
               else         { prioritizedMuscles.insert(muscle) }
             }
           } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: GainsSpacing.xs) {
               Text(muscleIcon(muscle))
                 .font(.system(size: 28))
               Text(muscle.title)
@@ -377,7 +377,7 @@ struct GymPlanWizardSheet: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
 
       Text("Überspringen möglich – tippe auf \"Weiter\"")
         .font(GainsFont.body(12))
@@ -390,13 +390,13 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 7: Einschränkungen
 
   private var limitationsStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Hast du Einschränkungen?",
         subtitle: "Problematische Übungen werden automatisch durch gelenkschonende Alternativen ersetzt."
       )
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(WorkoutLimitation.allCases) { limit in
           let selected = limitations.contains(limit)
           Button {
@@ -405,7 +405,7 @@ struct GymPlanWizardSheet: View {
               else         { limitations.insert(limit) }
             }
           } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: GainsSpacing.m) {
               Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                 .font(.system(size: 22))
                 .foregroundStyle(selected ? GainsColor.lime : GainsColor.softInk)
@@ -420,7 +420,7 @@ struct GymPlanWizardSheet: View {
               }
               Spacer()
             }
-            .padding(14)
+            .padding(GainsSpacing.m)
             .background(selected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
             .overlay(
@@ -434,7 +434,7 @@ struct GymPlanWizardSheet: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
 
       Text("Überspringen möglich – tippe auf \"Weiter\"")
         .font(GainsFont.body(12))
@@ -447,12 +447,12 @@ struct GymPlanWizardSheet: View {
   // MARK: - Step 8 (conditional): Laufziel
 
   private var runningStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Was ist dein Laufziel?",
         subtitle: "Bestimmt empfohlene Wochenkilometer und die Intensitätsverteilung im Plan."
       )
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         ForEach(RunningGoal.allCases, id: \.self) { rg in
           wizardChoiceRow(
             icon: runningGoalIcon(rg),
@@ -462,7 +462,7 @@ struct GymPlanWizardSheet: View {
           ) { withAnimation(.spring(response: 0.3)) { runningGoal = rg } }
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -471,13 +471,13 @@ struct GymPlanWizardSheet: View {
 
   private var summaryStep: some View {
     ScrollView(showsIndicators: false) {
-      VStack(spacing: 16) {
+      VStack(spacing: GainsSpacing.m) {
         wizardHeader(
           title: "Dein optimaler Plan",
           subtitle: "Die Engine hat deinen Plan auf Basis aktueller Sportwissenschaft berechnet."
         )
 
-        VStack(spacing: 14) {
+        VStack(spacing: GainsSpacing.m) {
           summaryRow(icon: "rectangle.split.3x1",   label: "Split",         value: autoSplitName)
           Divider().background(GainsColor.border)
           summaryRow(icon: "calendar",              label: "Trainingstage", value: "\(sessionsPerWeek)× pro Woche")
@@ -486,9 +486,9 @@ struct GymPlanWizardSheet: View {
           Divider().background(GainsColor.border)
           summaryRow(icon: "target",                label: "Fokus",         value: "\(trainingFocus.title) · \(goal.title)")
         }
-        .padding(18)
+        .padding(GainsSpacing.l)
         .gainsCardStyle(GainsColor.card)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         VStack(alignment: .leading, spacing: 0) {
           Text("WISSENSCHAFTLICHE PARAMETER")
@@ -496,13 +496,13 @@ struct GymPlanWizardSheet: View {
             .tracking(1.6)
             .foregroundStyle(GainsColor.softInk)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 18)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.top, GainsSpacing.m)
+            .padding(.bottom, GainsSpacing.s)
 
           LazyVGrid(
-            columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-            spacing: 10
+            columns: [GridItem(.flexible(), spacing: GainsSpacing.tight), GridItem(.flexible(), spacing: GainsSpacing.tight)],
+            spacing: GainsSpacing.tight
           ) {
             GainsMetricTile(
               label: "VOLUMEN",
@@ -529,24 +529,24 @@ struct GymPlanWizardSheet: View {
               style: .subdued
             )
           }
-          .padding(.horizontal, 14)
-          .padding(.bottom, 16)
+          .padding(.horizontal, GainsSpacing.m)
+          .padding(.bottom, GainsSpacing.m)
         }
         .gainsCardStyle(GainsColor.card)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         if includesRunStep {
-          VStack(spacing: 12) {
+          VStack(spacing: GainsSpacing.s) {
             summaryRow(icon: "figure.run",  label: "Laufziel",    value: runningGoal.title)
             Divider().background(GainsColor.border)
             summaryRow(icon: "road.lanes",  label: "Empfohlen",   value: "\(runningGoal.defaultWeeklyKilometers) km / Woche")
           }
-          .padding(18)
+          .padding(GainsSpacing.l)
           .gainsCardStyle(GainsColor.card)
-          .padding(.horizontal, 24)
+          .padding(.horizontal, GainsSpacing.xl)
         }
 
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           profileChip("\(experience.title) · \(equipment.title)")
           profileChip(recovery.title + " Recovery")
           if !prioritizedMuscles.isEmpty {
@@ -556,13 +556,13 @@ struct GymPlanWizardSheet: View {
             profileChip("Einschr.: \(limitations.map(\.title).sorted().joined(separator: ", "))")
           }
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         Text("Quellen: Schoenfeld 2017, Helms 2018, Grgic 2018 · Wochentage werden automatisch verteilt")
           .font(.system(size: 10))
           .foregroundStyle(GainsColor.mutedInk)
           .multilineTextAlignment(.center)
-          .padding(.horizontal, 24)
+          .padding(.horizontal, GainsSpacing.xl)
 
         Spacer(minLength: 8)
       }
@@ -638,13 +638,13 @@ struct GymPlanWizardSheet: View {
   // MARK: - Navigation Buttons
 
   private var navigationButtons: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       if step > 0 {
         Button {
           goingForward = false
           withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { step -= 1 }
         } label: {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Image(systemName: "chevron.left")
             Text("Zurück")
           }
@@ -667,7 +667,7 @@ struct GymPlanWizardSheet: View {
           withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { step += 1 }
         }
       } label: {
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Text(isSummaryStep ? "Plan übernehmen" : "Weiter")
           Image(systemName: isSummaryStep ? "checkmark" : "chevron.right")
         }
@@ -702,7 +702,7 @@ struct GymPlanWizardSheet: View {
   // MARK: - Reusable View Helpers
 
   private func wizardHeader(title: String, subtitle: String) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text(title)
         .font(GainsFont.title(22))
         .foregroundStyle(GainsColor.ink)
@@ -711,7 +711,7 @@ struct GymPlanWizardSheet: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 24)
+    .padding(.horizontal, GainsSpacing.xl)
   }
 
   private func wizardChoiceRow(
@@ -722,7 +722,7 @@ struct GymPlanWizardSheet: View {
     onTap: @escaping () -> Void
   ) -> some View {
     Button(action: onTap) {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Text(icon)
           .font(.system(size: 22))
           .frame(width: 44, height: 44)
@@ -744,7 +744,7 @@ struct GymPlanWizardSheet: View {
             .foregroundStyle(GainsColor.lime)
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(isSelected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
@@ -766,7 +766,7 @@ struct GymPlanWizardSheet: View {
     onTap: @escaping () -> Void
   ) -> some View {
     Button(action: onTap) {
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         Text(icon)
           .font(.system(size: 28))
         Text(title)
@@ -778,7 +778,7 @@ struct GymPlanWizardSheet: View {
           .lineLimit(3)
       }
       .frame(maxWidth: .infinity, minHeight: 100, alignment: .leading)
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(isSelected ? GainsColor.lime.opacity(0.18) : GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -809,8 +809,8 @@ struct GymPlanWizardSheet: View {
     Text(text)
       .font(GainsFont.label(12))
       .foregroundStyle(GainsColor.softInk)
-      .padding(.horizontal, 14)
-      .padding(.vertical, 7)
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.xsPlus)
       .background(GainsColor.elevated)
       .clipShape(Capsule())
   }

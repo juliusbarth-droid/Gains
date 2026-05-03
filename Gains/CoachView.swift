@@ -16,7 +16,7 @@ struct CoachView: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "COACH / TAGESPLAN",
           title: "Dein AI Coach",
@@ -34,7 +34,7 @@ struct CoachView: View {
   }
 
   private var coachFocusCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       SlashLabel(
         parts: ["HEUTE", "FOKUS"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk
       )
@@ -47,18 +47,18 @@ struct CoachView: View {
         .font(GainsFont.body())
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .background(GainsColor.ctaSurface)
-    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
     .overlay(alignment: .topLeading) {
-      RoundedRectangle(cornerRadius: 26, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
         .stroke(GainsColor.lime.opacity(0.22), lineWidth: 1)
     }
     .foregroundStyle(GainsColor.onCtaSurface)
   }
 
   private var scoreSection: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       CoachMetricCard(
         title: "Ernährung", value: "\(viewModel.nutritionAdherence)%", subtitle: "Plan erfüllt")
       CoachMetricCard(
@@ -67,12 +67,12 @@ struct CoachView: View {
   }
 
   private var routineTargetsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["ZIELE", "HEUTE"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk
       )
 
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         CoachMetricCard(
           title: "Schritte", value: "\(viewModel.stepGoal / 1000)k", subtitle: "Tagesziel")
         CoachMetricCard(
@@ -86,7 +86,7 @@ struct CoachView: View {
   }
 
   private var checkInSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["CHECK-IN", "KONSISTENZ"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
@@ -95,7 +95,7 @@ struct CoachView: View {
         Button {
           store.toggleCoachCheckIn(item.id)
         } label: {
-          HStack(spacing: 12) {
+          HStack(spacing: GainsSpacing.s) {
             Image(
               systemName: store.completedCoachCheckInIDs.contains(item.id)
                 ? "checkmark.circle.fill" : "circle"
@@ -105,7 +105,7 @@ struct CoachView: View {
               store.completedCoachCheckInIDs.contains(item.id) ? GainsColor.moss : GainsColor.border
             )
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
               Text(item.title)
                 .font(GainsFont.title(18))
                 .foregroundStyle(GainsColor.ink)
@@ -118,7 +118,7 @@ struct CoachView: View {
             Spacer()
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(16)
+          .padding(GainsSpacing.m)
           .background(
             store.completedCoachCheckInIDs.contains(item.id)
               ? GainsColor.lime.opacity(0.45) : GainsColor.card
@@ -131,24 +131,24 @@ struct CoachView: View {
   }
 
   private var recommendationSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["AKTIONEN", "PRIORITÄT"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
       ForEach(viewModel.recommendations, id: \.self) { recommendation in
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: GainsSpacing.tight) {
           Circle()
             .fill(GainsColor.lime)
             .frame(width: 10, height: 10)
-            .padding(.top, 6)
+            .padding(.top, GainsSpacing.xs)
 
           Text(recommendation)
             .font(GainsFont.body())
             .foregroundStyle(GainsColor.ink)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .padding(GainsSpacing.m)
         .gainsCardStyle()
       }
     }
@@ -161,7 +161,7 @@ private struct CoachMetricCard: View {
   let subtitle: String
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text(title.uppercased())
         .font(GainsFont.label(10))
         .tracking(2.5)
@@ -176,7 +176,7 @@ private struct CoachMetricCard: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
   }
 }

@@ -95,7 +95,7 @@ struct BarcodeScannerSheet: View {
         Text("Halte den Barcode in den Rahmen")
           .font(GainsFont.label(14))
           .foregroundStyle(.white.opacity(0.85))
-          .padding(.top, 24)
+          .padding(.top, GainsSpacing.xl)
 
         Spacer()
         Spacer()
@@ -106,7 +106,7 @@ struct BarcodeScannerSheet: View {
   // MARK: Loading
 
   private func loadingView(barcode: String) -> some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       Spacer()
       SwiftUI.ProgressView()
         .tint(GainsColor.lime)
@@ -128,9 +128,9 @@ struct BarcodeScannerSheet: View {
       GainsColor.background.ignoresSafeArea()
 
       ScrollView(showsIndicators: false) {
-        VStack(spacing: 20) {
+        VStack(spacing: GainsSpacing.l) {
           // Product header
-          VStack(spacing: 12) {
+          VStack(spacing: GainsSpacing.s) {
             Image(systemName: "barcode.viewfinder")
               .font(.system(size: 36, weight: .light))
               .foregroundStyle(GainsColor.lime)
@@ -146,10 +146,10 @@ struct BarcodeScannerSheet: View {
                 .foregroundStyle(GainsColor.mutedInk)
             }
           }
-          .padding(.top, 8)
+          .padding(.top, GainsSpacing.xsPlus)
 
           // Nährwerte pro 100g
-          VStack(spacing: 12) {
+          VStack(spacing: GainsSpacing.s) {
             Text("Nährwerte pro 100g")
               .font(GainsFont.label(13))
               .foregroundStyle(GainsColor.softInk)
@@ -165,7 +165,7 @@ struct BarcodeScannerSheet: View {
               nutritionCell("\(Int(result.fatPer100g))g", unit: "", label: "Fett", color: Color(hex: "FF8A4A"))
             }
           }
-          .padding(18)
+          .padding(GainsSpacing.l)
           .gainsCardStyle(GainsColor.card)
 
           // Gram input
@@ -178,7 +178,7 @@ struct BarcodeScannerSheet: View {
           Button {
             withAnimation { scanState = .scanning }
           } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: "barcode.viewfinder")
               Text("Erneut scannen")
             }
@@ -191,14 +191,14 @@ struct BarcodeScannerSheet: View {
           }
           .buttonStyle(.plain)
         }
-        .padding(20)
-        .padding(.bottom, 10)
+        .padding(GainsSpacing.l)
+        .padding(.bottom, GainsSpacing.tight)
       }
     }
   }
 
   private func nutritionCell(_ value: String, unit: String, label: String, color: Color) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(value + unit)
         .font(.system(size: 15, weight: .bold, design: .rounded))
         .foregroundStyle(color)
@@ -214,7 +214,7 @@ struct BarcodeScannerSheet: View {
   private func notFoundView(barcode: String) -> some View {
     ZStack {
       GainsColor.background.ignoresSafeArea()
-      VStack(spacing: 24) {
+      VStack(spacing: GainsSpacing.xl) {
         Spacer()
         Image(systemName: "exclamationmark.triangle")
           .font(.system(size: 44, weight: .light))
@@ -226,7 +226,7 @@ struct BarcodeScannerSheet: View {
           .font(GainsFont.body(14))
           .foregroundStyle(GainsColor.softInk)
           .multilineTextAlignment(.center)
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           Button {
             withAnimation { scanState = .scanning }
           } label: {
@@ -249,7 +249,7 @@ struct BarcodeScannerSheet: View {
           }
           .buttonStyle(.plain)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
         Spacer()
       }
     }
@@ -260,7 +260,7 @@ struct BarcodeScannerSheet: View {
   private func errorView(message: String) -> some View {
     ZStack {
       GainsColor.background.ignoresSafeArea()
-      VStack(spacing: 20) {
+      VStack(spacing: GainsSpacing.l) {
         Spacer()
         Image(systemName: "camera.fill")
           .font(.system(size: 44, weight: .light))
@@ -272,7 +272,7 @@ struct BarcodeScannerSheet: View {
           .font(GainsFont.body(14))
           .foregroundStyle(GainsColor.softInk)
           .multilineTextAlignment(.center)
-          .padding(.horizontal, 24)
+          .padding(.horizontal, GainsSpacing.xl)
         Button { dismiss() } label: {
           Text("Schließen")
             .font(GainsFont.label(15))
@@ -335,7 +335,7 @@ private struct BarcodeGramInputCard: View {
   }
 
   var body: some View {
-    VStack(spacing: 16) {
+    VStack(spacing: GainsSpacing.m) {
       Text("Menge eingeben")
         .font(GainsFont.label(13))
         .foregroundStyle(GainsColor.softInk)
@@ -345,7 +345,7 @@ private struct BarcodeGramInputCard: View {
         .accentColor(GainsColor.lime)
         .onChange(of: grams) { _, new in gramsText = "\(Int(new))" }
 
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         TextField("g", text: $gramsText)
           .keyboardType(.numberPad)
           .font(.system(size: 32, weight: .bold, design: .rounded))
@@ -362,7 +362,7 @@ private struct BarcodeGramInputCard: View {
       .frame(maxWidth: .infinity)
 
       // Quick amounts
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach([50, 100, 150, 200, 300], id: \.self) { amt in
           Button {
             grams = Double(amt); gramsText = "\(amt)"
@@ -370,7 +370,7 @@ private struct BarcodeGramInputCard: View {
             Text("\(amt)g")
               .font(GainsFont.label(11))
               .foregroundStyle(Int(grams) == amt ? GainsColor.moss : GainsColor.softInk)
-              .padding(.horizontal, 10).padding(.vertical, 6)
+              .padding(.horizontal, GainsSpacing.tight).padding(.vertical, GainsSpacing.xs)
               .background(Int(grams) == amt ? GainsColor.lime.opacity(0.2) : GainsColor.elevated)
               .clipShape(Capsule())
           }
@@ -401,7 +401,7 @@ private struct BarcodeGramInputCard: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle(GainsColor.card)
   }
 }

@@ -9,10 +9,12 @@ struct GainsScreen<Content: View>: View {
 
       ScrollView(showsIndicators: false) {
         content
-          .padding(.horizontal, 20)
-          .padding(.top, 18)
-          .padding(.bottom, 30)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.l)
+          .padding(.bottom, GainsSpacing.xl)
       }
+      // Scroll-Performance: kein Bounce wenn Inhalt kleiner als Viewport.
+      .scrollBounceBehavior(.basedOnSize)
     }
   }
 }
@@ -24,7 +26,7 @@ private struct ScreenHeaderView: View {
   @State private var showsInfo = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack(alignment: .top) {
         GainsWordmark(size: 18)
         Spacer()
@@ -33,14 +35,14 @@ private struct ScreenHeaderView: View {
           Button {
             showsInfo.toggle()
           } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: showsInfo ? "xmark.circle.fill" : "info.circle")
                 .font(.system(size: 13, weight: .semibold))
               Text(showsInfo ? "Schließen" : "Info")
                 .gainsCaption(showsInfo ? GainsColor.moss : GainsColor.softInk)
             }
             .foregroundStyle(showsInfo ? GainsColor.moss : GainsColor.softInk)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, GainsSpacing.tight)
             .frame(height: 32)
             .background(
               showsInfo ? GainsColor.lime.opacity(0.2) : GainsColor.elevated.opacity(0.88)
@@ -69,7 +71,7 @@ private struct ScreenHeaderView: View {
         .lineLimit(2)
 
       if showsInfo, !subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .top, spacing: GainsSpacing.tight) {
           Image(systemName: "info.circle.fill")
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(GainsColor.lime)
@@ -89,7 +91,7 @@ private struct ScreenHeaderView: View {
           }
           .buttonStyle(.plain)
         }
-        .padding(14)
+        .padding(GainsSpacing.m)
         .gainsCardStyle(GainsColor.elevated)
       }
     }

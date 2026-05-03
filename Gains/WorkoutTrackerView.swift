@@ -43,12 +43,12 @@ struct WorkoutTrackerView: View {
         if let workout = store.activeWorkout {
           ScrollViewReader { proxy in
             ScrollView(showsIndicators: false) {
-              VStack(spacing: 14) {
+              VStack(spacing: GainsSpacing.m) {
                 commandBar(workout)
                 exercisesList(workout)
               }
-              .padding(.horizontal, 18)
-              .padding(.top, 10)
+              .padding(.horizontal, GainsSpacing.l)
+              .padding(.top, GainsSpacing.tight)
               .padding(.bottom, 124)
             }
             // Auto-Scroll zur aktiven Übung (Optimierungs-Sweep 2026-05-03):
@@ -67,10 +67,10 @@ struct WorkoutTrackerView: View {
           }
 
           bottomCTA(workout)
-            .padding(.horizontal, 18)
-            .padding(.bottom, 18)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.l)
         } else {
-          VStack(spacing: 12) {
+          VStack(spacing: GainsSpacing.s) {
             Image(systemName: "figure.strengthtraining.traditional")
               .font(.system(size: 28, weight: .semibold))
               .foregroundStyle(GainsColor.softInk)
@@ -92,9 +92,15 @@ struct WorkoutTrackerView: View {
       .task(id: restTimerEndsAt) {
         guard let end = restTimerEndsAt else { return }
         let interval = end.timeIntervalSinceNow
-        if interval > 0 {
-          try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        // Bug-Fix: Wenn der Timer bereits abgelaufen ist (z.B. View war kurz
+        // geschlossen), leise clearen ohne Haptik/Sound. Andernfalls würde
+        // beim Wiederöffnen des Trackers sofort ein verspätetes „Pause vorbei"
+        // feuern, obwohl der User davon nichts mitbekommen hat.
+        guard interval > 0 else {
+          restTimerEndsAt = nil
+          return
         }
+        try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
         guard !Task.isCancelled, restTimerEndsAt == end else { return }
         let generator = UINotificationFeedbackGenerator()
         generator.prepare()
@@ -127,8 +133,8 @@ struct WorkoutTrackerView: View {
         }
         ToolbarItem(placement: .principal) {
           Text("KRAFT-TRAINER")
-            .font(GainsFont.label(11))
-            .tracking(2.2)
+            .font(GainsFont.eyebrow)
+            .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.ink)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
@@ -137,15 +143,15 @@ struct WorkoutTrackerView: View {
           Button {
             isFinishing = true
           } label: {
-            HStack(spacing: 5) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: "flag.checkered")
                 .font(.system(size: 10, weight: .heavy))
               Text("ENDE")
-                .font(GainsFont.label(10))
-                .tracking(1.4)
+                .font(GainsFont.eyebrow)
+                .tracking(GainsTracking.eyebrowTight)
             }
             .foregroundStyle(GainsColor.ember)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 32)
             .background(GainsColor.ember.opacity(0.14))
             .clipShape(Capsule())
@@ -171,16 +177,22 @@ struct WorkoutTrackerView: View {
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)
       }
+      // 2026-05-03 Intuitivitäts-Sweep P1-10: Reihenfolge so, dass die
+      // gewünschte Aktion (Speichern) als „bequemster" Button greifbar ist
+      // und „Verwerfen" als destructive sichtbar getrennt ganz unten landet.
+      // iOS bündelt destructive Buttons sowieso unten — wir sortieren sie
+      // explizit, damit der Mis-Tap-Abstand zur primären Save-Aktion größer
+      // wird.
       .alert("Workout beenden?", isPresented: $isFinishing) {
-        Button("Verwerfen", role: .destructive) {
-          store.discardWorkout()
-          dismiss()
-        }
         Button("Speichern") {
           store.finishWorkout()
           dismiss()
         }
         Button("Weiter trainieren", role: .cancel) {}
+        Button("Verwerfen", role: .destructive) {
+          store.discardWorkout()
+          dismiss()
+        }
       } message: {
         Text("Speicher deinen Fortschritt oder verwirf das aktuelle Workout.")
       }
@@ -199,8 +211,12 @@ struct WorkoutTrackerView: View {
         }
         Button("Abbrechen", role: .cancel) {}
       } message: { exercise in
+        // 2026-05-03 Intuitivitäts-Sweep P1-12: Wording ehrlich machen.
+        // Skip ≠ erledigt — die offenen Sätze bleiben ungezählt, damit
+        // Volumen/Stats nicht verfälscht werden. Du kannst die Übung später
+        // wieder aufklappen und Sätze nachtragen.
         let pending = exercise.sets.filter { !$0.isCompleted }.count
-        Text("\(pending) offene Sätze werden als erledigt markiert.")
+        Text("\(pending) offene Sätze bleiben ungezählt — Volumen und Stats werden nicht verfälscht.")
       }
     }
   }
@@ -218,22 +234,22 @@ struct WorkoutTrackerView: View {
     let isSet = activeSetID != nil
     let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.9))
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       // Zeile 1: LIVE-Chip · Titel · Gesamtdauer
-      HStack(alignment: .center, spacing: 10) {
-        HStack(spacing: 6) {
+      HStack(alignment: .center, spacing: GainsSpacing.tight) {
+        HStack(spacing: GainsSpacing.xs) {
           Circle()
             .fill(GainsColor.lime)
             .frame(width: 6, height: 6)
           Text("LIVE")
-            .font(GainsFont.label(9))
-            .tracking(2)
+            .font(GainsFont.eyebrow)
+            .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
         }
         .layoutPriority(0)
 
         Text(workout.title)
-          .font(GainsFont.title(20))
+          .font(GainsFont.title)
           .foregroundStyle(GainsColor.onCtaSurface)
           .lineLimit(1)
           .minimumScaleFactor(0.78)
@@ -241,7 +257,7 @@ struct WorkoutTrackerView: View {
 
         Spacer(minLength: 6)
 
-        HStack(spacing: 4) {
+        HStack(spacing: GainsSpacing.xxs) {
           Image(systemName: "clock")
             .font(.system(size: 10, weight: .semibold))
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
@@ -249,8 +265,7 @@ struct WorkoutTrackerView: View {
           // ganze Tracker. ⚡
           TimelineView(.periodic(from: .now, by: 1)) { context in
             Text(sessionTimeString(start: workout.startedAt, now: context.date))
-              .font(GainsFont.title(15))
-              .monospacedDigit()
+              .font(GainsFont.metricSmall)
               .foregroundStyle(GainsColor.onCtaSurface.opacity(0.92))
           }
         }
@@ -269,8 +284,8 @@ struct WorkoutTrackerView: View {
       // Zeile 3: Inline-Stats (Sätze · Volumen · HF) als kompakte Pills
       statsRow(workout)
     }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 14)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.m)
     .background(
       LinearGradient(
         colors: [GainsColor.ctaSurface, GainsColor.surfaceDeep],
@@ -289,30 +304,38 @@ struct WorkoutTrackerView: View {
   }
 
   private func timerRow(isRest: Bool, isSet: Bool, accent: Color) -> some View {
-    HStack(alignment: .center, spacing: 12) {
-      VStack(alignment: .leading, spacing: 4) {
+    HStack(alignment: .center, spacing: GainsSpacing.s) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(statusLabel(isRest: isRest, isSet: isSet))
-          .font(GainsFont.label(9))
-          .tracking(2)
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrowWide)
           .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
         // TimelineView (Optimierungs-Sweep 2026-05-03):
         // Nur dieser Text re-rendert sekündlich. Der Watch-Style-Ring
         // wird als Overlay um den Pause-Countdown gelegt.
+        // Bug-Fix: isRest/isSet werden INNERHALB der Closure frisch aus
+        // Store/State gelesen, nicht als gecapturer Outer-Value. Verhindert
+        // dass Ring und Label bis zu 1s nach Timer-Ablauf noch „eingefroren"
+        // als isRest=true weitergerendert werden.
         TimelineView(.periodic(from: .now, by: 1)) { context in
-          let label = liveTimerLabel(isRest: isRest, isSet: isSet, now: context.date)
+          let liveIsRest = restTimerEndsAt != nil
+          let liveIsSet  = activeSetID != nil
+          let liveAccent: Color = liveIsRest ? GainsColor.ember
+            : (liveIsSet ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.9))
+          let label = liveTimerLabel(isRest: liveIsRest, isSet: liveIsSet, now: context.date)
           ZStack(alignment: .leading) {
-            if isRest {
-              watchStyleRestRing(now: context.date, accent: accent)
+            if liveIsRest {
+              watchStyleRestRing(now: context.date, accent: liveAccent)
                 .frame(width: 64, height: 64)
                 .offset(x: -10)
             }
             Text(label)
               .font(.system(size: 50, weight: .semibold, design: .rounded))
               .monospacedDigit()
-              .foregroundStyle(accent)
+              .foregroundStyle(liveAccent)
               .lineLimit(1)
               .minimumScaleFactor(0.7)
-              .padding(.leading, isRest ? 6 : 0)
+              .padding(.leading, liveIsRest ? 6 : 0)
           }
         }
       }
@@ -344,15 +367,15 @@ struct WorkoutTrackerView: View {
         )
         .rotationEffect(.degrees(-90))
         .shadow(color: accent.opacity(0.45), radius: 6)
-        .animation(.linear(duration: 0.95), value: progress)
+        .animation(.linear(duration: 1.0), value: progress)
     }
   }
 
   @ViewBuilder
   private func contextActions(isRest: Bool, isSet: Bool) -> some View {
     if isRest {
-      VStack(spacing: 6) {
-        HStack(spacing: 6) {
+      VStack(spacing: GainsSpacing.xs) {
+        HStack(spacing: GainsSpacing.xs) {
           adjustChip("−15", tone: .neutral) { adjustRest(by: -15) }
           adjustChip("+15", tone: .neutral) { adjustRest(by: 15) }
         }
@@ -365,21 +388,20 @@ struct WorkoutTrackerView: View {
         stopActiveSet()
       }
     } else if let bpm = healthKit.liveHeartRate {
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         Image(systemName: "heart.fill")
-          .font(.system(size: 9, weight: .bold))
+          .font(.system(size: 10, weight: .bold))
           .foregroundStyle(GainsColor.ember)
         Text("\(bpm)")
-          .font(GainsFont.title(15))
-          .monospacedDigit()
+          .font(GainsFont.metricSmall)
           .foregroundStyle(GainsColor.onCtaSurface)
         Text("BPM")
-          .font(GainsFont.label(8))
-          .tracking(1.6)
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
       }
-      .padding(.horizontal, 10)
-      .padding(.vertical, 6)
+      .padding(.horizontal, GainsSpacing.tight)
+      .padding(.vertical, GainsSpacing.xs)
       .background(GainsColor.ember.opacity(0.18))
       .clipShape(Capsule())
     }
@@ -390,11 +412,11 @@ struct WorkoutTrackerView: View {
   private func adjustChip(_ title: String, tone: AdjustTone, action: @escaping () -> Void) -> some View {
     Button(action: action) {
       Text(title)
-        .font(GainsFont.label(10))
-        .tracking(1.4)
+        .font(GainsFont.eyebrow)
+        .tracking(GainsTracking.eyebrowTight)
         .foregroundStyle(tone == .accent ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.85))
         .frame(minWidth: 60, minHeight: 32)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, GainsSpacing.s)
         .background(
           tone == .accent
             ? GainsColor.lime.opacity(0.18)
@@ -407,7 +429,7 @@ struct WorkoutTrackerView: View {
   }
 
   private func statsRow(_ workout: WorkoutSession) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       inlineStat(
         label: "SÄTZE",
         value: "\(workout.completedSets)/\(workout.totalSets)",
@@ -441,8 +463,8 @@ struct WorkoutTrackerView: View {
           .frame(width: 32, height: 32)
           .rotationEffect(.degrees(-90))
         Text("\(Int(progress * 100))")
-          .font(GainsFont.label(9))
-          .tracking(0.6)
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrowTight)
           .monospacedDigit()
           .foregroundStyle(GainsColor.onCtaSurface)
       }
@@ -450,18 +472,17 @@ struct WorkoutTrackerView: View {
   }
 
   private func inlineStat(label: String, value: String, accent: Color) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       RoundedRectangle(cornerRadius: 1.5, style: .continuous)
         .fill(accent)
         .frame(width: 3, height: 22)
       VStack(alignment: .leading, spacing: 1) {
         Text(label)
-          .font(GainsFont.label(8))
-          .tracking(1.4)
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
         Text(value)
-          .font(GainsFont.title(13))
-          .monospacedDigit()
+          .font(GainsFont.metricSmall)
           .foregroundStyle(GainsColor.onCtaSurface)
           .lineLimit(1)
           .minimumScaleFactor(0.8)
@@ -479,7 +500,7 @@ struct WorkoutTrackerView: View {
       finishedCard
     }
 
-    VStack(spacing: 10) {
+    VStack(spacing: GainsSpacing.tight) {
       ForEach(Array(workout.exercises.enumerated()), id: \.element.id) { index, exercise in
         exerciseCard(
           exercise,
@@ -505,14 +526,13 @@ struct WorkoutTrackerView: View {
       isActive ? GainsColor.lime.opacity(0.55)
       : (isAllDone ? GainsColor.moss.opacity(0.45) : GainsColor.border.opacity(0.45))
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       // Header (kein verschachtelter Button — Tap-Gesture für Collapse)
-      HStack(alignment: .center, spacing: 12) {
+      HStack(alignment: .center, spacing: GainsSpacing.s) {
         // Index-Badge + Titel-Block ist tappable für Collapse
-        HStack(alignment: .center, spacing: 12) {
+        HStack(alignment: .center, spacing: GainsSpacing.s) {
           Text("\(index)")
-            .font(GainsFont.title(13))
-            .monospacedDigit()
+            .font(GainsFont.metricSmall)
             .foregroundStyle(
               isAllDone ? GainsColor.onLime : (isActive ? GainsColor.onLime : GainsColor.ink)
             )
@@ -525,27 +545,27 @@ struct WorkoutTrackerView: View {
             .clipShape(Circle())
 
           VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 6) {
+            HStack(spacing: GainsSpacing.xs) {
               Text(exercise.name)
-                .font(GainsFont.title(17))
+                .font(GainsFont.headline)
                 .foregroundStyle(GainsColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
               if isActive {
                 Text("AKTIV")
-                  .font(GainsFont.label(8))
-                  .tracking(1.4)
+                  .font(GainsFont.eyebrow)
+                  .tracking(GainsTracking.eyebrowTight)
                   .foregroundStyle(GainsColor.onLime)
-                  .padding(.horizontal, 6)
-                  .frame(height: 16)
+                  .padding(.horizontal, GainsSpacing.xs)
+                  .frame(height: 18)
                   .background(GainsColor.lime)
                   .clipShape(Capsule())
               }
             }
-            HStack(spacing: 6) {
+            HStack(spacing: GainsSpacing.xs) {
               Text(exercise.targetMuscle.uppercased())
-                .font(GainsFont.label(9))
-                .tracking(1.4)
+                .font(GainsFont.eyebrow)
+                .tracking(GainsTracking.eyebrow)
                 .foregroundStyle(GainsColor.softInk)
               progressDots(exercise: exercise)
             }
@@ -579,8 +599,7 @@ struct WorkoutTrackerView: View {
         .accessibilityLabel("Ausführung anzeigen")
 
         Text("\(completed)/\(total)")
-          .font(GainsFont.title(15))
-          .monospacedDigit()
+          .font(GainsFont.metricSmall)
           .foregroundStyle(isAllDone ? GainsColor.moss : GainsColor.ink)
 
         if !isActive {
@@ -606,13 +625,12 @@ struct WorkoutTrackerView: View {
 
       if !isCollapsed {
         // Letztes Mal Hinweis + "Ausführung"-Hinweis bei aktiver Übung
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           if let firstSet = exercise.sets.first, !isAllDone {
             Text(
               "Ziel: \(formattedWeightInline(firstSet.weight)) kg × \(firstSet.reps) Reps"
             )
-            .font(GainsFont.label(11))
-            .tracking(0.6)
+            .font(GainsFont.caption)
             .foregroundStyle(GainsColor.softInk)
           }
 
@@ -621,15 +639,15 @@ struct WorkoutTrackerView: View {
             Button {
               openFormGuide(for: exercise)
             } label: {
-              HStack(spacing: 5) {
+              HStack(spacing: GainsSpacing.xs) {
                 Image(systemName: "play.rectangle.fill")
                   .font(.system(size: 10, weight: .bold))
                 Text("AUSFÜHRUNG")
-                  .font(GainsFont.label(9))
-                  .tracking(1.2)
+                  .font(GainsFont.eyebrow)
+                  .tracking(GainsTracking.eyebrowTight)
               }
               .foregroundStyle(GainsColor.onLime)
-              .padding(.horizontal, 10)
+              .padding(.horizontal, GainsSpacing.tight)
               .frame(height: 24)
               .background(GainsColor.lime)
               .clipShape(Capsule())
@@ -638,7 +656,7 @@ struct WorkoutTrackerView: View {
           }
         }
 
-        VStack(spacing: 6) {
+        VStack(spacing: GainsSpacing.xs) {
           ForEach(exercise.sets) { set in
             CompactSetRow(
               exerciseID: exercise.id,
@@ -669,7 +687,7 @@ struct WorkoutTrackerView: View {
           }
         }
 
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Button {
             store.addSet(to: exercise.id)
           } label: {
@@ -713,15 +731,15 @@ struct WorkoutTrackerView: View {
             Button {
               skipConfirmExercise = exercise
             } label: {
-              HStack(spacing: 5) {
+              HStack(spacing: GainsSpacing.xs) {
                 Image(systemName: "forward.fill")
-                  .font(.system(size: 9, weight: .bold))
+                  .font(.system(size: 10, weight: .bold))
                 Text("ÜBERSPRINGEN")
-                  .font(GainsFont.label(9))
-                  .tracking(1.2)
+                  .font(GainsFont.eyebrow)
+                  .tracking(GainsTracking.eyebrowTight)
               }
               .foregroundStyle(GainsColor.softInk)
-              .padding(.horizontal, 10)
+              .padding(.horizontal, GainsSpacing.tight)
               .frame(height: 28)
               .overlay(
                 Capsule()
@@ -733,8 +751,8 @@ struct WorkoutTrackerView: View {
         }
       }
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(
       isActive
         ? GainsColor.card
@@ -754,14 +772,14 @@ struct WorkoutTrackerView: View {
     .onChange(of: isAllDone) { _, allDone in
       guard allDone, lastAutoCollapsedID != exercise.id else { return }
       withAnimation(.easeInOut(duration: 0.22)) {
-        collapsedExerciseIDs.insert(exercise.id)
+        _ = collapsedExerciseIDs.insert(exercise.id)
       }
       lastAutoCollapsedID = exercise.id
     }
   }
 
   private func progressDots(exercise: TrackedExercise) -> some View {
-    HStack(spacing: 4) {
+    HStack(spacing: GainsSpacing.xxs) {
       ForEach(exercise.sets) { set in
         Circle()
           .fill(set.isCompleted ? GainsColor.lime : GainsColor.border.opacity(0.55))
@@ -771,15 +789,15 @@ struct WorkoutTrackerView: View {
   }
 
   private func chipButton(icon: String, title: String) -> some View {
-    HStack(spacing: 5) {
+    HStack(spacing: GainsSpacing.xs) {
       Image(systemName: icon)
         .font(.system(size: 10, weight: .bold))
       Text(title.uppercased())
-        .font(GainsFont.label(9))
-        .tracking(1.4)
+        .font(GainsFont.eyebrow)
+        .tracking(GainsTracking.eyebrow)
     }
     .foregroundStyle(GainsColor.ink)
-    .padding(.horizontal, 10)
+    .padding(.horizontal, GainsSpacing.tight)
     .frame(height: 28)
     .background(GainsColor.background.opacity(0.85))
     .overlay(
@@ -790,23 +808,22 @@ struct WorkoutTrackerView: View {
   }
 
   private var finishedCard: some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: GainsSpacing.s) {
       Image(systemName: "checkmark.seal.fill")
         .font(.system(size: 22, weight: .semibold))
         .foregroundStyle(GainsColor.moss)
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text("Alle Sätze erledigt")
-          .font(GainsFont.title(16))
+          .font(GainsFont.headline)
           .foregroundStyle(GainsColor.ink)
         Text("Stark – jetzt Workout abschließen.")
-          .font(GainsFont.label(11))
-          .tracking(0.6)
+          .font(GainsFont.caption)
           .foregroundStyle(GainsColor.softInk)
       }
       Spacer()
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.elevated)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -852,27 +869,25 @@ struct WorkoutTrackerView: View {
         toggleSetTimer(for: pending.set.id)
       }
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: icon)
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
 
         Text(title)
-          .font(GainsFont.label(14))
-          .tracking(2)
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrowWide)
           .foregroundStyle(GainsColor.lime)
 
         Spacer()
 
         if !isComplete {
           Text("\(workout.completedSets)/\(workout.totalSets)")
-            .font(GainsFont.label(10))
-            .tracking(1.4)
+            .font(GainsFont.metricSmall)
             .foregroundStyle(GainsColor.lime.opacity(0.7))
-            .monospacedDigit()
         }
       }
-      .padding(.horizontal, 22)
+      .padding(.horizontal, GainsSpacing.xl)
       .frame(height: 60)
       .background(GainsColor.ctaSurface)
       .overlay(
@@ -924,7 +939,12 @@ struct WorkoutTrackerView: View {
     }
     store.toggleSet(exerciseID: exerciseID, setID: set.id)
     if !wasCompleted {
-      restTimerEndsAt = Calendar.current.date(byAdding: .second, value: restDuration, to: Date())
+      // Bug-Fix: Kein Rest-Timer nach dem allerletzten Satz — es gibt nichts
+      // mehr, wofür man sich erholen müsste. nextPending liest den aktuellen
+      // Store-Zustand (nach toggleSet), daher ist die Prüfung korrekt.
+      if let workout = store.activeWorkout, nextPending(in: workout) != nil {
+        restTimerEndsAt = Calendar.current.date(byAdding: .second, value: restDuration, to: Date())
+      }
     } else {
       restTimerEndsAt = nil
     }
@@ -941,10 +961,11 @@ struct WorkoutTrackerView: View {
   }
 
   private func performSkipExercise(_ exercise: TrackedExercise) {
-    // Markiere alle ausstehenden Sätze als erledigt, um zur nächsten Übung zu springen.
-    for set in exercise.sets where !set.isCompleted {
-      store.toggleSet(exerciseID: exercise.id, setID: set.id)
-    }
+    // 2026-05-03 Intuitivitäts-Sweep P1-12: Skip darf Volumen/Stats nicht
+    // verfälschen — offene Sätze bleiben ungezählt (nicht auf erledigt
+    // gesetzt). Wir collapsen die Übung lediglich und stoppen ggf. den
+    // aktiven Satz. So stimmt das Tracker-„X / Y"-Verhältnis am Ende mit
+    // dem überein, was wirklich gemacht wurde.
     if let active = activeSetID, exercise.sets.contains(where: { $0.id == active }) {
       stopActiveSet()
     }
@@ -1083,12 +1104,10 @@ private struct CompactSetRow: View {
       return GainsColor.border.opacity(0.4)
     }()
 
-    return HStack(spacing: 8) {
+    return HStack(spacing: GainsSpacing.xsPlus) {
       // Set-Index
       Text("\(set.order)")
-        .font(GainsFont.label(11))
-        .tracking(0.4)
-        .monospacedDigit()
+        .font(GainsFont.metricSmall)
         .foregroundStyle(
           isCompleted ? GainsColor.onLime : (isFocused ? GainsColor.onLime : GainsColor.ink)
         )
@@ -1148,8 +1167,8 @@ private struct CompactSetRow: View {
       .buttonStyle(.plain)
       .accessibilityLabel(isCompleted ? "Satz erledigt" : "Satz als erledigt markieren")
     }
-    .padding(.horizontal, 8)
-    .padding(.vertical, 8)
+    .padding(.horizontal, GainsSpacing.xsPlus)
+    .padding(.vertical, GainsSpacing.xsPlus)
     .background(
       isCompleted
         ? GainsColor.lime.opacity(0.14)
@@ -1217,12 +1236,11 @@ private struct CompactSetRow: View {
 
       VStack(spacing: 1) {
         Text(unit)
-          .font(GainsFont.label(8))
-          .tracking(1.2)
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrowTight)
           .foregroundStyle(GainsColor.softInk)
         TextField("0", text: text)
-          .font(GainsFont.title(15))
-          .monospacedDigit()
+          .font(GainsFont.metric)
           .foregroundStyle(GainsColor.ink)
           .keyboardType(keyboard)
           .multilineTextAlignment(.center)

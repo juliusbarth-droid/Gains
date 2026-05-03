@@ -56,7 +56,7 @@ struct CommunityView: View {
   @ViewBuilder
   private var legacyBody: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "CREW / CONNECTION",
           title: "Fortschritt im Feed",
@@ -91,12 +91,12 @@ struct CommunityView: View {
 
   private var surfacePicker: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         ForEach(CommunitySurface.allCases) { surface in
           Button {
             selectedSurface = surface
           } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: surface.systemImage)
                 .font(.system(size: 11, weight: .semibold))
               Text(surface.title)
@@ -104,7 +104,7 @@ struct CommunityView: View {
                 .tracking(1.5)
             }
             .foregroundStyle(selectedSurface == surface ? GainsColor.ink : GainsColor.softInk)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, GainsSpacing.m)
             .frame(height: 38)
             .background(selectedSurface == surface ? GainsColor.lime : GainsColor.card)
             .clipShape(Capsule())
@@ -120,7 +120,7 @@ struct CommunityView: View {
   private var visibleContent: some View {
     switch selectedSurface {
     case .feed:
-      VStack(alignment: .leading, spacing: 18) {
+      VStack(alignment: .leading, spacing: GainsSpacing.l) {
         featuredFeedHeader
         challengeCard
         filterSection
@@ -131,7 +131,7 @@ struct CommunityView: View {
         )
       }
     case .mine:
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         recentActivitySection
         composerSection
         filterSection
@@ -142,7 +142,7 @@ struct CommunityView: View {
         )
       }
     case .circles:
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         contactsSection
         challengeCard
       }
@@ -156,12 +156,12 @@ struct CommunityView: View {
   }
 
   private var recentActivitySection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["LETZTE", "AKTIVITÄTEN"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         recentActivityCard(
           title: store.lastCompletedWorkout?.title ?? "Noch kein Workout geteilt",
           subtitle: store.lastCompletedWorkout.map {
@@ -190,7 +190,7 @@ struct CommunityView: View {
   }
 
   private var challengeCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       SlashLabel(
         parts: ["LIVE", "CHALLENGE"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.onCtaSurface.opacity(0.75))
@@ -203,13 +203,13 @@ struct CommunityView: View {
         .font(GainsFont.body())
         .foregroundStyle(GainsColor.onCtaSurface.opacity(0.8))
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(viewModel.challengeBenefits, id: \.self) { benefit in
           Text(benefit)
             .font(GainsFont.label(9))
             .tracking(1.4)
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.82))
-            .padding(.horizontal, 10)
+            .padding(.horizontal, GainsSpacing.tight)
             .frame(height: 26)
             .background(GainsColor.onCtaSurface.opacity(0.08))
             .clipShape(Capsule())
@@ -236,17 +236,17 @@ struct CommunityView: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .background(GainsColor.ctaSurface)
-    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
   }
 
   private var featuredFeedHeader: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["FEED", "FIRST"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk)
 
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         Text(store.communityHighlightHeadline)
           .font(GainsFont.title(24))
           .foregroundStyle(GainsColor.ink)
@@ -257,18 +257,18 @@ struct CommunityView: View {
           .foregroundStyle(GainsColor.softInk)
           .lineLimit(3)
       }
-      .padding(18)
+      .padding(GainsSpacing.l)
       .gainsCardStyle()
     }
   }
 
   private var contactsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["KONTAKTE", "COMMUNITY"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         Text(store.contactsStatusTitle)
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.ink)
@@ -290,7 +290,7 @@ struct CommunityView: View {
           .buttonStyle(.plain)
         } else if store.hasContactsAccess && !store.communityContacts.isEmpty {
           ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
+            HStack(spacing: GainsSpacing.tight) {
               ForEach(store.communityContacts) { contact in
                 communityContactCard(contact)
               }
@@ -299,19 +299,19 @@ struct CommunityView: View {
           }
         }
       }
-      .padding(18)
+      .padding(GainsSpacing.l)
       .gainsCardStyle()
     }
   }
 
   private var composerSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["SCHNELL", "POSTEN"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(store.communityComposerActions) { action in
             Button {
               store.createCommunityPost(from: action)
@@ -321,7 +321,7 @@ struct CommunityView: View {
                 .font(GainsFont.label(10))
                 .tracking(1.5)
                 .foregroundStyle(GainsColor.ink)
-                .padding(.horizontal, 14)
+                .padding(.horizontal, GainsSpacing.m)
                 .frame(height: 40)
                 .background(GainsColor.elevated)
                 .overlay {
@@ -338,13 +338,13 @@ struct CommunityView: View {
   }
 
   private var filterSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["FEED", "FILTER"], primaryColor: GainsColor.lime, secondaryColor: GainsColor.softInk
       )
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(CommunityPostType.allCases, id: \.self) { type in
             Button {
               selectedFeedType = type
@@ -353,7 +353,7 @@ struct CommunityView: View {
                 .font(GainsFont.label(10))
                 .tracking(1.5)
                 .foregroundStyle(selectedFeedType == type ? GainsColor.ink : GainsColor.softInk)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, GainsSpacing.m)
                 .frame(height: 38)
                 .background(selectedFeedType == type ? GainsColor.lime : GainsColor.card)
                 .clipShape(Capsule())
@@ -369,7 +369,7 @@ struct CommunityView: View {
   @ViewBuilder
   private func feedSection(emptyTitle: String, emptyDescription: String) -> some View {
     if filteredPosts.isEmpty {
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         Text(emptyTitle)
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.ink)
@@ -378,10 +378,10 @@ struct CommunityView: View {
           .font(GainsFont.body())
           .foregroundStyle(GainsColor.softInk)
       }
-      .padding(18)
+      .padding(GainsSpacing.l)
       .gainsCardStyle()
     } else {
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         ForEach(filteredPosts) { post in
           CommunityFeedCard(post: post)
             .environmentObject(store)
@@ -391,7 +391,7 @@ struct CommunityView: View {
   }
 
   private func communitySummaryCard(title: String, value: String) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text(title.uppercased())
         .font(GainsFont.label(9))
         .tracking(2)
@@ -403,7 +403,7 @@ struct CommunityView: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .frame(minHeight: 92, alignment: .leading)
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -416,8 +416,8 @@ struct CommunityView: View {
     isEnabled: Bool,
     action: @escaping () -> Void
   ) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(alignment: .top, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(alignment: .top, spacing: GainsSpacing.s) {
         Circle()
           .fill(GainsColor.lime.opacity(0.32))
           .frame(width: 42, height: 42)
@@ -426,7 +426,7 @@ struct CommunityView: View {
               .foregroundStyle(GainsColor.moss)
           }
 
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xs) {
           Text(title)
             .font(GainsFont.title(20))
             .foregroundStyle(GainsColor.ink)
@@ -456,7 +456,7 @@ struct CommunityView: View {
       .buttonStyle(.plain)
       .disabled(!isEnabled)
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -465,7 +465,7 @@ struct CommunityView: View {
       .font(GainsFont.label(9))
       .tracking(1.8)
       .foregroundStyle(GainsColor.moss)
-      .padding(.horizontal, 10)
+      .padding(.horizontal, GainsSpacing.tight)
       .frame(height: 24)
       .background(GainsColor.lime.opacity(0.4))
       .clipShape(Capsule())
@@ -479,7 +479,7 @@ struct CommunityView: View {
   }
 
   private func communityContactCard(_ contact: CommunityContact) -> some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Circle()
         .fill(GainsColor.ctaSurface)
         .frame(width: 44, height: 44)
@@ -500,7 +500,7 @@ struct CommunityView: View {
         .lineLimit(1)
     }
     .frame(width: 150, alignment: .leading)
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle(GainsColor.lime.opacity(0.18))
   }
 }
@@ -510,14 +510,14 @@ private struct CommunityFeedCard: View {
   let post: CommunityPost
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       HStack {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(post.author)
             .font(GainsFont.title(18))
             .foregroundStyle(GainsColor.ink)
 
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             Text(post.handle.uppercased())
               .font(GainsFont.label(9))
               .tracking(1.8)
@@ -547,9 +547,9 @@ private struct CommunityFeedCard: View {
         .foregroundStyle(GainsColor.softInk)
         .lineLimit(2)
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         ForEach(post.highlightMetrics) { metric in
-          VStack(alignment: .leading, spacing: 4) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
             Text(metric.value)
               .font(GainsFont.title(16))
               .foregroundStyle(GainsColor.ink)
@@ -560,13 +560,13 @@ private struct CommunityFeedCard: View {
               .foregroundStyle(GainsColor.softInk)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(12)
+          .padding(GainsSpacing.s)
           .background(GainsColor.background.opacity(0.8))
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
       }
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         Button {
           store.toggleLike(postID: post.id)
         } label: {
@@ -602,7 +602,7 @@ private struct CommunityFeedCard: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -633,7 +633,7 @@ private struct CommunityFeedCard: View {
         .font(GainsFont.label(9))
         .tracking(1.8)
         .foregroundStyle(GainsColor.onCtaSurface.opacity(0.8))
-        .padding(16)
+        .padding(GainsSpacing.m)
     }
   }
 
@@ -655,7 +655,7 @@ private struct CommunityFeedCard: View {
       .font(GainsFont.label(9))
       .tracking(1.8)
       .foregroundStyle(GainsColor.moss)
-      .padding(.horizontal, 10)
+      .padding(.horizontal, GainsSpacing.tight)
       .frame(height: 24)
       .background(GainsColor.lime.opacity(0.4))
       .clipShape(Capsule())
@@ -667,7 +667,7 @@ private struct CommunityFeedCard: View {
       .tracking(1.4)
       .foregroundStyle(isActive ? GainsColor.moss : GainsColor.softInk)
       .frame(height: 36)
-      .padding(.horizontal, 12)
+      .padding(.horizontal, GainsSpacing.s)
       .background(isActive ? GainsColor.lime.opacity(0.45) : GainsColor.background.opacity(0.85))
       .clipShape(Capsule())
   }
@@ -689,8 +689,8 @@ private struct ForumSurface: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
-      VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         SlashLabel(
           parts: ["FORUM", "AUSTAUSCH"], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
@@ -707,7 +707,7 @@ private struct ForumSurface: View {
       Button {
         showingComposer = true
       } label: {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           Image(systemName: "plus.bubble.fill")
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(GainsColor.lime)
@@ -717,7 +717,7 @@ private struct ForumSurface: View {
             .foregroundStyle(GainsColor.lime)
           Spacer()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 48)
         .background(GainsColor.ctaSurface)
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -727,7 +727,7 @@ private struct ForumSurface: View {
       if visibleThreads.isEmpty {
         emptyState
       } else {
-        VStack(spacing: 12) {
+        VStack(spacing: GainsSpacing.s) {
           ForEach(visibleThreads) { thread in
             ForumThreadCard(
               thread: thread,
@@ -748,7 +748,7 @@ private struct ForumSurface: View {
 
   private var categoryFilter: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         categoryChip(label: "Alle", systemImage: "tray.full", isSelected: selectedCategory == nil) {
           selectedCategory = nil
         }
@@ -770,7 +770,7 @@ private struct ForumSurface: View {
     label: String, systemImage: String, isSelected: Bool, action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: systemImage)
           .font(.system(size: 11, weight: .semibold))
         Text(label)
@@ -778,7 +778,7 @@ private struct ForumSurface: View {
           .tracking(1.4)
       }
       .foregroundStyle(isSelected ? GainsColor.ink : GainsColor.softInk)
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 36)
       .background(isSelected ? GainsColor.lime : GainsColor.card)
       .clipShape(Capsule())
@@ -787,7 +787,7 @@ private struct ForumSurface: View {
   }
 
   private var emptyState: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("Hier ist es noch ruhig")
         .font(GainsFont.title(20))
         .foregroundStyle(GainsColor.ink)
@@ -795,7 +795,7 @@ private struct ForumSurface: View {
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .frame(maxWidth: .infinity, alignment: .leading)
     .gainsCardStyle()
   }
@@ -809,9 +809,9 @@ private struct ForumThreadCard: View {
   @State private var replyDraft: String = ""
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(thread.category.title.uppercased())
             .font(GainsFont.label(9))
             .tracking(1.7)
@@ -823,7 +823,7 @@ private struct ForumThreadCard: View {
         }
         Spacer()
         if let location = thread.location {
-          HStack(spacing: 4) {
+          HStack(spacing: GainsSpacing.xxs) {
             Image(systemName: "mappin")
               .font(.system(size: 10, weight: .semibold))
             Text(location)
@@ -831,7 +831,7 @@ private struct ForumThreadCard: View {
               .tracking(1.2)
           }
           .foregroundStyle(GainsColor.softInk)
-          .padding(.horizontal, 8)
+          .padding(.horizontal, GainsSpacing.xsPlus)
           .frame(height: 22)
           .background(GainsColor.background.opacity(0.85))
           .clipShape(Capsule())
@@ -843,7 +843,7 @@ private struct ForumThreadCard: View {
         .foregroundStyle(GainsColor.softInk)
         .lineLimit(isExpanded ? nil : 3)
 
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Label(thread.author, systemImage: "person.fill")
           .font(GainsFont.label(10))
           .tracking(1.2)
@@ -859,10 +859,11 @@ private struct ForumThreadCard: View {
         Button {
           store.toggleForumLike(threadID: thread.id)
         } label: {
-          Label("\(thread.likeCount)", systemImage: "hand.thumbsup.fill")
+          let isLiked = store.hasLikedThread(thread.id)
+          Label("\(thread.likeCount)", systemImage: isLiked ? "hand.thumbsup.fill" : "hand.thumbsup")
             .font(GainsFont.label(10))
             .tracking(1.2)
-            .foregroundStyle(GainsColor.moss)
+            .foregroundStyle(isLiked ? GainsColor.lime : GainsColor.moss)
         }
         .buttonStyle(.plain)
 
@@ -876,14 +877,14 @@ private struct ForumThreadCard: View {
       }
 
       if isExpanded {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.tight) {
           if thread.replies.isEmpty {
             Text("Noch keine Antworten – sei die Erste oder der Erste.")
               .font(GainsFont.body(12))
               .foregroundStyle(GainsColor.softInk)
           } else {
             ForEach(thread.replies) { reply in
-              VStack(alignment: .leading, spacing: 4) {
+              VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
                 HStack {
                   Text(reply.author)
                     .font(GainsFont.label(10))
@@ -898,19 +899,19 @@ private struct ForumThreadCard: View {
                   .font(GainsFont.body(13))
                   .foregroundStyle(GainsColor.ink)
               }
-              .padding(12)
+              .padding(GainsSpacing.s)
               .frame(maxWidth: .infinity, alignment: .leading)
               .background(GainsColor.background.opacity(0.7))
               .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
           }
 
-          HStack(spacing: 10) {
+          HStack(spacing: GainsSpacing.tight) {
             TextField("Antwort schreiben…", text: $replyDraft, axis: .vertical)
               .lineLimit(1...4)
               .font(GainsFont.body(13))
-              .padding(.horizontal, 12)
-              .padding(.vertical, 10)
+              .padding(.horizontal, GainsSpacing.s)
+              .padding(.vertical, GainsSpacing.tight)
               .background(GainsColor.background.opacity(0.9))
               .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
@@ -931,7 +932,7 @@ private struct ForumThreadCard: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .gainsCardStyle()
   }
@@ -994,8 +995,8 @@ private struct MeetupSurface: View {
   @State private var showingComposer = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
-      VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         SlashLabel(
           parts: ["TREFFS", "ZUSAMMEN"], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
@@ -1012,7 +1013,7 @@ private struct MeetupSurface: View {
       Button {
         showingComposer = true
       } label: {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           Image(systemName: "calendar.badge.plus")
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(GainsColor.lime)
@@ -1022,7 +1023,7 @@ private struct MeetupSurface: View {
             .foregroundStyle(GainsColor.lime)
           Spacer()
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 48)
         .background(GainsColor.ctaSurface)
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -1030,7 +1031,7 @@ private struct MeetupSurface: View {
       .buttonStyle(.plain)
 
       if store.upcomingMeetups.isEmpty {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
           Text("Noch keine Treffs in der Pipeline")
             .font(GainsFont.title(20))
             .foregroundStyle(GainsColor.ink)
@@ -1038,11 +1039,11 @@ private struct MeetupSurface: View {
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.softInk)
         }
-        .padding(18)
+        .padding(GainsSpacing.l)
         .frame(maxWidth: .infinity, alignment: .leading)
         .gainsCardStyle()
       } else {
-        VStack(spacing: 12) {
+        VStack(spacing: GainsSpacing.s) {
           ForEach(store.upcomingMeetups) { meetup in
             MeetupCard(meetup: meetup)
           }
@@ -1069,8 +1070,8 @@ private struct MeetupCard: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(alignment: .top, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(alignment: .top, spacing: GainsSpacing.s) {
         Circle()
           .fill(GainsColor.lime.opacity(0.32))
           .frame(width: 44, height: 44)
@@ -1079,7 +1080,7 @@ private struct MeetupCard: View {
               .foregroundStyle(GainsColor.moss)
           }
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(meetup.sport.title.uppercased())
             .font(GainsFont.label(9))
             .tracking(1.7)
@@ -1096,13 +1097,13 @@ private struct MeetupCard: View {
           .font(GainsFont.label(10))
           .tracking(1.4)
           .foregroundStyle(GainsColor.moss)
-          .padding(.horizontal, 10)
+          .padding(.horizontal, GainsSpacing.tight)
           .frame(height: 26)
           .background(GainsColor.lime.opacity(0.32))
           .clipShape(Capsule())
       }
 
-      VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
         Label(meetup.locationName, systemImage: "mappin.and.ellipse")
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
@@ -1141,7 +1142,7 @@ private struct MeetupCard: View {
       .buttonStyle(.plain)
       .disabled(isFull && !isJoined)
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .gainsCardStyle()
   }
@@ -1232,8 +1233,8 @@ private struct SocialSettingsSurface: View {
   @EnvironmentObject private var store: GainsStore
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
-      VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         SlashLabel(
           parts: ["PRIVAT", "SPHÄRE"], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
@@ -1247,7 +1248,7 @@ private struct SocialSettingsSurface: View {
         .foregroundStyle(GainsColor.softInk)
       }
 
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         SlashLabel(
           parts: ["AUTO", "TEILEN"], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
@@ -1292,21 +1293,21 @@ private struct SocialSettingsSurface: View {
           )
         )
       }
-      .padding(18)
+      .padding(GainsSpacing.l)
       .frame(maxWidth: .infinity, alignment: .leading)
       .gainsCardStyle()
 
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         SlashLabel(
           parts: ["WER", "SIEHT"], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
 
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           ForEach(SharingVisibility.allCases) { visibility in
             Button {
               store.setSharingVisibility(visibility)
             } label: {
-              HStack(spacing: 12) {
+              HStack(spacing: GainsSpacing.s) {
                 Image(systemName: visibility.systemImage)
                   .foregroundStyle(
                     store.socialSharingSettings.visibility == visibility
@@ -1325,7 +1326,7 @@ private struct SocialSettingsSurface: View {
                     .foregroundStyle(GainsColor.lime)
                 }
               }
-              .padding(14)
+              .padding(GainsSpacing.m)
               .frame(maxWidth: .infinity, alignment: .leading)
               .background(
                 store.socialSharingSettings.visibility == visibility
@@ -1337,7 +1338,7 @@ private struct SocialSettingsSurface: View {
           }
         }
       }
-      .padding(18)
+      .padding(GainsSpacing.l)
       .frame(maxWidth: .infinity, alignment: .leading)
       .gainsCardStyle()
     }
@@ -1354,7 +1355,7 @@ private struct SocialSettingsSurface: View {
   private func toggleRow(
     title: String, subtitle: String, systemImage: String, isOn: Binding<Bool>
   ) -> some View {
-    HStack(alignment: .top, spacing: 14) {
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
       Circle()
         .fill(GainsColor.lime.opacity(0.32))
         .frame(width: 38, height: 38)
@@ -1363,7 +1364,7 @@ private struct SocialSettingsSurface: View {
             .foregroundStyle(GainsColor.moss)
         }
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(title)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
@@ -1378,7 +1379,7 @@ private struct SocialSettingsSurface: View {
         .labelsHidden()
         .tint(GainsColor.lime)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(GainsColor.background.opacity(0.7))
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -1442,7 +1443,7 @@ struct CommunityComingSoonView: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "CREW / IN ARBEIT",
           title: "Community kommt bald."
@@ -1468,14 +1469,14 @@ struct CommunityComingSoonView: View {
         isOnWaitlist.toggle()
       }
     } label: {
-      HStack(alignment: .top, spacing: 14) {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
         Image(systemName: isOnWaitlist ? "checkmark.circle.fill" : "bell.badge")
           .font(.system(size: 22, weight: .semibold))
           .foregroundStyle(isOnWaitlist ? GainsColor.lime : GainsColor.lime)
           .frame(width: 44, height: 44)
           .background(Circle().fill(GainsColor.lime.opacity(0.16)))
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(isOnWaitlist ? "Du bist auf der Warteliste" : "Sag mir Bescheid, wenn's losgeht")
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
@@ -1490,7 +1491,7 @@ struct CommunityComingSoonView: View {
 
         Spacer()
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -1505,13 +1506,13 @@ struct CommunityComingSoonView: View {
   }
 
   private var featuresSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Text("WAS KOMMT")
         .font(GainsFont.label(10))
         .tracking(2.0)
         .foregroundStyle(GainsColor.softInk)
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(features) { feature in
           featureRow(feature)
         }
@@ -1520,14 +1521,14 @@ struct CommunityComingSoonView: View {
   }
 
   private func featureRow(_ feature: UpcomingFeature) -> some View {
-    HStack(alignment: .top, spacing: 14) {
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
       Image(systemName: feature.icon)
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
         .frame(width: 40, height: 40)
         .background(Circle().fill(GainsColor.lime.opacity(0.12)))
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(feature.title)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
@@ -1538,7 +1539,7 @@ struct CommunityComingSoonView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -1548,7 +1549,7 @@ struct CommunityComingSoonView: View {
   }
 
   private var privacyNote: some View {
-    HStack(alignment: .top, spacing: 10) {
+    HStack(alignment: .top, spacing: GainsSpacing.tight) {
       Image(systemName: "lock.shield.fill")
         .font(.system(size: 12, weight: .semibold))
         .foregroundStyle(GainsColor.moss)
@@ -1558,6 +1559,6 @@ struct CommunityComingSoonView: View {
         .foregroundStyle(GainsColor.mutedInk)
         .fixedSize(horizontal: false, vertical: true)
     }
-    .padding(.horizontal, 4)
+    .padding(.horizontal, GainsSpacing.xxs)
   }
 }

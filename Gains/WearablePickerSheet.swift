@@ -13,7 +13,7 @@ struct WearablePickerSheet: View {
         GainsColor.background.ignoresSafeArea()
 
         ScrollView(showsIndicators: false) {
-          VStack(alignment: .leading, spacing: 24) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xl) {
             statusCard
             if ble.isConnected, let device = ble.connectedDevice {
               connectedCard(device)
@@ -21,9 +21,9 @@ struct WearablePickerSheet: View {
             deviceList
             supportedBrandsSection
           }
-          .padding(.horizontal, 20)
-          .padding(.top, 16)
-          .padding(.bottom, 36)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.m)
+          .padding(.bottom, GainsSpacing.xl)
         }
       }
       .navigationBarTitleDisplayMode(.inline)
@@ -46,8 +46,8 @@ struct WearablePickerSheet: View {
   // MARK: - Status Card
 
   private var statusCard: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      HStack(spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(spacing: GainsSpacing.s) {
         // Puls-Animation
         ZStack {
           Circle()
@@ -65,7 +65,7 @@ struct WearablePickerSheet: View {
             .foregroundStyle(stateColor)
         }
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(ble.scanState.label)
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
@@ -101,7 +101,7 @@ struct WearablePickerSheet: View {
   // MARK: - Connected Card
 
   private func connectedCard(_ device: BLEDevice) -> some View {
-    HStack(spacing: 14) {
+    HStack(spacing: GainsSpacing.m) {
       ZStack {
         Circle()
           .fill(GainsColor.lime.opacity(0.18))
@@ -111,7 +111,7 @@ struct WearablePickerSheet: View {
           .foregroundStyle(GainsColor.lime)
       }
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(device.name)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
@@ -132,19 +132,19 @@ struct WearablePickerSheet: View {
         .font(GainsFont.label(10))
         .tracking(1.4)
         .foregroundStyle(GainsColor.onLime)
-        .padding(.horizontal, 10)
+        .padding(.horizontal, GainsSpacing.tight)
         .frame(height: 28)
         .background(GainsColor.lime)
         .clipShape(Capsule())
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle(GainsColor.lime.opacity(0.12))
   }
 
   // MARK: - Device List
 
   private var deviceList: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["GEFUNDENE", "GERÄTE"],
         primaryColor: GainsColor.lime,
@@ -160,7 +160,7 @@ struct WearablePickerSheet: View {
             if index < ble.discoveredDevices.count - 1 {
               Divider()
                 .overlay(GainsColor.border.opacity(0.5))
-                .padding(.horizontal, 14)
+                .padding(.horizontal, GainsSpacing.m)
             }
           }
         }
@@ -175,7 +175,7 @@ struct WearablePickerSheet: View {
   }
 
   private var emptyDevicesView: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: GainsSpacing.s) {
       Image(systemName: case_scanning ? "antenna.radiowaves.left.and.right" : "antenna.radiowaves.left.and.right.slash")
         .font(.system(size: 28, weight: .semibold))
         .foregroundStyle(GainsColor.softInk)
@@ -186,7 +186,7 @@ struct WearablePickerSheet: View {
         .multilineTextAlignment(.center)
     }
     .frame(maxWidth: .infinity)
-    .padding(28)
+    .padding(GainsSpacing.xl)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
@@ -195,7 +195,7 @@ struct WearablePickerSheet: View {
     let isConnected = ble.connectedDevice?.id == device.id
     let brand = BLEHeartRateManager.brandLabel(for: device.name)
 
-    return HStack(spacing: 12) {
+    return HStack(spacing: GainsSpacing.s) {
       // Gerätesymbol
       ZStack {
         Circle()
@@ -211,7 +211,7 @@ struct WearablePickerSheet: View {
           .font(GainsFont.body())
           .foregroundStyle(GainsColor.ink)
 
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           if let brand {
             Text(brand)
               .font(GainsFont.label(10))
@@ -246,14 +246,14 @@ struct WearablePickerSheet: View {
       .buttonStyle(.plain)
       .disabled(ble.scanState.isActive)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
   }
 
   // MARK: - Supported Brands
 
   private var supportedBrandsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["KOMPATIBLE", "GERÄTE"],
         primaryColor: GainsColor.lime,
@@ -268,7 +268,7 @@ struct WearablePickerSheet: View {
           color: GainsColor.ember,
           note: "Bluetooth LE HR-Profil"
         )
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, GainsSpacing.m)
         brandRow(
           icon: "g.circle.fill",
           name: "Garmin",
@@ -276,7 +276,7 @@ struct WearablePickerSheet: View {
           color: Color(hex: "A8C53A"),
           note: "Bluetooth LE HR-Profil"
         )
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, GainsSpacing.m)
         brandRow(
           icon: "w.circle.fill",
           name: "Wahoo",
@@ -284,7 +284,7 @@ struct WearablePickerSheet: View {
           color: Color(hex: "2563EB"),
           note: "Bluetooth LE HR-Profil"
         )
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, GainsSpacing.m)
         brandRow(
           icon: "checkerboard.rectangle",
           name: "Alle anderen HR-Sensoren",
@@ -292,9 +292,9 @@ struct WearablePickerSheet: View {
           color: GainsColor.softInk,
           note: "Standard BLE 0x180D"
         )
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, GainsSpacing.m)
         whoopRow
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, GainsSpacing.m)
         appleWatchRow
       }
       .background(GainsColor.card)
@@ -307,7 +307,7 @@ struct WearablePickerSheet: View {
   }
 
   private func brandRow(icon: String, name: String, models: String, color: Color, note: String) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: icon)
         .font(.system(size: 22))
         .foregroundStyle(color)
@@ -331,12 +331,12 @@ struct WearablePickerSheet: View {
         .foregroundStyle(GainsColor.mutedInk)
         .multilineTextAlignment(.trailing)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
   }
 
   private var whoopRow: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       ZStack {
         RoundedRectangle(cornerRadius: GainsRadius.tiny, style: .continuous)
           .fill(Color(hex: "F4F3EE").opacity(0.9))
@@ -363,12 +363,12 @@ struct WearablePickerSheet: View {
         .tracking(0.6)
         .foregroundStyle(GainsColor.mutedInk)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
   }
 
   private var appleWatchRow: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: "applewatch")
         .font(.system(size: 20, weight: .semibold))
         .foregroundStyle(GainsColor.ink)
@@ -391,8 +391,8 @@ struct WearablePickerSheet: View {
         .tracking(0.6)
         .foregroundStyle(GainsColor.mutedInk)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
   }
 
   // MARK: - Helpers

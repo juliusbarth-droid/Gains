@@ -28,6 +28,16 @@ private enum HomeFormatters {
   }()
 }
 
+// 2026-05-03 P0 B: Lock-States für die kurze Lücke zwischen User-Tap auf
+// einen „Start …"-CTA und dem tatsächlichen Publish des `activeWorkout`/
+// `activeRun`-Modells im Store. Der Coach-Brief liest diesen State und
+// zeigt eine konsistente Übergangs-Variante statt zurück auf Day-One/
+// Window-Brief zu fallen.
+enum PendingActionLock: Equatable {
+  case startingWorkout
+  case startingRun
+}
+
 struct HomeView: View {
   @EnvironmentObject private var navigation: AppNavigationStore
   @EnvironmentObject private var store: GainsStore
@@ -40,6 +50,14 @@ struct HomeView: View {
   @State private var isShowingWorkoutTracker = false
   @State private var isShowingRunTracker = false
   @State private var isShowingProfile = false
+  // 2026-05-03 Intuitivitäts-Sweep P0 B: Wenn der User einen Coach-CTA tippt
+  // (z. B. „Workout starten"), liegt zwischen Tap und tatsächlichem
+  // `store.activeWorkout != nil` ein kleines Zeitfenster. In diesem Fenster
+  // konnte `currentCoachBrief` zwischen Day-One/Workout-Window und „Workout
+  // läuft" flackern. `pendingActionLock` zeigt der Engine an, welche
+  // Variante priorisiert gehalten werden soll, bis die echte Session
+  // publiziert ist (oder das Sheet wieder zugeht).
+  @State private var pendingActionLock: PendingActionLock? = nil
   // A13: Home-Screen-Redesign „Coach Brief".
   // Statt eines symmetrischen Card-Stacks (Hero + Cockpit + Nutrition + Grid)
   // gibt es jetzt EINEN Coach-Brief als Hero, der je nach Tageszeit, Plan-
@@ -84,11 +102,17 @@ struct HomeView: View {
             greetingHeader
             coachBriefCard
           }
+          // 2026-05-03 Optim-Sweep: `plannedWeekStrip` ist in
+          // `cockpitSpotlightCard` gewandert (HEUTE-Plan + 7-Tage-Pills).
+          // Vorher hatten beide Karten je ein „DIESE WOCHE"-Eyebrow und
+          // konkurrierende Plan-Aussagen — eine Surface reicht.
+          // BPM-Banner ist nach oben unter den Greeting-Header gewandert,
+          // damit der Live-Sensor-Status nicht am Scroll-Ende verschwindet.
+          liveBPMBanner
           quickStartBar
           pulseStrip
           spotlightStack
           adaptiveActionGrid
-          liveBPMBanner
         }
         .padding(.horizontal, GainsSpacing.l)
         .padding(.top, GainsSpacing.s)
@@ -110,14 +134,31 @@ struct HomeView: View {
     ) { plan in
       arrangePlanSheet(plan: plan)
     }
-    .sheet(isPresented: $isShowingWorkoutTracker) {
+    .sheet(
+      isPresented: $isShowingWorkoutTracker,
+      onDismiss: { pendingActionLock = nil }
+    ) {
       WorkoutTrackerView().environmentObject(store)
     }
-    .sheet(isPresented: $isShowingRunTracker) {
+    .sheet(
+      isPresented: $isShowingRunTracker,
+      onDismiss: { pendingActionLock = nil }
+    ) {
       RunTrackerView().environmentObject(store)
     }
     .sheet(isPresented: $isShowingProgress) { progressSheet }
     .sheet(isPresented: $isShowingProfile) { profileSheet }
+    // P0 B: Sobald die echte Session publiziert ist, ist der Lock unnötig.
+    .onChange(of: store.activeWorkout?.id) { _, newValue in
+      if newValue != nil, pendingActionLock == .startingWorkout {
+        pendingActionLock = nil
+      }
+    }
+    .onChange(of: store.activeRun?.id) { _, newValue in
+      if newValue != nil, pendingActionLock == .startingRun {
+        pendingActionLock = nil
+      }
+    }
   }
 
   // MARK: - Sheet Content (extracted)
@@ -219,8 +260,8 @@ struct HomeView: View {
   // wieder raus — würde sich sonst doppeln.
 
   private var greetingHeader: some View {
-    HStack(alignment: .center, spacing: 12) {
-      VStack(alignment: .leading, spacing: 4) {
+    HStack(alignment: .center, spacing: GainsSpacing.s) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         greetingLine
         Text(greetingMetaLine)
           .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.5)
@@ -273,7 +314,7 @@ struct HomeView: View {
     let hasName = !store.userName.isEmpty
 
     if hasName {
-      HStack(alignment: .firstTextBaseline, spacing: 6) {
+      HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xs) {
         Text("\(salutation), ")
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.ink)
@@ -340,7 +381,7 @@ struct HomeView: View {
 
   private var coachBriefCard: some View {
     let brief = currentCoachBrief
-    return VStack(alignment: .leading, spacing: 18) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.l) {
       coachBriefHeader(brief)
       coachBriefHeadline(brief)
       coachBriefSub(brief)
@@ -349,7 +390,7 @@ struct HomeView: View {
         coachSecondaryLink(secondary, accent: brief.accent)
       }
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .background(coachBriefBackground(accent: brief.accent))
     .overlay(
       // A14 (minimal): Single-Tone Border statt Gradient, dünner.
@@ -379,7 +420,7 @@ struct HomeView: View {
     // A14 (minimal): Tageszeit-Label rechts ist gestrichen — die Greeting
     // oben trägt jetzt Wochentag + Datum + Bucket. Hier bleibt nur der
     // Pulse + der kontextuelle Eyebrow + ein dezenter Glyph rechts.
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       PulsingDot(color: brief.accent, coreSize: 6, haloSize: 16)
       Text(brief.eyebrow)
         .gainsEyebrow(brief.accent, size: 11, tracking: 1.6)
@@ -410,37 +451,42 @@ struct HomeView: View {
   }
 
   private func coachPrimaryCTA(_ brief: CoachBrief) -> some View {
+    // 2026-05-03 Intuitivitäts-Sweep P1-1: Solid Akzent + onAccent-Text statt
+    // Outline. Der Hero-Primary muss den deutlichsten Affordance-Anker auf
+    // dem ganzen Screen haben — vorher konkurrierte er mit Pulse-Tiles um
+    // Aufmerksamkeit. Der schmale onAccent-Stroke hält die Form definiert,
+    // ohne den Solid-Look aufzubrechen.
     Button {
       runCoachAction(brief.primary.action)
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: brief.primary.icon)
           .font(.system(size: 14, weight: .heavy))
-          .foregroundStyle(brief.accent)
+          .foregroundStyle(GainsColor.onCtaSurface)
 
         Text(brief.primary.title.uppercased())
           .font(GainsFont.label(13))
           .tracking(1.8)
-          .foregroundStyle(GainsColor.ink)
+          .foregroundStyle(GainsColor.onCtaSurface)
 
         Spacer(minLength: 0)
 
         if let metric = brief.primary.metric {
           Text(metric)
             .font(.system(size: 12, weight: .semibold, design: .monospaced))
-            .foregroundStyle(brief.accent)
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.85))
         }
 
         Image(systemName: "arrow.right")
           .font(.system(size: 12, weight: .heavy))
-          .foregroundStyle(brief.accent)
+          .foregroundStyle(GainsColor.onCtaSurface)
       }
-      .padding(.horizontal, 18)
+      .padding(.horizontal, GainsSpacing.l)
       .frame(height: 54)
-      .background(brief.accent.opacity(0.10))
+      .background(brief.accent)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
-          .strokeBorder(brief.accent.opacity(0.45), lineWidth: GainsBorder.hairline)
+          .strokeBorder(GainsColor.onCtaSurface.opacity(0.18), lineWidth: GainsBorder.hairline)
       )
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -453,7 +499,7 @@ struct HomeView: View {
     Button {
       runCoachAction(action.action)
     } label: {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         if let metric = action.metric {
           Text(metric)
             .font(.system(size: 11, weight: .medium, design: .monospaced))
@@ -482,7 +528,7 @@ struct HomeView: View {
 
   private var pulseStrip: some View {
     let stats = currentPulseStats
-    return HStack(spacing: 10) {
+    return HStack(spacing: GainsSpacing.tight) {
       ForEach(stats.indices, id: \.self) { idx in
         pulseTile(stats[idx])
       }
@@ -493,8 +539,8 @@ struct HomeView: View {
     Button {
       runCoachAction(stat.action)
     } label: {
-      VStack(alignment: .leading, spacing: 6) {
-        HStack(spacing: 6) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+        HStack(spacing: GainsSpacing.xs) {
           Image(systemName: stat.icon)
             .font(.system(size: 10, weight: .heavy))
             .foregroundStyle(stat.accent)
@@ -504,7 +550,7 @@ struct HomeView: View {
         }
         HStack(alignment: .firstTextBaseline, spacing: 2) {
           Text(stat.value)
-            .font(.system(size: 19, weight: .semibold, design: .monospaced))
+            .font(.system(size: 18, weight: .semibold, design: .monospaced))
             .foregroundStyle(GainsColor.ink)
           Text(stat.unit)
             .font(.system(size: 10, weight: .medium, design: .monospaced))
@@ -517,8 +563,8 @@ struct HomeView: View {
           .lineLimit(1)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(.horizontal, 12)
-      .padding(.vertical, 12)
+      .padding(.horizontal, GainsSpacing.s)
+      .padding(.vertical, GainsSpacing.s)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -552,21 +598,27 @@ struct HomeView: View {
   // MARK: - Cockpit Spotlight (vollwertige Wochen-Card)
 
   private var cockpitSpotlightCard: some View {
+    // 2026-05-03 Optim-Sweep: Spotlight absorbiert jetzt den vorherigen
+    // `plannedWeekStrip` (HEUTE-Plan-Zeile + 7-Tage-Pills). Vorher hatten
+    // beide Karten je ein „DIESE WOCHE"-Eyebrow und je eine HEUTE/Plan-
+    // Aussage — drei Surfaces (plannedWeekStrip + cockpit + plannerTile)
+    // für denselben Plan-Kontext. Sparkline ist raus, weil die Pills den
+    // Done/Planned/Today-Status sauberer und tappable kommunizieren.
     VStack(alignment: .leading, spacing: 0) {
       Button {
         isShowingProgress = true
       } label: {
-        VStack(alignment: .leading, spacing: 18) {
-          HStack(alignment: .firstTextBaseline, spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.l) {
+          HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.tight) {
             Text("DIESE WOCHE")
               .gainsEyebrow(GainsColor.ink, size: 12, tracking: 1.4)
-            Text(currentDateParts.week)
+            Text(cachedDateParts.week)
               .font(.system(size: 11, weight: .medium, design: .monospaced))
               .foregroundStyle(GainsColor.mutedInk)
 
             Spacer(minLength: 0)
 
-            HStack(spacing: 4) {
+            HStack(spacing: GainsSpacing.xxs) {
               Text(progressDisplayTitle.uppercased())
                 .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.4)
               Image(systemName: "arrow.up.right")
@@ -575,11 +627,11 @@ struct HomeView: View {
             }
           }
 
-          HStack(alignment: .center, spacing: 18) {
+          HStack(alignment: .center, spacing: GainsSpacing.l) {
             weekRing
               .frame(width: 116, height: 116)
 
-            VStack(spacing: 10) {
+            VStack(spacing: GainsSpacing.tight) {
               cockpitMiniTile(
                 icon: "flame.fill",
                 value: "\(store.streakDays)",
@@ -597,35 +649,38 @@ struct HomeView: View {
             }
           }
         }
-        .padding(.bottom, 16)
+        .padding(.bottom, GainsSpacing.m)
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Fortschritt öffnen")
 
       // H3-Fix (2026-05-01): Trennlinie zwischen den beiden Tap-Zonen
-      // (Wochenring → ProgressSheet vs. Plan-Row → openPlanner) war optisch
-      // zu schwach. Stärker und etwas Padding, damit klar wird, dass es
-      // sich um zwei Aktionen handelt.
+      // (Wochenring → ProgressSheet vs. Plan-Sektion → openPlanner) war
+      // optisch zu schwach. Stärker und etwas Padding, damit klar wird,
+      // dass es sich um zwei Aktionen handelt.
       Rectangle()
         .fill(GainsColor.border)
         .frame(height: 1)
         .padding(.vertical, 2)
 
-      Button {
-        navigation.openPlanner()
-      } label: {
-        VStack(alignment: .leading, spacing: 12) {
-          cockpitPlanRow
-          weekVolumeSparkline
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
+        Button {
+          navigation.openPlanner()
+        } label: {
+          plannedTodayLine
+            .contentShape(Rectangle())
         }
-        .padding(.top, 16)
-        .contentShape(Rectangle())
+        .buttonStyle(.plain)
+        .accessibilityLabel("Heutiger Plan — tippen zum Anpassen")
+
+        if let week = cachedHomeWeekPreview {
+          plannedWeekPills(week.days)
+        }
       }
-      .buttonStyle(.plain)
-      .accessibilityLabel(cockpitPlanA11yLabel)
+      .padding(.top, GainsSpacing.m)
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
   }
 
@@ -635,7 +690,7 @@ struct HomeView: View {
     Button {
       isShowingProgress = true
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         ZStack {
           Circle()
             .stroke(GainsColor.border.opacity(0.7), lineWidth: 4)
@@ -655,14 +710,14 @@ struct HomeView: View {
         .frame(width: 44, height: 44)
 
         VStack(alignment: .leading, spacing: 2) {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Text("WOCHE")
               .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.4)
             Text(currentDateParts.week)
               .font(.system(size: 10, weight: .medium, design: .monospaced))
               .foregroundStyle(GainsColor.mutedInk)
           }
-          HStack(alignment: .firstTextBaseline, spacing: 6) {
+          HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xs) {
             Text("\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)")
               .font(.system(size: 16, weight: .semibold, design: .monospaced))
               .foregroundStyle(GainsColor.ink)
@@ -680,8 +735,8 @@ struct HomeView: View {
 
         compactPlanPill
       }
-      .padding(.horizontal, 14)
-      .padding(.vertical, 12)
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.s)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -699,15 +754,15 @@ struct HomeView: View {
   @ViewBuilder
   private var compactPlanPill: some View {
     if let next = nextPlannedSchedule {
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         Image(systemName: next.isToday ? "play.fill" : "calendar")
-          .font(.system(size: 9, weight: .heavy))
+          .font(.system(size: 10, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
         Text((next.isToday ? "HEUTE · " : "\(next.weekday.shortLabel.uppercased()) · ") + next.title.uppercased())
           .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.2)
           .lineLimit(1)
       }
-      .padding(.horizontal, 8)
+      .padding(.horizontal, GainsSpacing.xsPlus)
       .frame(height: 22)
       .background(GainsColor.lime.opacity(0.10))
       .overlay(
@@ -718,142 +773,6 @@ struct HomeView: View {
       Image(systemName: "arrow.up.right")
         .font(.system(size: 11, weight: .heavy))
         .foregroundStyle(GainsColor.softInk)
-    }
-  }
-
-  /// A12/A13: Plan-Vorschau-Zeile innerhalb der Cockpit-Spotlight-Card.
-  @ViewBuilder
-  private var cockpitPlanRow: some View {
-    if let next = nextPlannedSchedule {
-      HStack(spacing: 10) {
-        Image(systemName: next.isToday ? "play.fill" : "calendar.badge.clock")
-          .font(.system(size: 11, weight: .bold))
-          .foregroundStyle(GainsColor.lime)
-          .frame(width: 22, height: 22)
-          .background(GainsColor.lime.opacity(0.12))
-          .clipShape(Circle())
-          .overlay(
-            Circle().strokeBorder(GainsColor.lime.opacity(0.4), lineWidth: GainsBorder.hairline)
-          )
-
-        VStack(alignment: .leading, spacing: 1) {
-          Text(next.isToday ? "HEUTE · \(next.weekday.shortLabel.uppercased())"
-                            : "ALS NÄCHSTES · \(next.weekday.shortLabel.uppercased())")
-            .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.4)
-          Text(next.title)
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
-            .truncationMode(.tail)
-        }
-
-        Spacer(minLength: 0)
-
-        Text("ANPASSEN")
-          .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.4)
-        Image(systemName: "arrow.up.right")
-          .font(.system(size: 11, weight: .heavy))
-          .foregroundStyle(GainsColor.lime)
-      }
-    } else {
-      HStack(spacing: 6) {
-        Text("WOCHENPLAN")
-          .gainsEyebrow(GainsColor.softInk, size: 11, tracking: 1.4)
-        Spacer(minLength: 0)
-        Text("ANPASSEN")
-          .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.4)
-        Image(systemName: "arrow.up.right")
-          .font(.system(size: 11, weight: .heavy))
-          .foregroundStyle(GainsColor.lime)
-      }
-    }
-  }
-
-  private var cockpitPlanA11yLabel: String {
-    if let next = nextPlannedSchedule {
-      return "Plan-Vorschau: \(next.weekday.shortLabel) — \(next.title). Tippen zum Anpassen."
-    }
-    return "Wochenplan anpassen"
-  }
-
-  /// 7-Tage-Mini-Bar-Sparkline mit volumen- und status-codierten Capsules.
-  private var weekVolumeSparkline: some View {
-    let data = sevenDayVolumeData
-    let maxVolume = max(data.map(\.volume).max() ?? 0, 1)
-    return HStack(alignment: .bottom, spacing: 4) {
-      ForEach(data) { day in
-        VStack(spacing: 6) {
-          sparklineBar(for: day, maxVolume: maxVolume)
-            .frame(height: 36, alignment: .bottom)
-
-          Text(day.shortLabel)
-            .font(GainsFont.label(9))
-            .tracking(1.3)
-            .foregroundStyle(
-              day.status == .today ? GainsColor.lime : GainsColor.mutedInk
-            )
-        }
-        .frame(maxWidth: .infinity)
-      }
-    }
-  }
-
-  @ViewBuilder
-  private func sparklineBar(for day: SparklineDay, maxVolume: Double) -> some View {
-    let ratio = max(day.volume / maxVolume, 0)
-    let scaledHeight = ratio * 30
-    switch day.status {
-    case .today:
-      Capsule()
-        .fill(GainsColor.lime)
-        .frame(width: 8, height: max(scaledHeight, 14))
-        .shadow(color: GainsColor.lime.opacity(0.6), radius: 6)
-    case .completed:
-      Capsule()
-        .fill(GainsColor.lime.opacity(0.9))
-        .frame(width: 8, height: max(scaledHeight, 8))
-    case .planned:
-      Capsule()
-        .strokeBorder(GainsColor.lime.opacity(0.65), lineWidth: 1)
-        .frame(width: 8, height: max(scaledHeight, 14))
-    case .flexible:
-      Capsule()
-        .strokeBorder(
-          GainsColor.softInk.opacity(0.5),
-          style: StrokeStyle(lineWidth: 1, dash: [2, 2])
-        )
-        .frame(width: 8, height: max(scaledHeight, 10))
-    case .rest:
-      Capsule()
-        .fill(GainsColor.border.opacity(0.7))
-        .frame(width: 8, height: 5)
-    }
-  }
-
-  private struct SparklineDay: Identifiable {
-    let id: Date
-    let date: Date
-    let shortLabel: String
-    let status: DayProgress.Status
-    let volume: Double
-  }
-
-  private var sevenDayVolumeData: [SparklineDay] {
-    let calendar = Calendar.current
-    let volumeByDay: [Date: Double] = Dictionary(
-      grouping: store.workoutHistory,
-      by: { calendar.startOfDay(for: $0.finishedAt) }
-    ).mapValues { $0.reduce(0.0) { $0 + $1.volume } }
-
-    return store.homeWeekDays.map { day in
-      let key = calendar.startOfDay(for: day.date)
-      return SparklineDay(
-        id: key,
-        date: day.date,
-        shortLabel: day.shortLabel,
-        status: day.status,
-        volume: volumeByDay[key] ?? 0
-      )
     }
   }
 
@@ -905,7 +824,7 @@ struct HomeView: View {
     label: String,
     accent: Color
   ) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       ZStack {
         Circle()
           .fill(accent.opacity(0.12))
@@ -933,8 +852,8 @@ struct HomeView: View {
 
       Spacer(minLength: 0)
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.tight)
     .background(GainsColor.surfaceDeep.opacity(0.6))
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -965,8 +884,8 @@ struct HomeView: View {
     Button {
       navigation.openNutrition()
     } label: {
-      VStack(alignment: .leading, spacing: 18) {
-        HStack(alignment: .firstTextBaseline, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.l) {
+        HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.tight) {
           Text("ERNÄHRUNG")
             .gainsEyebrow(GainsColor.ink, size: 12, tracking: 1.4)
           Text("HEUTE")
@@ -975,7 +894,7 @@ struct HomeView: View {
 
           Spacer(minLength: 0)
 
-          HStack(spacing: 4) {
+          HStack(spacing: GainsSpacing.xxs) {
             Text(nutritionStatusLabel.uppercased())
               .gainsEyebrow(GainsColor.ember, size: 11, tracking: 1.4)
               .lineLimit(1)
@@ -985,11 +904,11 @@ struct HomeView: View {
           }
         }
 
-        HStack(alignment: .center, spacing: 18) {
+        HStack(alignment: .center, spacing: GainsSpacing.l) {
           kcalRing
             .frame(width: 96, height: 96)
 
-          VStack(spacing: 9) {
+          VStack(spacing: GainsSpacing.xsPlus) {
             macroBar(
               label: "PROTEIN",
               value: store.nutritionProteinToday,
@@ -1018,7 +937,7 @@ struct HomeView: View {
           .gainsCaption()
           .lineLimit(2)
       }
-      .padding(20)
+      .padding(GainsSpacing.l)
       .gainsCardStyle()
       .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
@@ -1035,7 +954,7 @@ struct HomeView: View {
     Button {
       navigation.openNutrition()
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         ZStack {
           Circle()
             .stroke(GainsColor.border.opacity(0.7), lineWidth: 4)
@@ -1057,7 +976,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 2) {
           Text("ERNÄHRUNG · HEUTE")
             .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.4)
-          HStack(alignment: .firstTextBaseline, spacing: 6) {
+          HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xs) {
             Text("\(store.nutritionCaloriesToday)")
               .font(.system(size: 16, weight: .semibold, design: .monospaced))
               .foregroundStyle(GainsColor.ink)
@@ -1076,8 +995,8 @@ struct HomeView: View {
 
         compactNutritionPill
       }
-      .padding(.horizontal, 14)
-      .padding(.vertical, 12)
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.s)
       .background(GainsColor.card)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -1094,27 +1013,27 @@ struct HomeView: View {
   private var compactNutritionPill: some View {
     let remainingProtein = max(store.nutritionTargetProtein - store.nutritionProteinToday, 0)
     if remainingProtein <= 0 && store.nutritionCaloriesToday > 0 {
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         Image(systemName: "checkmark")
-          .font(.system(size: 9, weight: .heavy))
+          .font(.system(size: 10, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
         Text("PROTEIN ✓")
           .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.2)
       }
-      .padding(.horizontal, 8)
+      .padding(.horizontal, GainsSpacing.xsPlus)
       .frame(height: 22)
       .background(GainsColor.lime.opacity(0.10))
       .overlay(Capsule().strokeBorder(GainsColor.lime.opacity(0.4), lineWidth: GainsBorder.hairline))
       .clipShape(Capsule())
     } else if remainingProtein > 0 {
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         Image(systemName: "fork.knife")
-          .font(.system(size: 9, weight: .heavy))
+          .font(.system(size: 10, weight: .heavy))
           .foregroundStyle(GainsColor.ember)
         Text("\(remainingProtein)g OFFEN")
           .gainsEyebrow(GainsColor.ember, size: 9, tracking: 1.2)
       }
-      .padding(.horizontal, 8)
+      .padding(.horizontal, GainsSpacing.xsPlus)
       .frame(height: 22)
       .background(GainsColor.ember.opacity(0.10))
       .overlay(Capsule().strokeBorder(GainsColor.ember.opacity(0.4), lineWidth: GainsBorder.hairline))
@@ -1169,8 +1088,8 @@ struct HomeView: View {
     accent: Color
   ) -> some View {
     let ratio = target > 0 ? min(Double(value) / Double(target), 1.0) : 0
-    return VStack(alignment: .leading, spacing: 4) {
-      HStack(spacing: 8) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Text(label)
           .gainsEyebrow(accent, size: 10, tracking: 1.3)
           .lineLimit(1)
@@ -1224,10 +1143,10 @@ struct HomeView: View {
   private var adaptiveActionGrid: some View {
     LazyVGrid(
       columns: [
-        GridItem(.flexible(), spacing: 12),
-        GridItem(.flexible(), spacing: 12)
+        GridItem(.flexible(), spacing: GainsSpacing.s),
+        GridItem(.flexible(), spacing: GainsSpacing.s)
       ],
-      spacing: 12
+      spacing: GainsSpacing.s
     ) {
       ForEach(adaptiveTiles, id: \.kind) { tile in
         actionTile(tile)
@@ -1251,7 +1170,7 @@ struct HomeView: View {
   // beim Plan-Slot.
 
   private var quickStartBar: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       quickStartTile(
         kind: .training,
         title: store.activeWorkout != nil ? "Fortsetzen" : "Workout",
@@ -1363,7 +1282,7 @@ struct HomeView: View {
 
         Spacer(minLength: 14)
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(eyebrow)
             .gainsEyebrow(accent, size: 10, tracking: 1.5)
           Text(title)
@@ -1378,7 +1297,7 @@ struct HomeView: View {
         }
       }
       .frame(maxWidth: .infinity, minHeight: 144, alignment: .topLeading)
-      .padding(16)
+      .padding(GainsSpacing.m)
       .background(
         ZStack {
           GainsColor.card
@@ -1489,7 +1408,7 @@ struct HomeView: View {
 
         Spacer(minLength: 12)
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(spec.eyebrow)
             .gainsEyebrow(spec.accent, size: 10, tracking: 1.4)
           Text(spec.title)
@@ -1504,7 +1423,7 @@ struct HomeView: View {
         }
       }
       .frame(maxWidth: .infinity, minHeight: 124, alignment: .topLeading)
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .overlay(
         // A14 (minimal): einfarbiger Border, kein Gradient, kein Akzent-
@@ -1598,7 +1517,7 @@ struct HomeView: View {
       Button {
         isShowingProfile = true
       } label: {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           PulsingDot(
             color: GainsColor.accentCool,
             coreSize: 6,
@@ -1634,8 +1553,8 @@ struct HomeView: View {
             .font(.system(size: 11, weight: .heavy))
             .foregroundStyle(GainsColor.accentCool)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, GainsSpacing.m)
+        .padding(.vertical, GainsSpacing.tight)
         .background(GainsColor.card)
         .overlay(
           RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -1714,6 +1633,46 @@ struct HomeView: View {
   private var currentCoachBrief: CoachBrief {
     let now = coachClock
     let hour = Calendar.current.component(.hour, from: now)
+
+    // P0 B: Pending-Lock — User hat gerade „Workout starten"/„Lauf starten"
+    // getippt, aber `store.activeWorkout`/`activeRun` ist noch nicht
+    // publiziert. Wir zeigen schon jetzt den passenden „läuft"-Brief,
+    // damit der Header nicht zwischen Day-One/Window und „Workout läuft"
+    // flackert.
+    if let lock = pendingActionLock {
+      switch lock {
+      case .startingWorkout:
+        return CoachBrief(
+          eyebrow: "WORKOUT STARTET",
+          glyph: "dumbbell.fill",
+          accent: GainsColor.lime,
+          headline: "Trainer wird geöffnet …",
+          subline: "Setup läuft im Hintergrund — Trainer ist gleich da.",
+          primary: CoachActionDescriptor(
+            title: "Trainer öffnen",
+            icon: "play.fill",
+            metric: nil,
+            action: .openWorkoutTracker
+          ),
+          secondary: nil
+        )
+      case .startingRun:
+        return CoachBrief(
+          eyebrow: "LAUF STARTET",
+          glyph: "figure.run",
+          accent: GainsColor.ember,
+          headline: "GPS wird gesucht …",
+          subline: "Setup läuft im Hintergrund — Tracker ist gleich da.",
+          primary: CoachActionDescriptor(
+            title: "Run öffnen",
+            icon: "figure.run",
+            metric: nil,
+            action: .openRunTracker
+          ),
+          secondary: nil
+        )
+      }
+    }
 
     // 1) Akut: laufendes Workout/Run hat IMMER Vorrang.
     if let aw = store.activeWorkout {
@@ -2773,6 +2732,11 @@ struct HomeView: View {
   /// Tracker Haptik, der Home-Screen war taktil stumm.
   private func runCoachAction(_ action: CoachAction) {
     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    // 2026-05-03 P0 A: Sheet-Race-Defense — bevor wir ein neues Sheet
+    // präsentieren, dismissen wir die aktiven. SwiftUI würde sonst zwei
+    // Sheets stapeln können, wenn z. B. ein Coach-Tap und ein anderer
+    // Tile-Tap im selben Run-Loop landen.
+    closeAllSheets()
     switch action {
     case .openWorkoutTracker:
       isShowingWorkoutTracker = true
@@ -2805,6 +2769,17 @@ struct HomeView: View {
     }
   }
 
+  /// 2026-05-03 P0 A: Schließt alle gleichzeitig setzbaren Sheet-Booleans
+  /// kurz vor dem Öffnen eines neuen Sheets. Verhindert das Stapeln zweier
+  /// Sheets, wenn zwei Coach-Aktionen im selben Run-Loop dispatchen.
+  private func closeAllSheets() {
+    if isShowingWorkoutChooser { isShowingWorkoutChooser = false }
+    if isShowingWorkoutBuilder { isShowingWorkoutBuilder = false }
+    if isShowingProgress { isShowingProgress = false }
+    if isShowingProfile { isShowingProfile = false }
+    if arrangingPlan != nil { arrangingPlan = nil }
+  }
+
   // MARK: - Workout Helpers (unverändert)
 
   private func startFreeWorkout() {
@@ -2812,13 +2787,17 @@ struct HomeView: View {
       isShowingWorkoutTracker = true
       return
     }
-
+    // P0 B: Lock setzen, damit der Coach-Brief nicht zwischen Day-One /
+    // Window-Brief und „Workout läuft" flackert, während store.activeWorkout
+    // noch nil ist.
+    pendingActionLock = .startingWorkout
     store.startQuickWorkout()
     isShowingWorkoutTracker = true
   }
 
   private func startQuickRun() {
     if store.activeRun == nil {
+      pendingActionLock = .startingRun
       store.startQuickRun()
     }
     isShowingRunTracker = true
@@ -2829,6 +2808,7 @@ struct HomeView: View {
   /// User die Modus-Auswahl im Setup-Sheet überspringen kann.
   private func startQuickRun(modality: CardioModality) {
     if store.activeRun == nil {
+      pendingActionLock = .startingRun
       store.startQuickRun(modality: modality)
     }
     isShowingRunTracker = true
@@ -2836,6 +2816,7 @@ struct HomeView: View {
 
   private func presentArrange(for plan: WorkoutPlan) {
     if store.activeWorkout == nil {
+      pendingActionLock = .startingWorkout
       store.startWorkout(from: plan)
     }
     arrangingPlan = plan
@@ -2856,6 +2837,169 @@ struct HomeView: View {
       HomeFormatters.dayMonthEN.string(from: now).uppercased(),
       "WK \(week)"
     )
+  }
+
+  // MARK: - Planned Week Strip
+  //
+  // 2026-05-03: Bringt den Wochenplan direkt aufs Home — Heute-Hint mit
+  // Workout/Lauf-Titel + 7 Mini-Tag-Pills für Done/Today/Status. Tap auf
+  // einen Tag öffnet den PLAN-Tab. Versteckt sich, wenn weder Trainings-
+  // noch Lauftage geplant sind (z. B. komplett leerer Plan vor dem Wizard).
+
+  @ViewBuilder
+  private var plannedWeekStrip: some View {
+    let week = store.nextFourWeeksSchedule.first(where: { $0.weekIndex == 0 })
+    let hasAnyPlanned = (week?.days.contains(where: { $0.status == .planned }) ?? false)
+
+    if let week, hasAnyPlanned {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
+        plannedWeekHeader
+        plannedTodayLine
+        plannedWeekPills(week.days)
+      }
+      .padding(GainsSpacing.m)
+      .gainsCardStyle()
+    }
+  }
+
+  private var plannedWeekHeader: some View {
+    HStack(alignment: .firstTextBaseline) {
+      Text("DIESE WOCHE")
+        .gainsEyebrow(GainsColor.lime, size: 10, tracking: 1.6)
+      Spacer()
+      Button {
+        navigation.openPlanner()
+      } label: {
+        HStack(spacing: GainsSpacing.xxs) {
+          Text("Plan")
+            .font(GainsFont.label(9))
+            .tracking(1.0)
+          Image(systemName: "arrow.up.right")
+            .font(.system(size: 9, weight: .heavy))
+        }
+        .foregroundStyle(GainsColor.softInk)
+      }
+      .buttonStyle(.plain)
+    }
+  }
+
+  /// Zeile mit dem heutigen Plan-Highlight: Workout-Titel + Lauf-Distanz,
+  /// damit der User auf einen Blick sieht, was heute ansteht — ohne in den
+  /// Plan-Tab zu springen.
+  private var plannedTodayLine: some View {
+    let pref = store.dayPreference(for: Weekday.today)
+    let assigned = store.assignedWorkoutPlan(for: Weekday.today)
+    let runTemplate = store.runTemplate(for: Weekday.today)
+    let isCompleted = store.isPlannedSessionCompletedToday(for: Weekday.today)
+
+    let title: String = {
+      if isCompleted { return "Heute erledigt" }
+      if let runTemplate, let assigned {
+        return "\(assigned.title) + \(runTemplate.title)"
+      }
+      if let runTemplate { return runTemplate.title }
+      if let assigned { return assigned.title }
+      switch pref {
+      case .training: return "Trainingstag · noch kein Workout"
+      case .flexible: return "Flexibel · spontan trainieren"
+      case .rest:     return "Ruhetag"
+      }
+    }()
+
+    let icon: String = {
+      if isCompleted { return "checkmark.seal.fill" }
+      if runTemplate != nil { return "figure.run" }
+      if pref == .rest { return "moon.zzz.fill" }
+      return "dumbbell.fill"
+    }()
+
+    let tint: Color = {
+      if isCompleted { return GainsColor.moss }
+      if runTemplate != nil { return GainsColor.moss }
+      if pref == .rest { return GainsColor.softInk }
+      return GainsColor.lime
+    }()
+
+    return HStack(spacing: GainsSpacing.s) {
+      ZStack {
+        Circle()
+          .fill(tint.opacity(0.18))
+          .frame(width: 32, height: 32)
+        Image(systemName: icon)
+          .font(.system(size: 13, weight: .bold))
+          .foregroundStyle(tint)
+      }
+      VStack(alignment: .leading, spacing: 2) {
+        Text("HEUTE")
+          .font(GainsFont.label(9))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.softInk)
+        Text(title)
+          .font(GainsFont.title(15))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(1)
+      }
+      Spacer(minLength: 0)
+    }
+  }
+
+  private func plannedWeekPills(_ days: [GymPlanPreviewDay]) -> some View {
+    HStack(spacing: GainsSpacing.xs) {
+      ForEach(days) { day in
+        plannedWeekPill(day)
+      }
+    }
+  }
+
+  private func plannedWeekPill(_ day: GymPlanPreviewDay) -> some View {
+    let isPlanned = day.status == .planned
+    let isRun = day.runTemplate != nil
+    let bg: Color = {
+      if day.isCompleted { return GainsColor.lime }
+      if isPlanned {
+        return isRun
+          ? (day.isToday ? GainsColor.moss.opacity(0.45) : GainsColor.moss.opacity(0.18))
+          : (day.isToday ? GainsColor.lime.opacity(0.45) : GainsColor.lime.opacity(0.16))
+      }
+      if day.status == .rest { return GainsColor.background.opacity(0.6) }
+      return GainsColor.card
+    }()
+
+    return Button {
+      navigation.openPlanner()
+    } label: {
+      VStack(spacing: GainsSpacing.xxs) {
+        Text(day.weekday.shortLabel)
+          .font(GainsFont.label(8))
+          .tracking(1.2)
+          .foregroundStyle(day.isToday ? GainsColor.ink : GainsColor.softInk)
+        ZStack {
+          Circle()
+            .fill(bg)
+            .frame(width: 26, height: 26)
+          if day.isCompleted {
+            Image(systemName: "checkmark")
+              .font(.system(size: 9, weight: .bold))
+              .foregroundStyle(GainsColor.onLime)
+          } else if isRun {
+            Image(systemName: "figure.run")
+              .font(.system(size: 10, weight: .bold))
+              .foregroundStyle(day.isToday ? GainsColor.onLime : GainsColor.moss)
+          } else if isPlanned {
+            Image(systemName: "dumbbell.fill")
+              .font(.system(size: 10, weight: .bold))
+              .foregroundStyle(day.isToday ? GainsColor.onLime : GainsColor.lime)
+          } else {
+            Text("\(Calendar.current.component(.day, from: day.date))")
+              .font(.system(size: 10, weight: .semibold, design: .rounded))
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+      }
+      .frame(maxWidth: .infinity)
+      .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
   }
 }
 
@@ -2926,7 +3070,7 @@ struct SlashLabel: View {
   // A4: Reduziertes Tracking (2.0 → 1.3) — Buchstaben bleiben verbunden
   // lesbar bei den überall verwendeten 13pt (Floor von `GainsFont.label`).
   var body: some View {
-    HStack(spacing: 4) {
+    HStack(spacing: GainsSpacing.xxs) {
       ForEach(Array(parts.enumerated()), id: \.offset) { index, part in
         Text(part)
           .font(GainsFont.label(10))
@@ -2963,9 +3107,9 @@ private struct WorkoutArrangeView: View {
         if let workout = store.activeWorkout {
           VStack(spacing: 0) {
             headline(for: workout)
-              .padding(.horizontal, 20)
-              .padding(.top, 8)
-              .padding(.bottom, 12)
+              .padding(.horizontal, GainsSpacing.l)
+              .padding(.top, GainsSpacing.xsPlus)
+              .padding(.bottom, GainsSpacing.s)
 
             List {
               Section {
@@ -3018,11 +3162,11 @@ private struct WorkoutArrangeView: View {
           VStack {
             Spacer()
             startCTA(for: workout)
-              .padding(.horizontal, 20)
-              .padding(.bottom, 18)
+              .padding(.horizontal, GainsSpacing.l)
+              .padding(.bottom, GainsSpacing.l)
           }
         } else {
-          VStack(spacing: 12) {
+          VStack(spacing: GainsSpacing.s) {
             SwiftUI.ProgressView()
             Text("Workout wird vorbereitet ...")
               .gainsBody(secondary: true)
@@ -3061,14 +3205,14 @@ private struct WorkoutArrangeView: View {
   }
 
   private func headline(for workout: WorkoutSession) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text(workout.title)
         .font(GainsFont.display(28))
         .foregroundStyle(GainsColor.ink)
         .lineLimit(2)
         .minimumScaleFactor(0.78)
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         metaPill(icon: "list.bullet", text: "\(workout.exercises.count) Übungen")
         metaPill(icon: "repeat", text: "\(workout.totalSets) Sätze")
         metaPill(icon: "clock", text: "\(plan.estimatedDurationMinutes) min")
@@ -3083,7 +3227,7 @@ private struct WorkoutArrangeView: View {
   }
 
   private func metaPill(icon: String, text: String) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       Image(systemName: icon)
         .font(.system(size: 10, weight: .bold))
         .foregroundStyle(GainsColor.moss)
@@ -3092,14 +3236,14 @@ private struct WorkoutArrangeView: View {
         .tracking(1.2)
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(.horizontal, 10)
+    .padding(.horizontal, GainsSpacing.tight)
     .frame(height: 28)
     .background(GainsColor.lime.opacity(0.18))
     .clipShape(Capsule())
   }
 
   private var sectionLabel: some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       Circle()
         .fill(GainsColor.lime)
         .frame(width: 5, height: 5)
@@ -3116,7 +3260,7 @@ private struct WorkoutArrangeView: View {
   private func exerciseRow(_ exercise: TrackedExercise, in workout: WorkoutSession) -> some View {
     let index = workout.exercises.firstIndex(where: { $0.id == exercise.id }) ?? 0
 
-    return HStack(spacing: 12) {
+    return HStack(spacing: GainsSpacing.s) {
       Text(String(format: "%02d", index + 1))
         .font(GainsFont.label(11))
         .tracking(1.4)
@@ -3125,7 +3269,7 @@ private struct WorkoutArrangeView: View {
         .background(GainsColor.lime.opacity(0.22))
         .clipShape(Circle())
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(exercise.name)
           .font(GainsFont.title(17))
           .foregroundStyle(GainsColor.ink)
@@ -3146,8 +3290,8 @@ private struct WorkoutArrangeView: View {
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.softInk.opacity(0.7))
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -3157,7 +3301,7 @@ private struct WorkoutArrangeView: View {
   }
 
   private var addExerciseRow: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: "plus")
         .font(.system(size: 13, weight: .bold))
         .foregroundStyle(GainsColor.lime)
@@ -3176,8 +3320,8 @@ private struct WorkoutArrangeView: View {
         .font(.system(size: 11, weight: .bold))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 14)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.m)
     .background(GainsColor.card.opacity(0.6))
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -3191,7 +3335,7 @@ private struct WorkoutArrangeView: View {
     Button {
       onStart()
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: "play.fill")
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
@@ -3208,7 +3352,7 @@ private struct WorkoutArrangeView: View {
           .tracking(1.4)
           .foregroundStyle(GainsColor.lime.opacity(0.7))
       }
-      .padding(.horizontal, 22)
+      .padding(.horizontal, GainsSpacing.xl)
       .frame(height: 64)
       .background(GainsColor.ctaSurface)
       .overlay(
@@ -3245,11 +3389,11 @@ private struct ExercisePickerSheet: View {
   var body: some View {
     NavigationStack {
       GainsScreen {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: GainsSpacing.m) {
           searchField
 
           if filteredExercises.isEmpty {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xs) {
               Text("Keine Übung gefunden")
                 .font(GainsFont.title(18))
                 .foregroundStyle(GainsColor.ink)
@@ -3258,10 +3402,10 @@ private struct ExercisePickerSheet: View {
                 .foregroundStyle(GainsColor.softInk)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
+            .padding(GainsSpacing.m)
             .gainsCardStyle()
           } else {
-            VStack(spacing: 10) {
+            VStack(spacing: GainsSpacing.tight) {
               ForEach(filteredExercises) { item in
                 Button {
                   onSelect(item)
@@ -3299,7 +3443,7 @@ private struct ExercisePickerSheet: View {
   }
 
   private var searchField: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 13, weight: .semibold))
         .foregroundStyle(GainsColor.softInk)
@@ -3321,7 +3465,7 @@ private struct ExercisePickerSheet: View {
         .buttonStyle(.plain)
       }
     }
-    .padding(.horizontal, 14)
+    .padding(.horizontal, GainsSpacing.m)
     .frame(height: 46)
     .background(GainsColor.card)
     .overlay(
@@ -3332,7 +3476,7 @@ private struct ExercisePickerSheet: View {
   }
 
   private func exerciseRow(_ item: ExerciseLibraryItem) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: "dumbbell.fill")
         .font(.system(size: 13, weight: .bold))
         .foregroundStyle(GainsColor.lime)
@@ -3340,7 +3484,7 @@ private struct ExercisePickerSheet: View {
         .background(GainsColor.ctaSurface)
         .clipShape(Circle())
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(item.name)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
@@ -3359,7 +3503,7 @@ private struct ExercisePickerSheet: View {
         .font(GainsFont.label(10))
         .tracking(1.2)
         .foregroundStyle(GainsColor.moss)
-        .padding(.horizontal, 10)
+        .padding(.horizontal, GainsSpacing.tight)
         .frame(height: 26)
         .background(GainsColor.lime.opacity(0.22))
         .clipShape(Capsule())
@@ -3371,8 +3515,8 @@ private struct ExercisePickerSheet: View {
         .background(GainsColor.lime)
         .clipShape(Circle())
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -3397,7 +3541,7 @@ struct StatCard: View {
   let foreground: Color
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text(title)
         .font(GainsFont.label(10))
         .tracking(2)
@@ -3412,7 +3556,7 @@ struct StatCard: View {
         .foregroundStyle(foreground.opacity(0.72))
     }
     .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(background)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }

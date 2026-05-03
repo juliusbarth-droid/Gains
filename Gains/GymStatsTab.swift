@@ -42,7 +42,7 @@ struct GymStatsTab: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 22) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
       if store.exerciseStrengthProgress.isEmpty && store.workoutHistory.isEmpty {
         EmptyStateView(
           style: .inline,
@@ -75,7 +75,7 @@ struct GymStatsTab: View {
   // — die Border-Form stimmte nicht mit der visuellen Pille überein.
 
   private var timeRangeFilter: some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       ForEach(TimeRange.allCases) { range in
         Button {
           withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
@@ -86,7 +86,7 @@ struct GymStatsTab: View {
             .font(GainsFont.eyebrow(10))
             .tracking(1.4)
             .foregroundStyle(timeRange == range ? GainsColor.onLime : GainsColor.softInk)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 32)
             .background(timeRange == range ? GainsColor.lime : GainsColor.card)
             .overlay(
@@ -118,11 +118,11 @@ struct GymStatsTab: View {
 
     return LazyVGrid(
       columns: [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: GainsSpacing.tight),
+        GridItem(.flexible(), spacing: GainsSpacing.tight),
+        GridItem(.flexible(), spacing: GainsSpacing.tight),
       ],
-      spacing: 10
+      spacing: GainsSpacing.tight
     ) {
       GainsMetricTile(
         label: "TRAININGS",
@@ -151,7 +151,7 @@ struct GymStatsTab: View {
     let values = weeklyVolumeTrend
     let maxVal = max(values.max() ?? 1, 1)
 
-    return VStack(alignment: .leading, spacing: 14) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["VOLUMEN", "TREND"],
@@ -165,10 +165,10 @@ struct GymStatsTab: View {
           .foregroundStyle(GainsColor.softInk)
       }
 
-      HStack(alignment: .bottom, spacing: 8) {
+      HStack(alignment: .bottom, spacing: GainsSpacing.xsPlus) {
         ForEach(Array(values.enumerated()), id: \.offset) { idx, val in
           let isCurrent = idx == values.count - 1
-          VStack(spacing: 6) {
+          VStack(spacing: GainsSpacing.xs) {
             ZStack(alignment: .bottom) {
               RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .fill(GainsColor.background.opacity(0.6))
@@ -191,13 +191,13 @@ struct GymStatsTab: View {
           .frame(maxWidth: .infinity)
         }
       }
-      .padding(.top, 4)
+      .padding(.top, GainsSpacing.xxs)
 
       Text("Werte in t (Tonnen). Engine empfiehlt 4–6-Wochen-Progression MEV → MAV → MRV (Israetel/Helms).")
         .font(GainsFont.body(11))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -216,7 +216,7 @@ struct GymStatsTab: View {
     let scaleMax = max(entries.map(\.sets).max() ?? landmarks.mrv, landmarks.mrv)
 
     if !entries.isEmpty {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         HStack(alignment: .firstTextBaseline) {
           SlashLabel(
             parts: ["MUSKEL", "VERTEILUNG"],
@@ -230,7 +230,7 @@ struct GymStatsTab: View {
             .foregroundStyle(GainsColor.softInk)
         }
 
-        VStack(spacing: 14) {
+        VStack(spacing: GainsSpacing.m) {
           ForEach(entries) { entry in
             GymVolumeBar(
               muscle: entry.muscle,
@@ -241,7 +241,7 @@ struct GymStatsTab: View {
           }
         }
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
   }
@@ -256,7 +256,7 @@ struct GymStatsTab: View {
     let records = personalRecords()
 
     if !records.isEmpty {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         HStack(alignment: .firstTextBaseline) {
           SlashLabel(
             parts: ["PERSONAL", "RECORDS"],
@@ -270,13 +270,13 @@ struct GymStatsTab: View {
             .foregroundStyle(GainsColor.softInk)
         }
 
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           ForEach(records.prefix(5)) { record in
             prRow(record)
           }
         }
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
   }
@@ -285,7 +285,7 @@ struct GymStatsTab: View {
     Button {
       historyExerciseName = record.exerciseName
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         ZStack {
           Circle()
             .fill(record.isFresh ? GainsColor.lime : GainsColor.background.opacity(0.85))
@@ -296,7 +296,7 @@ struct GymStatsTab: View {
         }
 
         VStack(alignment: .leading, spacing: 3) {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Text(record.exerciseName)
               .font(GainsFont.title(15))
               .foregroundStyle(GainsColor.ink)
@@ -306,7 +306,7 @@ struct GymStatsTab: View {
                 .font(GainsFont.label(8))
                 .tracking(1.4)
                 .foregroundStyle(GainsColor.onLime)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, GainsSpacing.xs)
                 .padding(.vertical, 2)
                 .background(GainsColor.lime)
                 .clipShape(Capsule())
@@ -331,7 +331,7 @@ struct GymStatsTab: View {
             .foregroundStyle(GainsColor.softInk)
         }
       }
-      .padding(12)
+      .padding(GainsSpacing.s)
       .background(GainsColor.background.opacity(0.5))
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
@@ -389,7 +389,7 @@ struct GymStatsTab: View {
   // MARK: - Stärke-Progress (mit Drilldown)
 
   private var strengthProgressSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["STÄRKE", "FORTSCHRITT"],
@@ -404,14 +404,14 @@ struct GymStatsTab: View {
       }
 
       LazyVGrid(
-        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-        spacing: 10
+        columns: [GridItem(.flexible(), spacing: GainsSpacing.tight), GridItem(.flexible(), spacing: GainsSpacing.tight)],
+        spacing: GainsSpacing.tight
       ) {
         ForEach(store.exerciseStrengthProgress) { item in
           Button {
             historyExerciseName = item.exerciseName
           } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
               HStack {
                 Text(item.exerciseName)
                   .font(GainsFont.label(9))
@@ -420,11 +420,11 @@ struct GymStatsTab: View {
                   .lineLimit(1)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
-                  .font(.system(size: 9, weight: .bold))
+                  .font(.system(size: 10, weight: .bold))
                   .foregroundStyle(GainsColor.moss.opacity(0.7))
               }
 
-              HStack(alignment: .lastTextBaseline, spacing: 4) {
+              HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.xxs) {
                 Text(item.currentValue)
                   .font(GainsFont.title(20))
                   .foregroundStyle(GainsColor.ink)
@@ -441,7 +441,7 @@ struct GymStatsTab: View {
                 .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
+            .padding(GainsSpacing.m)
             .gainsCardStyle()
           }
           .buttonStyle(.plain)
@@ -457,7 +457,7 @@ struct GymStatsTab: View {
     let visibleCount = showsAllHistory ? history.count : 4
     let visible = Array(history.prefix(visibleCount))
 
-    return VStack(alignment: .leading, spacing: 14) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["VERLAUF", "ZULETZT"],
@@ -471,7 +471,7 @@ struct GymStatsTab: View {
           .foregroundStyle(GainsColor.softInk)
       }
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(visible) { workout in
           historyCard(workout)
         }
@@ -483,7 +483,7 @@ struct GymStatsTab: View {
             showsAllHistory.toggle()
           }
         } label: {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Text(showsAllHistory
               ? "Weniger anzeigen"
               : "Alle \(history.count) Workouts anzeigen")
@@ -504,9 +504,9 @@ struct GymStatsTab: View {
   }
 
   private func historyCard(_ workout: CompletedWorkoutSummary) -> some View {
-    HStack(spacing: 14) {
-      VStack(alignment: .leading, spacing: 6) {
-        HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.m) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+        HStack(spacing: GainsSpacing.xs) {
           Image(systemName: "dumbbell.fill")
             .font(.system(size: 10, weight: .semibold))
             .foregroundStyle(GainsColor.lime)
@@ -539,11 +539,11 @@ struct GymStatsTab: View {
           .frame(width: 38, height: 38)
           .rotationEffect(.degrees(-90))
         Text("\(Int(fraction * 100))%")
-          .font(.system(size: 9, weight: .bold, design: .rounded))
+          .font(.system(size: 10, weight: .bold, design: .rounded))
           .foregroundStyle(GainsColor.moss)
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 

@@ -10,10 +10,10 @@ struct RunWorkoutsTab: View {
   @Binding var presentedWorkout: StructuredRunWorkout?
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
       header
 
-      VStack(spacing: 14) {
+      VStack(spacing: GainsSpacing.m) {
         ForEach(store.structuredWorkoutsSorted) { workout in
           Button {
             presentedWorkout = workout
@@ -28,7 +28,7 @@ struct RunWorkoutsTab: View {
   }
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       SlashLabel(
         parts: ["STRUKTURIERTE", "WORKOUTS"],
         primaryColor: GainsColor.lime,
@@ -41,8 +41,8 @@ struct RunWorkoutsTab: View {
   }
 
   private func workoutCard(_ workout: StructuredRunWorkout) -> some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(alignment: .top, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(alignment: .top, spacing: GainsSpacing.s) {
         Image(systemName: workout.systemImage)
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(GainsColor.moss)
@@ -50,8 +50,8 @@ struct RunWorkoutsTab: View {
           .background(GainsColor.lime.opacity(0.22))
           .clipShape(Circle())
 
-        VStack(alignment: .leading, spacing: 4) {
-          HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+          HStack(spacing: GainsSpacing.xs) {
             Text(workout.title)
               .font(GainsFont.title(17))
               .foregroundStyle(GainsColor.ink)
@@ -60,7 +60,7 @@ struct RunWorkoutsTab: View {
                 .font(GainsFont.label(8))
                 .tracking(1.2)
                 .foregroundStyle(GainsColor.lime)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, GainsSpacing.xs)
                 .frame(height: 16)
                 .background(GainsColor.lime.opacity(0.18))
                 .clipShape(Capsule())
@@ -91,7 +91,7 @@ struct RunWorkoutsTab: View {
         workoutStat(label: "STEPS", value: "\(workout.expandedSteps.count)", unit: "")
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -136,12 +136,12 @@ struct StructuredWorkoutDetailSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: GainsSpacing.l) {
           headerBlock
           summaryStats
           stepsSection
         }
-        .padding(20)
+        .padding(GainsSpacing.l)
       }
       .background(GainsColor.background.ignoresSafeArea())
       .navigationBarTitleDisplayMode(.inline)
@@ -179,7 +179,7 @@ struct StructuredWorkoutDetailSheet: View {
           store.startStructuredWorkout(workout)
           onStart()
         } label: {
-          HStack(spacing: 10) {
+          HStack(spacing: GainsSpacing.tight) {
             Image(systemName: "play.fill")
               .font(.system(size: 14, weight: .semibold))
             Text("Workout starten")
@@ -195,8 +195,8 @@ struct StructuredWorkoutDetailSheet: View {
         .buttonStyle(.plain)
         .disabled(store.activeRun != nil)
         .opacity(store.activeRun == nil ? 1 : 0.45)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, GainsSpacing.l)
+        .padding(.vertical, GainsSpacing.s)
         .background(GainsColor.background)
       }
       .confirmationDialog(
@@ -214,7 +214,7 @@ struct StructuredWorkoutDetailSheet: View {
   }
 
   private var headerBlock: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Image(systemName: workout.systemImage)
         .font(.system(size: 28, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
@@ -240,14 +240,14 @@ struct StructuredWorkoutDetailSheet: View {
       Rectangle().fill(GainsColor.border.opacity(0.4)).frame(width: 1, height: 38)
       summaryCell(label: "STEPS", value: "\(workout.expandedSteps.count)", unit: "")
     }
-    .padding(.vertical, 14)
-    .padding(.horizontal, 12)
+    .padding(.vertical, GainsSpacing.m)
+    .padding(.horizontal, GainsSpacing.s)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func summaryCell(label: String, value: String, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(8))
         .tracking(1.4)
@@ -267,7 +267,7 @@ struct StructuredWorkoutDetailSheet: View {
   }
 
   private var stepsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["AUFBAU", "SCHRITTE"],
         primaryColor: GainsColor.lime,
@@ -288,7 +288,7 @@ struct StructuredWorkoutDetailSheet: View {
   }
 
   private func stepRow(index: Int, step: RunWorkoutStep) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: step.kind.systemImage)
         .font(.system(size: 13, weight: .semibold))
         .foregroundStyle(stepColor(step.kind))
@@ -297,7 +297,7 @@ struct StructuredWorkoutDetailSheet: View {
         .clipShape(Circle())
 
       VStack(alignment: .leading, spacing: 2) {
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Text(step.kind.title)
             .font(GainsFont.title(14))
             .foregroundStyle(GainsColor.ink)
@@ -322,7 +322,7 @@ struct StructuredWorkoutDetailSheet: View {
         .tracking(0.6)
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(12)
+    .padding(GainsSpacing.s)
   }
 
   private func stepColor(_ kind: RunWorkoutStepKind) -> Color {

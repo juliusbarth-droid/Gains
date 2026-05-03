@@ -80,14 +80,14 @@ struct GainsSheetHeader: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       // Top-Row: Eyebrow links, Trailing/Close rechts
       HStack(alignment: .center) {
         if !eyebrow.isEmpty {
           slashEyebrow
         }
         Spacer()
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           if let trailingAction {
             trailingActionButton(trailingAction)
           }
@@ -112,14 +112,14 @@ struct GainsSheetHeader: View {
           .fixedSize(horizontal: false, vertical: true)
       }
     }
-    .padding(.horizontal, 20)
-    .padding(.top, 16)
-    .padding(.bottom, 14)
+    .padding(.horizontal, GainsSpacing.l)
+    .padding(.top, GainsSpacing.m)
+    .padding(.bottom, GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private var slashEyebrow: some View {
-    HStack(spacing: 4) {
+    HStack(spacing: GainsSpacing.xxs) {
       ForEach(Array(eyebrow.enumerated()), id: \.offset) { index, part in
         Text(part)
           .gainsEyebrow(
@@ -135,7 +135,7 @@ struct GainsSheetHeader: View {
 
   private func trailingActionButton(_ action: TrailingAction) -> some View {
     Button(action: action.action) {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         if let icon = action.icon {
           Image(systemName: icon)
             .font(.system(size: 11, weight: .heavy))
@@ -144,7 +144,7 @@ struct GainsSheetHeader: View {
           .gainsEyebrow(accent, tracking: GainsTracking.eyebrowTight)
       }
       .foregroundStyle(accent)
-      .padding(.horizontal, 12)
+      .padding(.horizontal, GainsSpacing.s)
       .frame(height: 32)
       .background(accent.opacity(0.12))
       .overlay(

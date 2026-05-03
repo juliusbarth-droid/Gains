@@ -78,7 +78,7 @@ struct GainsSparklineBar: View {
         }
 
         // Bars
-        HStack(alignment: .bottom, spacing: 6) {
+        HStack(alignment: .bottom, spacing: GainsSpacing.xs) {
           ForEach(Array(values.enumerated()), id: \.offset) { index, value in
             barCell(
               value: value,
@@ -197,7 +197,7 @@ struct GainsSparklineBar: View {
 
     return AnyView(
       Image(systemName: icon)
-        .font(.system(size: 9, weight: .heavy))
+        .font(.system(size: 10, weight: .heavy))
         .foregroundStyle(color)
         .frame(width: 18, height: 18)
         .background(color.opacity(0.14))

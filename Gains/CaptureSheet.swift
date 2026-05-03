@@ -45,7 +45,7 @@ struct CaptureSheet: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "CAPTURE / GLOBAL",
           title: "Alles an einer Stelle",
@@ -84,12 +84,12 @@ struct CaptureSheet: View {
 
   private var kindPicker: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         ForEach(CaptureKind.allCases) { kind in
           Button {
             selectedKind = kind
           } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: kind.systemImage)
                 .font(.system(size: 13, weight: .semibold))
 
@@ -98,7 +98,7 @@ struct CaptureSheet: View {
                 .tracking(1.4)
             }
             .foregroundStyle(selectedKind == kind ? GainsColor.onLime : GainsColor.softInk)
-            .padding(.horizontal, 14)
+            .padding(.horizontal, GainsSpacing.m)
             .frame(height: 38)
             .background(selectedKind == kind ? GainsColor.lime : GainsColor.card)
             .clipShape(Capsule())
@@ -111,7 +111,7 @@ struct CaptureSheet: View {
   }
 
   private var autofillCard: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["AUTO", "FILL"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.onCtaSurface.opacity(0.72))
@@ -126,9 +126,9 @@ struct CaptureSheet: View {
         .foregroundStyle(GainsColor.onCtaSurface.opacity(0.78))
         .lineLimit(3)
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .background(GainsColor.ctaSurface)
-    .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
   }
 
   @ViewBuilder
@@ -176,7 +176,7 @@ struct CaptureSheet: View {
   }
 
   private var mealLogger: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Picker("Meal Capture", selection: $selectedMealSurface) {
         ForEach(MealCaptureSurface.allCases) { surface in
           Text(surface.title).tag(surface)
@@ -194,16 +194,16 @@ struct CaptureSheet: View {
       }
 
       fieldBlock(title: "Name") {
-        TextField("Zum Beispiel Chicken Rice Bowl", text: $mealTitle)
+        TextField("z. B. Mittagessen", text: $mealTitle)
           .textInputAutocapitalization(.words)
-          .padding(.horizontal, 16)
+          .padding(.horizontal, GainsSpacing.m)
           .frame(height: 54)
           .gainsCardStyle()
       }
 
       fieldBlock(title: "Mahlzeit") {
         ScrollView(.horizontal, showsIndicators: false) {
-          HStack(spacing: 10) {
+          HStack(spacing: GainsSpacing.tight) {
             ForEach(RecipeMealType.allCases, id: \.self) { currentType in
               Button {
                 mealType = currentType
@@ -212,7 +212,7 @@ struct CaptureSheet: View {
                   .font(GainsFont.label(10))
                   .tracking(1.4)
                   .foregroundStyle(mealType == currentType ? GainsColor.onLime : GainsColor.softInk)
-                  .padding(.horizontal, 14)
+                  .padding(.horizontal, GainsSpacing.m)
                   .frame(height: 36)
                   .background(mealType == currentType ? GainsColor.lime : GainsColor.card)
                   .clipShape(Capsule())
@@ -223,12 +223,12 @@ struct CaptureSheet: View {
         }
       }
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         numberField(title: "kcal", text: $calories)
         numberField(title: "Protein", text: $protein)
       }
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         numberField(title: "Carbs", text: $carbs)
         numberField(title: "Fett", text: $fat)
       }
@@ -261,11 +261,11 @@ struct CaptureSheet: View {
   }
 
   private var photoMealCapture: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       fieldBlock(title: "Meal-Foto") {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: GainsSpacing.s) {
           PhotosPicker(selection: $mealPhotoItem, matching: .images) {
-            HStack(spacing: 10) {
+            HStack(spacing: GainsSpacing.tight) {
               Image(systemName: hasSelectedMealPhoto ? "photo.fill" : "camera.fill")
                 .font(.system(size: 14, weight: .semibold))
               Text(hasSelectedMealPhoto ? "Foto wechseln" : "Essensfoto wählen")
@@ -274,7 +274,7 @@ struct CaptureSheet: View {
               Spacer()
             }
             .foregroundStyle(GainsColor.ink)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, GainsSpacing.m)
             .frame(height: 52)
             .gainsCardStyle(GainsColor.elevated)
           }
@@ -285,7 +285,7 @@ struct CaptureSheet: View {
             .foregroundStyle(GainsColor.softInk)
             .lineLimit(3)
 
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             quickMacroPreset(title: "Snack", calories: 250, protein: 15)
             quickMacroPreset(title: "Meal", calories: 550, protein: 35)
             quickMacroPreset(title: "Groß", calories: 850, protein: 45)
@@ -313,7 +313,7 @@ struct CaptureSheet: View {
         .font(GainsFont.label(10))
         .tracking(1.2)
         .foregroundStyle(GainsColor.onLime)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, GainsSpacing.s)
         .frame(height: 34)
         .background(GainsColor.lime)
         .clipShape(Capsule())
@@ -322,8 +322,8 @@ struct CaptureSheet: View {
   }
 
   private var recipeChooser: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: "magnifyingglass")
           .foregroundStyle(GainsColor.softInk)
 
@@ -340,13 +340,13 @@ struct CaptureSheet: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 16)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 50)
       .background(GainsColor.background.opacity(0.82))
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           filterChip(title: "Alle", isSelected: selectedRecipeGoal == nil) {
             selectedRecipeGoal = nil
           }
@@ -359,12 +359,12 @@ struct CaptureSheet: View {
         }
       }
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(filteredRecipes.prefix(5)) { recipe in
           Button {
             fillMeal(from: recipe)
           } label: {
-            HStack(spacing: 12) {
+            HStack(spacing: GainsSpacing.s) {
               Image(systemName: recipe.placeholderSymbol)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(selectedRecipe?.id == recipe.id ? GainsColor.onLime : GainsColor.lime)
@@ -372,7 +372,7 @@ struct CaptureSheet: View {
                 .background(selectedRecipe?.id == recipe.id ? GainsColor.lime : GainsColor.ctaSurface)
                 .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
-              VStack(alignment: .leading, spacing: 4) {
+              VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
                 Text(recipe.title)
                   .font(GainsFont.title(16))
                   .foregroundStyle(GainsColor.ink)
@@ -392,7 +392,7 @@ struct CaptureSheet: View {
                   .foregroundStyle(GainsColor.lime)
               }
             }
-            .padding(12)
+            .padding(GainsSpacing.s)
             .background(
               selectedRecipe?.id == recipe.id ? GainsColor.lime.opacity(0.16) : GainsColor.card
             )
@@ -402,7 +402,7 @@ struct CaptureSheet: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle(GainsColor.elevated)
   }
 
@@ -412,15 +412,15 @@ struct CaptureSheet: View {
     actionTitle: String,
     action: @escaping () -> Void
   ) -> some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Text(title)
         .font(GainsFont.title(24))
         .foregroundStyle(GainsColor.ink)
         .lineLimit(2)
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         ForEach(metrics, id: \.0) { metric in
-          VStack(alignment: .leading, spacing: 6) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xs) {
             Text(metric.0.uppercased())
               .font(GainsFont.label(9))
               .tracking(1.7)
@@ -433,7 +433,7 @@ struct CaptureSheet: View {
               .minimumScaleFactor(0.75)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
-          .padding(12)
+          .padding(GainsSpacing.s)
           .background(GainsColor.background.opacity(0.82))
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
@@ -451,14 +451,14 @@ struct CaptureSheet: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
   }
 
   private func fieldBlock<Content: View>(title: String, @ViewBuilder content: () -> Content)
     -> some View
   {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text(title.uppercased())
         .font(GainsFont.label(10))
         .tracking(1.8)
@@ -472,7 +472,7 @@ struct CaptureSheet: View {
     fieldBlock(title: title) {
       TextField("0", text: text)
         .keyboardType(.numberPad)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 54)
         .gainsCardStyle()
     }
@@ -487,7 +487,7 @@ struct CaptureSheet: View {
         .font(GainsFont.label(10))
         .tracking(1.4)
         .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.softInk)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 34)
         .background(isSelected ? GainsColor.lime : GainsColor.card)
         .clipShape(Capsule())

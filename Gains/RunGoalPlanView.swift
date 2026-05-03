@@ -42,7 +42,7 @@ struct RunGoalPlannerSection: View {
   @State private var isConfirmingClear = false
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       header
 
       if let plan = store.runGoalPlan {
@@ -123,7 +123,7 @@ struct RunGoalPlannerSection: View {
     Button {
       isShowingSetup = true
     } label: {
-      HStack(alignment: .top, spacing: 14) {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
         Image(systemName: "flag.checkered")
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(GainsColor.lime)
@@ -131,7 +131,7 @@ struct RunGoalPlannerSection: View {
           .background(GainsColor.lime.opacity(0.18))
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xs) {
           Text("Trainings-Ziel setzen")
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
@@ -148,7 +148,7 @@ struct RunGoalPlannerSection: View {
           .font(.system(size: 13, weight: .semibold))
           .foregroundStyle(GainsColor.softInk.opacity(0.55))
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .gainsInteractiveCardStyle(GainsColor.card, accent: GainsColor.lime)
     }
     .buttonStyle(.plain)
@@ -163,9 +163,9 @@ struct RunGoalPlannerSection: View {
     return Button {
       isShowingDetail = true
     } label: {
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         HStack(alignment: .firstTextBaseline) {
-          VStack(alignment: .leading, spacing: 4) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
             Text(plan.displayTitle)
               .font(GainsFont.title(20))
               .foregroundStyle(GainsColor.ink)
@@ -198,13 +198,13 @@ struct RunGoalPlannerSection: View {
             unit: ""
           )
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, GainsSpacing.s)
         .background(GainsColor.surfaceDeep.opacity(0.55))
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
         progressBar(plan)
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .gainsInteractiveCardStyle(GainsColor.card, accent: GainsColor.lime)
     }
     .buttonStyle(.plain)
@@ -226,15 +226,15 @@ struct RunGoalPlannerSection: View {
       label = "in \(days) Tagen"
       tone = days <= 21 ? GainsColor.lime : GainsColor.moss
     }
-    return HStack(spacing: 5) {
+    return HStack(spacing: GainsSpacing.xs) {
       Image(systemName: "clock.fill")
-        .font(.system(size: 9, weight: .bold))
+        .font(.system(size: 10, weight: .bold))
       Text(label.uppercased())
         .font(GainsFont.eyebrow(9))
         .tracking(1.2)
     }
     .foregroundStyle(tone)
-    .padding(.horizontal, 10)
+    .padding(.horizontal, GainsSpacing.tight)
     .frame(height: 24)
     .background(tone.opacity(0.16))
     .overlay(
@@ -244,7 +244,7 @@ struct RunGoalPlannerSection: View {
   }
 
   private func goalStatCell(label: String, value: String, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.eyebrow(9))
         .tracking(1.4)
@@ -273,7 +273,7 @@ struct RunGoalPlannerSection: View {
 
   private func progressBar(_ plan: RunGoalPlan) -> some View {
     let fraction = plan.completionFraction
-    return VStack(alignment: .leading, spacing: 6) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       HStack {
         Text("FORTSCHRITT")
           .font(GainsFont.eyebrow(9))
@@ -305,7 +305,7 @@ struct RunGoalPlannerSection: View {
     let weekSessions = plan.sessions(inWeek: weekIdx)
     let phase = weekSessions.first?.phase ?? .base
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .firstTextBaseline) {
         Text("DIESE WOCHE · \(phase.eyebrow)")
           .font(GainsFont.eyebrow(10))
@@ -322,7 +322,7 @@ struct RunGoalPlannerSection: View {
         Text("Keine Sessions in dieser Woche.")
           .font(GainsFont.body(12))
           .foregroundStyle(GainsColor.softInk)
-          .padding(.vertical, 6)
+          .padding(.vertical, GainsSpacing.xs)
       } else {
         VStack(spacing: 0) {
           ForEach(Array(weekSessions.enumerated()), id: \.element.id) { idx, session in
@@ -330,13 +330,13 @@ struct RunGoalPlannerSection: View {
             if idx < weekSessions.count - 1 {
               Divider()
                 .background(GainsColor.border.opacity(0.35))
-                .padding(.horizontal, 12)
+                .padding(.horizontal, GainsSpacing.s)
             }
           }
         }
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -348,7 +348,7 @@ struct RunGoalPlannerSection: View {
     let isToday = cal.isDateInToday(session.date)
     let isPast = !isToday && session.date < Date() && !session.isCompleted
 
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Button {
         store.togglePlanSessionCompletion(session.id)
       } label: {
@@ -360,7 +360,7 @@ struct RunGoalPlannerSection: View {
       .accessibilityLabel(session.isCompleted ? "Erledigt" : "Offen")
 
       VStack(alignment: .leading, spacing: 3) {
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Text(session.kind.shortLabel)
             .font(GainsFont.eyebrow(9))
             .tracking(1.4)
@@ -398,8 +398,8 @@ struct RunGoalPlannerSection: View {
         .foregroundStyle(GainsColor.ink)
         .lineLimit(1)
     }
-    .padding(.horizontal, 4)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.xxs)
+    .padding(.vertical, GainsSpacing.tight)
   }
 
   private func sessionTitle(_ session: PlannedRunSession) -> String {
@@ -477,7 +477,7 @@ struct RunGoalPlanSetupSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 22) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xl) {
           headerBlock
 
           distanceSection
@@ -488,8 +488,8 @@ struct RunGoalPlanSetupSheet: View {
 
           Color.clear.frame(height: 80)
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 14)
+        .padding(.horizontal, GainsSpacing.l)
+        .padding(.top, GainsSpacing.m)
       }
       .background(GainsColor.background.ignoresSafeArea())
       .navigationBarTitleDisplayMode(.inline)
@@ -515,8 +515,8 @@ struct RunGoalPlanSetupSheet: View {
       }
       .safeAreaInset(edge: .bottom) {
         saveButton
-          .padding(.horizontal, 20)
-          .padding(.vertical, 12)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.vertical, GainsSpacing.s)
           .background(GainsColor.background)
       }
       .onAppear(perform: prefill)
@@ -537,7 +537,7 @@ struct RunGoalPlanSetupSheet: View {
   // MARK: Sections
 
   private var headerBlock: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       SlashLabel(
         parts: ["ZIEL", "PLANER"],
         primaryColor: GainsColor.lime,
@@ -554,7 +554,7 @@ struct RunGoalPlanSetupSheet: View {
   }
 
   private var distanceSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["DISTANZ"],
         primaryColor: GainsColor.lime,
@@ -562,7 +562,7 @@ struct RunGoalPlanSetupSheet: View {
       )
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           ForEach(presetDistances, id: \.label) { preset in
             Button {
               distanceKm = preset.km
@@ -574,7 +574,7 @@ struct RunGoalPlanSetupSheet: View {
                 .font(GainsFont.label(11))
                 .tracking(1.2)
                 .foregroundStyle(distanceKm == preset.km ? GainsColor.onLime : GainsColor.softInk)
-                .padding(.horizontal, 16)
+                .padding(.horizontal, GainsSpacing.m)
                 .frame(height: 36)
                 .background(distanceKm == preset.km ? GainsColor.lime : GainsColor.card)
                 .clipShape(Capsule())
@@ -584,7 +584,7 @@ struct RunGoalPlanSetupSheet: View {
         }
       }
 
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: "ruler")
           .foregroundStyle(GainsColor.softInk)
         TextField(
@@ -599,7 +599,7 @@ struct RunGoalPlanSetupSheet: View {
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
       }
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 50)
       .background(GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -608,19 +608,19 @@ struct RunGoalPlanSetupSheet: View {
           .strokeBorder(GainsColor.border.opacity(0.5), lineWidth: 1)
       )
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   private var paceSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["ZIEL", "PACE"],
         primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk
       )
 
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         paceWheel(value: $paceMinutes, range: 3...8, unit: "min")
         Text(":")
           .font(GainsFont.metricMono(28))
@@ -639,13 +639,13 @@ struct RunGoalPlanSetupSheet: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   private func paceWheel(value: Binding<Int>, range: ClosedRange<Int>, unit: String, step: Int = 1) -> some View {
-    VStack(spacing: 6) {
-      HStack(spacing: 8) {
+    VStack(spacing: GainsSpacing.xs) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Button {
           let next = value.wrappedValue - step
           if next >= range.lowerBound { value.wrappedValue = next }
@@ -694,7 +694,7 @@ struct RunGoalPlanSetupSheet: View {
   }
 
   private var dateSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["ZIEL", "DATUM"],
         primaryColor: GainsColor.lime,
@@ -712,7 +712,7 @@ struct RunGoalPlanSetupSheet: View {
       .tint(GainsColor.lime)
       .frame(maxWidth: .infinity, alignment: .leading)
 
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: "calendar")
           .font(.system(size: 11, weight: .semibold))
           .foregroundStyle(GainsColor.softInk)
@@ -722,19 +722,19 @@ struct RunGoalPlanSetupSheet: View {
           .foregroundStyle(GainsColor.softInk)
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   private var loadSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       SlashLabel(
         parts: ["AKTUELLE", "WOCHE"],
         primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk
       )
 
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         HStack {
           Text("Wochenvolumen")
             .font(GainsFont.body(13))
@@ -754,7 +754,7 @@ struct RunGoalPlanSetupSheet: View {
       Divider()
         .background(GainsColor.border.opacity(0.4))
 
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         HStack {
           Text("Sessions / Woche")
             .font(GainsFont.body(13))
@@ -774,7 +774,7 @@ struct RunGoalPlanSetupSheet: View {
           .foregroundStyle(GainsColor.softInk)
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -787,7 +787,7 @@ struct RunGoalPlanSetupSheet: View {
       sessionsPerWeek: sessionsPerWeek
     )
     let firstWeek = preview.filter { $0.weekIndex == 0 }
-    return VStack(alignment: .leading, spacing: 10) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       SlashLabel(
         parts: ["VORSCHAU", "WOCHE 1"],
         primaryColor: GainsColor.lime,
@@ -804,18 +804,18 @@ struct RunGoalPlanSetupSheet: View {
             if idx < firstWeek.count - 1 {
               Divider()
                 .background(GainsColor.border.opacity(0.35))
-                .padding(.horizontal, 8)
+                .padding(.horizontal, GainsSpacing.xsPlus)
             }
           }
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   private func previewRow(_ session: PlannedRunSession) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Text(session.kind.shortLabel)
         .font(GainsFont.eyebrow(9))
         .tracking(1.4)
@@ -830,14 +830,14 @@ struct RunGoalPlanSetupSheet: View {
         .foregroundStyle(GainsColor.softInk)
       Spacer()
     }
-    .padding(.vertical, 10)
+    .padding(.vertical, GainsSpacing.tight)
   }
 
   // MARK: Save
 
   private var saveButton: some View {
     Button(action: save) {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         Image(systemName: "checkmark.circle.fill")
           .font(.system(size: 16, weight: .semibold))
         Text(existing == nil ? "Plan starten" : "Plan aktualisieren")
@@ -889,12 +889,12 @@ struct RunGoalPlanDetailSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: GainsSpacing.l) {
           headerBlock
           summaryStats
           weeksSection
         }
-        .padding(20)
+        .padding(GainsSpacing.l)
       }
       .background(GainsColor.background.ignoresSafeArea())
       .navigationBarTitleDisplayMode(.inline)
@@ -928,7 +928,7 @@ struct RunGoalPlanDetailSheet: View {
   }
 
   private var headerBlock: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text(livePlan.displayTitle)
         .font(GainsFont.title(28))
         .foregroundStyle(GainsColor.ink)
@@ -955,14 +955,14 @@ struct RunGoalPlanDetailSheet: View {
       Rectangle().fill(GainsColor.border.opacity(0.4)).frame(width: 1, height: 38)
       summaryCell(label: "WOCHEN", value: "\(livePlan.totalWeeks)", unit: "")
     }
-    .padding(.vertical, 14)
-    .padding(.horizontal, 12)
+    .padding(.vertical, GainsSpacing.m)
+    .padding(.horizontal, GainsSpacing.s)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func summaryCell(label: String, value: String, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.eyebrow(9))
         .tracking(1.4)
@@ -983,7 +983,7 @@ struct RunGoalPlanDetailSheet: View {
 
   private var weeksSection: some View {
     let weekIdx = livePlan.currentWeekIndex()
-    return VStack(alignment: .leading, spacing: 14) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       SlashLabel(
         parts: ["WOCHEN", "ÜBERSICHT"],
         primaryColor: GainsColor.lime,
@@ -1002,7 +1002,7 @@ struct RunGoalPlanDetailSheet: View {
     let totalKm = sessions.reduce(0) { $0 + $1.distanceKm }
     let done = sessions.filter(\.isCompleted).count
 
-    return VStack(alignment: .leading, spacing: 10) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       HStack(alignment: .firstTextBaseline) {
         Text("WOCHE \(weekIndex + 1) · \(phase.eyebrow)")
           .font(GainsFont.eyebrow(10))
@@ -1021,12 +1021,12 @@ struct RunGoalPlanDetailSheet: View {
           if idx < sessions.count - 1 {
             Divider()
               .background(GainsColor.border.opacity(0.35))
-              .padding(.horizontal, 6)
+              .padding(.horizontal, GainsSpacing.xs)
           }
         }
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .fill(isCurrent ? GainsColor.lime.opacity(0.06) : GainsColor.card)
@@ -1041,7 +1041,7 @@ struct RunGoalPlanDetailSheet: View {
   }
 
   private func detailRow(_ session: PlannedRunSession) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Button {
         store.togglePlanSessionCompletion(session.id)
       } label: {
@@ -1056,7 +1056,7 @@ struct RunGoalPlanDetailSheet: View {
           .font(GainsFont.title(14))
           .foregroundStyle(session.isCompleted ? GainsColor.softInk : GainsColor.ink)
           .strikethrough(session.isCompleted, color: GainsColor.softInk)
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Text(weekdayMonthLabel(session.date))
             .font(GainsFont.eyebrow(9))
             .tracking(1.0)
@@ -1084,8 +1084,8 @@ struct RunGoalPlanDetailSheet: View {
         .font(GainsFont.metricMono(13))
         .foregroundStyle(GainsColor.ink)
     }
-    .padding(.horizontal, 4)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.xxs)
+    .padding(.vertical, GainsSpacing.tight)
   }
 
   private func weekdayMonthLabel(_ date: Date) -> String {

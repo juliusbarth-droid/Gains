@@ -38,21 +38,21 @@ struct CustomPlanBuilderSheet: View {
         GainsColor.background.ignoresSafeArea()
 
         ScrollView(showsIndicators: false) {
-          VStack(alignment: .leading, spacing: 22) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xl) {
             intro
             weeklyGrid
             summaryCard
             Color.clear.frame(height: 80) // Platz für Sticky-Bar
           }
-          .padding(.horizontal, 20)
-          .padding(.top, 12)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.s)
         }
 
         VStack {
           Spacer()
           stickyActionBar
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.l)
         }
       }
       .navigationBarTitleDisplayMode(.inline)
@@ -111,7 +111,7 @@ struct CustomPlanBuilderSheet: View {
   // MARK: - Intro
 
   private var intro: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       SlashLabel(
         parts: ["EIGENER", "WOCHENPLAN"],
         primaryColor: GainsColor.lime,
@@ -131,7 +131,7 @@ struct CustomPlanBuilderSheet: View {
   // MARK: - Wochengrid
 
   private var weeklyGrid: some View {
-    VStack(spacing: 10) {
+    VStack(spacing: GainsSpacing.tight) {
       ForEach(Weekday.allCases) { day in
         weekdayCard(for: day)
       }
@@ -143,9 +143,9 @@ struct CustomPlanBuilderSheet: View {
     let draft = drafts[day]
     let isToday = day == .today
 
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       // Header: Wochentag + Heute-Marker + Quick-Toggle Frei
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         Text(day.title.uppercased())
           .font(GainsFont.label(11))
           .tracking(1.4)
@@ -155,7 +155,7 @@ struct CustomPlanBuilderSheet: View {
             .font(GainsFont.label(8))
             .tracking(1.4)
             .foregroundStyle(GainsColor.moss)
-            .padding(.horizontal, 6)
+            .padding(.horizontal, GainsSpacing.xs)
             .padding(.vertical, 2)
             .background(GainsColor.lime.opacity(0.18))
             .clipShape(Capsule())
@@ -168,15 +168,15 @@ struct CustomPlanBuilderSheet: View {
               drafts[day] = nil
             }
           } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: GainsSpacing.xxs) {
               Image(systemName: "xmark")
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(size: 10, weight: .bold))
               Text("Frei")
                 .font(GainsFont.label(9))
                 .tracking(1.0)
             }
             .foregroundStyle(GainsColor.softInk)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, GainsSpacing.tight)
             .frame(height: 28)
             .background(GainsColor.background.opacity(0.85))
             .clipShape(Capsule())
@@ -186,7 +186,7 @@ struct CustomPlanBuilderSheet: View {
       }
 
       // Drei Mode-Buttons: Kraft / Lauf / Frei
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         modeButton(
           title: "Kraft",
           icon: "dumbbell.fill",
@@ -231,7 +231,7 @@ struct CustomPlanBuilderSheet: View {
         detailBlock(for: day, draft: draft)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle(isToday ? GainsColor.lime.opacity(0.06) : GainsColor.card)
   }
 
@@ -244,7 +244,7 @@ struct CustomPlanBuilderSheet: View {
     onTap: @escaping () -> Void
   ) -> some View {
     Button(action: onTap) {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: icon)
           .font(.system(size: 12, weight: .bold))
         Text(title)
@@ -300,7 +300,7 @@ struct CustomPlanBuilderSheet: View {
         }
       }
     } label: {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         Image(systemName: "dumbbell.fill")
           .font(.system(size: 12, weight: .semibold))
           .foregroundStyle(GainsColor.lime)
@@ -320,7 +320,7 @@ struct CustomPlanBuilderSheet: View {
           .font(.system(size: 10, weight: .semibold))
           .foregroundStyle(GainsColor.softInk)
       }
-      .padding(10)
+      .padding(GainsSpacing.tight)
       .background(GainsColor.background.opacity(0.6))
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
@@ -330,7 +330,7 @@ struct CustomPlanBuilderSheet: View {
     let runKinds: [PlannedSessionKind] = [.easyRun, .tempoRun, .intervalRun, .longRun, .recoveryRun]
 
     return ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(runKinds, id: \.self) { kind in
           let isSelected = currentKind == kind
           Button {
@@ -342,7 +342,7 @@ struct CustomPlanBuilderSheet: View {
               .font(GainsFont.label(10))
               .tracking(1.2)
               .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.ink)
-              .padding(.horizontal, 12)
+              .padding(.horizontal, GainsSpacing.s)
               .frame(height: 32)
               .background(isSelected ? GainsColor.moss : GainsColor.background.opacity(0.85))
               .overlay(
@@ -368,7 +368,7 @@ struct CustomPlanBuilderSheet: View {
     let total = strength + runs
     let rest = Weekday.allCases.count - total
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["WOCHEN", "ÜBERSICHT"],
         primaryColor: GainsColor.lime,
@@ -376,8 +376,8 @@ struct CustomPlanBuilderSheet: View {
       )
 
       LazyVGrid(
-        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-        spacing: 10
+        columns: [GridItem(.flexible(), spacing: GainsSpacing.tight), GridItem(.flexible(), spacing: GainsSpacing.tight)],
+        spacing: GainsSpacing.tight
       ) {
         GainsMetricTile(
           label: "TRAINING",
@@ -406,7 +406,7 @@ struct CustomPlanBuilderSheet: View {
       }
 
       if total == 0 {
-        HStack(alignment: .top, spacing: 8) {
+        HStack(alignment: .top, spacing: GainsSpacing.xsPlus) {
           Image(systemName: "info.circle.fill")
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(GainsColor.softInk)
@@ -416,7 +416,7 @@ struct CustomPlanBuilderSheet: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -426,7 +426,7 @@ struct CustomPlanBuilderSheet: View {
     Button {
       saveAndDismiss()
     } label: {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "checkmark")
           .font(.system(size: 13, weight: .heavy))
         Text("Plan übernehmen")

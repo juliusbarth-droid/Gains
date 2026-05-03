@@ -22,6 +22,19 @@ struct DiagnosticsShareSheet: UIViewControllerRepresentable {
   func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
 }
 
+// 2026-05-03 P1 #30: Generischer Share-Sheet für File-URL-basierten Export
+// (z. B. JSON-Daten-Dump). Wird für „Daten exportieren" in der Optionen-
+// Card genutzt.
+struct ProfileShareSheet: UIViewControllerRepresentable {
+  let activityItems: [Any]
+
+  func makeUIViewController(context: Context) -> UIActivityViewController {
+    UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+  }
+
+  func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
+}
+
 // MARK: - ProfileView (Re-Design 2026-05-03)
 //
 // Vor diesem Pass war das Profil ein loser Stapel aus 6+ SlashLabel-Sektionen
@@ -60,13 +73,25 @@ struct ProfileView: View {
   @State private var showsTrackerHub = false
   @State private var showsResetConfirmation = false
   @State private var diagnosticsShareItem: DiagnosticsShareItem? = nil
+  // 2026-05-03 P0 F: Onboarding-Replay aus Profil. Setzen wir
+  // `hasCompletedOnboarding = false`, übernimmt `GainsApp` automatisch das
+  // Wieder-Einblenden des Wizards (Modal-Cover); persistierte Daten
+  // (Workouts, Läufe, Ernährung) bleiben erhalten.
+  @State private var showsReplayOnboardingConfirmation = false
+  @AppStorage(GainsKey.hasCompletedOnboarding) private var profileHasCompletedOnboarding = true
+  // Boolean-Sentinel — wenn der Alert auf „Onboarding starten" klickt, setzt
+  // er das hier auf true; dadurch springt der Reset-Code unten an.
+  @State private var replayOnboarding = false
+  // P1 #30: Daten-Export.
+  @State private var showsExportShareSheet = false
+  @State private var exportFileURL: URL? = nil
 
   var body: some View {
     ZStack {
       GainsAppBackground()
 
       ScrollView(showsIndicators: false) {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: GainsSpacing.l) {
           heroCard
           pulseStrip
           planCard
@@ -77,9 +102,9 @@ struct ProfileView: View {
           debugCard
           #endif
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 32)
+        .padding(.horizontal, GainsSpacing.l)
+        .padding(.top, GainsSpacing.xsPlus)
+        .padding(.bottom, GainsSpacing.xl)
       }
     }
     // Avatar-Picker: PhotosPicker hängt am View, getriggert durch das
@@ -146,7 +171,7 @@ struct ProfileView: View {
   }
 
   private var heroHeader: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       PulsingDot(color: GainsColor.lime, coreSize: 6, haloSize: 16)
       Text("PROFIL")
         .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.6)
@@ -158,13 +183,13 @@ struct ProfileView: View {
   }
 
   private var heroIdentity: some View {
-    HStack(alignment: .center, spacing: 18) {
+    HStack(alignment: .center, spacing: GainsSpacing.l) {
       avatarTile
-      VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
         Button {
           showsNameEditor = true
         } label: {
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             Text(displayName)
               .font(GainsFont.display(28))
               .foregroundStyle(GainsColor.ink)
@@ -238,7 +263,7 @@ struct ProfileView: View {
   // SlashLabel-Überschrift (würde hier nur Lärm machen).
 
   private var pulseStrip: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       profilePulseTile(
         icon: "flame.fill",
         eyebrow: "STREAK",
@@ -270,8 +295,8 @@ struct ProfileView: View {
     detail: String,
     accent: Color
   ) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
-      HStack(spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: icon)
           .font(.system(size: 11, weight: .heavy))
           .foregroundStyle(accent)
@@ -286,8 +311,8 @@ struct ProfileView: View {
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -299,10 +324,10 @@ struct ProfileView: View {
   // MARK: - Plan-Card
 
   private var planCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       cardHeader(eyebrow: "PLAN", icon: "calendar.badge.plus", accent: GainsColor.lime)
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text("Wochenstruktur")
           .font(GainsFont.title(20))
           .foregroundStyle(GainsColor.ink)
@@ -337,7 +362,7 @@ struct ProfileView: View {
           value: store.plannerSettings.trainingFocus.shortTitle
         )
       }
-      .padding(.vertical, 4)
+      .padding(.vertical, GainsSpacing.xxs)
       .background(GainsColor.ctaSurface.opacity(0.6))
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
@@ -347,7 +372,7 @@ struct ProfileView: View {
         navigation.openPlanner()
         dismissProfile()
       } label: {
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           Image(systemName: "slider.horizontal.3")
             .font(.system(size: 13, weight: .heavy))
             .foregroundStyle(GainsColor.lime)
@@ -360,7 +385,7 @@ struct ProfileView: View {
             .font(.system(size: 12, weight: .heavy))
             .foregroundStyle(GainsColor.lime)
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 50)
         .background(GainsColor.lime.opacity(0.10))
         .overlay(
@@ -371,12 +396,12 @@ struct ProfileView: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
   }
 
   private func planSummaryRow(icon: String, title: String, value: String) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: icon)
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
@@ -392,14 +417,14 @@ struct ProfileView: View {
         .font(.system(size: 14, weight: .semibold, design: .monospaced))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.tight)
   }
 
   private var planDivider: some View {
     Divider()
       .overlay(GainsColor.border.opacity(0.4))
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
   }
 
   // MARK: - Tracker-Card
@@ -413,20 +438,20 @@ struct ProfileView: View {
     Button {
       showsTrackerHub = true
     } label: {
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         cardHeader(eyebrow: "TRACKER", icon: "antenna.radiowaves.left.and.right", accent: GainsColor.accentCool)
 
-        HStack(alignment: .center, spacing: 14) {
+        HStack(alignment: .center, spacing: GainsSpacing.m) {
           ZStack {
             Circle()
               .fill(trackerAccent.opacity(0.15))
               .frame(width: 48, height: 48)
             Image(systemName: trackerIcon)
-              .font(.system(size: 19, weight: .semibold))
+              .font(.system(size: 18, weight: .semibold))
               .foregroundStyle(trackerAccent)
           }
 
-          VStack(alignment: .leading, spacing: 4) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
             Text(trackerHeadline)
               .font(GainsFont.title(18))
               .foregroundStyle(GainsColor.ink)
@@ -444,7 +469,7 @@ struct ProfileView: View {
             .foregroundStyle(GainsColor.softInk)
         }
       }
-      .padding(18)
+      .padding(GainsSpacing.l)
       .frame(maxWidth: .infinity, alignment: .leading)
     }
     .buttonStyle(.plain)
@@ -486,7 +511,7 @@ struct ProfileView: View {
   // MARK: - Optionen-Card (echte Toggles)
 
   private var optionsCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       cardHeader(eyebrow: "OPTIONEN", icon: "slider.horizontal.3", accent: GainsColor.softInk)
 
       VStack(spacing: 0) {
@@ -520,14 +545,105 @@ struct ProfileView: View {
           )
         )
         planDivider
+        // 2026-05-03 Intuitivitäts-Sweep P0 F: Onboarding-Replay aus dem
+        // DEBUG-Bereich in den Produktiv-Build gehoben. User mit Wunsch
+        // „Ziel/Plan komplett neu" können das Onboarding wiederholen, ohne
+        // alle ihre Workout-Daten zu verlieren — `hasCompletedOnboarding`
+        // = false öffnet beim nächsten App-Wechsel den Wizard, lokale
+        // Daten bleiben.
+        Button {
+          showsReplayOnboardingConfirmation = true
+        } label: {
+          infoRow(icon: "arrow.uturn.backward.circle", title: "Daten neu erfassen", value: "Wizard")
+        }
+        .buttonStyle(.plain)
+        planDivider
+        // P1 #30: Daten-Export (alle Workouts, Läufe, Ernährung, Gewicht)
+        // als JSON via ShareSheet — GDPR/Backup.
+        Button {
+          shareNutritionExport()
+        } label: {
+          infoRow(icon: "square.and.arrow.up", title: "Daten exportieren", value: "JSON")
+        }
+        .buttonStyle(.plain)
+        planDivider
         infoRow(icon: "info.circle", title: "Version", value: "1.0")
       }
-      .padding(.vertical, 4)
+      .padding(.vertical, GainsSpacing.xxs)
       .background(GainsColor.ctaSurface.opacity(0.6))
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
+    .alert(
+      "Onboarding wiederholen?",
+      isPresented: $showsReplayOnboardingConfirmation
+    ) {
+      Button("Abbrechen", role: .cancel) {}
+      Button("Onboarding starten", role: .none) {
+        // GainsApp beobachtet diesen Flag — `false` zeigt OnboardingView
+        // wieder als Modal-Cover an, ohne dass `clearAllData()` aufgerufen
+        // werden muss. Damit bleiben alle gesammelten Daten erhalten.
+        profileHasCompletedOnboarding = false
+        dismissProfile()
+      }
+    } message: {
+      Text("Deine bisherigen Trainings, Läufe und Ernährungseinträge bleiben erhalten — nur Profil, Plan und Ziele werden neu erfasst.")
+    }
+    .sheet(isPresented: $showsExportShareSheet) {
+      if let url = exportFileURL {
+        ProfileShareSheet(activityItems: [url])
+      }
+    }
+  }
+
+  // P1 #30: Daten-Export — speichert eine kompakte JSON-Datei aller User-
+  // Daten in `tmp` und öffnet das System-Share-Sheet. Wenn etwas fehlschlägt,
+  // wird leise abgebrochen — Privacy ohne Stolperer.
+  private func shareNutritionExport() {
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    let payload: [String: Any] = [
+      "exportedAt": ISO8601DateFormatter().string(from: Date()),
+      "userName": store.userName,
+      "nutritionGoal": String(describing: store.nutritionGoal),
+      "nutritionProfile": store.nutritionProfile.map {
+        [
+          "sex": String(describing: $0.sex),
+          "age": $0.age,
+          "heightCm": $0.heightCm,
+          "weightKg": $0.weightKg,
+          "activityLevel": String(describing: $0.activityLevel),
+          "surplusKcal": $0.surplusKcal,
+        ] as [String: Any]
+      } as Any,
+      "nutritionEntries": store.nutritionEntries.map {
+        [
+          "date": ISO8601DateFormatter().string(from: $0.loggedAt),
+          "title": $0.title,
+          "meal": String(describing: $0.mealType),
+          "calories": $0.calories,
+          "protein": $0.protein,
+          "carbs": $0.carbs,
+          "fat": $0.fat,
+        ] as [String: Any]
+      },
+      "workoutHistoryCount": store.workoutHistory.count,
+      "runHistoryCount": store.runHistory.count,
+      "weightTrendCount": store.weightTrend.count,
+    ]
+    guard JSONSerialization.isValidJSONObject(payload),
+          let data = try? JSONSerialization.data(withJSONObject: payload, options: [.prettyPrinted]),
+          let dir = try? FileManager.default.url(
+            for: .cachesDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+          )
+    else { return }
+    let url = dir.appendingPathComponent("gains-export-\(Int(Date().timeIntervalSince1970)).json")
+    try? data.write(to: url, options: .atomic)
+    exportFileURL = url
+    showsExportShareSheet = true
   }
 
   private func toggleRow(
@@ -536,7 +652,7 @@ struct ProfileView: View {
     subtitle: String,
     binding: Binding<Bool>
   ) -> some View {
-    HStack(alignment: .center, spacing: 12) {
+    HStack(alignment: .center, spacing: GainsSpacing.s) {
       Image(systemName: icon)
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(binding.wrappedValue ? GainsColor.lime : GainsColor.softInk)
@@ -557,12 +673,12 @@ struct ProfileView: View {
         .labelsHidden()
         .tint(GainsColor.lime)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.tight)
   }
 
   private func infoRow(icon: String, title: String, value: String) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: icon)
         .font(.system(size: 14, weight: .semibold))
         .foregroundStyle(GainsColor.softInk)
@@ -578,14 +694,14 @@ struct ProfileView: View {
         .font(.system(size: 14, weight: .semibold, design: .monospaced))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
   }
 
   // MARK: - Diagnose
 
   private var diagnosticsCard: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       cardHeader(eyebrow: "DIAGNOSE", icon: "stethoscope", accent: GainsColor.softInk)
 
       Text("Wenn die App abstürzt oder hängt, sammelt iOS einen Diagnose-Report. Du kannst ihn hier teilen, um beim Fehlersuchen zu helfen.")
@@ -593,7 +709,7 @@ struct ProfileView: View {
         .lineSpacing(2)
         .fixedSize(horizontal: false, vertical: true)
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         Button {
           diagnosticsShareItem = DiagnosticsShareItem(text: diagnostics.exportableText())
         } label: {
@@ -625,12 +741,12 @@ struct ProfileView: View {
         }
       }
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
   }
 
   private func diagnosticsButton(icon: String, title: String, subtitle: String, accent: Color) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Image(systemName: icon)
         .font(.system(size: 13, weight: .heavy))
         .foregroundStyle(accent)
@@ -644,8 +760,8 @@ struct ProfileView: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.ctaSurface.opacity(0.7))
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -660,7 +776,7 @@ struct ProfileView: View {
   @AppStorage(GainsKey.hasCompletedOnboarding) private var hasCompletedOnboarding = false
 
   private var debugCard: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       cardHeader(eyebrow: "DEBUG · DEMO", icon: "wrench.and.screwdriver.fill", accent: GainsColor.ember)
 
       Text("Nur in Entwicklungs-Builds sichtbar — fürs Aufnehmen von Screenshots oder schnelles Test-Befüllen.")
@@ -692,11 +808,11 @@ struct ProfileView: View {
         }
         .buttonStyle(.plain)
       }
-      .padding(.vertical, 4)
+      .padding(.vertical, GainsSpacing.xxs)
       .background(GainsColor.ctaSurface.opacity(0.6))
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -720,7 +836,7 @@ struct ProfileView: View {
   // MARK: - Card-Header (gemeinsamer Eyebrow + Icon-Kapsel)
 
   private func cardHeader(eyebrow: String, icon: String, accent: Color) -> some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       ZStack {
         Circle()
           .fill(accent.opacity(0.16))
@@ -832,8 +948,8 @@ private struct NameEditSheet: View {
     ZStack {
       GainsColor.background.ignoresSafeArea()
 
-      VStack(alignment: .leading, spacing: 20) {
-        VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: GainsSpacing.l) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xs) {
           Text("DEIN NAME")
             .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.6)
           Text("Wie sollen wir dich nennen?")
@@ -844,8 +960,8 @@ private struct NameEditSheet: View {
         TextField("z. B. Julius", text: $draft)
           .font(GainsFont.body(17))
           .foregroundStyle(GainsColor.ink)
-          .padding(.horizontal, 14)
-          .padding(.vertical, 14)
+          .padding(.horizontal, GainsSpacing.m)
+          .padding(.vertical, GainsSpacing.m)
           .background(GainsColor.card)
           .overlay(
             RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -860,7 +976,7 @@ private struct NameEditSheet: View {
 
         Spacer(minLength: 0)
 
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           Button {
             dismiss()
           } label: {
@@ -894,9 +1010,9 @@ private struct NameEditSheet: View {
           .opacity(draft.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
         }
       }
-      .padding(.horizontal, 22)
-      .padding(.top, 28)
-      .padding(.bottom, 22)
+      .padding(.horizontal, GainsSpacing.xl)
+      .padding(.top, GainsSpacing.xl)
+      .padding(.bottom, GainsSpacing.xl)
     }
     .onAppear {
       draft = currentName

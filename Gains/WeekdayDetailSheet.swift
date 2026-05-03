@@ -45,9 +45,10 @@ struct WeekdayDetailSheet: View {
         GainsColor.background.ignoresSafeArea()
 
         ScrollView(showsIndicators: false) {
-          VStack(alignment: .leading, spacing: 18) {
+          VStack(alignment: .leading, spacing: GainsSpacing.l) {
             headerCard
             statusSwitcher
+            swapDayRow
 
             // Primär-CTA nur auf "heute" — für andere Tage führt der einzige
             // sinnvolle Pfad sowieso in die Workout-Liste darunter.
@@ -63,9 +64,9 @@ struct WeekdayDetailSheet: View {
               exerciseSummary(plan)
             }
           }
-          .padding(.horizontal, 20)
-          .padding(.top, 12)
-          .padding(.bottom, 36)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.s)
+          .padding(.bottom, GainsSpacing.xl)
         }
       }
       .navigationBarTitleDisplayMode(.inline)
@@ -88,7 +89,7 @@ struct WeekdayDetailSheet: View {
   // MARK: - Header
 
   private var headerCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       HStack(alignment: .firstTextBaseline) {
         Text(eyebrowLabel)
           .font(GainsFont.label(10))
@@ -109,14 +110,14 @@ struct WeekdayDetailSheet: View {
         .lineLimit(3)
 
       if let metrics = headerMetrics, !metrics.isEmpty {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(metrics, id: \.label) { metric in
             metricPill(metric)
           }
         }
       }
     }
-    .padding(18)
+    .padding(GainsSpacing.l)
     .frame(maxWidth: .infinity, alignment: .leading)
     .gainsCardStyle()
   }
@@ -127,7 +128,7 @@ struct WeekdayDetailSheet: View {
   }
 
   private func metricPill(_ metric: HeaderMetric) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
       Text(metric.label)
         .font(GainsFont.label(9))
         .tracking(1.2)
@@ -137,8 +138,8 @@ struct WeekdayDetailSheet: View {
         .foregroundStyle(GainsColor.ink)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.vertical, 10)
-    .padding(.horizontal, 12)
+    .padding(.vertical, GainsSpacing.tight)
+    .padding(.horizontal, GainsSpacing.s)
     .background(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .fill(Color.white.opacity(0.04))
@@ -229,13 +230,13 @@ struct WeekdayDetailSheet: View {
   // aktuelle Day-Preference. Tap = sofort übernehmen, kein extra Bestätigen.
 
   private var statusSwitcher: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("STATUS")
         .font(GainsFont.label(9))
         .tracking(1.4)
         .foregroundStyle(GainsColor.softInk)
 
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         statusOptionButton(
           preference: .training,
           icon: isBikeDay ? "bicycle" : (isRunDay ? "figure.run" : "dumbbell.fill"),
@@ -258,6 +259,63 @@ struct WeekdayDetailSheet: View {
     }
   }
 
+  // MARK: - Swap-Day Row
+  //
+  // 2026-05-03: Häufiger Use-Case: „Heute kann ich nicht trainieren — geht
+  // morgen". Vorher: Status auf Rest setzen, anderen Tag finden, dort Status
+  // auf Training setzen, dort Workout zuweisen — vier Schritte. Jetzt: Tag
+  // tauschen mit … Workout, Status und manuelles SessionKind wandern in einem
+  // Schritt mit (siehe `GainsStore.swapDayAssignments`).
+  private var swapDayRow: some View {
+    Menu {
+      ForEach(Weekday.allCases.filter { $0 != weekday }) { other in
+        Button {
+          store.swapDayAssignments(weekday, other)
+        } label: {
+          let pref = store.dayPreference(for: other)
+          let assigned = store.assignedWorkoutPlan(for: other)
+          let suffix: String = {
+            if let assigned { return " · \(assigned.title)" }
+            if pref == .rest { return " · Ruhe" }
+            if pref == .flexible { return " · Flex" }
+            return ""
+          }()
+          Text("\(other.title)\(suffix)")
+        }
+      }
+    } label: {
+      HStack(spacing: GainsSpacing.s) {
+        Image(systemName: "arrow.left.arrow.right")
+          .font(.system(size: 13, weight: .bold))
+          .foregroundStyle(GainsColor.lime)
+        VStack(alignment: .leading, spacing: 2) {
+          Text("TAG TAUSCHEN")
+            .font(GainsFont.label(9))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.softInk)
+          Text("Workout, Status und Lauf-Typ wandern mit")
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+        }
+        Spacer(minLength: 0)
+        Image(systemName: "chevron.up.chevron.down")
+          .font(.system(size: 11, weight: .bold))
+          .foregroundStyle(GainsColor.softInk.opacity(0.6))
+      }
+      .padding(GainsSpacing.s)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .fill(Color.white.opacity(0.04))
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .stroke(GainsColor.border.opacity(0.5), lineWidth: GainsBorder.hairline)
+      )
+    }
+  }
+
   private func statusOptionButton(
     preference: WorkoutDayPreference,
     icon: String,
@@ -269,7 +327,7 @@ struct WeekdayDetailSheet: View {
     return Button {
       store.setDayPreference(preference, for: weekday)
     } label: {
-      VStack(spacing: 6) {
+      VStack(spacing: GainsSpacing.xs) {
         Image(systemName: icon)
           .font(.system(size: 14, weight: .bold))
           .foregroundStyle(isActive ? GainsColor.onLime : tint)
@@ -279,7 +337,7 @@ struct WeekdayDetailSheet: View {
           .foregroundStyle(isActive ? GainsColor.onLime : GainsColor.ink)
       }
       .frame(maxWidth: .infinity)
-      .padding(.vertical, 12)
+      .padding(.vertical, GainsSpacing.s)
       .background(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .fill(isActive ? tint : Color.white.opacity(0.04))
@@ -296,7 +354,7 @@ struct WeekdayDetailSheet: View {
 
   private var primaryActionCard: some View {
     Button(action: handlePrimaryAction) {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: primaryActionIcon)
           .font(.system(size: 14, weight: .bold))
         Text(primaryActionTitle)
@@ -307,7 +365,7 @@ struct WeekdayDetailSheet: View {
           .font(.system(size: 12, weight: .bold))
       }
       .foregroundStyle(GainsColor.onLime)
-      .padding(.horizontal, 16)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 52)
       .frame(maxWidth: .infinity)
       .background(GainsColor.lime)
@@ -380,8 +438,8 @@ struct WeekdayDetailSheet: View {
     let body = isBikeDay
       ? "Rad-Tage werden aus deinem Plan abgeleitet. Wenn du das ändern willst, passe oben den Status an oder bearbeite den Plan im PLAN-Tab."
       : "Lauftage werden aus deinem Plan abgeleitet. Wenn du das ändern willst, passe oben den Status an oder bearbeite den Plan im PLAN-Tab."
-    return VStack(alignment: .leading, spacing: 8) {
-      HStack(spacing: 8) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "info.circle.fill")
           .font(.system(size: 12, weight: .bold))
           .foregroundStyle(tint)
@@ -394,13 +452,13 @@ struct WeekdayDetailSheet: View {
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .gainsCardStyle()
   }
 
   private var assignmentList: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       HStack(alignment: .firstTextBaseline) {
         Text("WORKOUT ZUWEISEN")
           .font(GainsFont.label(9))
@@ -423,7 +481,7 @@ struct WeekdayDetailSheet: View {
       if store.savedWorkoutPlans.isEmpty {
         emptyPlansHint
       } else {
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           ForEach(store.savedWorkoutPlans) { plan in
             assignmentRow(plan)
           }
@@ -433,7 +491,7 @@ struct WeekdayDetailSheet: View {
   }
 
   private var emptyPlansHint: some View {
-    VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       Text("Noch keine gespeicherten Workouts")
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.ink)
@@ -441,7 +499,7 @@ struct WeekdayDetailSheet: View {
         .font(GainsFont.body(12))
         .foregroundStyle(GainsColor.softInk)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .gainsCardStyle()
   }
@@ -452,7 +510,7 @@ struct WeekdayDetailSheet: View {
     return Button {
       store.assignWorkout(plan, to: weekday)
     } label: {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         ZStack {
           Circle()
             .fill(isSelected ? GainsColor.lime : Color.white.opacity(0.06))
@@ -475,7 +533,7 @@ struct WeekdayDetailSheet: View {
           .font(.system(size: 11, weight: .bold))
           .foregroundStyle(GainsColor.softInk.opacity(0.6))
       }
-      .padding(12)
+      .padding(GainsSpacing.s)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
@@ -495,7 +553,7 @@ struct WeekdayDetailSheet: View {
   // MARK: - Exercise Summary
 
   private func exerciseSummary(_ plan: WorkoutPlan) -> some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       Text("ÜBUNGEN")
         .font(GainsFont.label(9))
         .tracking(1.4)
@@ -503,7 +561,7 @@ struct WeekdayDetailSheet: View {
 
       VStack(spacing: 1) {
         ForEach(Array(plan.exercises.prefix(6).enumerated()), id: \.element.id) { index, exercise in
-          HStack(spacing: 12) {
+          HStack(spacing: GainsSpacing.s) {
             Text(String(format: "%02d", index + 1))
               .font(GainsFont.label(10))
               .tracking(1.0)
@@ -521,8 +579,8 @@ struct WeekdayDetailSheet: View {
             }
             Spacer()
           }
-          .padding(.vertical, 10)
-          .padding(.horizontal, 12)
+          .padding(.vertical, GainsSpacing.tight)
+          .padding(.horizontal, GainsSpacing.s)
           if index < min(plan.exercises.count, 6) - 1 {
             Divider().background(GainsColor.border.opacity(0.4))
           }
@@ -532,8 +590,8 @@ struct WeekdayDetailSheet: View {
             .font(GainsFont.label(10))
             .tracking(1.0)
             .foregroundStyle(GainsColor.softInk)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 12)
+            .padding(.vertical, GainsSpacing.tight)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
       }

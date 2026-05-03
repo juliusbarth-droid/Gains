@@ -47,15 +47,15 @@ struct FoodPhotoRecognitionSheet: View {
           // ist neu, Genauigkeit variiert je nach Foto und Gericht).
           // Honest-Signal an den User damit er weiß, dass Fehler
           // möglich sind und manuelles Korrigieren erwartbar ist.
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Text("KI-Fotoerkennung")
               .font(GainsFont.label(15))
               .foregroundStyle(GainsColor.ink)
             Text("BETA")
-              .font(.system(size: 9, weight: .bold, design: .rounded))
+              .font(.system(size: 10, weight: .bold, design: .rounded))
               .tracking(0.8)
               .foregroundStyle(GainsColor.lime)
-              .padding(.horizontal, 5)
+              .padding(.horizontal, GainsSpacing.xs)
               .padding(.vertical, 2)
               .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
@@ -99,10 +99,10 @@ struct FoodPhotoRecognitionSheet: View {
   // MARK: Idle View
 
   private var idleView: some View {
-    VStack(spacing: 32) {
+    VStack(spacing: GainsSpacing.xl) {
       Spacer()
 
-      VStack(spacing: 16) {
+      VStack(spacing: GainsSpacing.m) {
         ZStack {
           Circle()
             .fill(GainsColor.lime.opacity(0.1))
@@ -112,16 +112,16 @@ struct FoodPhotoRecognitionSheet: View {
             .foregroundStyle(GainsColor.lime)
         }
 
-        VStack(spacing: 8) {
-          HStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             Text("Mahlzeit fotografieren")
               .font(GainsFont.title(22))
               .foregroundStyle(GainsColor.ink)
             Text("BETA")
-              .font(.system(size: 9, weight: .bold, design: .rounded))
+              .font(.system(size: 10, weight: .bold, design: .rounded))
               .tracking(0.8)
               .foregroundStyle(GainsColor.lime)
-              .padding(.horizontal, 6)
+              .padding(.horizontal, GainsSpacing.xs)
               .padding(.vertical, 2)
               .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
@@ -134,12 +134,12 @@ struct FoodPhotoRecognitionSheet: View {
         }
       }
 
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         // Camera
         Button {
           showsCamera = true
         } label: {
-          HStack(spacing: 12) {
+          HStack(spacing: GainsSpacing.s) {
             Image(systemName: "camera.fill")
               .font(.system(size: 18, weight: .semibold))
               .foregroundStyle(GainsColor.moss)
@@ -160,7 +160,7 @@ struct FoodPhotoRecognitionSheet: View {
               .font(.system(size: 12, weight: .semibold))
               .foregroundStyle(GainsColor.mutedInk)
           }
-          .padding(16)
+          .padding(GainsSpacing.m)
           .background(GainsColor.card)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           .overlay(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
@@ -169,7 +169,7 @@ struct FoodPhotoRecognitionSheet: View {
 
         // Photo library
         PhotosPicker(selection: $pickerItem, matching: .images) {
-          HStack(spacing: 12) {
+          HStack(spacing: GainsSpacing.s) {
             Image(systemName: "photo.on.rectangle.angled")
               .font(.system(size: 18, weight: .semibold))
               .foregroundStyle(Color(hex: "5BC4F5"))
@@ -190,21 +190,21 @@ struct FoodPhotoRecognitionSheet: View {
               .font(.system(size: 12, weight: .semibold))
               .foregroundStyle(GainsColor.mutedInk)
           }
-          .padding(16)
+          .padding(GainsSpacing.m)
           .background(GainsColor.card)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           .overlay(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
         }
         .buttonStyle(.plain)
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
 
       // Info-Chip — wechselt das Wording je nach aktivem Pfad und
       // weist transparent auf den BETA-Status hin. Apple Foundation
       // Models hat höchste Prio (on-device, gratis), dann Gemini wenn
       // explizit per Key konfiguriert, sonst Apple-Vision-Fallback.
-      VStack(spacing: 6) {
-        HStack(spacing: 6) {
+      VStack(spacing: GainsSpacing.xs) {
+        HStack(spacing: GainsSpacing.xs) {
           Image(systemName: aiInfoChipIcon)
             .font(.system(size: 11))
             .foregroundStyle(aiInfoChipColor)
@@ -216,7 +216,7 @@ struct FoodPhotoRecognitionSheet: View {
           .font(.system(size: 10))
           .foregroundStyle(GainsColor.mutedInk.opacity(0.8))
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       .multilineTextAlignment(.center)
 
       Spacer()
@@ -226,7 +226,7 @@ struct FoodPhotoRecognitionSheet: View {
   // MARK: Analyzing View
 
   private func analyzingView(image: UIImage) -> some View {
-    VStack(spacing: 28) {
+    VStack(spacing: GainsSpacing.xl) {
       Spacer()
 
       // Photo preview
@@ -242,7 +242,7 @@ struct FoodPhotoRecognitionSheet: View {
         .shadow(color: GainsColor.lime.opacity(0.3), radius: 16)
 
       // Analyzing indicator
-      VStack(spacing: 16) {
+      VStack(spacing: GainsSpacing.m) {
         ScanningDotsView()
         Text("KI analysiert dein Foto…")
           .font(GainsFont.label(16))
@@ -261,17 +261,17 @@ struct FoodPhotoRecognitionSheet: View {
 
   private func resultView(image: UIImage, suggestions: [RecognizedFoodSuggestion]) -> some View {
     ScrollView(showsIndicators: false) {
-      VStack(spacing: 20) {
+      VStack(spacing: GainsSpacing.l) {
         // Analyzed photo header
-        HStack(spacing: 16) {
+        HStack(spacing: GainsSpacing.m) {
           Image(uiImage: image)
             .resizable()
             .scaledToFill()
             .frame(width: 80, height: 80)
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
-          VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(GainsColor.lime)
               Text(suggestions.isEmpty ? "Nichts erkannt" : "\(suggestions.count) Lebensmittel erkannt")
@@ -281,7 +281,7 @@ struct FoodPhotoRecognitionSheet: View {
                 .font(.system(size: 8, weight: .bold, design: .rounded))
                 .tracking(0.6)
                 .foregroundStyle(GainsColor.lime)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, GainsSpacing.xxs)
                 .padding(.vertical, 1)
                 .background(GainsColor.lime.opacity(0.18))
                 .clipShape(Capsule())
@@ -293,18 +293,18 @@ struct FoodPhotoRecognitionSheet: View {
               .fixedSize(horizontal: false, vertical: true)
           }
         }
-        .padding(16)
+        .padding(GainsSpacing.m)
         .gainsCardStyle(GainsColor.card)
 
         // AI Suggestions
         if !suggestions.isEmpty {
-          VStack(alignment: .leading, spacing: 8) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
             Text("KI-Vorschläge")
               .font(GainsFont.label(12))
               .foregroundStyle(GainsColor.mutedInk)
-              .padding(.horizontal, 4)
+              .padding(.horizontal, GainsSpacing.xxs)
 
-            VStack(spacing: 10) {
+            VStack(spacing: GainsSpacing.tight) {
               ForEach(suggestions) { suggestion in
                 PhotoSuggestionCard(
                   suggestion: suggestion,
@@ -336,7 +336,7 @@ struct FoodPhotoRecognitionSheet: View {
         Button {
           withAnimation { photoState = .idle }
         } label: {
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             Image(systemName: "camera.viewfinder")
             Text("Erneut scannen")
           }
@@ -348,15 +348,15 @@ struct FoodPhotoRecognitionSheet: View {
         }
         .buttonStyle(.plain)
       }
-      .padding(20)
-      .padding(.bottom, 10)
+      .padding(GainsSpacing.l)
+      .padding(.bottom, GainsSpacing.tight)
     }
   }
 
   // MARK: Error View
 
   private func errorView(_ message: String) -> some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       Spacer()
       Image(systemName: "exclamationmark.triangle")
         .font(.system(size: 44, weight: .light))
@@ -368,7 +368,7 @@ struct FoodPhotoRecognitionSheet: View {
         .font(GainsFont.body(14))
         .foregroundStyle(GainsColor.softInk)
         .multilineTextAlignment(.center)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
       Button { withAnimation { photoState = .idle } } label: {
         Text("Erneut versuchen")
           .font(GainsFont.label(15))
@@ -444,7 +444,7 @@ private struct ManualFoodSearchSection: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       // Header
       Button {
         withAnimation(.spring(response: 0.3)) { isExpanded.toggle() }
@@ -461,13 +461,13 @@ private struct ManualFoodSearchSection: View {
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(GainsColor.mutedInk)
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, GainsSpacing.xxs)
       }
       .buttonStyle(.plain)
 
       if isExpanded {
         // Search bar
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           Image(systemName: "magnifyingglass")
             .font(.system(size: 14))
             .foregroundStyle(GainsColor.mutedInk)
@@ -483,7 +483,7 @@ private struct ManualFoodSearchSection: View {
             .buttonStyle(.plain)
           }
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 44)
         .background(GainsColor.elevated)
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -493,10 +493,10 @@ private struct ManualFoodSearchSection: View {
           Text("Kein Lebensmittel gefunden.")
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.mutedInk)
-            .padding(.vertical, 8)
+            .padding(.vertical, GainsSpacing.xsPlus)
             .frame(maxWidth: .infinity, alignment: .center)
         } else {
-          VStack(spacing: 8) {
+          VStack(spacing: GainsSpacing.xsPlus) {
             ForEach(filteredFoods) { food in
               ManualFoodRow(
                 food: food,
@@ -510,7 +510,7 @@ private struct ManualFoodSearchSection: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .overlay(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
@@ -540,7 +540,7 @@ private struct ManualFoodRow: View {
       Button {
         withAnimation(.spring(response: 0.3)) { isExpanded.toggle() }
       } label: {
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           Text(food.emoji)
             .font(.system(size: 22))
             .frame(width: 38, height: 38)
@@ -563,16 +563,16 @@ private struct ManualFoodRow: View {
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(GainsColor.mutedInk)
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, GainsSpacing.tight)
       }
       .buttonStyle(.plain)
 
       if isExpanded {
         Divider()
           .background(GainsColor.border.opacity(0.5))
-          .padding(.vertical, 6)
+          .padding(.vertical, GainsSpacing.xs)
 
-        HStack(spacing: 14) {
+        HStack(spacing: GainsSpacing.m) {
           // Stepper
           Button {
             if grams > 10 { grams = max(10, grams - 10) }
@@ -631,14 +631,14 @@ private struct ManualFoodRow: View {
             )
             onLog()
           } label: {
-            HStack(spacing: 5) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: isLogged ? "checkmark" : "plus")
                 .font(.system(size: 11, weight: .bold))
               Text(isLogged ? "Geloggt" : "Eintragen")
                 .font(GainsFont.label(12))
             }
             .foregroundStyle(isLogged ? GainsColor.moss : GainsColor.onLime)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 32)
             .background(isLogged ? GainsColor.lime.opacity(0.2) : GainsColor.lime)
             .clipShape(Capsule())
@@ -646,7 +646,7 @@ private struct ManualFoodRow: View {
           .buttonStyle(.plain)
           .animation(.spring(response: 0.3), value: isLogged)
         }
-        .padding(.bottom, 6)
+        .padding(.bottom, GainsSpacing.xs)
       }
     }
   }
@@ -700,39 +700,46 @@ private struct PhotoSuggestionCard: View {
   }
 
   var body: some View {
-    VStack(spacing: 12) {
-      HStack(spacing: 12) {
+    VStack(spacing: GainsSpacing.s) {
+      HStack(spacing: GainsSpacing.s) {
         Text(suggestion.emoji)
           .font(.system(size: 28))
           .frame(width: 52, height: 52)
           .background(GainsColor.elevated)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
-        VStack(alignment: .leading, spacing: 4) {
-          HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+          HStack(spacing: GainsSpacing.xs) {
             Text(displayName)
               .font(GainsFont.label(15))
               .foregroundStyle(GainsColor.ink)
               .lineLimit(1)
             confidenceChip(suggestion.confidence)
 
-            // Edit-Pencil — N3-Fix
+            // 2026-05-03 Intuitivitäts-Sweep P1-21: Edit-Pencil deutlich
+            // sichtbarer + farblich angedeutet, dass „Vor Loggen prüfen"
+            // legitim ist. Vorher war 11pt-Pencil auf Elevated-Grau ein
+            // dezenter Affordance, der untergegangen ist.
             Button {
               withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
                 showsOverride.toggle()
               }
             } label: {
               Image(systemName: showsOverride ? "checkmark.circle.fill" : "pencil")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(showsOverride ? GainsColor.moss : GainsColor.softInk)
-                .frame(width: 22, height: 22)
-                .background(GainsColor.elevated)
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(showsOverride ? GainsColor.onLime : GainsColor.lime)
+                .frame(width: 30, height: 30)
+                .background(showsOverride ? GainsColor.lime : GainsColor.lime.opacity(0.16))
                 .clipShape(Circle())
+                .overlay(
+                  Circle()
+                    .stroke(GainsColor.lime.opacity(0.45), lineWidth: GainsBorder.hairline)
+                )
             }
             .buttonStyle(.plain)
             .accessibilityLabel(showsOverride ? "Korrektur fertig" : "Erkennung korrigieren")
           }
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             macroTag("P: \(Int(displayProteinPer100g))g", color: GainsColor.lime)
             macroTag("K: \(Int(displayCarbsPer100g))g", color: Color(hex: "5BC4F5"))
             macroTag("F: \(Int(displayFatPer100g))g", color: Color(hex: "FF8A4A"))
@@ -756,7 +763,7 @@ private struct PhotoSuggestionCard: View {
 
       // Override-Editor (N3) — kollabiert standardmäßig.
       if showsOverride {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.tight) {
           Text("KORRIGIEREN")
             .font(GainsFont.label(9))
             .tracking(1.4)
@@ -764,11 +771,11 @@ private struct PhotoSuggestionCard: View {
           TextField("Lebensmittel", text: $editedName)
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.ink)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, GainsSpacing.tight)
             .frame(height: 34)
             .background(GainsColor.elevated)
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             overrideField(label: "kcal", value: Binding(
               get: { Double(editedKcal) },
               set: { editedKcal = Int($0.rounded()) }
@@ -781,14 +788,14 @@ private struct PhotoSuggestionCard: View {
             .font(GainsFont.label(10))
             .foregroundStyle(GainsColor.mutedInk)
         }
-        .padding(10)
+        .padding(GainsSpacing.tight)
         .background(GainsColor.elevated.opacity(0.6))
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         .transition(.opacity.combined(with: .move(edge: .top)))
       }
 
       // Gram stepper
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Button {
           if grams > 10 { grams = max(10, grams - 10) }
         } label: {
@@ -836,14 +843,14 @@ private struct PhotoSuggestionCard: View {
           )
           onLog()
         } label: {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Image(systemName: isLogged ? "checkmark" : "plus")
               .font(.system(size: 12, weight: .bold))
             Text(isLogged ? "Geloggt" : "Eintragen")
               .font(GainsFont.label(13))
           }
           .foregroundStyle(isLogged ? GainsColor.moss : GainsColor.onLime)
-          .padding(.horizontal, 14)
+          .padding(.horizontal, GainsSpacing.m)
           .frame(height: 36)
           .background(isLogged ? GainsColor.lime.opacity(0.2) : GainsColor.lime)
           .clipShape(Capsule())
@@ -852,23 +859,23 @@ private struct PhotoSuggestionCard: View {
         .animation(.spring(response: 0.3), value: isLogged)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle(GainsColor.card)
   }
 
   /// Kompakter Stepper für die Override-Felder (kcal/P/K/F per 100g).
   private func overrideField(label: String, value: Binding<Double>, step: Double, max: Double) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(9))
         .tracking(1.0)
         .foregroundStyle(GainsColor.softInk)
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         Button {
           value.wrappedValue = Swift.max(0, value.wrappedValue - step)
         } label: {
           Image(systemName: "minus")
-            .font(.system(size: 9, weight: .bold))
+            .font(.system(size: 10, weight: .bold))
             .frame(width: 22, height: 22)
             .background(GainsColor.background)
             .clipShape(Circle())
@@ -883,7 +890,7 @@ private struct PhotoSuggestionCard: View {
           value.wrappedValue = Swift.min(max, value.wrappedValue + step)
         } label: {
           Image(systemName: "plus")
-            .font(.system(size: 9, weight: .bold))
+            .font(.system(size: 10, weight: .bold))
             .frame(width: 22, height: 22)
             .background(GainsColor.background)
             .clipShape(Circle())
@@ -901,7 +908,7 @@ private struct PhotoSuggestionCard: View {
     return Text("\(pct)%")
       .font(.system(size: 10, weight: .semibold))
       .foregroundStyle(color)
-      .padding(.horizontal, 6)
+      .padding(.horizontal, GainsSpacing.xs)
       .padding(.vertical, 2)
       .background(color.opacity(0.12))
       .clipShape(Capsule())
@@ -911,7 +918,7 @@ private struct PhotoSuggestionCard: View {
     Text(text)
       .font(.system(size: 10, weight: .medium))
       .foregroundStyle(color)
-      .padding(.horizontal, 5)
+      .padding(.horizontal, GainsSpacing.xs)
       .padding(.vertical, 2)
       .background(color.opacity(0.1))
       .clipShape(Capsule())
@@ -929,7 +936,7 @@ private struct ScanningDotsView: View {
   @State private var animationTimer: Timer?
 
   var body: some View {
-    HStack(spacing: 8) {
+    HStack(spacing: GainsSpacing.xsPlus) {
       ForEach(0..<3, id: \.self) { i in
         Circle()
           .fill(GainsColor.lime)
@@ -1083,7 +1090,6 @@ enum FoodImageAnalyzer {
       for crop in crops {
         guard let cg = crop.cgImage else { continue }
         let request = VNClassifyImageRequest()
-        request.usesCPUOnly = false
 
         let handler = VNImageRequestHandler(cgImage: cg, options: [:])
         try? handler.perform([request])

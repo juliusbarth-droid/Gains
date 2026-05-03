@@ -565,8 +565,11 @@ enum PersistenceKey {
   static let nutritionEntries     = "gains_nutritionEntries"
   static let nutritionGoal        = "gains_nutritionGoal"
   static let nutritionProfile     = "gains_nutritionProfile"
-  static let connectedTrackerIDs  = "gains_connectedTrackerIDs"
-  static let favoriteRecipeIDs    = "gains_favoriteRecipeIDs"
+  static let connectedTrackerIDs        = "gains_connectedTrackerIDs"
+  static let favoriteRecipeIDs          = "gains_favoriteRecipeIDs"
+  /// Coach Check-in IDs die der Nutzer bereits bestätigt hat — damit der
+  /// Coach sie nach App-Neustart nicht nochmal anzeigt.
+  static let completedCoachCheckInIDs   = "gains_completedCoachCheckInIDs"
   static let notificationsEnabled = "gains_notificationsEnabled"
   static let healthAutoSync       = "gains_healthAutoSync"
   static let studyCoaching        = "gains_studyCoaching"
@@ -574,8 +577,12 @@ enum PersistenceKey {
   static let joinedChallenge      = "gains_joinedChallenge"
   static let socialSharingSettings = "gains_socialSharingSettings"
   static let forumThreads         = "gains_forumThreads"
+  static let likedThreadIDs       = "gains_likedThreadIDs"
   static let meetups              = "gains_meetups"
   static let joinedMeetupIDs      = "gains_joinedMeetupIDs"
+  static let likedPostIDs         = "gains_likedPostIDs"
+  static let commentedPostIDs     = "gains_commentedPostIDs"
+  static let sharedPostIDs        = "gains_sharedPostIDs"
   // Strava-Erweiterung: Routen, Segmente, strukturierte Workouts
   static let savedRoutes          = "gains_savedRoutes"
   static let runSegments          = "gains_runSegments"

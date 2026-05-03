@@ -34,7 +34,7 @@ struct RecipesView: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "FUEL / REZEPTE",
           title: "Rezepte & Inspiration",
@@ -84,7 +84,7 @@ struct RecipesView: View {
   // MARK: - Header Stats
 
   private var headerStats: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       headerStatCard(value: "\(store.recipes.count)", label: "Rezepte")
       headerStatCard(value: "\(store.favoriteRecipeIDs.count)", label: "Favoriten")
       headerStatCard(value: "\(filteredRecipes.count)", label: "Treffer")
@@ -92,7 +92,7 @@ struct RecipesView: View {
   }
 
   private func headerStatCard(value: String, label: String) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       Text(value)
         .font(GainsFont.title(22))
         .foregroundStyle(GainsColor.ink)
@@ -102,14 +102,14 @@ struct RecipesView: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   // MARK: - Search
 
   private var searchBar: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       Image(systemName: "magnifyingglass")
         .foregroundStyle(GainsColor.softInk)
 
@@ -132,7 +132,7 @@ struct RecipesView: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(.horizontal, 16)
+    .padding(.horizontal, GainsSpacing.m)
     .frame(height: 54)
     .gainsCardStyle()
   }
@@ -140,7 +140,7 @@ struct RecipesView: View {
   // MARK: - Tag Browser
 
   private var tagBrowserSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["BROWSE", "KATEGORIEN"],
         primaryColor: GainsColor.lime,
@@ -148,8 +148,8 @@ struct RecipesView: View {
       )
 
       LazyVGrid(
-        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
-        spacing: 10
+        columns: [GridItem(.flexible(), spacing: GainsSpacing.tight), GridItem(.flexible(), spacing: GainsSpacing.tight)],
+        spacing: GainsSpacing.tight
       ) {
         tagBrowserCard(.mealprep, accent: Color(hex: "C3B3FF"))
         tagBrowserCard(.airfryer, accent: Color(hex: "E3B96C"))
@@ -166,7 +166,7 @@ struct RecipesView: View {
         selectedTag = tag
       }
     } label: {
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         HStack {
           Image(systemName: tag.systemImage)
             .font(.system(size: 16, weight: .semibold))
@@ -194,7 +194,7 @@ struct RecipesView: View {
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(14)
+      .padding(GainsSpacing.m)
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
@@ -204,7 +204,7 @@ struct RecipesView: View {
 
   private var goalFilterChips: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         filterChip(
           title: "Alle",
           isSelected: selectedGoal == nil && !showsFavoritesOnly && selectedTag == nil
@@ -238,7 +238,7 @@ struct RecipesView: View {
 
   private var sortChips: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "arrow.up.arrow.down")
           .font(.system(size: 11, weight: .semibold))
           .foregroundStyle(GainsColor.softInk)
@@ -254,7 +254,7 @@ struct RecipesView: View {
               .font(GainsFont.label(10))
               .tracking(1.2)
               .foregroundStyle(sortOrder == order ? GainsColor.moss : GainsColor.softInk)
-              .padding(.horizontal, 14)
+              .padding(.horizontal, GainsSpacing.m)
               .frame(height: 32)
               .background(sortOrder == order ? GainsColor.lime : GainsColor.card)
               .clipShape(Capsule())
@@ -272,7 +272,7 @@ struct RecipesView: View {
   private var activeFiltersSection: some View {
     if activeFilterCount > 0 {
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           if selectedDietaryStyle != .all {
             activeFilterChip(selectedDietaryStyle.title)
           }
@@ -291,7 +291,7 @@ struct RecipesView: View {
               .font(GainsFont.label(10))
               .tracking(1.4)
               .foregroundStyle(GainsColor.softInk)
-              .padding(.horizontal, 14)
+              .padding(.horizontal, GainsSpacing.m)
               .frame(height: 34)
               .background(GainsColor.card)
               .clipShape(Capsule())
@@ -306,7 +306,7 @@ struct RecipesView: View {
   // MARK: - Featured
 
   private var featuredSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["TOP", "FÜR DICH"],
         primaryColor: GainsColor.lime,
@@ -314,7 +314,7 @@ struct RecipesView: View {
       )
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           ForEach(featuredRecipes) { recipe in
             NavigationLink {
               RecipeDetailView(recipe: recipe)
@@ -339,8 +339,8 @@ struct RecipesView: View {
     let recipes = Array(allRecipes.prefix(4))
     return Group {
       if !recipes.isEmpty {
-        VStack(alignment: .leading, spacing: 12) {
-          HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: GainsSpacing.s) {
+          HStack(spacing: GainsSpacing.tight) {
             Image(systemName: tag.systemImage)
               .font(.system(size: 14, weight: .semibold))
               .foregroundStyle(GainsColor.lime)
@@ -369,7 +369,7 @@ struct RecipesView: View {
                 .font(GainsFont.label(10))
                 .tracking(1.4)
                 .foregroundStyle(GainsColor.moss)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, GainsSpacing.s)
                 .frame(height: 30)
                 .background(GainsColor.lime)
                 .clipShape(Capsule())
@@ -378,7 +378,7 @@ struct RecipesView: View {
           }
 
           ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
+            HStack(spacing: GainsSpacing.s) {
               ForEach(recipes) { recipe in
                 NavigationLink {
                   RecipeDetailView(recipe: recipe)
@@ -401,7 +401,7 @@ struct RecipesView: View {
   // MARK: - Alle Rezepte
 
   private var allRecipesSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack {
         SlashLabel(
           parts: ["ALLE", "REZEPTE"],
@@ -415,7 +415,7 @@ struct RecipesView: View {
           .foregroundStyle(GainsColor.softInk)
       }
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(sortedRecipes(store.recipes)) { recipe in
           NavigationLink {
             RecipeDetailView(recipe: recipe)
@@ -433,7 +433,7 @@ struct RecipesView: View {
   // MARK: - Suchergebnis-Liste
 
   private var filteredListSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack {
         SlashLabel(
           parts: filterEyebrowParts,
@@ -450,7 +450,7 @@ struct RecipesView: View {
       if filteredRecipes.isEmpty {
         emptyState
       } else {
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           ForEach(filteredRecipes) { recipe in
             NavigationLink {
               RecipeDetailView(recipe: recipe)
@@ -493,7 +493,7 @@ struct RecipesView: View {
     action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
-      HStack(spacing: 6) {
+      HStack(spacing: GainsSpacing.xs) {
         if let icon {
           Image(systemName: icon)
             .font(.system(size: 11, weight: .bold))
@@ -503,7 +503,7 @@ struct RecipesView: View {
           .tracking(1.5)
       }
       .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.softInk)
-      .padding(.horizontal, 16)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 38)
       .background(isSelected ? GainsColor.lime : GainsColor.card)
       .clipShape(Capsule())
@@ -516,7 +516,7 @@ struct RecipesView: View {
       .font(GainsFont.label(10))
       .tracking(1.4)
       .foregroundStyle(GainsColor.moss)
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 34)
       .background(GainsColor.lime.opacity(0.25))
       .clipShape(Capsule())
@@ -591,7 +591,7 @@ private struct FeaturedRecipeCard: View {
   @State private var trackFeedbackToken = UUID()
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       ZStack(alignment: .topTrailing) {
         AsyncImage(url: URL(string: recipe.imageURL)) { phase in
           switch phase {
@@ -611,16 +611,16 @@ private struct FeaturedRecipeCard: View {
 
         // Tag badge (top-right)
         if let primaryTag = recipe.tags.first {
-          HStack(spacing: 4) {
-            Image(systemName: primaryTag.systemImage).font(.system(size: 9, weight: .bold))
+          HStack(spacing: GainsSpacing.xxs) {
+            Image(systemName: primaryTag.systemImage).font(.system(size: 10, weight: .bold))
             Text(primaryTag.title.uppercased()).font(GainsFont.label(9)).tracking(1.2)
           }
           .foregroundStyle(GainsColor.moss)
-          .padding(.horizontal, 8)
+          .padding(.horizontal, GainsSpacing.xsPlus)
           .frame(height: 22)
           .background(GainsColor.lime)
           .clipShape(Capsule())
-          .padding(10)
+          .padding(GainsSpacing.tight)
         }
 
         // Category label (bottom-left) + Quick-Track button (bottom-right)
@@ -651,20 +651,20 @@ private struct FeaturedRecipeCard: View {
           }
           .buttonStyle(.plain)
         }
-        .padding(.horizontal, 10)
-        .padding(.bottom, 10)
+        .padding(.horizontal, GainsSpacing.tight)
+        .padding(.bottom, GainsSpacing.tight)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
         .frame(height: 130)
       }
 
-      VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
         Text(recipe.title)
           .font(GainsFont.title(17))
           .foregroundStyle(GainsColor.ink)
           .lineLimit(2)
           .multilineTextAlignment(.leading)
 
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Label("\(recipe.calories) kcal", systemImage: "flame")
             .labelStyle(.titleOnly)
           Text("·")
@@ -674,7 +674,7 @@ private struct FeaturedRecipeCard: View {
         .font(GainsFont.body(12))
         .foregroundStyle(GainsColor.softInk)
 
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Image(systemName: "clock").font(.system(size: 10, weight: .semibold))
           Text("\(recipe.prepMinutes) Min · \(recipe.servings) Portion\(recipe.servings == 1 ? "" : "en")")
             .font(GainsFont.body(11))
@@ -682,7 +682,7 @@ private struct FeaturedRecipeCard: View {
         .foregroundStyle(GainsColor.softInk)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -708,7 +708,7 @@ private struct CompactRecipeRow: View {
   let recipe: Recipe
 
   var body: some View {
-    HStack(spacing: 14) {
+    HStack(spacing: GainsSpacing.m) {
       AsyncImage(url: URL(string: recipe.imageURL)) { phase in
         switch phase {
         case .success(let image): image.resizable().scaledToFill()
@@ -718,7 +718,7 @@ private struct CompactRecipeRow: View {
       .frame(width: 72, height: 72)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
-      VStack(alignment: .leading, spacing: 4) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(recipe.title)
           .font(GainsFont.title(15))
           .foregroundStyle(GainsColor.ink)
@@ -730,12 +730,12 @@ private struct CompactRecipeRow: View {
           .foregroundStyle(GainsColor.softInk)
 
         if let tag = recipe.tags.first {
-          HStack(spacing: 4) {
-            Image(systemName: tag.systemImage).font(.system(size: 9, weight: .bold))
+          HStack(spacing: GainsSpacing.xxs) {
+            Image(systemName: tag.systemImage).font(.system(size: 10, weight: .bold))
             Text(tag.title.uppercased()).font(GainsFont.label(8)).tracking(1.2)
           }
           .foregroundStyle(GainsColor.moss)
-          .padding(.horizontal, 7)
+          .padding(.horizontal, GainsSpacing.xsPlus)
           .frame(height: 20)
           .background(GainsColor.lime.opacity(0.25))
           .clipShape(Capsule())
@@ -750,7 +750,7 @@ private struct CompactRecipeRow: View {
           store.favoriteRecipeIDs.contains(recipe.id) ? GainsColor.lime : GainsColor.softInk
         )
     }
-    .padding(12)
+    .padding(GainsSpacing.s)
     .gainsCardStyle()
   }
 
@@ -781,7 +781,7 @@ private struct RecipeFilterSheet: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "REZEPTE / FILTER",
           title: "Rezepte filtern",
@@ -789,7 +789,7 @@ private struct RecipeFilterSheet: View {
         )
 
         filterGroup(title: "Ernährungsstil") {
-          VStack(spacing: 10) {
+          VStack(spacing: GainsSpacing.tight) {
             ForEach(RecipeDietaryStyle.allCases.filter { $0 != .all }, id: \.self) { style in
               filterRow(title: style.title, icon: style.systemImage, isSelected: selectedDietaryStyle == style) {
                 selectedDietaryStyle = selectedDietaryStyle == style ? .all : style
@@ -799,7 +799,7 @@ private struct RecipeFilterSheet: View {
         }
 
         filterGroup(title: "Mahlzeittyp") {
-          VStack(spacing: 10) {
+          VStack(spacing: GainsSpacing.tight) {
             ForEach(RecipeMealType.allCases, id: \.self) { mealType in
               filterRow(title: mealType.title, icon: mealType.systemImage, isSelected: selectedMealType == mealType) {
                 selectedMealType = selectedMealType == mealType ? nil : mealType
@@ -824,7 +824,7 @@ private struct RecipeFilterSheet: View {
           step: 50
         )
 
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           Button {
             onReset()
           } label: {
@@ -865,7 +865,7 @@ private struct RecipeFilterSheet: View {
   }
 
   private func filterGroup<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text(title)
         .font(GainsFont.label(11))
         .tracking(1.8)
@@ -876,7 +876,7 @@ private struct RecipeFilterSheet: View {
 
   private func filterRow(title: String, icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      HStack(spacing: 12) {
+      HStack(spacing: GainsSpacing.s) {
         Image(systemName: icon)
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.softInk)
@@ -890,7 +890,7 @@ private struct RecipeFilterSheet: View {
             .foregroundStyle(GainsColor.lime)
         }
       }
-      .padding(.horizontal, 16)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 56)
       .background(isSelected ? GainsColor.lime.opacity(0.25) : GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -902,7 +902,7 @@ private struct RecipeFilterSheet: View {
     title: String, valueText: String, value: Binding<Double>,
     range: ClosedRange<Double>, step: Double
   ) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text(title)
         .font(GainsFont.label(11))
         .tracking(1.8)
@@ -923,12 +923,12 @@ private struct RecipeCard: View {
   let recipe: Recipe
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       recipeArtwork
 
       HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 6) {
-          HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             recipeBadge(recipe.category.uppercased(),
               background: GainsColor.background.opacity(0.82),
               foreground: GainsColor.softInk)
@@ -942,14 +942,14 @@ private struct RecipeCard: View {
 
           if !recipe.tags.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
-              HStack(spacing: 6) {
+              HStack(spacing: GainsSpacing.xs) {
                 ForEach(recipe.tags) { tag in
-                  HStack(spacing: 4) {
-                    Image(systemName: tag.systemImage).font(.system(size: 9, weight: .bold))
+                  HStack(spacing: GainsSpacing.xxs) {
+                    Image(systemName: tag.systemImage).font(.system(size: 10, weight: .bold))
                     Text(tag.title.uppercased()).font(GainsFont.label(9)).tracking(1.2)
                   }
                   .foregroundStyle(GainsColor.softInk)
-                  .padding(.horizontal, 8)
+                  .padding(.horizontal, GainsSpacing.xsPlus)
                   .frame(height: 22)
                   .background(GainsColor.background.opacity(0.7))
                   .clipShape(Capsule())
@@ -979,14 +979,14 @@ private struct RecipeCard: View {
         .buttonStyle(.plain)
       }
 
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         recipeStat("\(recipe.calories)", "kcal")
         recipeStat("\(recipe.protein)g", "Protein")
         recipeStat("\(recipe.carbs)g", "Carbs")
         recipeStat("\(recipe.fat)g", "Fett")
       }
 
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Label("\(recipe.prepMinutes) Min", systemImage: "clock")
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
@@ -996,7 +996,7 @@ private struct RecipeCard: View {
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(18)
+    .padding(GainsSpacing.l)
     .gainsCardStyle()
   }
 
@@ -1019,17 +1019,17 @@ private struct RecipeCard: View {
         .font(GainsFont.label(9))
         .tracking(1.8)
         .foregroundStyle(GainsColor.onCtaSurface.opacity(0.86))
-        .padding(14)
+        .padding(GainsSpacing.m)
     }
   }
 
   private func recipeStat(_ value: String, _ label: String) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
       Text(value).font(GainsFont.title(17)).foregroundStyle(GainsColor.ink)
       Text(label).font(GainsFont.label(9)).tracking(1.8).foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(10)
+    .padding(GainsSpacing.tight)
     .background(GainsColor.background.opacity(0.8))
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
@@ -1039,7 +1039,7 @@ private struct RecipeCard: View {
       .font(GainsFont.label(9))
       .tracking(1.7)
       .foregroundStyle(foreground)
-      .padding(.horizontal, 10)
+      .padding(.horizontal, GainsSpacing.tight)
       .frame(height: 24)
       .background(background)
       .clipShape(Capsule())
@@ -1105,12 +1105,12 @@ struct RecipeDetailView: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         detailArtwork
 
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
           // Badges
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             detailBadge(recipe.category.uppercased())
             detailBadge(recipe.goal.title.uppercased(), highlighted: true)
             detailBadge(recipe.dietaryStyle.title.uppercased())
@@ -1118,14 +1118,14 @@ struct RecipeDetailView: View {
 
           if !recipe.tags.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
-              HStack(spacing: 6) {
+              HStack(spacing: GainsSpacing.xs) {
                 ForEach(recipe.tags) { tag in
-                  HStack(spacing: 4) {
+                  HStack(spacing: GainsSpacing.xxs) {
                     Image(systemName: tag.systemImage).font(.system(size: 10, weight: .bold))
                     Text(tag.title.uppercased()).font(GainsFont.label(9)).tracking(1.4)
                   }
                   .foregroundStyle(GainsColor.moss)
-                  .padding(.horizontal, 10)
+                  .padding(.horizontal, GainsSpacing.tight)
                   .frame(height: 26)
                   .background(GainsColor.lime.opacity(0.25))
                   .clipShape(Capsule())
@@ -1139,7 +1139,7 @@ struct RecipeDetailView: View {
             .foregroundStyle(GainsColor.ink)
 
           // Zeit & Portionen-Zeile
-          HStack(spacing: 14) {
+          HStack(spacing: GainsSpacing.m) {
             Label("\(recipe.prepMinutes) Min", systemImage: "clock")
             Spacer()
             // Portionen-Stepper
@@ -1181,7 +1181,7 @@ struct RecipeDetailView: View {
               Text("Port.")
                 .font(GainsFont.label(10))
                 .foregroundStyle(GainsColor.softInk)
-                .padding(.leading, 6)
+                .padding(.leading, GainsSpacing.xs)
             }
           }
           .font(GainsFont.body(13))
@@ -1192,7 +1192,7 @@ struct RecipeDetailView: View {
         macroCard
 
         // Zutaten
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: GainsSpacing.s) {
           HStack {
             SlashLabel(
               parts: ["ZUTATEN", "EINKAUF"],
@@ -1208,7 +1208,7 @@ struct RecipeDetailView: View {
                   .font(GainsFont.label(9))
                   .tracking(1.4)
                   .foregroundStyle(GainsColor.softInk)
-                  .padding(.horizontal, 10)
+                  .padding(.horizontal, GainsSpacing.tight)
                   .frame(height: 24)
                   .background(GainsColor.elevated)
                   .clipShape(Capsule())
@@ -1217,7 +1217,7 @@ struct RecipeDetailView: View {
             }
           }
 
-          VStack(spacing: 8) {
+          VStack(spacing: GainsSpacing.xsPlus) {
             ForEach(Array(recipe.ingredients.enumerated()), id: \.offset) { index, ingredient in
               Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -1228,7 +1228,7 @@ struct RecipeDetailView: View {
                   }
                 }
               } label: {
-                HStack(spacing: 12) {
+                HStack(spacing: GainsSpacing.s) {
                   ZStack {
                     Circle()
                       .fill(checkedIngredients.contains(index) ? GainsColor.lime : GainsColor.lime.opacity(0.2))
@@ -1249,7 +1249,7 @@ struct RecipeDetailView: View {
 
                   Spacer()
                 }
-                .padding(14)
+                .padding(GainsSpacing.m)
                 .background(
                   checkedIngredients.contains(index)
                     ? GainsColor.elevated
@@ -1273,7 +1273,7 @@ struct RecipeDetailView: View {
         }
 
         // Schritte
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: GainsSpacing.s) {
           SlashLabel(
             parts: ["SCHRITTE", "KOCHEN"],
             primaryColor: GainsColor.lime,
@@ -1281,7 +1281,7 @@ struct RecipeDetailView: View {
           )
 
           ForEach(Array(recipe.steps.enumerated()), id: \.offset) { index, step in
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: GainsSpacing.s) {
               Text("\(index + 1)")
                 .font(GainsFont.label(10))
                 .tracking(2)
@@ -1294,17 +1294,17 @@ struct RecipeDetailView: View {
                 .foregroundStyle(GainsColor.ink)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
+            .padding(GainsSpacing.m)
             .gainsCardStyle()
           }
         }
 
         // Aktions-Buttons
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           Button {
             store.toggleFavoriteRecipe(recipe.id)
           } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: store.favoriteRecipeIDs.contains(recipe.id) ? "bookmark.fill" : "bookmark")
                 .font(.system(size: 15, weight: .semibold))
               Text(store.favoriteRecipeIDs.contains(recipe.id) ? "Gespeichert" : "Merken")
@@ -1324,7 +1324,7 @@ struct RecipeDetailView: View {
           Button {
             store.logRecipe(recipe)
           } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Image(systemName: "plus.circle.fill")
                 .font(.system(size: 15, weight: .semibold))
               Text("Tracken")
@@ -1346,7 +1346,7 @@ struct RecipeDetailView: View {
   // MARK: Makro-Karte
 
   private var macroCard: some View {
-    VStack(spacing: 14) {
+    VStack(spacing: GainsSpacing.m) {
       HStack(spacing: 0) {
         macroCell(value: "\(scaledCalories)", unit: "kcal", label: "Kalorien", color: GainsColor.ink)
         Rectangle().fill(GainsColor.border.opacity(0.5)).frame(width: 1, height: 44)
@@ -1366,12 +1366,12 @@ struct RecipeDetailView: View {
           .frame(maxWidth: .infinity, alignment: .center)
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   private func macroCell(value: String, unit: String, label: String, color: Color) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(value)
         .font(.system(size: 18, weight: .bold, design: .rounded))
         .foregroundStyle(color)
@@ -1395,17 +1395,17 @@ struct RecipeDetailView: View {
         }
       }
       .frame(height: 240)
-      .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
 
       LinearGradient(colors: [Color.clear, GainsColor.ink.opacity(0.72)], startPoint: .center, endPoint: .bottom)
         .frame(height: 240)
-        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
 
       Text(recipe.category)
         .font(GainsFont.label(10))
         .tracking(2)
         .foregroundStyle(GainsColor.onCtaSurface.opacity(0.86))
-        .padding(18)
+        .padding(GainsSpacing.l)
     }
   }
 
@@ -1434,7 +1434,7 @@ struct RecipeDetailView: View {
       .font(GainsFont.label(9))
       .tracking(1.8)
       .foregroundStyle(highlighted ? accentTextColor(recipe.goal) : GainsColor.softInk)
-      .padding(.horizontal, 10)
+      .padding(.horizontal, GainsSpacing.tight)
       .frame(height: 24)
       .background(highlighted ? accentColor(recipe.goal).opacity(0.24) : GainsColor.background.opacity(0.8))
       .clipShape(Capsule())

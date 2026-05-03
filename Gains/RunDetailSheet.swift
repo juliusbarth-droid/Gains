@@ -24,8 +24,8 @@ struct RunDetailSheet: View {
           // Route-Aktionen: speichern als wiederverwendbare Route.
           if !run.routeCoordinates.isEmpty {
             routeActionsBlock
-              .padding(.horizontal, 20)
-              .padding(.bottom, 20)
+              .padding(.horizontal, GainsSpacing.l)
+              .padding(.bottom, GainsSpacing.l)
           }
           if !run.note.isEmpty || run.feel != nil || run.intensity != .free {
             feelAndNoteSection
@@ -61,7 +61,7 @@ struct RunDetailSheet: View {
           Button {
             onRunAgain()
           } label: {
-            HStack(spacing: 5) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: "arrow.clockwise")
                 .font(.system(size: 11, weight: .semibold))
               Text("Erneut")
@@ -69,7 +69,7 @@ struct RunDetailSheet: View {
                 .tracking(1.0)
             }
             .foregroundStyle(GainsColor.onLime)
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 32)
             .background(GainsColor.lime)
             .clipShape(Capsule())
@@ -98,7 +98,7 @@ struct RunDetailSheet: View {
   // MARK: - Route-Actions
 
   private var routeActionsBlock: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       sectionHeader("ROUTE")
 
       Button {
@@ -109,7 +109,7 @@ struct RunDetailSheet: View {
         routeNameDraft = run.routeName.isEmpty ? run.title : run.routeName
         showsSaveRouteAlert = true
       } label: {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           Image(systemName: savedRouteFlash ? "checkmark.circle.fill" : "map.fill")
             .font(.system(size: 14, weight: .semibold))
           Text(savedRouteFlash ? "Route gespeichert" : "Route speichern")
@@ -123,7 +123,7 @@ struct RunDetailSheet: View {
           }
         }
         .foregroundStyle(savedRouteFlash ? GainsColor.moss : GainsColor.ink)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 48)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(savedRouteFlash ? GainsColor.lime.opacity(0.18) : GainsColor.card)
@@ -144,7 +144,7 @@ struct RunDetailSheet: View {
         // unnötige Laden von Map-Tiles, die ohnehin überlagert werden).
         ZStack {
           GainsColor.elevated
-          VStack(spacing: 8) {
+          VStack(spacing: GainsSpacing.xsPlus) {
             Image(systemName: "map")
               .font(.system(size: 26, weight: .semibold))
               .foregroundStyle(GainsColor.softInk)
@@ -189,7 +189,7 @@ struct RunDetailSheet: View {
           .font(GainsFont.title(22))
           .foregroundStyle(.white)
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .background(
         LinearGradient(
           colors: [Color.black.opacity(0.6), Color.clear],
@@ -204,20 +204,20 @@ struct RunDetailSheet: View {
   // MARK: - Stats block
 
   private var statsBlock: some View {
-    VStack(alignment: .leading, spacing: 16) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Text(run.routeName)
         .font(GainsFont.body(13))
         .foregroundStyle(GainsColor.moss)
 
       // Primary: distance huge
-      HStack(alignment: .lastTextBaseline, spacing: 6) {
+      HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.xs) {
         Text(String(format: "%.2f", run.distanceKm))
           .font(.system(size: 56, weight: .black, design: .rounded))
           .foregroundStyle(GainsColor.ink)
         Text("km")
           .font(GainsFont.title(20))
           .foregroundStyle(GainsColor.softInk)
-          .padding(.bottom, 6)
+          .padding(.bottom, GainsSpacing.xs)
       }
 
       // Secondary stats: 2×2 grid — Bike-Sessions zeigen Geschwindigkeit
@@ -232,34 +232,34 @@ struct RunDetailSheet: View {
               unit: "km/h"
             )
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, GainsSpacing.m)
             .background(GainsColor.card)
           } else {
             detailStatCell(label: "PACE", value: paceLabel(run.averagePaceSeconds), unit: "/km")
               .frame(maxWidth: .infinity)
-              .padding(.vertical, 16)
+              .padding(.vertical, GainsSpacing.m)
               .background(GainsColor.card)
           }
           detailStatCell(label: "DAUER", value: formattedDuration(run.durationMinutes), unit: "")
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, GainsSpacing.m)
             .background(GainsColor.card)
         }
         HStack(spacing: 1) {
           if run.modality.isIndoor {
             detailStatCell(label: "MODUS", value: run.modality.shortLabel, unit: "")
               .frame(maxWidth: .infinity)
-              .padding(.vertical, 16)
+              .padding(.vertical, GainsSpacing.m)
               .background(GainsColor.card)
           } else {
             detailStatCell(label: "HÖHENMETER", value: "+\(run.elevationGain)", unit: "m")
               .frame(maxWidth: .infinity)
-              .padding(.vertical, 16)
+              .padding(.vertical, GainsSpacing.m)
               .background(GainsColor.card)
           }
           detailStatCell(label: "HF Ø", value: run.averageHeartRate > 0 ? "\(run.averageHeartRate)" : "–", unit: run.averageHeartRate > 0 ? "bpm" : "")
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, GainsSpacing.m)
             .background(GainsColor.card)
         }
       }
@@ -269,13 +269,13 @@ struct RunDetailSheet: View {
           .stroke(GainsColor.border.opacity(0.25), lineWidth: 1)
       )
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
   }
 
   // MARK: - Splits
 
   private var splitsSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       sectionHeader("KILOMETER-SPLITS")
 
       VStack(spacing: 0) {
@@ -290,8 +290,8 @@ struct RunDetailSheet: View {
         .font(GainsFont.label(8))
         .tracking(1.4)
         .foregroundStyle(GainsColor.softInk)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .padding(.horizontal, GainsSpacing.m)
+        .padding(.vertical, GainsSpacing.tight)
         .background(GainsColor.background)
 
         let fastestPace = run.splits.map(\.paceSeconds).filter { $0 > 0 }.min() ?? 0
@@ -338,8 +338,8 @@ struct RunDetailSheet: View {
               .foregroundStyle(GainsColor.softInk)
               .frame(width: 48, alignment: .trailing)
           }
-          .padding(.horizontal, 14)
-          .padding(.vertical, 12)
+          .padding(.horizontal, GainsSpacing.m)
+          .padding(.vertical, GainsSpacing.s)
           .background(idx % 2 == 0 ? GainsColor.card : GainsColor.elevated.opacity(0.5))
         }
       }
@@ -349,8 +349,8 @@ struct RunDetailSheet: View {
           .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
       )
     }
-    .padding(.horizontal, 20)
-    .padding(.bottom, 20)
+    .padding(.horizontal, GainsSpacing.l)
+    .padding(.bottom, GainsSpacing.l)
   }
 
   // MARK: - Pace Chart
@@ -363,12 +363,12 @@ struct RunDetailSheet: View {
     let maxPace = max(paces.max() ?? 1, minPace + 10)
 
     return AnyView(
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         sectionHeader("PACE-VERLAUF")
 
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           // Chart
-          HStack(alignment: .bottom, spacing: 4) {
+          HStack(alignment: .bottom, spacing: GainsSpacing.xxs) {
             ForEach(splits, id: \.id) { split in
               let pace = split.paceSeconds
               let fraction: Double = pace > 0
@@ -376,7 +376,7 @@ struct RunDetailSheet: View {
                 : 0.1
               let isFastest = pace == minPace && pace > 0
 
-              VStack(spacing: 4) {
+              VStack(spacing: GainsSpacing.xxs) {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                   .fill(isFastest ? GainsColor.lime : GainsColor.lime.opacity(0.4 + fraction * 0.45))
                   .frame(height: max(fraction * 80, 8))
@@ -402,23 +402,23 @@ struct RunDetailSheet: View {
               .tracking(0.8)
           }
         }
-        .padding(16)
+        .padding(GainsSpacing.m)
         .background(GainsColor.card)
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
-      .padding(.horizontal, 20)
-      .padding(.bottom, 20)
+      .padding(.horizontal, GainsSpacing.l)
+      .padding(.bottom, GainsSpacing.l)
     )
   }
 
   // MARK: - Feel & Note
 
   private var feelAndNoteSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       sectionHeader("EINORDNUNG")
 
-      VStack(alignment: .leading, spacing: 12) {
-        HStack(spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
+        HStack(spacing: GainsSpacing.tight) {
           if run.intensity != .free {
             metaChip(symbol: run.intensity.systemImage, label: run.intensity.title)
           }
@@ -435,16 +435,16 @@ struct RunDetailSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
-    .padding(.horizontal, 20)
-    .padding(.bottom, 20)
+    .padding(.horizontal, GainsSpacing.l)
+    .padding(.bottom, GainsSpacing.l)
   }
 
   private func metaChip(symbol: String, label: String) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       Image(systemName: symbol)
         .font(.system(size: 11, weight: .semibold))
         .foregroundStyle(GainsColor.lime)
@@ -453,7 +453,7 @@ struct RunDetailSheet: View {
         .tracking(1.2)
         .foregroundStyle(GainsColor.ink)
     }
-    .padding(.horizontal, 10)
+    .padding(.horizontal, GainsSpacing.tight)
     .frame(height: 28)
     .background(GainsColor.background.opacity(0.6))
     .clipShape(Capsule())
@@ -462,10 +462,10 @@ struct RunDetailSheet: View {
   // MARK: - HR-Zonen-Verteilung
 
   private var hrZonesSection: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       sectionHeader("HF-ZONEN")
 
-      VStack(alignment: .leading, spacing: 10) {
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
         // Stacked Bar
         GeometryReader { geo in
           HStack(spacing: 1) {
@@ -481,10 +481,10 @@ struct RunDetailSheet: View {
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
 
         // Legende
-        VStack(spacing: 6) {
+        VStack(spacing: GainsSpacing.xs) {
           ForEach(Array(HRZone.allCases.enumerated()), id: \.element) { idx, zone in
             let secs = run.hrZoneSecondsBuckets[safe: idx] ?? 0
-            HStack(spacing: 8) {
+            HStack(spacing: GainsSpacing.xsPlus) {
               Circle().fill(zone.color()).frame(width: 8, height: 8)
               Text(zone.title)
                 .font(GainsFont.body(12))
@@ -498,12 +498,12 @@ struct RunDetailSheet: View {
           }
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
-    .padding(.horizontal, 20)
-    .padding(.bottom, 20)
+    .padding(.horizontal, GainsSpacing.l)
+    .padding(.bottom, GainsSpacing.l)
   }
 
   private func formatZoneDuration(_ seconds: Int) -> String {
@@ -521,13 +521,13 @@ struct RunDetailSheet: View {
     guard !prs.isEmpty else { return AnyView(EmptyView()) }
 
     return AnyView(
-      VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: GainsSpacing.m) {
         sectionHeader("BESTLEISTUNGEN")
 
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(prs, id: \.0) { (label, value) in
-            VStack(alignment: .leading, spacing: 6) {
-              HStack(spacing: 4) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+              HStack(spacing: GainsSpacing.xxs) {
                 Image(systemName: "trophy.fill")
                   .font(.system(size: 10, weight: .semibold))
                   .foregroundStyle(GainsColor.lime)
@@ -541,14 +541,14 @@ struct RunDetailSheet: View {
                 .foregroundStyle(GainsColor.ink)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(12)
+            .padding(GainsSpacing.s)
             .background(GainsColor.card)
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
         }
       }
-      .padding(.horizontal, 20)
-      .padding(.bottom, 32)
+      .padding(.horizontal, GainsSpacing.l)
+      .padding(.bottom, GainsSpacing.xl)
     )
   }
 
@@ -562,7 +562,7 @@ struct RunDetailSheet: View {
   }
 
   private func detailStatCell(label: String, value: String, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(7))
         .tracking(1.2)
@@ -635,36 +635,47 @@ struct RunDetailSheet: View {
   private func personalBests() -> [(String, String)] {
     var prs: [(String, String)] = []
 
-    // Vergleichsbasis: alle bisherigen Läufe AUSSER diesem.
-    let history = store.runHistory.filter { $0.id != run.id }
+    // 2026-05-03 Intuitivitäts-Sweep P1-19: PBs müssen modalitätsspezifisch
+    // sein — Rad-Distanzen liegen oft 3–4× über Lauf-Distanzen, sonst würde
+    // jede neue Lauf-PB von früheren Bike-Sessions verdrängt (oder
+    // umgekehrt). Vergleichsbasis: alle bisherigen Sessions derselben
+    // Modalität AUSSER der aktuellen.
+    let history = store.runHistory.filter {
+      $0.id != run.id && $0.modality == run.modality
+    }
+    let prefix = run.modality.isCycling ? "RAD" : "LAUF"
+    let unitDistance = run.modality.isCycling ? "FAHRT" : "LAUF"
+    let paceLabelRoot = run.modality.isCycling ? "BESTE GESCHWINDIGKEIT" : "BESTE PACE"
 
-    // Längster Lauf?
+    // Längste Distanz der Modalität.
     if run.distanceKm > 0 {
       let prevLongest = history.map(\.distanceKm).max() ?? 0
       if run.distanceKm >= prevLongest, !history.isEmpty {
-        prs.append(("LÄNGSTER LAUF", String(format: "%.2f km", run.distanceKm)))
-      } else if history.isEmpty, run.distanceKm >= 5 {
-        prs.append(("LÄNGSTER LAUF", String(format: "%.2f km", run.distanceKm)))
+        prs.append(("LÄNGSTER \(unitDistance)", String(format: "%.2f km", run.distanceKm)))
+      } else if history.isEmpty, run.distanceKm >= (run.modality.isCycling ? 15 : 5) {
+        prs.append(("LÄNGSTER \(unitDistance)", String(format: "%.2f km", run.distanceKm)))
       }
     }
 
-    // Schnellste Pace ≥ 5 km — vergleicht nur mit Läufen ≥ 5 km
-    if run.distanceKm >= 5, run.averagePaceSeconds > 0 {
-      let prevBestPace5K = history
-        .filter { $0.distanceKm >= 5 }
+    // Schnellste Pace bei ausreichender Distanz.
+    let paceThreshold: Double = run.modality.isCycling ? 10 : 5
+    if run.distanceKm >= paceThreshold, run.averagePaceSeconds > 0 {
+      let prevBestPace = history
+        .filter { $0.distanceKm >= paceThreshold }
         .map(\.averagePaceSeconds)
         .filter { $0 > 0 }
         .min() ?? Int.max
-      if run.averagePaceSeconds <= prevBestPace5K {
-        prs.append(("BESTE PACE 5K+", paceLabel(run.averagePaceSeconds) + " /km"))
+      if run.averagePaceSeconds <= prevBestPace {
+        let suffix = run.modality.isCycling ? " (\(Int(paceThreshold))km+)" : " 5K+"
+        prs.append(("\(paceLabelRoot)\(suffix)", paceLabel(run.averagePaceSeconds) + " /km"))
       }
     }
 
-    // Höhenmeter-Bestwert
-    if run.elevationGain > 100 {
+    // Höhenmeter-Bestwert (Lauf+Outdoor-Rad, Indoor-Rad hat keine).
+    if run.elevationGain > 100, !run.modality.isIndoor {
       let prevBestElev = history.map(\.elevationGain).max() ?? 0
       if run.elevationGain >= prevBestElev {
-        prs.append(("HÖHEN-PR", "\(run.elevationGain) m"))
+        prs.append(("\(prefix) HÖHEN-PR", "\(run.elevationGain) m"))
       }
     }
 

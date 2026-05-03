@@ -64,7 +64,7 @@ struct NutritionTrackerView: View {
               .font(GainsFont.label(13))
               .foregroundStyle(selectedTab == tab ? GainsColor.ink : GainsColor.mutedInk)
               .frame(maxWidth: .infinity)
-              .padding(.vertical, 14)
+              .padding(.vertical, GainsSpacing.m)
 
             Rectangle()
               .fill(selectedTab == tab ? GainsColor.lime : Color.clear)
@@ -103,6 +103,9 @@ struct CalorienTrackerView: View {
   @State private var expandedSections: Set<RecipeMealType> = [.breakfast, .lunch, .dinner, .snack, .shake]
   @State private var showsGoalPicker = false
   @State private var showsNutritionWizard = false
+  // 2026-05-03 Intuitivitäts-Sweep P0 E: Quick-Editor für Kcal/Protein-Ziel
+  // ohne den 9-Step-Wizard erneut durchlaufen zu müssen.
+  @State private var showsQuickGoalEdit = false
   @State private var showsPhotoRecognition = false
   // N2-Fix (2026-05-01): Wenn FoodSearchSheet geschlossen wird und davor
   // signalisiert hat „bitte Photo öffnen", triggern wir es hier nach
@@ -113,6 +116,10 @@ struct CalorienTrackerView: View {
   // und Mahlzeit-Picker für Long-Press-Move auf Food-Rows.
   @State private var showsQuickAdd = false
   @State private var quickAddInitialMeal: RecipeMealType = .snack
+  // 2026-05-03 Intuitivitäts-Sweep P1-22: Eintrag nachträglich anpassen.
+  // `adjustingEntry != nil` triggert das Adjust-Sheet, das mit einem
+  // Faktor-Slider Macros + kcal proportional skaliert.
+  @State private var adjustingEntry: NutritionEntry? = nil
   // Pulse-Refresh: minütlicher Tick, damit die Coach-Brief-Variants
   // (z. B. „Mittag fehlt") tageszeitabhängig automatisch wechseln.
   @State private var pulseClock: Date = Date()
@@ -194,14 +201,14 @@ struct CalorienTrackerView: View {
       VStack(spacing: 0) {
         // Date navigation
         dateNavigationRow
-          .padding(.horizontal, 20)
-          .padding(.top, 16)
-          .padding(.bottom, 12)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.m)
+          .padding(.bottom, GainsSpacing.s)
 
         if isInNutritionDayOneWindow && isToday {
           dayOneNutritionBanner
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.m)
         } else if isToday, let pulse = currentNutritionPulse {
           // Welle 3 (2026-05-03): Coach-Brief-Mini direkt über dem Ring —
           // kontextsensitive Pulse-Zeile, die Tageszeit, Protein-Lücke,
@@ -209,14 +216,14 @@ struct CalorienTrackerView: View {
           // Day-One-Banner gegenseitig aus, damit nur eine emotionale
           // Stimme spricht.
           nutritionPulseLine(pulse)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 12)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.s)
         }
 
         // Calorie ring + macros
         calorieRingCard
-          .padding(.horizontal, 20)
-          .padding(.bottom, 16)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.bottom, GainsSpacing.m)
 
         // Welle 3 (2026-05-03): Recents-Strip — die letzten unique
         // gelogged en Lebensmittel als horizontale Cards. Tap = direkt
@@ -226,27 +233,27 @@ struct CalorienTrackerView: View {
         // der Strip nur das Quick-Add — siehe `showsRecentsStrip`).
         if isToday && showsRecentsStrip {
           recentsStrip
-            .padding(.bottom, 16)
+            .padding(.bottom, GainsSpacing.m)
         }
 
         // Meal sections
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           mealSection(.breakfast, title: "Frühstück",   emoji: "🌅")
           mealSection(.lunch,     title: "Mittagessen", emoji: "🍽️")
           mealSection(.dinner,    title: "Abendessen",  emoji: "🌙")
           mealSection(.snack,     title: "Snacks",      emoji: "🍎")
           mealSection(.shake,     title: "Shake",       emoji: "🥤")
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 16)
+        .padding(.horizontal, GainsSpacing.l)
+        .padding(.bottom, GainsSpacing.m)
 
         // Welle 3 (2026-05-03): Day-Summary-Footer — emotionaler Abschluss
         // unter den Meal-Sections. Zeigt Streak, Wochen-Sparkline kcal und
         // Protein-Hit-Rate. Nur an „heute" und nur wenn ≥1 Eintrag heute.
         if isToday && !entriesForDay.isEmpty {
           daySummaryFooter
-            .padding(.horizontal, 20)
-            .padding(.bottom, 24)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.xl)
         } else {
           Spacer(minLength: 24)
         }
@@ -285,6 +292,9 @@ struct CalorienTrackerView: View {
       NutritionGoalWizardSheet(existingProfile: store.nutritionProfile)
         .environmentObject(store)
     }
+    .sheet(isPresented: $showsQuickGoalEdit) {
+      NutritionQuickGoalSheet().environmentObject(store)
+    }
     .sheet(isPresented: $showsPhotoRecognition) {
       FoodPhotoRecognitionSheet(mealType: pendingMealType, selectedDate: selectedDate, onLog: {})
         .environmentObject(store)
@@ -295,6 +305,10 @@ struct CalorienTrackerView: View {
     }
     .sheet(isPresented: $showsQuickAdd) {
       QuickAddNutritionSheet(initialMealType: quickAddInitialMeal, selectedDate: selectedDate)
+        .environmentObject(store)
+    }
+    .sheet(item: $adjustingEntry) { entry in
+      AdjustNutritionEntrySheet(entry: entry)
         .environmentObject(store)
     }
     .onReceive(pulseTimer) { _ in
@@ -382,8 +396,8 @@ struct CalorienTrackerView: View {
   // Großes CTA „Erste Mahlzeit loggen" führt direkt in die Suche.
 
   private var dayOneNutritionBanner: some View {
-    VStack(alignment: .leading, spacing: 14) {
-      HStack(spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "sparkles")
           .font(.system(size: 12, weight: .bold))
           .foregroundStyle(GainsColor.lime)
@@ -396,11 +410,11 @@ struct CalorienTrackerView: View {
         .foregroundStyle(GainsColor.ink)
         .fixedSize(horizontal: false, vertical: true)
 
-      VStack(spacing: 8) {
+      VStack(spacing: GainsSpacing.xsPlus) {
         dayOnePathRow(
           icon: "magnifyingglass",
           title: "Suche",
-          detail: "Tippe einen Lebensmittelnamen — wir kennen 100k+ Produkte."
+          detail: "Tippe einen Lebensmittelnamen — gängige Produkte sind drin."
         )
         dayOnePathRow(
           icon: "camera.fill",
@@ -418,7 +432,7 @@ struct CalorienTrackerView: View {
         pendingMealType = currentMealTypeForTime()
         showsFoodSearch = true
       } label: {
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Image(systemName: "plus.circle.fill")
             .font(.system(size: 14, weight: .bold))
           Text("Erste Mahlzeit loggen")
@@ -429,7 +443,7 @@ struct CalorienTrackerView: View {
             .font(.system(size: 12, weight: .heavy))
         }
         .foregroundStyle(GainsColor.onLime)
-        .padding(.horizontal, 16)
+        .padding(.horizontal, GainsSpacing.m)
         .frame(height: 48)
         .frame(maxWidth: .infinity)
         .background(GainsColor.lime)
@@ -437,7 +451,7 @@ struct CalorienTrackerView: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(
       LinearGradient(
@@ -454,7 +468,7 @@ struct CalorienTrackerView: View {
   }
 
   private func dayOnePathRow(icon: String, title: String, detail: String) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       ZStack {
         Circle()
           .fill(GainsColor.lime.opacity(0.14))
@@ -494,14 +508,14 @@ struct CalorienTrackerView: View {
   private var calorieRingCard: some View {
     VStack(spacing: 0) {
       // Goal + Wizard buttons
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
 
         // Pill-Zeile: Ziel-Picker + kompaktes "Anpassen" wenn Profil vorhanden
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Button {
             showsGoalPicker = true
           } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: GainsSpacing.xs) {
               Image(systemName: store.nutritionGoal.systemImage)
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(GainsColor.moss)
@@ -509,10 +523,10 @@ struct CalorienTrackerView: View {
                 .font(GainsFont.label(11))
                 .foregroundStyle(GainsColor.softInk)
               Image(systemName: "chevron.down")
-                .font(.system(size: 9, weight: .bold))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(GainsColor.mutedInk)
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, GainsSpacing.s)
             .frame(height: 30)
             .background(GainsColor.elevated)
             .clipShape(Capsule())
@@ -521,24 +535,33 @@ struct CalorienTrackerView: View {
           .buttonStyle(.plain)
 
           if store.nutritionProfile != nil {
+            // P0 E: Tap = Quick-Edit (Kcal/Protein-Slider, sofort wirksam).
+            // Long-Press = Profil neu berechnen (kompletter Wizard).
             Button {
-              showsNutritionWizard = true
+              showsQuickGoalEdit = true
             } label: {
-              HStack(spacing: 5) {
-                Image(systemName: "checkmark.circle.fill")
+              HStack(spacing: GainsSpacing.xs) {
+                Image(systemName: "slider.horizontal.3")
                   .font(.system(size: 10, weight: .semibold))
                   .foregroundStyle(GainsColor.moss)
-                Text("Anpassen")
+                Text("Ziel anpassen")
                   .font(GainsFont.label(11))
                   .foregroundStyle(GainsColor.moss)
               }
-              .padding(.horizontal, 12)
+              .padding(.horizontal, GainsSpacing.s)
               .frame(height: 30)
               .background(GainsColor.lime.opacity(0.12))
               .clipShape(Capsule())
               .overlay(Capsule().stroke(GainsColor.lime.opacity(0.5), lineWidth: 1))
             }
             .buttonStyle(.plain)
+            .contextMenu {
+              Button {
+                showsNutritionWizard = true
+              } label: {
+                Label("Profil neu berechnen", systemImage: "function")
+              }
+            }
           }
 
           Spacer()
@@ -549,7 +572,7 @@ struct CalorienTrackerView: View {
           Button {
             showsNutritionWizard = true
           } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: GainsSpacing.m) {
               ZStack {
                 RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
                   .fill(GainsColor.moss.opacity(0.25))
@@ -562,7 +585,7 @@ struct CalorienTrackerView: View {
                 Text("Kalorienbedarf berechnen")
                   .font(GainsFont.label(15))
                   .foregroundStyle(GainsColor.onLime)
-                Text("Mifflin-St Jeor · ISSN 2022 · personalisiert")
+                Text("Mifflin-St Jeor + Aktivitätsfaktor")
                   .font(GainsFont.label(10))
                   .foregroundStyle(GainsColor.onLime.opacity(0.75))
               }
@@ -571,7 +594,7 @@ struct CalorienTrackerView: View {
                 .font(.system(size: 13, weight: .bold))
                 .foregroundStyle(GainsColor.onLime.opacity(0.75))
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, GainsSpacing.m)
             .frame(height: 64)
             .background(GainsColor.lime)
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -579,18 +602,18 @@ struct CalorienTrackerView: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 20)
-      .padding(.top, 16)
-      .padding(.bottom, 20)
+      .padding(.horizontal, GainsSpacing.l)
+      .padding(.top, GainsSpacing.m)
+      .padding(.bottom, GainsSpacing.l)
 
       // Ring + macros layout
-      HStack(alignment: .center, spacing: 24) {
+      HStack(alignment: .center, spacing: GainsSpacing.xl) {
         // Calorie Ring
         calorieRing
           .frame(width: 170, height: 170)
 
         // Macro breakdown
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: GainsSpacing.m) {
           macroRow(
             label: "Protein",
             current: proteinForDay,
@@ -615,14 +638,14 @@ struct CalorienTrackerView: View {
         }
         .frame(maxWidth: .infinity)
       }
-      .padding(.horizontal, 20)
-      .padding(.bottom, 20)
+      .padding(.horizontal, GainsSpacing.l)
+      .padding(.bottom, GainsSpacing.l)
 
       // Summary row
       Rectangle()
         .fill(GainsColor.border.opacity(0.5))
         .frame(height: 1)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, GainsSpacing.l)
 
       HStack {
         summaryPill(label: "Gegessen", value: "\(caloriesForDay) kcal", color: GainsColor.lime)
@@ -632,8 +655,8 @@ struct CalorienTrackerView: View {
         let burned = isToday ? Double(store.healthSnapshot?.activeEnergyToday ?? 0) : 0
         summaryPill(label: "Verbrannt", value: "\(Int(burned)) kcal", color: Color(hex: "FF8A4A"))
       }
-      .padding(.horizontal, 24)
-      .padding(.vertical, 16)
+      .padding(.horizontal, GainsSpacing.xl)
+      .padding(.vertical, GainsSpacing.m)
     }
     .gainsCardStyle(GainsColor.card)
   }
@@ -664,30 +687,43 @@ struct CalorienTrackerView: View {
         .rotationEffect(.degrees(-90))
         .animation(.spring(response: 0.8, dampingFraction: 0.75), value: progress)
 
-      // Center text
+      // 2026-05-03 Intuitivitäts-Sweep P1-25: Center zeigt jetzt
+      // „GEGESSEN / ZIEL" statt nur „verbleibend". Spart der/dem Nutzer:in
+      // den mentalen Subtraktions-Schritt — die verbleibenden kcal stehen
+      // weiter als kleine Caption darunter.
       VStack(spacing: 2) {
-        Text("\(remaining)")
-          .font(.system(size: 28, weight: .bold, design: .rounded))
-          .foregroundStyle(isOver ? GainsColor.ember : GainsColor.ink)
-          .contentTransition(.numericText())
-          .animation(.spring(response: 0.5), value: remaining)
+        HStack(alignment: .firstTextBaseline, spacing: 2) {
+          Text("\(caloriesForDay)")
+            .font(.system(size: 28, weight: .bold, design: .rounded))
+            .foregroundStyle(isOver ? GainsColor.ember : GainsColor.ink)
+            .contentTransition(.numericText())
+            .animation(.spring(response: 0.5), value: caloriesForDay)
+          Text("/")
+            .font(.system(size: 18, weight: .semibold, design: .rounded))
+            .foregroundStyle(GainsColor.mutedInk)
+          Text("\(store.nutritionTargetCalories)")
+            .font(.system(size: 18, weight: .semibold, design: .rounded))
+            .foregroundStyle(GainsColor.softInk)
+        }
 
         Text("kcal")
           .font(GainsFont.label(10))
           .foregroundStyle(GainsColor.mutedInk)
 
-        Text(isOver ? "überschritten" : "verbleibend")
-          .font(.system(size: 9, weight: .medium))
+        Text(isOver ? "+\(caloriesForDay - store.nutritionTargetCalories) drüber" : "\(remaining) übrig")
+          .font(.system(size: 10, weight: .medium))
           .foregroundStyle(isOver ? GainsColor.ember : GainsColor.softInk)
           .multilineTextAlignment(.center)
           .lineLimit(1)
+          .contentTransition(.numericText())
+          .animation(.spring(response: 0.5), value: remaining)
       }
     }
   }
 
   private func macroRow(label: String, current: Int, target: Int, unit: String, color: Color) -> some View {
     let progress = min(Double(current) / Double(max(target, 1)), 1.0)
-    return VStack(alignment: .leading, spacing: 5) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       HStack(spacing: 0) {
         Text(label)
           .font(GainsFont.label(11))
@@ -755,7 +791,7 @@ struct CalorienTrackerView: View {
           }
         }
       } label: {
-        HStack(spacing: 12) {
+        HStack(spacing: GainsSpacing.s) {
           Text(emoji)
             .font(.system(size: 20))
             .frame(width: 40, height: 40)
@@ -777,8 +813,8 @@ struct CalorienTrackerView: View {
             Text("\(sectionCalories) kcal")
               .font(.system(size: 12, weight: .semibold, design: .rounded))
               .foregroundStyle(GainsColor.softInk)
-              .padding(.horizontal, 10)
-              .padding(.vertical, 4)
+              .padding(.horizontal, GainsSpacing.tight)
+              .padding(.vertical, GainsSpacing.xxs)
               .background(GainsColor.elevated)
               .overlay(
                 Capsule().stroke(GainsColor.border.opacity(0.5), lineWidth: GainsBorder.hairline)
@@ -790,8 +826,8 @@ struct CalorienTrackerView: View {
             .font(.system(size: 10, weight: .bold))
             .foregroundStyle(GainsColor.mutedInk)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
+        .padding(.horizontal, GainsSpacing.m)
+        .padding(.vertical, GainsSpacing.m)
       }
       .buttonStyle(.plain)
 
@@ -800,10 +836,10 @@ struct CalorienTrackerView: View {
           Rectangle()
             .fill(GainsColor.border.opacity(0.5))
             .frame(height: 1)
-            .padding(.horizontal, 16)
+            .padding(.horizontal, GainsSpacing.m)
 
           if sectionEntries.isEmpty {
-            HStack(spacing: 10) {
+            HStack(spacing: GainsSpacing.tight) {
               Image(systemName: "plus.circle")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(GainsColor.mutedInk)
@@ -812,8 +848,8 @@ struct CalorienTrackerView: View {
                 .foregroundStyle(GainsColor.mutedInk)
               Spacer()
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.horizontal, GainsSpacing.m)
+            .padding(.vertical, GainsSpacing.m)
           } else {
             ForEach(sectionEntries) { entry in
               foodEntryRow(entry)
@@ -871,7 +907,7 @@ struct CalorienTrackerView: View {
   }
 
   private func actionBarLabel(icon: String, text: String, tint: Color) -> some View {
-    HStack(spacing: 6) {
+    HStack(spacing: GainsSpacing.xs) {
       Image(systemName: icon)
         .font(.system(size: 11, weight: .bold))
         .foregroundStyle(tint)
@@ -880,19 +916,19 @@ struct CalorienTrackerView: View {
         .foregroundStyle(tint)
     }
     .frame(maxWidth: .infinity)
-    .padding(.vertical, 12)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.lime.opacity(0.06))
   }
 
   @ViewBuilder
   private func foodEntryRow(_ entry: NutritionEntry) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       VStack(alignment: .leading, spacing: 3) {
         Text(entry.title)
           .font(GainsFont.label(14))
           .foregroundStyle(GainsColor.ink)
           .lineLimit(1)
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           macroChip("P: \(entry.protein)g", color: GainsColor.lime)
           macroChip("K: \(entry.carbs)g", color: Color(hex: "5BC4F5"))
           macroChip("F: \(entry.fat)g", color: Color(hex: "FF8A4A"))
@@ -925,8 +961,8 @@ struct CalorienTrackerView: View {
       }
       .buttonStyle(.plain)
     }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .frame(maxWidth: .infinity, alignment: .leading)
     .contentShape(Rectangle())
     .background(GainsColor.card)
@@ -940,7 +976,7 @@ struct CalorienTrackerView: View {
     Rectangle()
       .fill(GainsColor.border.opacity(0.4))
       .frame(height: 1)
-      .padding(.horizontal, 16)
+      .padding(.horizontal, GainsSpacing.m)
   }
 
   // Welle 3: Aktionen für ⋯-Menu UND Long-Press-Context-Menu auf einer
@@ -960,6 +996,16 @@ struct CalorienTrackerView: View {
       store.duplicateNutritionEntry(entry.id)
     } label: {
       Label("Duplizieren", systemImage: "doc.on.doc")
+    }
+
+    // 2026-05-03 Intuitivitäts-Sweep P1-22: „Anpassen" statt Löschen+Neu.
+    // Öffnet ein kompaktes Sheet mit Slider für Portion + sofort sichtbare
+    // Macro-Vorschau. Häufiger Pfad: „Ich hab versehentlich 200 g
+    // eingegeben, war aber nur 100 g."
+    Button {
+      adjustingEntry = entry
+    } label: {
+      Label("Portion anpassen…", systemImage: "slider.horizontal.3")
     }
 
     Menu {
@@ -988,7 +1034,7 @@ struct CalorienTrackerView: View {
     Text(text)
       .font(.system(size: 10, weight: .medium))
       .foregroundStyle(color)
-      .padding(.horizontal, 6)
+      .padding(.horizontal, GainsSpacing.xs)
       .padding(.vertical, 2)
       .background(color.opacity(0.1))
       .clipShape(Capsule())
@@ -1117,7 +1163,7 @@ struct CalorienTrackerView: View {
       }
     }()
 
-    return HStack(spacing: 12) {
+    return HStack(spacing: GainsSpacing.s) {
       ZStack {
         Circle()
           .fill(accentColor.opacity(0.14))
@@ -1144,8 +1190,8 @@ struct CalorienTrackerView: View {
 
       Spacer(minLength: 0)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+    .padding(.horizontal, GainsSpacing.m)
+    .padding(.vertical, GainsSpacing.s)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
@@ -1164,8 +1210,8 @@ struct CalorienTrackerView: View {
   fileprivate var recentsStrip: some View {
     let recents = store.recentNutritionFoods
 
-    return VStack(alignment: .leading, spacing: 10) {
-      HStack(spacing: 8) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: "bolt.fill")
           .font(.system(size: 11, weight: .bold))
           .foregroundStyle(GainsColor.lime)
@@ -1178,16 +1224,16 @@ struct CalorienTrackerView: View {
             .foregroundStyle(GainsColor.mutedInk)
         }
       }
-      .padding(.horizontal, 20)
+      .padding(.horizontal, GainsSpacing.l)
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           quickAddRecentCard
           ForEach(recents) { entry in
             recentFoodCard(entry)
           }
         }
-        .padding(.horizontal, 20)
+        .padding(.horizontal, GainsSpacing.l)
       }
     }
   }
@@ -1197,7 +1243,7 @@ struct CalorienTrackerView: View {
       quickAddInitialMeal = currentMealTypeForTime()
       showsQuickAdd = true
     } label: {
-      VStack(alignment: .leading, spacing: 8) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         HStack(spacing: 0) {
           ZStack {
             Circle()
@@ -1220,7 +1266,7 @@ struct CalorienTrackerView: View {
             .foregroundStyle(GainsColor.softInk)
         }
       }
-      .padding(12)
+      .padding(GainsSpacing.s)
       .frame(width: 124, height: 96, alignment: .topLeading)
       .background(
         LinearGradient(
@@ -1246,7 +1292,7 @@ struct CalorienTrackerView: View {
         expandedSections.insert(target)
       }
     } label: {
-      VStack(alignment: .leading, spacing: 6) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
         HStack(spacing: 0) {
           Image(systemName: entry.mealType.systemImage)
             .font(.system(size: 11, weight: .semibold))
@@ -1266,7 +1312,7 @@ struct CalorienTrackerView: View {
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
             .multilineTextAlignment(.leading)
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Text("\(entry.calories) kcal")
               .font(.system(size: 10, weight: .semibold, design: .rounded))
               .foregroundStyle(GainsColor.softInk)
@@ -1278,7 +1324,7 @@ struct CalorienTrackerView: View {
           }
         }
       }
-      .padding(12)
+      .padding(GainsSpacing.s)
       .frame(width: 144, height: 96, alignment: .topLeading)
       .background(GainsColor.card)
       .overlay(
@@ -1318,14 +1364,14 @@ struct CalorienTrackerView: View {
     let proteinRate = store.proteinHitRate(lastDays: 7)
     let streak = store.nutritionStreakDays
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["TAGESBILANZ", "DEINE WOCHE"],
         primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk
       )
 
-      HStack(alignment: .top, spacing: 10) {
+      HStack(alignment: .top, spacing: GainsSpacing.tight) {
         summaryStatTile(
           eyebrow: "STREAK",
           value: "\(streak)",
@@ -1359,8 +1405,8 @@ struct CalorienTrackerView: View {
     icon: String,
     accent: Color
   ) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: icon)
           .font(.system(size: 10, weight: .bold))
           .foregroundStyle(accent)
@@ -1376,8 +1422,8 @@ struct CalorienTrackerView: View {
         .foregroundStyle(GainsColor.mutedInk)
         .lineLimit(1)
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.tight)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(GainsColor.elevated)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -1391,8 +1437,8 @@ struct CalorienTrackerView: View {
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: Date())
 
-    return VStack(alignment: .leading, spacing: 6) {
-      HStack(spacing: 6) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+      HStack(spacing: GainsSpacing.xs) {
         Image(systemName: "chart.bar.fill")
           .font(.system(size: 10, weight: .bold))
           .foregroundStyle(GainsColor.lime)
@@ -1400,7 +1446,7 @@ struct CalorienTrackerView: View {
           .gainsEyebrow(GainsColor.softInk, size: 9, tracking: 1.3)
       }
 
-      HStack(alignment: .bottom, spacing: 4) {
+      HStack(alignment: .bottom, spacing: GainsSpacing.xxs) {
         ForEach(Array(weeklyCalories.enumerated()), id: \.offset) { index, kcal in
           let dayOffset = weeklyCalories.count - 1 - index
           let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) ?? today
@@ -1410,7 +1456,7 @@ struct CalorienTrackerView: View {
           let isOver = kcal > target
           let isTodayBar = dayOffset == 0
 
-          VStack(spacing: 4) {
+          VStack(spacing: GainsSpacing.xxs) {
             RoundedRectangle(cornerRadius: 3)
               .fill(
                 kcal == 0
@@ -1427,8 +1473,8 @@ struct CalorienTrackerView: View {
       }
       .frame(height: 50)
     }
-    .padding(.horizontal, 12)
-    .padding(.vertical, 10)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.tight)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(GainsColor.elevated)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -1467,15 +1513,15 @@ struct QuickAddNutritionSheet: View {
         GainsAppBackground()
 
         ScrollView(showsIndicators: false) {
-          VStack(alignment: .leading, spacing: 18) {
+          VStack(alignment: .leading, spacing: GainsSpacing.l) {
             heroPreview
             mealPicker
             macroFields
             Spacer(minLength: 12)
           }
-          .padding(.horizontal, 20)
-          .padding(.top, 12)
-          .padding(.bottom, 24)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.s)
+          .padding(.bottom, GainsSpacing.xl)
         }
       }
       .navigationTitle("Schnell-Eintrag")
@@ -1511,11 +1557,11 @@ struct QuickAddNutritionSheet: View {
   }
 
   private var heroPreview: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text("KCAL")
         .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.4)
 
-      HStack(alignment: .firstTextBaseline, spacing: 6) {
+      HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xs) {
         TextField("0", text: $caloriesText)
           .keyboardType(.numberPad)
           .font(.system(size: 44, weight: .bold, design: .rounded))
@@ -1531,7 +1577,7 @@ struct QuickAddNutritionSheet: View {
       TextField("Titel (optional)", text: $title)
         .font(GainsFont.body(14))
         .foregroundStyle(GainsColor.ink)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, GainsSpacing.s)
         .frame(height: 40)
         .background(GainsColor.elevated)
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -1546,24 +1592,24 @@ struct QuickAddNutritionSheet: View {
   }
 
   private var mealPicker: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("MAHLZEIT")
         .gainsEyebrow(GainsColor.softInk, size: 11, tracking: 1.4)
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           ForEach(RecipeMealType.allCases, id: \.self) { type in
             Button {
               withAnimation(.spring(response: 0.25)) { mealType = type }
             } label: {
-              HStack(spacing: 6) {
+              HStack(spacing: GainsSpacing.xs) {
                 Image(systemName: type.systemImage)
                   .font(.system(size: 11, weight: .semibold))
                 Text(type.title)
                   .font(GainsFont.label(12))
               }
               .foregroundStyle(mealType == type ? GainsColor.onLime : GainsColor.softInk)
-              .padding(.horizontal, 14)
-              .padding(.vertical, 9)
+              .padding(.horizontal, GainsSpacing.m)
+              .padding(.vertical, GainsSpacing.xsPlus)
               .background(mealType == type ? GainsColor.lime : GainsColor.elevated)
               .clipShape(Capsule())
               .overlay(
@@ -1578,10 +1624,10 @@ struct QuickAddNutritionSheet: View {
   }
 
   private var macroFields: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("MAKROS · OPTIONAL")
         .gainsEyebrow(GainsColor.softInk, size: 11, tracking: 1.4)
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         macroField("Protein", text: $proteinText, color: GainsColor.lime)
         macroField("Kohlenh.", text: $carbsText, color: Color(hex: "5BC4F5"))
         macroField("Fett", text: $fatText, color: Color(hex: "FF8A4A"))
@@ -1590,11 +1636,11 @@ struct QuickAddNutritionSheet: View {
   }
 
   private func macroField(_ label: String, text: Binding<String>, color: Color) -> some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(10))
         .foregroundStyle(GainsColor.softInk)
-      HStack(spacing: 4) {
+      HStack(spacing: GainsSpacing.xxs) {
         TextField("0", text: text)
           .keyboardType(.numberPad)
           .font(.system(size: 16, weight: .semibold, design: .rounded))
@@ -1604,8 +1650,8 @@ struct QuickAddNutritionSheet: View {
           .font(GainsFont.label(11))
           .foregroundStyle(GainsColor.mutedInk)
       }
-      .padding(.horizontal, 12)
-      .padding(.vertical, 10)
+      .padding(.horizontal, GainsSpacing.s)
+      .padding(.vertical, GainsSpacing.tight)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(GainsColor.elevated)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -1613,6 +1659,164 @@ struct QuickAddNutritionSheet: View {
         RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(color.opacity(0.25), lineWidth: GainsBorder.hairline)
       )
+    }
+  }
+}
+
+// MARK: - Adjust Nutrition Entry Sheet
+//
+// 2026-05-03 Intuitivitäts-Sweep P1-22: Eintrag nachträglich anpassen statt
+// löschen+neu eintragen. Slider skaliert alle Macros + kcal proportional —
+// häufigster Use-Case („hab versehentlich 200g eingegeben, war aber 100g")
+// ist damit ein 2-Tap-Flow.
+
+private struct AdjustNutritionEntrySheet: View {
+  @EnvironmentObject private var store: GainsStore
+  @Environment(\.dismiss) private var dismiss
+
+  let entry: NutritionEntry
+
+  @State private var factor: Double = 1.0
+
+  private var scaledCalories: Int { max(0, Int((Double(entry.calories) * factor).rounded())) }
+  private var scaledProtein: Int { max(0, Int((Double(entry.protein) * factor).rounded())) }
+  private var scaledCarbs: Int { max(0, Int((Double(entry.carbs) * factor).rounded())) }
+  private var scaledFat: Int { max(0, Int((Double(entry.fat) * factor).rounded())) }
+  private var percentLabel: String { "\(Int((factor * 100).rounded())) %" }
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        GainsAppBackground()
+        ScrollView(showsIndicators: false) {
+          VStack(alignment: .leading, spacing: GainsSpacing.l) {
+            header
+            preview
+            sliderCard
+            presetRow
+            Spacer(minLength: 12)
+          }
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.s)
+          .padding(.bottom, GainsSpacing.xl)
+        }
+      }
+      .navigationTitle("Portion anpassen")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Abbrechen") { dismiss() }
+            .foregroundStyle(GainsColor.softInk)
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button {
+            store.updateNutritionEntry(
+              entry.id,
+              calories: scaledCalories,
+              protein: scaledProtein,
+              carbs: scaledCarbs,
+              fat: scaledFat
+            )
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            dismiss()
+          } label: {
+            Text("Anwenden")
+              .font(GainsFont.label(13))
+              .tracking(1.4)
+          }
+          .disabled(abs(factor - 1.0) < 0.01)
+        }
+      }
+    }
+  }
+
+  private var header: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+      Text(entry.title)
+        .font(GainsFont.title(22))
+        .foregroundStyle(GainsColor.ink)
+      Text("Schiebe den Regler, um die Portion proportional zu skalieren.")
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.softInk)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  private var preview: some View {
+    VStack(spacing: GainsSpacing.s) {
+      HStack(alignment: .firstTextBaseline, spacing: 6) {
+        Text("\(scaledCalories)")
+          .font(.system(size: 42, weight: .bold, design: .rounded))
+          .foregroundStyle(GainsColor.lime)
+          .contentTransition(.numericText())
+          .animation(.spring(response: 0.4), value: scaledCalories)
+        Text("kcal")
+          .font(GainsFont.label(12))
+          .foregroundStyle(GainsColor.mutedInk)
+      }
+      HStack(spacing: GainsSpacing.l) {
+        macroPill(label: "P", value: scaledProtein, color: GainsColor.lime)
+        macroPill(label: "K", value: scaledCarbs, color: Color(hex: "5BC4F5"))
+        macroPill(label: "F", value: scaledFat, color: Color(hex: "FF8A4A"))
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, GainsSpacing.l)
+    .background(GainsColor.card)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  private func macroPill(label: String, value: Int, color: Color) -> some View {
+    HStack(spacing: 4) {
+      Text(label)
+        .font(GainsFont.label(11))
+        .foregroundStyle(color)
+      Text("\(value)g")
+        .font(.system(size: 14, weight: .semibold, design: .rounded))
+        .foregroundStyle(GainsColor.ink)
+        .contentTransition(.numericText())
+    }
+  }
+
+  private var sliderCard: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      HStack {
+        Text("FAKTOR")
+          .font(GainsFont.label(10))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.mutedInk)
+        Spacer()
+        Text(percentLabel)
+          .font(.system(size: 13, weight: .semibold, design: .monospaced))
+          .foregroundStyle(GainsColor.ink)
+          .contentTransition(.numericText())
+      }
+      Slider(value: $factor, in: 0.25...3.0, step: 0.05)
+        .tint(GainsColor.lime)
+    }
+    .padding(GainsSpacing.m)
+    .background(GainsColor.elevated)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private var presetRow: some View {
+    HStack(spacing: GainsSpacing.tight) {
+      ForEach([0.5, 0.75, 1.0, 1.5, 2.0], id: \.self) { value in
+        Button {
+          withAnimation(.spring(response: 0.3)) { factor = value }
+          UISelectionFeedbackGenerator().selectionChanged()
+        } label: {
+          Text("\(Int(value * 100))%")
+            .font(GainsFont.label(11))
+            .tracking(1.0)
+            .foregroundStyle(abs(factor - value) < 0.01 ? GainsColor.onLime : GainsColor.softInk)
+            .frame(maxWidth: .infinity)
+            .frame(height: 38)
+            .background(abs(factor - value) < 0.01 ? GainsColor.lime : GainsColor.elevated)
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.tiny, style: .continuous))
+        }
+        .buttonStyle(.plain)
+      }
     }
   }
 }
@@ -1629,7 +1833,7 @@ private struct GoalPickerSheet: View {
         GainsColor.background.ignoresSafeArea()
 
         VStack(alignment: .leading, spacing: 0) {
-          VStack(alignment: .leading, spacing: 6) {
+          VStack(alignment: .leading, spacing: GainsSpacing.xs) {
             Text("Ernährungsziel")
               .font(GainsFont.title(22))
               .foregroundStyle(GainsColor.ink)
@@ -1637,16 +1841,16 @@ private struct GoalPickerSheet: View {
               .font(GainsFont.body(14))
               .foregroundStyle(GainsColor.softInk)
           }
-          .padding(.horizontal, 24)
-          .padding(.top, 24)
-          .padding(.bottom, 20)
+          .padding(.horizontal, GainsSpacing.xl)
+          .padding(.top, GainsSpacing.xl)
+          .padding(.bottom, GainsSpacing.l)
 
-          VStack(spacing: 12) {
+          VStack(spacing: GainsSpacing.s) {
             ForEach(NutritionGoal.allCases, id: \.self) { goal in
               goalCard(goal)
             }
           }
-          .padding(.horizontal, 20)
+          .padding(.horizontal, GainsSpacing.l)
 
           Spacer()
         }
@@ -1670,7 +1874,7 @@ private struct GoalPickerSheet: View {
         store.setNutritionGoal(goal)
       }
     } label: {
-      HStack(spacing: 16) {
+      HStack(spacing: GainsSpacing.m) {
         Image(systemName: goal.systemImage)
           .font(.system(size: 22, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.softInk)
@@ -1711,6 +1915,212 @@ private struct GoalPickerSheet: View {
       )
     }
     .buttonStyle(.plain)
+  }
+}
+
+// MARK: - Nutrition Quick Goal Sheet
+//
+// 2026-05-03 Intuitivitäts-Sweep P0 E: Schnell-Anpassung der Tagesziele
+// ohne den 9-Step-Wizard. User mit „2000 → 1900 kcal"-Wunsch zog sich
+// vorher durch Alter/Geschlecht/Aktivität — jetzt Slider, Preview und
+// Anwenden in einem Sheet.
+
+private struct NutritionQuickGoalSheet: View {
+  @EnvironmentObject private var store: GainsStore
+  @Environment(\.dismiss) private var dismiss
+
+  @State private var surplus: Double = 0
+  @State private var goal: NutritionGoal = .maintain
+  @State private var didLoad = false
+
+  var body: some View {
+    NavigationStack {
+      ZStack {
+        GainsColor.background.ignoresSafeArea()
+        ScrollView {
+          VStack(alignment: .leading, spacing: GainsSpacing.l) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+              Text("ZIEL ANPASSEN")
+                .gainsEyebrow(GainsColor.moss, size: 11, tracking: 1.6)
+              Text("Schnell-Adjustment ohne Profil neu zu berechnen.")
+                .font(GainsFont.body(13))
+                .foregroundStyle(GainsColor.softInk)
+            }
+
+            previewCard
+
+            goalPicker
+
+            surplusSlider
+
+            Text("Tipp: Long-Press auf „Ziel anpassen“ öffnet die volle Profil-Berechnung (Alter/Größe/Aktivität).")
+              .font(GainsFont.body(11))
+              .foregroundStyle(GainsColor.mutedInk)
+              .padding(.top, GainsSpacing.xs)
+          }
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.top, GainsSpacing.l)
+          .padding(.bottom, GainsSpacing.xl)
+        }
+      }
+      .navigationTitle("Ziel anpassen")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          Button("Abbrechen") { dismiss() }
+            .foregroundStyle(GainsColor.softInk)
+        }
+        ToolbarItem(placement: .navigationBarTrailing) {
+          Button("Anwenden") {
+            applyChanges()
+            dismiss()
+          }
+          .foregroundStyle(GainsColor.lime)
+          .fontWeight(.semibold)
+        }
+      }
+    }
+    .onAppear {
+      guard !didLoad else { return }
+      didLoad = true
+      goal = store.nutritionGoal
+      surplus = Double(store.nutritionProfile?.surplusKcal ?? 0)
+    }
+    .presentationDetents([.medium, .large])
+  }
+
+  private var previewCard: some View {
+    let projected = projectedTargets()
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      Text("VORSCHAU")
+        .gainsEyebrow(GainsColor.lime, size: 10, tracking: 1.6)
+      HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.xsPlus) {
+        Text("\(projected.calories)")
+          .font(.system(size: 36, weight: .heavy, design: .rounded))
+          .foregroundStyle(GainsColor.ink)
+        Text("kcal")
+          .font(GainsFont.label(13))
+          .foregroundStyle(GainsColor.softInk)
+      }
+      HStack(spacing: GainsSpacing.m) {
+        macroBadge("Protein", value: "\(projected.protein) g")
+        macroBadge("Kohlenh.", value: "\(projected.carbs) g")
+        macroBadge("Fett", value: "\(projected.fat) g")
+      }
+    }
+    .padding(GainsSpacing.m)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.5), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  private func macroBadge(_ label: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(label.uppercased())
+        .font(GainsFont.label(9))
+        .tracking(1.2)
+        .foregroundStyle(GainsColor.mutedInk)
+      Text(value)
+        .font(GainsFont.label(13))
+        .foregroundStyle(GainsColor.ink)
+    }
+  }
+
+  private var goalPicker: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      Text("MODUS")
+        .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.6)
+      HStack(spacing: GainsSpacing.xs) {
+        ForEach(NutritionGoal.allCases, id: \.self) { g in
+          Button { goal = g } label: {
+            Text(g.title)
+              .font(GainsFont.label(12))
+              .foregroundStyle(goal == g ? GainsColor.onLime : GainsColor.softInk)
+              .padding(.horizontal, GainsSpacing.s)
+              .frame(height: 36)
+              .frame(maxWidth: .infinity)
+              .background(goal == g ? GainsColor.lime : GainsColor.card)
+              .clipShape(Capsule())
+              .overlay(
+                Capsule().stroke(
+                  goal == g ? Color.clear : GainsColor.border.opacity(0.5),
+                  lineWidth: GainsBorder.hairline
+                )
+              )
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
+
+  private var surplusSlider: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+      HStack {
+        Text("KCAL ANPASSUNG")
+          .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.6)
+        Spacer()
+        Text(surplusLabel)
+          .font(GainsFont.label(12))
+          .foregroundStyle(GainsColor.ink)
+      }
+      Slider(value: $surplus, in: -1000...1000, step: 50)
+        .tint(GainsColor.lime)
+      HStack {
+        Text("−1000")
+          .font(GainsFont.label(10))
+          .foregroundStyle(GainsColor.mutedInk)
+        Spacer()
+        Text("+1000")
+          .font(GainsFont.label(10))
+          .foregroundStyle(GainsColor.mutedInk)
+      }
+    }
+  }
+
+  private var surplusLabel: String {
+    let intVal = Int(surplus.rounded())
+    if intVal > 0 { return "+\(intVal) kcal · Surplus" }
+    if intVal < 0 { return "\(intVal) kcal · Defizit" }
+    return "0 kcal · Erhaltung"
+  }
+
+  /// Berechnet die voraussichtlichen Targets — entweder aus dem aktuellen
+  /// `nutritionProfile` (mit angepasstem `surplusKcal` und neuem `goal`)
+  /// oder aus dem Default-Goal-Mapping wenn noch kein Profil existiert.
+  private func projectedTargets() -> (calories: Int, protein: Int, carbs: Int, fat: Int) {
+    if var profile = store.nutritionProfile {
+      profile.surplusKcal = Int(surplus.rounded())
+      profile.goal = goal
+      return (profile.targetCalories, profile.targetProteinG, profile.targetCarbsG, profile.targetFatG)
+    }
+    // Fallback: nur Goal-basiertes Default
+    let defaults = defaultsForGoal(goal)
+    return defaults
+  }
+
+  private func defaultsForGoal(_ goal: NutritionGoal) -> (calories: Int, protein: Int, carbs: Int, fat: Int) {
+    switch goal {
+    case .muscleGain: return (2850, 200, 310, 85)
+    case .fatLoss:    return (2150, 190, 190, 65)
+    case .maintain:   return (2450, 175, 250, 75)
+    }
+  }
+
+  private func applyChanges() {
+    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    if var profile = store.nutritionProfile {
+      profile.surplusKcal = Int(surplus.rounded())
+      profile.goal = goal
+      store.setNutritionProfile(profile)
+    } else {
+      // Kein Profil → nur Goal anpassen (Defaults greifen).
+      store.setNutritionGoal(goal)
+    }
   }
 }
 
@@ -1760,14 +2170,14 @@ struct FoodSearchSheet: View {
         VStack(spacing: 0) {
           // Meal type picker
           mealTypePicker
-            .padding(.top, 4)
-            .padding(.bottom, 8)
+            .padding(.top, GainsSpacing.xxs)
+            .padding(.bottom, GainsSpacing.xsPlus)
 
           // Quick-scan buttons
           // N2-Fix (2026-05-01): Wenn der Parent Callbacks gesetzt hat,
           // wird FoodSearchSheet zuerst dismissed und der Parent
           // präsentiert das Ziel-Sheet. So entsteht kein Sheet-Stack.
-          HStack(spacing: 10) {
+          HStack(spacing: GainsSpacing.tight) {
             scanActionButton(
               icon: "barcode.viewfinder",
               label: "Barcode scannen",
@@ -1798,17 +2208,17 @@ struct FoodSearchSheet: View {
               }
             }
           }
-          .padding(.horizontal, 20)
-          .padding(.bottom, 12)
+          .padding(.horizontal, GainsSpacing.l)
+          .padding(.bottom, GainsSpacing.s)
 
           // Search bar
           searchBar
-            .padding(.horizontal, 20)
-            .padding(.bottom, 12)
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.s)
 
           // Category chips
           categoryChips
-            .padding(.bottom, 8)
+            .padding(.bottom, GainsSpacing.xsPlus)
 
           // Food list
           ScrollView(showsIndicators: false) {
@@ -1824,10 +2234,10 @@ struct FoodSearchSheet: View {
 
               // Manual entry option
               manualEntryFooter
-                .padding(.top, 16)
-                .padding(.bottom, 24)
+                .padding(.top, GainsSpacing.m)
+                .padding(.bottom, GainsSpacing.xl)
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, GainsSpacing.l)
           }
         }
       }
@@ -1861,7 +2271,7 @@ struct FoodSearchSheet: View {
 
   private var mealTypePicker: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         ForEach(RecipeMealType.allCases, id: \.self) { type in
           Button {
             withAnimation(.spring(response: 0.25)) {
@@ -1871,8 +2281,8 @@ struct FoodSearchSheet: View {
             Text(type.title)
               .font(GainsFont.label(12))
               .foregroundStyle(mealType == type ? GainsColor.onLime : GainsColor.softInk)
-              .padding(.horizontal, 14)
-              .padding(.vertical, 8)
+              .padding(.horizontal, GainsSpacing.m)
+              .padding(.vertical, GainsSpacing.xsPlus)
               .background(mealType == type ? GainsColor.lime : GainsColor.elevated)
               .clipShape(Capsule())
               .overlay(Capsule().stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
@@ -1880,12 +2290,12 @@ struct FoodSearchSheet: View {
           .buttonStyle(.plain)
         }
       }
-      .padding(.horizontal, 20)
+      .padding(.horizontal, GainsSpacing.l)
     }
   }
 
   private var searchBar: some View {
-    HStack(spacing: 10) {
+    HStack(spacing: GainsSpacing.tight) {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 14, weight: .medium))
         .foregroundStyle(GainsColor.mutedInk)
@@ -1905,7 +2315,7 @@ struct FoodSearchSheet: View {
         .buttonStyle(.plain)
       }
     }
-    .padding(.horizontal, 14)
+    .padding(.horizontal, GainsSpacing.m)
     .frame(height: 44)
     .background(GainsColor.elevated)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -1914,19 +2324,19 @@ struct FoodSearchSheet: View {
 
   private var categoryChips: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         categoryChip(nil, label: "Alle")
         ForEach(FoodCategory.allCases) { cat in
           categoryChip(cat, label: cat.title)
         }
       }
-      .padding(.horizontal, 20)
+      .padding(.horizontal, GainsSpacing.l)
     }
   }
 
   private func scanActionButton(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
     Button(action: action) {
-      HStack(spacing: 8) {
+      HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: icon)
           .font(.system(size: 14, weight: .semibold))
           .foregroundStyle(color)
@@ -1935,7 +2345,7 @@ struct FoodSearchSheet: View {
           .foregroundStyle(GainsColor.ink)
         Spacer()
       }
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 42)
       .frame(maxWidth: .infinity)
       .background(color.opacity(0.08))
@@ -1958,8 +2368,8 @@ struct FoodSearchSheet: View {
       Text(label)
         .font(GainsFont.label(11))
         .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.mutedInk)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, GainsSpacing.s)
+        .padding(.vertical, GainsSpacing.xs)
         .background(isSelected ? GainsColor.lime.opacity(0.18) : GainsColor.card)
         .clipShape(Capsule())
         .overlay(Capsule().stroke(isSelected ? GainsColor.lime.opacity(0.4) : GainsColor.border.opacity(0.4), lineWidth: 1))
@@ -1972,31 +2382,31 @@ struct FoodSearchSheet: View {
     Button {
       selectedFood = food
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Text(food.emoji)
           .font(.system(size: 26))
           .frame(width: 46, height: 46)
           .background(GainsColor.elevated)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
-        VStack(alignment: .leading, spacing: 4) {
-          HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+          HStack(spacing: GainsSpacing.xs) {
             Text(food.name)
               .font(GainsFont.label(14))
               .foregroundStyle(GainsColor.ink)
               .lineLimit(1)
             if let brand = food.brand, !brand.isEmpty {
               Text(brand)
-                .font(.system(size: 9, weight: .semibold, design: .rounded))
+                .font(.system(size: 10, weight: .semibold, design: .rounded))
                 .foregroundStyle(GainsColor.moss)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, GainsSpacing.xs)
                 .padding(.vertical, 2)
                 .background(GainsColor.lime.opacity(0.18))
                 .clipShape(Capsule())
                 .lineLimit(1)
             }
           }
-          HStack(spacing: 8) {
+          HStack(spacing: GainsSpacing.xsPlus) {
             Text("\(food.caloriesPer100g) kcal")
               .font(.system(size: 12, weight: .semibold, design: .rounded))
               .foregroundStyle(GainsColor.softInk)
@@ -2020,7 +2430,7 @@ struct FoodSearchSheet: View {
           .font(.system(size: 24))
           .foregroundStyle(GainsColor.lime)
       }
-      .padding(.vertical, 12)
+      .padding(.vertical, GainsSpacing.s)
     }
     .buttonStyle(.plain)
 
@@ -2030,7 +2440,7 @@ struct FoodSearchSheet: View {
   }
 
   private var emptySearchState: some View {
-    VStack(spacing: 12) {
+    VStack(spacing: GainsSpacing.s) {
       Image(systemName: "magnifyingglass")
         .font(.system(size: 36, weight: .light))
         .foregroundStyle(GainsColor.border)
@@ -2046,7 +2456,7 @@ struct FoodSearchSheet: View {
       ManualFoodEntryView(defaultMealType: mealType, onLog: { dismiss() })
         .environmentObject(store)
     } label: {
-      HStack(spacing: 10) {
+      HStack(spacing: GainsSpacing.tight) {
         Image(systemName: "pencil.circle.fill")
           .font(.system(size: 20))
           .foregroundStyle(GainsColor.softInk)
@@ -2058,7 +2468,7 @@ struct FoodSearchSheet: View {
           .font(.system(size: 11, weight: .bold))
           .foregroundStyle(GainsColor.mutedInk)
       }
-      .padding(16)
+      .padding(GainsSpacing.m)
       .background(GainsColor.elevated)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
@@ -2095,17 +2505,17 @@ struct FoodAddSheet: View {
         GainsColor.background.ignoresSafeArea()
 
         ScrollView(showsIndicators: false) {
-          VStack(spacing: 20) {
+          VStack(spacing: GainsSpacing.l) {
 
             // Food header
-            HStack(spacing: 16) {
+            HStack(spacing: GainsSpacing.m) {
               Text(food.emoji)
                 .font(.system(size: 40))
                 .frame(width: 72, height: 72)
                 .background(GainsColor.elevated)
                 .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
-              VStack(alignment: .leading, spacing: 4) {
+              VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
                 Text(food.name)
                   .font(GainsFont.title(20))
                   .foregroundStyle(GainsColor.ink)
@@ -2113,32 +2523,32 @@ struct FoodAddSheet: View {
                   Text(brand)
                     .font(GainsFont.label(11))
                     .foregroundStyle(GainsColor.moss)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, GainsSpacing.tight)
+                    .padding(.vertical, GainsSpacing.xxs)
                     .background(GainsColor.lime.opacity(0.18))
                     .clipShape(Capsule())
                 }
                 Text(food.category.title)
                   .font(GainsFont.label(11))
                   .foregroundStyle(GainsColor.mutedInk)
-                  .padding(.horizontal, 10)
-                  .padding(.vertical, 4)
+                  .padding(.horizontal, GainsSpacing.tight)
+                  .padding(.vertical, GainsSpacing.xxs)
                   .background(GainsColor.elevated)
                   .clipShape(Capsule())
               }
               Spacer()
             }
-            .padding(20)
+            .padding(GainsSpacing.l)
             .gainsCardStyle(GainsColor.card)
 
             // Gram input
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: GainsSpacing.m) {
               Text("Menge")
                 .font(GainsFont.label(13))
                 .foregroundStyle(GainsColor.softInk)
 
               // Slider
-              VStack(spacing: 10) {
+              VStack(spacing: GainsSpacing.tight) {
                 HStack {
                   Text("10g")
                     .font(GainsFont.label(10))
@@ -2180,7 +2590,7 @@ struct FoodAddSheet: View {
               .frame(maxWidth: .infinity)
 
               // Quick amounts
-              HStack(spacing: 10) {
+              HStack(spacing: GainsSpacing.tight) {
                 ForEach([50, 100, 150, 200, 300], id: \.self) { amount in
                   Button {
                     withAnimation(.spring(response: 0.3)) {
@@ -2191,8 +2601,8 @@ struct FoodAddSheet: View {
                     Text("\(amount)g")
                       .font(GainsFont.label(12))
                       .foregroundStyle(Int(grams) == amount ? GainsColor.moss : GainsColor.softInk)
-                      .padding(.horizontal, 12)
-                      .padding(.vertical, 8)
+                      .padding(.horizontal, GainsSpacing.s)
+                      .padding(.vertical, GainsSpacing.xsPlus)
                       .background(Int(grams) == amount ? GainsColor.lime.opacity(0.2) : GainsColor.elevated)
                       .clipShape(Capsule())
                       .overlay(Capsule().stroke(Int(grams) == amount ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4), lineWidth: 1))
@@ -2201,7 +2611,7 @@ struct FoodAddSheet: View {
                 }
               }
             }
-            .padding(20)
+            .padding(GainsSpacing.l)
             .gainsCardStyle(GainsColor.card)
 
             // Nutrition preview
@@ -2244,8 +2654,8 @@ struct FoodAddSheet: View {
             }
             .buttonStyle(.plain)
           }
-          .padding(20)
-          .padding(.bottom, 10)
+          .padding(GainsSpacing.l)
+          .padding(.bottom, GainsSpacing.tight)
         }
       }
       .navigationTitle(food.name)
@@ -2264,7 +2674,7 @@ struct FoodAddSheet: View {
   }
 
   private var nutritionPreview: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Text("Nährwerte für \(Int(grams))g")
         .font(GainsFont.label(13))
         .foregroundStyle(GainsColor.softInk)
@@ -2280,12 +2690,12 @@ struct FoodAddSheet: View {
       }
       .animation(.spring(response: 0.4), value: Int(grams))
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .gainsCardStyle(GainsColor.card)
   }
 
   private func nutritionCell(value: String, unit: String, label: String, color: Color) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(value)
         .font(.system(size: 18, weight: .bold, design: .rounded))
         .foregroundStyle(color)
@@ -2298,12 +2708,12 @@ struct FoodAddSheet: View {
   }
 
   private var mealTypePicker: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text("Mahlzeit")
         .font(GainsFont.label(13))
         .foregroundStyle(GainsColor.softInk)
 
-      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+      LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: GainsSpacing.tight) {
         ForEach(RecipeMealType.allCases, id: \.self) { type in
           Button {
             withAnimation(.spring(response: 0.25)) {
@@ -2323,7 +2733,7 @@ struct FoodAddSheet: View {
         }
       }
     }
-    .padding(20)
+    .padding(GainsSpacing.l)
     .gainsCardStyle(GainsColor.card)
   }
 }
@@ -2387,15 +2797,15 @@ struct NutritionGoalWizardSheet: View {
         VStack(spacing: 0) {
           // Progress bar
           progressBar
-            .padding(.horizontal, 24)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            .padding(.horizontal, GainsSpacing.xl)
+            .padding(.top, GainsSpacing.s)
+            .padding(.bottom, GainsSpacing.xsPlus)
 
           // Step label
           Text("Schritt \(min(step + 1, totalSteps + 1)) von \(totalSteps + 1)")
             .font(GainsFont.label(11))
             .foregroundStyle(GainsColor.mutedInk)
-            .padding(.bottom, 20)
+            .padding(.bottom, GainsSpacing.l)
 
           // Content
           ZStack {
@@ -2425,9 +2835,9 @@ struct NutritionGoalWizardSheet: View {
 
           // Navigation
           navigationButtons
-            .padding(.horizontal, 24)
-            .padding(.top, 16)
-            .padding(.bottom, 30)
+            .padding(.horizontal, GainsSpacing.xl)
+            .padding(.top, GainsSpacing.m)
+            .padding(.bottom, GainsSpacing.xl)
         }
       }
       .navigationBarTitleDisplayMode(.inline)
@@ -2488,17 +2898,17 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 0 – Geschlecht
 
   private var sexStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Was ist dein biologisches Geschlecht?",
         subtitle: "Wird für die genaue Berechnung deines Grundumsatzes (BMR) benötigt."
       )
-      HStack(spacing: 16) {
+      HStack(spacing: GainsSpacing.m) {
         ForEach(BiologicalSex.allCases, id: \.self) { s in
           sexCard(s)
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -2508,7 +2918,7 @@ struct NutritionGoalWizardSheet: View {
     return Button {
       withAnimation(.spring(response: 0.3)) { sex = s }
     } label: {
-      VStack(spacing: 16) {
+      VStack(spacing: GainsSpacing.m) {
         Text(s.emoji)
           .font(.system(size: 52))
         Text(s.title)
@@ -2516,7 +2926,7 @@ struct NutritionGoalWizardSheet: View {
           .foregroundStyle(GainsColor.ink)
       }
       .frame(maxWidth: .infinity)
-      .padding(.vertical, 36)
+      .padding(.vertical, GainsSpacing.xl)
       .background(isSelected ? GainsColor.lime.opacity(0.1) : GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
@@ -2530,7 +2940,7 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 1 – Alter
 
   private var ageStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Wie alt bist du?",
         subtitle: "Dein Grundumsatz nimmt mit dem Alter leicht ab."
@@ -2543,7 +2953,7 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 2 – Körpergröße
 
   private var heightStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Wie groß bist du?",
         subtitle: "Körpergröße beeinflusst deinen Grundumsatz direkt (Mifflin-St Jeor)."
@@ -2556,7 +2966,7 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 3 – Körpergewicht
 
   private var weightStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Wie viel wiegst du?",
         subtitle: "Aktuelles Körpergewicht – am besten morgens nüchtern gemessen."
@@ -2569,17 +2979,17 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 4 – Körperfettanteil (optional)
 
   private var bodyFatStep: some View {
-    VStack(spacing: 24) {
+    VStack(spacing: GainsSpacing.xl) {
       wizardHeader(
         title: "Kennst du deinen Körperfettanteil?",
         subtitle: "Optional: Gains berechnet dann deinen Grundumsatz nach Katch-McArdle (1975) – präziser für Athleten als Mifflin-St Jeor."
       )
 
-      VStack(spacing: 12) {
+      VStack(spacing: GainsSpacing.s) {
         Button {
           withAnimation(.spring(response: 0.3)) { hasBodyFat.toggle() }
         } label: {
-          HStack(spacing: 14) {
+          HStack(spacing: GainsSpacing.m) {
             Image(systemName: hasBodyFat ? "checkmark.circle.fill" : "circle")
               .font(.system(size: 22))
               .foregroundStyle(hasBodyFat ? GainsColor.lime : GainsColor.mutedInk)
@@ -2593,7 +3003,7 @@ struct NutritionGoalWizardSheet: View {
             }
             Spacer()
           }
-          .padding(16)
+          .padding(GainsSpacing.m)
           .background(hasBodyFat ? GainsColor.lime.opacity(0.06) : GainsColor.card)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           .overlay(
@@ -2602,7 +3012,7 @@ struct NutritionGoalWizardSheet: View {
           )
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         if hasBodyFat {
           pickerBlock(value: $bodyFatInt, range: 5...45, unit: "%")
@@ -2615,7 +3025,7 @@ struct NutritionGoalWizardSheet: View {
           .font(GainsFont.label(12))
           .foregroundStyle(GainsColor.mutedInk)
           .multilineTextAlignment(.center)
-          .padding(.horizontal, 32)
+          .padding(.horizontal, GainsSpacing.xl)
       }
 
       Spacer()
@@ -2625,19 +3035,19 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 5 – Aktivitätslevel
 
   private var activityStep: some View {
-    VStack(spacing: 20) {
+    VStack(spacing: GainsSpacing.l) {
       wizardHeader(
         title: "Wie aktiv bist du im Alltag?",
         subtitle: "Dieser Faktor multipliziert deinen Grundumsatz – sei möglichst ehrlich."
       )
       ScrollView(showsIndicators: false) {
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           ForEach(ActivityLevel.allCases, id: \.self) { level in
             activityCard(level)
           }
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 8)
+        .padding(.horizontal, GainsSpacing.xl)
+        .padding(.bottom, GainsSpacing.xsPlus)
       }
     }
   }
@@ -2647,7 +3057,7 @@ struct NutritionGoalWizardSheet: View {
     return Button {
       withAnimation(.spring(response: 0.3)) { activityLevel = level }
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Image(systemName: level.systemImage)
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.softInk)
@@ -2669,7 +3079,7 @@ struct NutritionGoalWizardSheet: View {
             .foregroundStyle(GainsColor.lime)
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(isSelected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
@@ -2683,17 +3093,17 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Step 6 – Ziel
 
   private var goalStep: some View {
-    VStack(spacing: 20) {
+    VStack(spacing: GainsSpacing.l) {
       wizardHeader(
         title: "Was ist dein Ziel?",
         subtitle: "Bestimmt den Kalorienüberschuss oder das -defizit."
       )
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(NutritionGoal.allCases, id: \.self) { g in
           goalCard(g)
         }
       }
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
       Spacer()
     }
   }
@@ -2711,7 +3121,7 @@ struct NutritionGoalWizardSheet: View {
         }
       }
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Image(systemName: g.systemImage)
           .font(.system(size: 18, weight: .semibold))
           .foregroundStyle(isSelected ? GainsColor.moss : GainsColor.softInk)
@@ -2734,7 +3144,7 @@ struct NutritionGoalWizardSheet: View {
             .foregroundStyle(GainsColor.lime)
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(isSelected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
@@ -2776,7 +3186,7 @@ struct NutritionGoalWizardSheet: View {
   }
 
   private var intensityStep: some View {
-    VStack(spacing: 20) {
+    VStack(spacing: GainsSpacing.l) {
       wizardHeader(
         title: goal == .muscleGain ? "Wie schnell willst du aufbauen?" : "Wie aggressiv willst du abnehmen?",
         subtitle: goal == .muscleGain
@@ -2784,13 +3194,13 @@ struct NutritionGoalWizardSheet: View {
           : "Größeres Defizit = schnellerer Fettverlust, aber erhöhtes Muskelabbaurisiko."
       )
       ScrollView(showsIndicators: false) {
-        VStack(spacing: 10) {
+        VStack(spacing: GainsSpacing.tight) {
           ForEach(intensityOptions) { option in
             intensityCard(option)
           }
         }
-        .padding(.horizontal, 24)
-        .padding(.bottom, 8)
+        .padding(.horizontal, GainsSpacing.xl)
+        .padding(.bottom, GainsSpacing.xsPlus)
       }
     }
   }
@@ -2800,12 +3210,12 @@ struct NutritionGoalWizardSheet: View {
     return Button {
       withAnimation(.spring(response: 0.3)) { surplusKcal = option.kcal }
     } label: {
-      HStack(spacing: 14) {
+      HStack(spacing: GainsSpacing.m) {
         Text(option.tag)
           .font(.system(size: 12, weight: .bold, design: .rounded))
           .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.softInk)
-          .padding(.horizontal, 10)
-          .padding(.vertical, 6)
+          .padding(.horizontal, GainsSpacing.tight)
+          .padding(.vertical, GainsSpacing.xs)
           .background(isSelected ? GainsColor.lime : GainsColor.elevated)
           .clipShape(Capsule())
           .frame(minWidth: 82, alignment: .center)
@@ -2831,7 +3241,7 @@ struct NutritionGoalWizardSheet: View {
             .foregroundStyle(GainsColor.lime)
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
       .background(isSelected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
@@ -2847,14 +3257,14 @@ struct NutritionGoalWizardSheet: View {
   private var summaryStep: some View {
     let p = profile
     return ScrollView(showsIndicators: false) {
-      VStack(spacing: 16) {
+      VStack(spacing: GainsSpacing.m) {
         wizardHeader(
           title: "Dein persönlicher Plan",
           subtitle: "Berechnet nach \(p.formulaUsed) und ISSN-Richtlinien (2022)."
         )
 
         // BMR / TDEE Card
-        VStack(spacing: 12) {
+        VStack(spacing: GainsSpacing.s) {
           summaryRow(
             label: "Grundumsatz (BMR)",
             value: "\(Int(p.bmr.rounded())) kcal",
@@ -2908,12 +3318,12 @@ struct NutritionGoalWizardSheet: View {
             summaryRow(label: "Lean Mass (berechnet)", value: String(format: "%.1f kg", leanMass), color: GainsColor.softInk)
           }
         }
-        .padding(18)
+        .padding(GainsSpacing.l)
         .gainsCardStyle(GainsColor.card)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         // Makro Card
-        VStack(spacing: 12) {
+        VStack(spacing: GainsSpacing.s) {
           Text("Tagesziel Makros")
             .font(GainsFont.label(13))
             .foregroundStyle(GainsColor.softInk)
@@ -2927,18 +3337,18 @@ struct NutritionGoalWizardSheet: View {
             summaryMacroCell("\(p.targetFatG)g",     label: "Fett",         color: Color(hex: "FF8A4A"))
           }
         }
-        .padding(18)
+        .padding(GainsSpacing.l)
         .gainsCardStyle(GainsColor.card)
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         // Profil-Zusammenfassung
-        VStack(spacing: 8) {
+        VStack(spacing: GainsSpacing.xsPlus) {
           profileSummaryChip("\(sex.title) · \(age) Jahre")
           profileSummaryChip("\(heightCm) cm · \(weightKg) kg\(hasBodyFat ? " · \(bodyFatInt) % KFA" : "")")
           profileSummaryChip(activityLevel.title)
           profileSummaryChip(p.formulaUsed)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, GainsSpacing.xl)
 
         Text(p.bodyFatPercent != nil
           ? "Quellen: Katch & McArdle (1975) · Helms et al. (2014) IJSNEM · ISSN (2022)"
@@ -2946,7 +3356,7 @@ struct NutritionGoalWizardSheet: View {
           .font(.system(size: 10))
           .foregroundStyle(GainsColor.mutedInk)
           .multilineTextAlignment(.center)
-          .padding(.horizontal, 24)
+          .padding(.horizontal, GainsSpacing.xl)
 
         Spacer(minLength: 8)
       }
@@ -2962,7 +3372,7 @@ struct NutritionGoalWizardSheet: View {
   }
 
   private func summaryMacroCell(_ value: String, label: String, color: Color) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(value)
         .font(.system(size: 17, weight: .bold, design: .rounded))
         .foregroundStyle(color)
@@ -2977,8 +3387,8 @@ struct NutritionGoalWizardSheet: View {
     Text(text)
       .font(GainsFont.label(12))
       .foregroundStyle(GainsColor.softInk)
-      .padding(.horizontal, 14)
-      .padding(.vertical, 7)
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.xsPlus)
       .background(GainsColor.elevated)
       .clipShape(Capsule())
   }
@@ -2996,7 +3406,7 @@ struct NutritionGoalWizardSheet: View {
   // MARK: Picker Helper
 
   private func pickerBlock(value: Binding<Int>, range: ClosedRange<Int>, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text("\(value.wrappedValue) \(unit)")
         .font(.system(size: 56, weight: .bold, design: .rounded))
         .foregroundStyle(GainsColor.lime)
@@ -3011,14 +3421,14 @@ struct NutritionGoalWizardSheet: View {
       .pickerStyle(.wheel)
       .frame(height: 160)
       .clipped()
-      .padding(.horizontal, 24)
+      .padding(.horizontal, GainsSpacing.xl)
     }
   }
 
   // MARK: Step Header
 
   private func wizardHeader(title: String, subtitle: String) -> some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text(title)
         .font(GainsFont.title(22))
         .foregroundStyle(GainsColor.ink)
@@ -3027,13 +3437,13 @@ struct NutritionGoalWizardSheet: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .padding(.horizontal, 24)
+    .padding(.horizontal, GainsSpacing.xl)
   }
 
   // MARK: Navigation Buttons
 
   private var navigationButtons: some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       if step > 0 {
         Button {
           goingForward = false
@@ -3042,7 +3452,7 @@ struct NutritionGoalWizardSheet: View {
             step = (step == totalSteps && goal == .maintain) ? step - 2 : step - 1
           }
         } label: {
-          HStack(spacing: 6) {
+          HStack(spacing: GainsSpacing.xs) {
             Image(systemName: "chevron.left")
             Text("Zurück")
           }
@@ -3070,7 +3480,7 @@ struct NutritionGoalWizardSheet: View {
           withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { step += 1 }
         }
       } label: {
-        HStack(spacing: 6) {
+        HStack(spacing: GainsSpacing.xs) {
           Text(step == totalSteps ? "Ziele übernehmen" : "Weiter")
           Image(systemName: step == totalSteps ? "checkmark" : "chevron.right")
         }
@@ -3121,14 +3531,14 @@ struct ManualFoodEntryView: View {
       GainsColor.background.ignoresSafeArea()
 
       ScrollView(showsIndicators: false) {
-        VStack(spacing: 16) {
+        VStack(spacing: GainsSpacing.m) {
           // Title
           fieldBlock(title: "Name der Mahlzeit") {
             TextField("z. B. Hähnchen mit Reis", text: $title)
               .focused($focusedField, equals: .title)
               .font(GainsFont.body(16))
               .foregroundStyle(GainsColor.ink)
-              .padding(.horizontal, 16)
+              .padding(.horizontal, GainsSpacing.m)
               .frame(height: 50)
               .background(GainsColor.elevated)
               .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
@@ -3140,7 +3550,7 @@ struct ManualFoodEntryView: View {
           }
 
           // Macros
-          HStack(spacing: 12) {
+          HStack(spacing: GainsSpacing.s) {
             fieldBlock(title: "Protein (g)") {
               numericField("0", text: $proteinText, focus: .protein)
             }
@@ -3153,11 +3563,11 @@ struct ManualFoodEntryView: View {
           }
 
           // Meal type
-          VStack(alignment: .leading, spacing: 10) {
+          VStack(alignment: .leading, spacing: GainsSpacing.tight) {
             Text("Mahlzeit")
               .font(GainsFont.label(12))
               .foregroundStyle(GainsColor.softInk)
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: GainsSpacing.xsPlus) {
               ForEach(RecipeMealType.allCases, id: \.self) { type in
                 Button {
                   withAnimation { mealType = type }
@@ -3205,8 +3615,8 @@ struct ManualFoodEntryView: View {
           .disabled(!canLog)
           .animation(.spring(response: 0.3), value: canLog)
         }
-        .padding(20)
-        .padding(.bottom, 20)
+        .padding(GainsSpacing.l)
+        .padding(.bottom, GainsSpacing.l)
       }
     }
     .navigationTitle("Manuell eingeben")
@@ -3220,7 +3630,7 @@ struct ManualFoodEntryView: View {
 
   @ViewBuilder
   private func fieldBlock<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
-    VStack(alignment: .leading, spacing: 6) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
       Text(title)
         .font(GainsFont.label(12))
         .foregroundStyle(GainsColor.softInk)
@@ -3234,7 +3644,7 @@ struct ManualFoodEntryView: View {
       .keyboardType(.numberPad)
       .font(GainsFont.body(16))
       .foregroundStyle(GainsColor.ink)
-      .padding(.horizontal, 14)
+      .padding(.horizontal, GainsSpacing.m)
       .frame(height: 50)
       .background(GainsColor.elevated)
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))

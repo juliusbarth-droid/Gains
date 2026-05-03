@@ -23,7 +23,7 @@ struct GymExerciseHistorySheet: View {
 
   var body: some View {
     GainsScreen {
-      VStack(alignment: .leading, spacing: 22) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
         screenHeader(
           eyebrow: "ÜBUNG / VERLAUF",
           title: exerciseName,
@@ -61,11 +61,11 @@ struct GymExerciseHistorySheet: View {
 
     return LazyVGrid(
       columns: [
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
-        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: GainsSpacing.tight),
+        GridItem(.flexible(), spacing: GainsSpacing.tight),
+        GridItem(.flexible(), spacing: GainsSpacing.tight),
       ],
-      spacing: 10
+      spacing: GainsSpacing.tight
     ) {
       GainsMetricTile(
         label: "TOP PR",
@@ -96,7 +96,7 @@ struct GymExerciseHistorySheet: View {
     let values = Array(recent.map(\.topWeight))
     let maxVal = max(values.max() ?? 1, 1)
 
-    return VStack(alignment: .leading, spacing: 12) {
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["GEWICHT", "TREND"],
@@ -110,10 +110,10 @@ struct GymExerciseHistorySheet: View {
           .foregroundStyle(GainsColor.softInk)
       }
 
-      HStack(alignment: .bottom, spacing: 6) {
+      HStack(alignment: .bottom, spacing: GainsSpacing.xs) {
         ForEach(Array(values.enumerated()), id: \.offset) { idx, val in
           let isCurrent = idx == values.count - 1
-          VStack(spacing: 6) {
+          VStack(spacing: GainsSpacing.xs) {
             ZStack(alignment: .bottom) {
               RoundedRectangle(cornerRadius: 5, style: .continuous)
                 .fill(GainsColor.background.opacity(0.6))
@@ -133,21 +133,21 @@ struct GymExerciseHistorySheet: View {
         }
       }
     }
-    .padding(16)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
   // MARK: - Sessions-Liste
 
   private var historyList: some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       SlashLabel(
         parts: ["ALLE", "SESSIONS"],
         primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk
       )
 
-      VStack(spacing: 10) {
+      VStack(spacing: GainsSpacing.tight) {
         ForEach(entries) { entry in
           historyRow(entry)
         }
@@ -156,8 +156,8 @@ struct GymExerciseHistorySheet: View {
   }
 
   private func historyRow(_ entry: ExerciseHistoryEntry) -> some View {
-    HStack(spacing: 14) {
-      VStack(alignment: .leading, spacing: 6) {
+    HStack(spacing: GainsSpacing.m) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
         Text(entry.date.formatted(date: .abbreviated, time: .omitted).uppercased())
           .font(GainsFont.label(9))
           .tracking(1.2)
@@ -184,7 +184,7 @@ struct GymExerciseHistorySheet: View {
           .foregroundStyle(GainsColor.softInk)
       }
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 }

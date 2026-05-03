@@ -13,13 +13,13 @@ struct RunSegmentsTab: View {
   let onCreateFromRun: () -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 18) {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
       header
 
       if store.runSegments.isEmpty {
         emptyCard
       } else {
-        VStack(spacing: 12) {
+        VStack(spacing: GainsSpacing.s) {
           ForEach(store.runSegments) { segment in
             Button {
               presentedSegment = segment
@@ -35,7 +35,7 @@ struct RunSegmentsTab: View {
   }
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
           parts: ["DEINE", "SEGMENTE"],
@@ -47,7 +47,7 @@ struct RunSegmentsTab: View {
           Button {
             onCreateFromRun()
           } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: GainsSpacing.xxs) {
               Image(systemName: "plus")
                 .font(.system(size: 10, weight: .bold))
               Text("Neu")
@@ -55,7 +55,7 @@ struct RunSegmentsTab: View {
                 .tracking(1.0)
             }
             .foregroundStyle(GainsColor.onLime)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, GainsSpacing.tight)
             .frame(height: 26)
             .background(GainsColor.lime)
             .clipShape(Capsule())
@@ -70,7 +70,7 @@ struct RunSegmentsTab: View {
   }
 
   private var emptyCard: some View {
-    VStack(alignment: .leading, spacing: 14) {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
       EmptyStateView(
         style: .card(icon: "flag.checkered"),
         title: "Noch keine Segmente",
@@ -80,7 +80,7 @@ struct RunSegmentsTab: View {
       Button {
         onCreateFromRun()
       } label: {
-        HStack(spacing: 8) {
+        HStack(spacing: GainsSpacing.xsPlus) {
           Image(systemName: "plus.circle.fill")
             .font(.system(size: 14, weight: .semibold))
           Text("Aus Lauf erstellen")
@@ -140,23 +140,23 @@ struct RunSegmentsTab: View {
         }
 
         if best != nil {
-          HStack(spacing: 4) {
+          HStack(spacing: GainsSpacing.xxs) {
             Image(systemName: "trophy.fill")
-              .font(.system(size: 9, weight: .bold))
+              .font(.system(size: 10, weight: .bold))
             Text("PR")
               .font(GainsFont.label(8))
               .tracking(1.4)
           }
           .foregroundStyle(GainsColor.onLime)
-          .padding(.horizontal, 8)
+          .padding(.horizontal, GainsSpacing.xsPlus)
           .frame(height: 22)
           .background(GainsColor.lime)
           .clipShape(Capsule())
-          .padding(10)
+          .padding(GainsSpacing.tight)
         }
       }
 
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
         VStack(alignment: .leading, spacing: 3) {
           Text(segment.title)
             .font(GainsFont.title(18))
@@ -188,7 +188,7 @@ struct RunSegmentsTab: View {
           segmentStat(label: "VERSUCHE", value: "\(attempts)", unit: "×")
         }
       }
-      .padding(14)
+      .padding(GainsSpacing.m)
     }
     .gainsCardStyle()
   }
@@ -269,8 +269,8 @@ struct RunSegmentDetailSheet: View {
         VStack(alignment: .leading, spacing: 0) {
           mapHeader
 
-          VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 8) {
+          VStack(alignment: .leading, spacing: GainsSpacing.l) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
               Text(segment.title)
                 .font(GainsFont.title(26))
                 .foregroundStyle(GainsColor.ink)
@@ -285,7 +285,7 @@ struct RunSegmentDetailSheet: View {
 
             leaderboardSection
           }
-          .padding(20)
+          .padding(GainsSpacing.l)
         }
       }
       .background(GainsColor.background.ignoresSafeArea())
@@ -371,14 +371,14 @@ struct RunSegmentDetailSheet: View {
       Rectangle().fill(GainsColor.border.opacity(0.4)).frame(width: 1, height: 36)
       sheetStat(label: "VERSUCHE", value: "\(efforts.count)", unit: "×")
     }
-    .padding(.vertical, 14)
-    .padding(.horizontal, 12)
+    .padding(.vertical, GainsSpacing.m)
+    .padding(.horizontal, GainsSpacing.s)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func sheetStat(label: String, value: String, unit: String) -> some View {
-    VStack(spacing: 4) {
+    VStack(spacing: GainsSpacing.xxs) {
       Text(label)
         .font(GainsFont.label(8))
         .tracking(1.4)
@@ -396,7 +396,7 @@ struct RunSegmentDetailSheet: View {
   }
 
   private var leaderboardSection: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       SlashLabel(
         parts: ["DEINE", "BESTLEISTUNGEN"],
         primaryColor: GainsColor.lime,
@@ -407,7 +407,7 @@ struct RunSegmentDetailSheet: View {
         Text("Noch keine Versuche aufgezeichnet — sobald du das Segment durchläufst, taucht hier deine Zeit auf.")
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
-          .padding(14)
+          .padding(GainsSpacing.m)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(GainsColor.card)
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
@@ -427,7 +427,7 @@ struct RunSegmentDetailSheet: View {
   }
 
   private func effortRow(rank: Int, effort: RunSegmentEffort, isFirst: Bool, isLast: Bool) -> some View {
-    HStack(spacing: 12) {
+    HStack(spacing: GainsSpacing.s) {
       ZStack {
         Circle()
           .fill(isFirst ? GainsColor.lime : GainsColor.elevated)
@@ -464,7 +464,7 @@ struct RunSegmentDetailSheet: View {
           .foregroundStyle(GainsColor.softInk)
       }
     }
-    .padding(12)
+    .padding(GainsSpacing.s)
   }
 
   private func paceLabel(_ seconds: Int) -> String {
@@ -526,7 +526,7 @@ struct SegmentCreatorSheet: View {
   var body: some View {
     NavigationStack {
       ScrollView {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: GainsSpacing.l) {
           Text("Wähle einen Lauf und ziehe Start/Ziel auf den Kilometern, die du als Segment markieren willst.")
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.softInk)
@@ -536,13 +536,13 @@ struct SegmentCreatorSheet: View {
           if let run = selectedRun {
             rangePicker(maxKm: run.distanceKm)
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
               Text("NAME")
                 .font(GainsFont.label(10))
                 .tracking(1.4)
                 .foregroundStyle(GainsColor.softInk)
               TextField("z.B. Westpark-Anstieg", text: $title)
-                .padding(12)
+                .padding(GainsSpacing.s)
                 .background(GainsColor.card)
                 .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
@@ -555,7 +555,7 @@ struct SegmentCreatorSheet: View {
             )
           }
         }
-        .padding(20)
+        .padding(GainsSpacing.l)
       }
       .background(GainsColor.background.ignoresSafeArea())
       .navigationTitle("Neues Segment")
@@ -580,8 +580,8 @@ struct SegmentCreatorSheet: View {
         }
         .buttonStyle(.plain)
         .disabled(!canSave)
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.horizontal, GainsSpacing.l)
+        .padding(.vertical, GainsSpacing.s)
         .background(GainsColor.background)
       }
     }
@@ -598,14 +598,14 @@ struct SegmentCreatorSheet: View {
   }
 
   private var runPicker: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       Text("LAUF")
         .font(GainsFont.label(10))
         .tracking(1.4)
         .foregroundStyle(GainsColor.softInk)
 
       ScrollView(.horizontal, showsIndicators: false) {
-        HStack(spacing: 10) {
+        HStack(spacing: GainsSpacing.tight) {
           ForEach(runs) { run in
             Button {
               selectedRunID = run.id
@@ -613,7 +613,7 @@ struct SegmentCreatorSheet: View {
               endKm = max(min(run.distanceKm * 0.5, 2), 0.5)
               if title.isEmpty { title = "\(run.routeName) Stretch" }
             } label: {
-              VStack(alignment: .leading, spacing: 4) {
+              VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
                 Text(run.title)
                   .font(GainsFont.label(11))
                   .tracking(0.8)
@@ -622,8 +622,8 @@ struct SegmentCreatorSheet: View {
                   .font(GainsFont.label(9))
                   .foregroundStyle(selectedRunID == run.id ? GainsColor.onLimeSecondary : GainsColor.softInk)
               }
-              .padding(.horizontal, 12)
-              .padding(.vertical, 8)
+              .padding(.horizontal, GainsSpacing.s)
+              .padding(.vertical, GainsSpacing.xsPlus)
               .background(selectedRunID == run.id ? GainsColor.lime : GainsColor.card)
               .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
@@ -635,7 +635,7 @@ struct SegmentCreatorSheet: View {
   }
 
   private func rangePicker(maxKm: Double) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
       Text("ABSCHNITT")
         .font(GainsFont.label(10))
         .tracking(1.4)
@@ -670,7 +670,7 @@ struct SegmentCreatorSheet: View {
         .tracking(1.0)
         .foregroundStyle(GainsColor.moss)
     }
-    .padding(14)
+    .padding(GainsSpacing.m)
     .background(GainsColor.card)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
