@@ -445,25 +445,29 @@ struct GymPlanTab: View {
   // KW-Header — z.B. "KW 18 · 27. APR – 3. MAI". ISO-Calendar mit Montag
   // als erstem Wochentag, damit die Karte zur deutschen Wochenkonvention
   // passt.
-  private var currentWeekRangeLabel: String {
+  private var currentWeekStart: Date? {
     let cal = Self.plannerCalendar
     let today = Date()
+    return cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today))
+  }
+
+  private var currentWeekRangeLabel: String {
+    let cal = Self.plannerCalendar
     guard
-      let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
+      let weekStart = currentWeekStart,
       let weekEnd = cal.date(byAdding: .day, value: 6, to: weekStart)
     else {
       return ""
     }
-    let week = cal.component(.weekOfYear, from: today)
+    let week = cal.component(.weekOfYear, from: weekStart)
     let formatter = Self.weekRangeFormatter
     return "KW \(week) · \(formatter.string(from: weekStart)) – \(formatter.string(from: weekEnd))"
   }
 
   private func currentWeekDayNumber(for day: Weekday) -> String {
     let cal = Self.plannerCalendar
-    let today = Date()
     guard
-      let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
+      let weekStart = currentWeekStart,
       let date = cal.date(byAdding: .day, value: day.mondayOffset, to: weekStart)
     else {
       return "—"
@@ -476,12 +480,11 @@ struct GymPlanTab: View {
   /// Datum + Wochentag kennt (z.B. „MO · 5. MAI" statt nur „Montag").
   private func dateForCurrentWeek(weekday: Weekday) -> Date {
     let cal = Self.plannerCalendar
-    let today = Date()
     guard
-      let weekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today)),
+      let weekStart = currentWeekStart,
       let date = cal.date(byAdding: .day, value: weekday.mondayOffset, to: weekStart)
     else {
-      return today
+      return Date()
     }
     return cal.startOfDay(for: date)
   }
