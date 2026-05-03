@@ -798,7 +798,13 @@ struct GymPlanWizardSheet: View {
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
-      HStack(spacing: GainsSpacing.xsPlus) {
+      LazyVGrid(
+        columns: [
+          GridItem(.flexible(), spacing: GainsSpacing.xsPlus),
+          GridItem(.flexible(), spacing: GainsSpacing.xsPlus)
+        ],
+        spacing: GainsSpacing.xsPlus
+      ) {
         overviewStatChip(title: "TRAINING", value: "\(previewScheduledDays.count)")
         overviewStatChip(title: "FREI", value: "\(max(7 - previewScheduledDays.count, 0))")
         if previewRunDaysCount > 0 {
