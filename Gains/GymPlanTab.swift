@@ -331,8 +331,19 @@ struct GymPlanTab: View {
        store.plannedSessionKinds[day]?.isRun != true,
        !store.savedWorkoutPlans.isEmpty {
       Menu {
-        ForEach(store.savedWorkoutPlans) { plan in
-          Button(plan.title) { store.assignWorkout(plan, to: day) }
+        if !store.customWorkoutPlans.isEmpty {
+          Section("Eigene Workouts") {
+            ForEach(store.customWorkoutPlans) { plan in
+              Button(plan.title) { store.assignWorkout(plan, to: day) }
+            }
+          }
+        }
+        if !store.templateWorkoutPlans.isEmpty {
+          Section("Vorlagen") {
+            ForEach(store.templateWorkoutPlans) { plan in
+              Button(plan.title) { store.assignWorkout(plan, to: day) }
+            }
+          }
         }
         if store.assignedWorkoutPlan(for: day) != nil {
           Divider()
