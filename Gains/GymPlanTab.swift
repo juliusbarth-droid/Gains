@@ -577,8 +577,19 @@ struct GymPlanTab: View {
               Text("Erstelle zuerst ein Workout im Workouts-Tab.")
             }
           } else {
-            ForEach(store.savedWorkoutPlans) { plan in
-              Button(plan.title) { store.assignWorkout(plan, to: day) }
+            if !store.customWorkoutPlans.isEmpty {
+              Section("Eigene Workouts") {
+                ForEach(store.customWorkoutPlans) { plan in
+                  Button(plan.title) { store.assignWorkout(plan, to: day) }
+                }
+              }
+            }
+            if !store.templateWorkoutPlans.isEmpty {
+              Section("Vorlagen") {
+                ForEach(store.templateWorkoutPlans) { plan in
+                  Button(plan.title) { store.assignWorkout(plan, to: day) }
+                }
+              }
             }
           }
           if assigned != nil {
