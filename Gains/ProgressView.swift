@@ -1039,7 +1039,7 @@ struct ProgressContentView: View {
         secondaryColor: GainsColor.softInk
       )
 
-      VStack(spacing: 12) {
+      LazyVStack(spacing: 12) {
         strengthStoryCard
         bodyStoryCard
         cardioStoryCard
