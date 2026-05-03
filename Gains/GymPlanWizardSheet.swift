@@ -815,6 +815,8 @@ struct GymPlanWizardSheet: View {
         }
       }
 
+      compactWeekStrip
+
       VStack(spacing: GainsSpacing.xsPlus) {
         ForEach(Weekday.allCases) { day in
           weeklyOverviewRow(day)
@@ -841,6 +843,36 @@ struct GymPlanWizardSheet: View {
     .padding(.vertical, GainsSpacing.xsPlus)
     .background(GainsColor.elevated)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private var compactWeekStrip: some View {
+    HStack(spacing: GainsSpacing.xsPlus) {
+      ForEach(Weekday.allCases) { day in
+        compactWeekDayCell(day)
+      }
+    }
+  }
+
+  private func compactWeekDayCell(_ day: Weekday) -> some View {
+    let kind = previewSessionKinds[day]
+    let isPlanned = kind != nil
+
+    return VStack(spacing: 6) {
+      Text(day.shortLabel)
+        .font(GainsFont.label(8))
+        .tracking(1.0)
+        .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+
+      RoundedRectangle(cornerRadius: 10, style: .continuous)
+        .fill(previewAccent(for: kind).opacity(isPlanned ? 0.22 : 0.08))
+        .frame(height: 34)
+        .overlay {
+          Image(systemName: previewIcon(for: kind))
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(isPlanned ? previewAccent(for: kind) : GainsColor.softInk)
+        }
+    }
+    .frame(maxWidth: .infinity)
   }
 
   private var previewRunDaysCount: Int {
