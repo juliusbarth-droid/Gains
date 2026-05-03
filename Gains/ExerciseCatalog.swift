@@ -600,6 +600,48 @@ extension ExerciseLibraryItem {
       tips: ["Keine Kreisbewegung — schadet der Halswirbelsäule."],
       commonMistakes: ["Kopf wird mitgenommen."],
       difficulty: .beginner
+    ),
+    ExerciseLibraryItem(
+      name: "Arnold Press", primaryMuscle: "Vordere Schulter", equipment: "Kurzhantel",
+      defaultSets: 3, defaultReps: 10, suggestedWeight: 14,
+      category: .shoulders, secondaryMuscles: ["Seitliche Schulter", "Trizeps"],
+      instructions: [
+        "Starte sitzend oder stehend mit Hanteln vor den Schultern, Handflächen zu dir.",
+        "Drehe die Hanteln beim Drücken nach außen.",
+        "Über Kopf kontrolliert ausstrecken.",
+        "Langsam zurückdrehen und ablassen."
+      ],
+      tips: ["Ruhiger Bewegungsbogen, nicht ins Hohlkreuz ausweichen."],
+      commonMistakes: ["Zu viel Schwung aus dem Rücken."],
+      difficulty: .intermediate
+    ),
+    ExerciseLibraryItem(
+      name: "Y-Raises Schrägbank", primaryMuscle: "Hintere Schulter",
+      equipment: "Kurzhantel", defaultSets: 3, defaultReps: 14, suggestedWeight: 5,
+      category: .shoulders, secondaryMuscles: ["Trapez", "Rotatorenmanschette"],
+      instructions: [
+        "Lege dich mit der Brust auf eine Schrägbank.",
+        "Hanteln locker hängen lassen, Daumen zeigen nach oben.",
+        "Hebe die Arme in einer Y-Form an.",
+        "Kurz halten, dann sauber absenken."
+      ],
+      tips: ["Leichtes Gewicht, volle Kontrolle und saubere Schulterblattbewegung."],
+      commonMistakes: ["Zu schwer wählen und in ein Seitheben kippen."],
+      difficulty: .intermediate
+    ),
+    ExerciseLibraryItem(
+      name: "Face Pull außenrotiert", primaryMuscle: "Hintere Schulter",
+      equipment: "Kabelzug", defaultSets: 3, defaultReps: 15, suggestedWeight: 18,
+      category: .shoulders, secondaryMuscles: ["Trapez", "Rotatorenmanschette"],
+      instructions: [
+        "Seil auf Gesichtshöhe einstellen.",
+        "Zum Gesicht ziehen und am Ende die Hände leicht nach außen rotieren.",
+        "Ellbogen hoch halten.",
+        "Kontrolliert in die Startposition zurück."
+      ],
+      tips: ["Ideal für Schulterbalance und saubere Haltung zwischen Drucktagen."],
+      commonMistakes: ["Zu tief ziehen und den oberen Rücken runden."],
+      difficulty: .beginner
     )
   ]
 
