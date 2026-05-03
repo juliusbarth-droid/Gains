@@ -983,6 +983,19 @@ struct GymPlanWizardSheet: View {
   }
 
   private var previewScheduledDays: [Weekday] {
+    if hasExistingDayPreferences {
+      let targetSessions = max(sessionsPerWeek, 0)
+      var scheduledDays = Weekday.allCases.filter { store.dayPreference(for: $0) == .training }
+
+      if scheduledDays.count < targetSessions {
+        for day in Weekday.allCases where store.dayPreference(for: day) == .flexible && scheduledDays.count < targetSessions {
+          scheduledDays.append(day)
+        }
+      }
+
+      return scheduledDays
+    }
+
     switch sessionsPerWeek {
     case ...0:
       return []
