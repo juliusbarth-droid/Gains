@@ -1242,16 +1242,13 @@ struct WorkoutHubView: View {
 
   /// Einheitlicher Hero-CTA-Pfad (P1-2 + P0-3): Startet eine neue Quick-
   /// Session in der gerade gewählten Modalität oder öffnet die laufende.
-  /// Vorher gab es zwei Funktionen (`startOrResumeRun`/`startQuickCardio`),
-  /// jeweils mit dem fehleranfälligen `isShowingRunTracker = false; = true`-
-  /// Pattern. Da das Hub-Sheet `isShowingRunTracker` zu diesem Zeitpunkt
-  /// startet den Tracker bewusst aus einem sauberen Sheet-State neu,
-  /// damit Start/Resume im Alltag deterministischer reagiert.
+  /// Der Hero sitzt im Hub-Zustand, also ist der Tracker hier nicht bereits
+  /// präsentiert. Ein direktes `true` vermeidet das fragile `false → true`-
+  /// Toggle, das SwiftUI in demselben Tick schlucken kann.
   private func startOrResumeCardio() {
     if store.activeRun == nil {
       store.startQuickRun(modality: preferredModality)
     }
-    isShowingRunTracker = false
     isShowingRunTracker = true
   }
 }
