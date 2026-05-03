@@ -233,7 +233,7 @@ struct WorkoutTrackerView: View {
         .layoutPriority(0)
 
         Text(workout.title)
-          .font(GainsFont.title(18))
+          .font(GainsFont.title(20))
           .foregroundStyle(GainsColor.onCtaSurface)
           .lineLimit(1)
           .minimumScaleFactor(0.78)
@@ -307,7 +307,7 @@ struct WorkoutTrackerView: View {
                 .offset(x: -10)
             }
             Text(label)
-              .font(.system(size: 44, weight: .semibold, design: .rounded))
+              .font(.system(size: 50, weight: .semibold, design: .rounded))
               .monospacedDigit()
               .foregroundStyle(accent)
               .lineLimit(1)
@@ -527,7 +527,7 @@ struct WorkoutTrackerView: View {
           VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 6) {
               Text(exercise.name)
-                .font(GainsFont.title(15))
+                .font(GainsFont.title(17))
                 .foregroundStyle(GainsColor.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
@@ -579,7 +579,7 @@ struct WorkoutTrackerView: View {
         .accessibilityLabel("Ausführung anzeigen")
 
         Text("\(completed)/\(total)")
-          .font(GainsFont.title(14))
+          .font(GainsFont.title(15))
           .monospacedDigit()
           .foregroundStyle(isAllDone ? GainsColor.moss : GainsColor.ink)
 
@@ -611,7 +611,7 @@ struct WorkoutTrackerView: View {
             Text(
               "Ziel: \(formattedWeightInline(firstSet.weight)) kg × \(firstSet.reps) Reps"
             )
-            .font(GainsFont.label(10))
+            .font(GainsFont.label(11))
             .tracking(0.6)
             .foregroundStyle(GainsColor.softInk)
           }
@@ -858,7 +858,7 @@ struct WorkoutTrackerView: View {
           .foregroundStyle(GainsColor.lime)
 
         Text(title)
-          .font(GainsFont.label(13))
+          .font(GainsFont.label(14))
           .tracking(2)
           .foregroundStyle(GainsColor.lime)
 
