@@ -492,6 +492,10 @@ struct GymPlanWizardSheet: View {
 
         weeklyOverviewCard
 
+        if hasExistingDayPreferences {
+          wizardPreferenceHintCard
+        }
+
         VStack(alignment: .leading, spacing: 0) {
           Text("WISSENSCHAFTLICHE PARAMETER")
             .font(GainsFont.label(9))
@@ -845,6 +849,34 @@ struct GymPlanWizardSheet: View {
     .padding(.vertical, GainsSpacing.xsPlus)
     .background(GainsColor.elevated)
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private var hasExistingDayPreferences: Bool {
+    Weekday.allCases.contains { store.plannerSettings.dayPreferences[$0] != nil }
+  }
+
+  private var wizardPreferenceHintCard: some View {
+    HStack(alignment: .top, spacing: GainsSpacing.s) {
+      Image(systemName: "info.circle.fill")
+        .font(.system(size: 15, weight: .semibold))
+        .foregroundStyle(GainsColor.moss)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Bestehende Wochentage bleiben erhalten")
+          .font(GainsFont.label(12))
+          .foregroundStyle(GainsColor.ink)
+        Text("Diese Vorschau zeigt die empfohlene Verteilung. Bereits gesetzte Training-, Flex- oder Ruhetage im Planer werden beim Übernehmen nicht blind überschrieben.")
+          .font(GainsFont.label(10))
+          .foregroundStyle(GainsColor.softInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
+      Spacer(minLength: 0)
+    }
+    .padding(GainsSpacing.m)
+    .background(GainsColor.elevated)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    .padding(.horizontal, GainsSpacing.xl)
   }
 
   private var compactWeekStrip: some View {
