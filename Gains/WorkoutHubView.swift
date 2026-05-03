@@ -57,18 +57,56 @@ struct WorkoutHubView: View {
   @State private var pendingAfterSelectedRun: (() -> Void)? = nil
   @State private var pendingAfterPresentedWorkout: (() -> Void)? = nil
 
+  // 2026-05-03 (P1-2): User wählt Modus oben im Hub. Default ist die zuletzt
+  // genutzte Modalität — beim ersten Start `.run`. Persistenz via AppStorage,
+  // damit Bike-Nutzer nach App-Restart nicht in den Lauf-Default fallen.
+  @AppStorage("gains.cardio.preferredModality") private var preferredModalityRaw: String = CardioModality.run.rawValue
+
+  private var preferredModality: CardioModality {
+    CardioModality(rawValue: preferredModalityRaw) ?? .run
+  }
+
+  /// Im Hero/Headline gerenderte Modalität. Eine aktive Session erzwingt ihre
+  /// eigene Modalität; sonst gilt die `preferredModality`.
+  private var displayedModality: CardioModality {
+    store.activeRun?.modality ?? preferredModality
+  }
+
+  // Welle 2 — Day-One: Cardio-Hub hat fünf Sub-Tabs (Feed/Routen/Segmente/
+  // Pläne/Stats) — viel auf einmal. Ein Mini-Tour-Banner über dem Hero
+  // ordnet das ein, solange der User noch nie einen Lauf abgeschlossen hat
+  // (oder seit Onboarding < 24h vergangen sind).
+  @AppStorage(GainsKey.onboardingCompletedAt) private var onboardingCompletedAt: Double = 0
+
+  private var isInRunDayOneWindow: Bool {
+    guard onboardingCompletedAt > 0 else { return false }
+    let completedAt = Date(timeIntervalSince1970: onboardingCompletedAt)
+    let hoursSince = Date().timeIntervalSince(completedAt) / 3600
+    guard hoursSince >= 0, hoursSince < 24 else { return false }
+    if !store.runHistory.isEmpty { return false }
+    return true
+  }
+
   var body: some View {
     GainsScreen {
       VStack(alignment: .leading, spacing: 22) {
         trainHeader
+        if isInRunDayOneWindow {
+          dayOneRunGuide
+        }
         runHeroCard
         if store.activeRun != nil {
           runLiveBanner
         }
 
-        // Bestzeiten direkt sichtbar — ohne in den STATS-Tab wechseln zu müssen.
-        if !store.distancePRs.isEmpty {
+        // Bestzeiten direkt sichtbar — ohne in den STATS-Tab wechseln zu
+        // müssen. Bike-Quick-Strip nur, wenn der Hub-Modus auf Rad steht
+        // und Bike-Bestzeiten vorhanden sind.
+        if displayedModality == .run && !store.distancePRs.isEmpty {
           runQuickPRStrip
+        }
+        if displayedModality.isCycling && !store.bikePersonalBests.isEmpty {
+          bikeQuickPRStrip
         }
 
         tabPicker
@@ -111,13 +149,137 @@ struct WorkoutHubView: View {
   }
 
   // MARK: - Header
+  //
+  // 2026-05-03 (P1-1): Vorher hatte der Hub einen `screenHeader` mit
+  // grossem Title „Lauf starten" — exakt der Text, der als Hero-CTA direkt
+  // darunter erscheint. Doppelung. Title ist raus; statt dessen rendert die
+  // `GainsHeroCard` die identitätsstiftende Bühne. Hier bleibt nur ein
+  // schlanker Eyebrow-Streifen für Tab-Identität.
 
   private var trainHeader: some View {
-    screenHeader(
-      eyebrow: "RUN / CARDIO",
-      title: store.activeRun == nil ? "Lauf starten" : "Run öffnen",
-      subtitle: "Routen, Segmente, strukturierte Workouts und Pace-Zonen — alles in einem Hub."
+    HStack(alignment: .firstTextBaseline) {
+      SlashLabel(
+        parts: ["KARDIO", "TRAINING"],
+        primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.softInk
+      )
+      Spacer()
+      // Quick-Toggle für Modalität — drei Glyphen, kein Text. Aktive Session
+      // sperrt den Toggle (Modus während Live-Session nicht wechselbar).
+      modalityToggle
+    }
+  }
+
+  /// Drei-Wege Modus-Toggle (Lauf / Rad / Indoor). Tap setzt
+  /// `preferredModalityRaw`. Hero & Headline reagieren live darauf.
+  @ViewBuilder
+  private var modalityToggle: some View {
+    HStack(spacing: 4) {
+      ForEach(CardioModality.allCases, id: \.self) { modality in
+        let isActive = displayedModality == modality
+        let isLocked = store.activeRun != nil && store.activeRun?.modality != modality
+
+        Button {
+          guard store.activeRun == nil else { return }
+          UISelectionFeedbackGenerator().selectionChanged()
+          preferredModalityRaw = modality.rawValue
+        } label: {
+          Image(systemName: modality.systemImage)
+            .font(.system(size: 12, weight: isActive ? .bold : .semibold))
+            .foregroundStyle(
+              isActive ? GainsColor.onLime
+              : isLocked ? GainsColor.softInk.opacity(0.4)
+              : GainsColor.softInk
+            )
+            .frame(width: 32, height: 28)
+            .background(
+              RoundedRectangle(cornerRadius: GainsRadius.tiny, style: .continuous)
+                .fill(isActive ? GainsColor.lime : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isLocked)
+        .accessibilityLabel("\(modality.displayName) wählen")
+      }
+    }
+    .padding(3)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .strokeBorder(GainsColor.border.opacity(0.5), lineWidth: GainsBorder.hairline)
     )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  // MARK: - Day-One Run Guide
+  //
+  // Mini-Tour, die den Cardio-Hub erklärt: Hero startet sofort einen Lauf,
+  // die Sub-Tabs darunter sammeln Verlauf und Tools. Bewusst dezent — der
+  // Hero und der „Lauf starten"-CTA sind die Bühne, der Banner liefert nur
+  // mentales Modell. Verschwindet nach erstem abgeschlossenem Lauf.
+
+  private var dayOneRunGuide: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 8) {
+        Image(systemName: "sparkles")
+          .font(.system(size: 11, weight: .bold))
+          .foregroundStyle(GainsColor.ember)
+        Text("ERSTER BLICK")
+          .gainsEyebrow(GainsColor.ember, size: 11, tracking: 1.4)
+      }
+
+      Text("Lauf, Rad, alles drin.")
+        .font(GainsFont.title(15))
+        .foregroundStyle(GainsColor.ink)
+        .fixedSize(horizontal: false, vertical: true)
+
+      Text("Wähle oben rechts deinen Modus — Lauf, Rad oder Heimtrainer — und tippe den Hero. Pace bzw. Geschwindigkeit, Distanz und Splits laufen automatisch mit.")
+        .font(GainsFont.body(12))
+        .foregroundStyle(GainsColor.softInk)
+        .fixedSize(horizontal: false, vertical: true)
+
+      VStack(spacing: 6) {
+        dayOneRunTourRow(icon: "list.bullet.clipboard.fill", title: "Pläne",
+                         detail: "Easy, Tempo, Intervalle, Long Run.")
+        dayOneRunTourRow(icon: "map.fill", title: "Routen",
+                         detail: "Gespeicherte Strecken, die du wiederholen willst.")
+        dayOneRunTourRow(icon: "chart.bar.fill", title: "Daten",
+                         detail: "Volumen, Pace-Trend, Distanz-PRs.")
+      }
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      LinearGradient(
+        colors: [GainsColor.ember.opacity(0.06), GainsColor.card],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .stroke(GainsColor.ember.opacity(0.28), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  private func dayOneRunTourRow(icon: String, title: String, detail: String) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: icon)
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundStyle(GainsColor.ember)
+        .frame(width: 22, height: 22)
+        .background(Circle().fill(GainsColor.ember.opacity(0.12)))
+      Text(title)
+        .font(GainsFont.title(12))
+        .foregroundStyle(GainsColor.ink)
+        .frame(width: 78, alignment: .leading)
+      Text(detail)
+        .font(GainsFont.body(11))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
   }
 
   // MARK: - Hero
@@ -128,22 +290,71 @@ struct WorkoutHubView: View {
 
   private var runHeroCard: some View {
     let isLive = store.activeRun != nil
+    let modality = displayedModality
     return GainsHeroCard(
-      eyebrow: ["LAUFEN", "RUN"],
+      eyebrow: heroEyebrow(for: modality, isLive: isLive),
       title: store.runningHeadline,
       subtitle: isLive
-        ? "Öffne den aktiven Run für Karte, Splits und Live-Steuerung."
+        ? heroLiveSubtitle(for: modality)
         : nil,
-      primaryCtaTitle: isLive ? "Run öffnen" : "Lauf starten",
+      primaryCtaTitle: heroCtaTitle(for: modality, isLive: isLive),
       primaryCtaIcon: isLive ? "play.fill" : "record.circle.fill",
-      primaryCtaAction: { startOrResumeRun() },
-      metrics: [
-        .init("7 TAGE",  String(format: "%.1f km", store.weeklyRunDistanceKm)),
-        .init("LÄUFE",   "\(store.weeklyRunCount) / Wo."),
-        .init("Ø PACE",  runPaceLabel(store.averageRunPaceSeconds)),
-      ],
+      primaryCtaAction: { startOrResumeCardio() },
+      metrics: heroMetrics(for: modality),
       trailingBadge: { heroBadge(isLive: isLive) }
     )
+  }
+
+  /// Eyebrow-Pärchen für den Hero. „LIVE"-Variante macht die aktive Session
+  /// sofort lesbar; sonst kontextspezifische „LAUF"/„RAD"/„INDOOR"-Eyebrow.
+  private func heroEyebrow(for modality: CardioModality, isLive: Bool) -> [String] {
+    if isLive {
+      return [modality.shortLabel, "LIVE"]
+    }
+    return [modality.shortLabel, "QUICK START"]
+  }
+
+  /// Live-Subtitle pro Modus — bei Bike kein Wort von „Run".
+  private func heroLiveSubtitle(for modality: CardioModality) -> String {
+    switch modality {
+    case .run:
+      return "Öffne den aktiven Lauf für Karte, Splits und Live-Steuerung."
+    case .bikeOutdoor:
+      return "Öffne die Tour für Karte, Geschwindigkeit und Live-Steuerung."
+    case .bikeIndoor:
+      return "Öffne den Tracker für Distanz, Geschwindigkeit und Live-Steuerung."
+    }
+  }
+
+  /// CTA-Wording — Live öffnet, sonst startet Modalität-spezifisch.
+  private func heroCtaTitle(for modality: CardioModality, isLive: Bool) -> String {
+    if isLive {
+      return modality.isCycling ? "Tour öffnen" : "Lauf öffnen"
+    }
+    switch modality {
+    case .run:         return "Lauf starten"
+    case .bikeOutdoor: return "Tour starten"
+    case .bikeIndoor:  return "Heimtrainer starten"
+    }
+  }
+
+  /// Drei Hero-Tiles. Bike-Modus zeigt km/h statt Pace; Indoor-Modus
+  /// ersetzt das „7 TAGE"-Wert-Tile durch eine Indoor-Distanz-Summe.
+  private func heroMetrics(for modality: CardioModality) -> [GainsHeroMetric] {
+    if modality.isCycling {
+      let bikeKm = store.weeklyBikeDistanceKm
+      let speed = store.averageBikeSpeedKmh
+      return [
+        .init("7 TAGE", String(format: "%.0f km", bikeKm)),
+        .init("TOUREN", "\(store.bikeOnlyCountThisWeek) / Wo."),
+        .init("Ø TEMPO", speed > 0 ? String(format: "%.1f km/h", speed) : "--"),
+      ]
+    }
+    return [
+      .init("7 TAGE", String(format: "%.1f km", store.weeklyRunOnlyDistanceKm)),
+      .init("LÄUFE", "\(store.weeklyRunOnlyCountThisWeek) / Wo."),
+      .init("Ø PACE", runPaceLabel(store.averageRunPaceSeconds)),
+    ]
   }
 
   private func runPending(_ action: inout (() -> Void)?) {
@@ -151,6 +362,13 @@ struct WorkoutHubView: View {
     action = nil
     next?()
   }
+
+  // MARK: - (entfallen) Modus-Chips
+  //
+  // 2026-05-03 (P1-2): Die drei Quick-Start-Chips unter dem Hero sind
+  // entfallen — der dieselbe Funktion erfüllende Modus-Toggle sitzt jetzt
+  // direkt im Header. Dadurch ist der Hero-CTA modus-spezifisch, der
+  // Hub-Header schmaler, und der Above-the-Fold-Bereich übersichtlicher.
 
   @ViewBuilder
   private func heroBadge(isLive: Bool) -> some View {
@@ -176,7 +394,7 @@ struct WorkoutHubView: View {
     .frame(height: 26)
     .background(GainsColor.lime.opacity(0.14))
     .overlay(
-      Capsule().strokeBorder(GainsColor.lime.opacity(0.45), lineWidth: 0.6)
+      Capsule().strokeBorder(GainsColor.lime.opacity(0.45), lineWidth: GainsBorder.hairline)
     )
     .clipShape(Capsule())
     .shadow(color: GainsColor.lime.opacity(0.35), radius: 10, x: 0, y: 0)
@@ -194,7 +412,7 @@ struct WorkoutHubView: View {
       VStack(alignment: .leading, spacing: 14) {
         HStack(spacing: 8) {
           PulsingDot()
-          Text("LAUF AKTIV")
+          Text("\(activeRun.modality.shortLabel) AKTIV")
             .font(GainsFont.eyebrow(10))
             .tracking(2.0)
             .foregroundStyle(GainsColor.lime)
@@ -208,12 +426,21 @@ struct WorkoutHubView: View {
             unit: "km",
             style: .subdued
           )
-          GainsMetricTile(
-            label: "PACE",
-            value: runPaceLabel(activeRun.averagePaceSeconds),
-            unit: "/km",
-            style: .subdued
-          )
+          if activeRun.modality.isCycling {
+            GainsMetricTile(
+              label: "TEMPO",
+              value: bikeSpeedLabel(activeRun.averagePaceSeconds),
+              unit: "",
+              style: .subdued
+            )
+          } else {
+            GainsMetricTile(
+              label: "PACE",
+              value: runPaceLabel(activeRun.averagePaceSeconds),
+              unit: "/km",
+              style: .subdued
+            )
+          }
           GainsMetricTile(
             label: "PULS",
             value: "\(activeRun.currentHeartRate)",
@@ -229,7 +456,6 @@ struct WorkoutHubView: View {
           title: "Tracker & Karte öffnen",
           icon: "map.fill",
           action: {
-            isShowingRunTracker = false
             isShowingRunTracker = true
           }
         )
@@ -267,7 +493,7 @@ struct WorkoutHubView: View {
             .frame(height: 42)
             .padding(.horizontal, 4)
             .background(
-              RoundedRectangle(cornerRadius: 12, style: .continuous)
+              RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
                 .fill(isActive ? GainsColor.lime : Color.clear)
             )
             .overlay(alignment: .trailing) {
@@ -278,7 +504,7 @@ struct WorkoutHubView: View {
                   .offset(x: 0.5)
               }
             }
-            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
         .buttonStyle(.plain)
       }
@@ -286,10 +512,10 @@ struct WorkoutHubView: View {
     .padding(4)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .strokeBorder(GainsColor.border.opacity(0.4), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   // MARK: - Tab-Content
@@ -341,16 +567,41 @@ struct WorkoutHubView: View {
   }
 
   // MARK: - Templates / Vorschläge
+  //
+  // 2026-05-03 (P1-4): Eyebrow vorher „VORSCHLÄGE / ROUTEN" — kollidierte
+  // mit dem Sub-Tab „ROUTEN" (gespeicherte GPS-Strecken). Jetzt
+  // „VORSCHLÄGE / WORKOUTS".
+  // 2026-05-03 (P1-7): Templates werden nach `displayedModality` gefiltert,
+  // damit Bike-Nutzer keine Lauf-Pläne sehen und umgekehrt. Templates ohne
+  // explizite Modality (Legacy) werden Lauf zugeordnet.
 
   private var runningTemplatesSection: some View {
-    VStack(alignment: .leading, spacing: 8) {
+    let filtered = store.runningTemplates.filter { template in
+      let m = template.modality ?? .run
+      // Outdoor- und Indoor-Bike teilen sich das Bike-Bucket
+      if displayedModality.isCycling {
+        return m.isCycling
+      }
+      return m == .run
+    }
+
+    return VStack(alignment: .leading, spacing: 8) {
       SlashLabel(
-        parts: ["VORSCHLÄGE", "ROUTEN"], primaryColor: GainsColor.lime,
+        parts: ["VORSCHLÄGE", "WORKOUTS"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
 
-      VStack(spacing: 8) {
-        ForEach(store.runningTemplates) { template in
-          templateCard(template)
+      if filtered.isEmpty {
+        EmptyStateView(
+          style: .inline,
+          title: "Keine Vorlagen für diesen Modus",
+          message: "Wähle oben rechts einen anderen Modus oder starte eine Quick-Session über den Hero-Button.",
+          icon: "list.bullet.clipboard"
+        )
+      } else {
+        VStack(spacing: 8) {
+          ForEach(filtered) { template in
+            templateCard(template)
+          }
         }
       }
     }
@@ -359,7 +610,6 @@ struct WorkoutHubView: View {
   private func templateCard(_ template: RunTemplate) -> some View {
     Button {
       store.startRun(from: template)
-      isShowingRunTracker = false
       isShowingRunTracker = true
     } label: {
       HStack(spacing: 12) {
@@ -368,7 +618,7 @@ struct WorkoutHubView: View {
           .foregroundStyle(GainsColor.lime)
           .frame(width: 30, height: 30)
           .background(GainsColor.lime.opacity(0.14))
-          .overlay(Circle().strokeBorder(GainsColor.lime.opacity(0.4), lineWidth: 0.6))
+          .overlay(Circle().strokeBorder(GainsColor.lime.opacity(0.4), lineWidth: GainsBorder.hairline))
           .clipShape(Circle())
 
         VStack(alignment: .leading, spacing: 2) {
@@ -418,7 +668,7 @@ struct WorkoutHubView: View {
           secondaryColor: GainsColor.softInk)
         Spacer()
         if !store.runHistory.isEmpty {
-          Text("\(store.runHistory.count) Läufe")
+          Text("\(store.runHistory.count) Sessions")
             .font(GainsFont.eyebrow(9))
             .tracking(1.2)
             .foregroundStyle(GainsColor.softInk)
@@ -429,7 +679,7 @@ struct WorkoutHubView: View {
         EmptyStateView(
           style: .inline,
           title: "Noch keine Aktivitäten",
-          message: "Starte deinen ersten Lauf — Gains baut deinen Feed automatisch auf.",
+          message: "Starte deine erste Cardio-Session — Lauf, Rad oder Heimtrainer. Gains baut den Feed automatisch auf.",
           icon: "tray"
         )
       } else {
@@ -468,7 +718,7 @@ struct WorkoutHubView: View {
               .tracking(1.6)
               .foregroundStyle(GainsColor.lime)
           }
-          Image(systemName: "figure.run")
+          Image(systemName: run.modality.systemImage)
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(GainsColor.softInk)
           Text(run.finishedAt.formatted(date: .abbreviated, time: .omitted).uppercased())
@@ -496,14 +746,19 @@ struct WorkoutHubView: View {
       .padding(.top, 16)
       .padding(.bottom, 14)
 
-      // 2. Stat-Strip
+      // 2. Stat-Strip — Bike-Sessions sehen Geschwindigkeit (km/h) statt Pace
+      // (min/km), Indoor-Sessions verzichten auf die Höhen-Spalte (kein GPS).
       HStack(spacing: 0) {
         runStatCell(label: "DISTANZ", value: String(format: "%.2f", run.distanceKm), unit: "km")
         runStatDivider()
-        runStatCell(label: "PACE", value: runPaceLabel(run.averagePaceSeconds), unit: "")
+        if run.modality.isCycling {
+          runStatCell(label: "TEMPO", value: bikeSpeedLabel(run.averagePaceSeconds), unit: "")
+        } else {
+          runStatCell(label: "PACE", value: runPaceLabel(run.averagePaceSeconds), unit: "")
+        }
         runStatDivider()
         runStatCell(label: "DAUER", value: formattedDuration(run.durationMinutes), unit: "")
-        if run.elevationGain > 0 {
+        if run.elevationGain > 0, !run.modality.isIndoor {
           runStatDivider()
           runStatCell(label: "HÖHE", value: "\(run.elevationGain)", unit: "m")
         }
@@ -523,16 +778,15 @@ struct WorkoutHubView: View {
         .fill(GainsColor.border.opacity(0.45))
         .frame(height: 0.6)
 
-      // 4. Footer-Action
+      // 4. Footer-Action — modality-aware (P2-7).
       Button {
         store.startRunLike(run)
-        isShowingRunTracker = false
         isShowingRunTracker = true
       } label: {
         HStack(spacing: 6) {
           Image(systemName: "arrow.clockwise")
             .font(.system(size: 11, weight: .semibold))
-          Text("Erneut laufen")
+          Text(repeatActionLabel(for: run.modality))
             .font(GainsFont.eyebrow(10))
             .tracking(1.4)
         }
@@ -632,6 +886,15 @@ struct WorkoutHubView: View {
     let minutes = seconds / 60
     let secs = seconds % 60
     return String(format: "%d:%02d /km", minutes, secs)
+  }
+
+  /// Wandelt eine Pace (Sek./km) in km/h um. Wird nur für Rad-Sessions
+  /// genutzt (Distanz/Pace ist intern weiterhin in Sekunden gespeichert,
+  /// damit der gemeinsame Codepfad mit Lauf erhalten bleibt).
+  private func bikeSpeedLabel(_ secondsPerKm: Int) -> String {
+    guard secondsPerKm > 0 else { return "--,- km/h" }
+    let kmh = 3600.0 / Double(secondsPerKm)
+    return String(format: "%.1f km/h", kmh)
   }
 
   // MARK: - Stats: Wochen-Distanz
@@ -797,48 +1060,96 @@ struct WorkoutHubView: View {
   }
 
   // MARK: - Stats: Distanz-PRs
+  //
+  // 2026-05-03 (P1-3): Vorher dieselbe Tabelle wie der Quick-Strip oben —
+  // doppelte Information ohne Mehrwert im STATS-Tab. Jetzt Detail-Variante:
+  // pro PR eine Karte mit Wert + zusätzlichem Datum, Tab-Footer für „PR
+  // verbessern" zum Setup-Sheet (zukünftig). Bike-Bestzeiten kommen als
+  // separate Sektion darunter, sobald welche existieren.
 
   private var distancePRsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["BESTZEITEN", "DISTANZ"], primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk)
+    VStack(alignment: .leading, spacing: 14) {
+      VStack(alignment: .leading, spacing: 12) {
+        SlashLabel(
+          parts: ["BESTZEITEN", "LAUF"], primaryColor: GainsColor.lime,
+          secondaryColor: GainsColor.softInk)
 
-      let prs = store.distancePRs
-      if prs.isEmpty {
-        EmptyStateView(
-          style: .inline,
-          title: "Noch keine Bestzeiten",
-          message: "Läufe ab 5 km reichen, um deine ersten PR-Zeiten zu sammeln.",
-          icon: "trophy"
-        )
-      } else {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-          ForEach(prs) { pr in
-            VStack(alignment: .leading, spacing: 6) {
-              HStack(spacing: 6) {
-                Image(systemName: "trophy.fill")
-                  .font(.system(size: 10, weight: .semibold))
-                  .foregroundStyle(GainsColor.lime)
-                Text(pr.title)
-                  .font(GainsFont.eyebrow(9))
-                  .tracking(1.4)
-                  .foregroundStyle(GainsColor.softInk)
-              }
-              Text(pr.value)
-                .font(GainsFont.metricMono(20))
-                .foregroundStyle(GainsColor.ink)
-              Text(pr.context)
-                .font(GainsFont.body(11))
-                .foregroundStyle(GainsColor.softInk)
-                .lineLimit(1)
+        let prs = store.distancePRs
+        if prs.isEmpty {
+          EmptyStateView(
+            style: .inline,
+            title: "Noch keine Bestzeiten",
+            message: "Läufe ab 5 km reichen, um deine ersten PR-Zeiten zu sammeln.",
+            icon: "trophy"
+          )
+        } else {
+          VStack(spacing: 8) {
+            ForEach(Array(prs.enumerated()), id: \.element.id) { index, pr in
+              prDetailCard(pr, accent: prAccentColor(at: index))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .gainsCardStyle()
           }
         }
       }
+
+      if !store.bikePersonalBests.isEmpty {
+        VStack(alignment: .leading, spacing: 12) {
+          SlashLabel(
+            parts: ["BESTWERTE", "RAD"], primaryColor: GainsColor.lime,
+            secondaryColor: GainsColor.softInk)
+
+          VStack(spacing: 8) {
+            ForEach(Array(store.bikePersonalBests.enumerated()), id: \.element.id) { index, pr in
+              prDetailCard(pr, accent: prAccentColor(at: index))
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /// Detail-Karte pro PR — wird im STATS-Tab gerendert (P1-3-Variante).
+  /// Trophy-Icon links als Akzent, in der rechten Spalte Wert + Kontext-
+  /// Zeile mit Route.
+  private func prDetailCard(_ pr: RunPersonalBest, accent: Color) -> some View {
+    HStack(spacing: 14) {
+      Image(systemName: "trophy.fill")
+        .font(.system(size: 13, weight: .bold))
+        .foregroundStyle(accent)
+        .frame(width: 36, height: 36)
+        .background(accent.opacity(0.14))
+        .overlay(Circle().strokeBorder(accent.opacity(0.4), lineWidth: GainsBorder.hairline))
+        .clipShape(Circle())
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(pr.title)
+          .font(GainsFont.eyebrow(10))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.softInk)
+        Text(pr.value)
+          .font(GainsFont.metricMono(20))
+          .foregroundStyle(GainsColor.ink)
+      }
+
+      Spacer(minLength: 8)
+
+      Text(pr.context)
+        .font(GainsFont.body(11))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(1)
+        .multilineTextAlignment(.trailing)
+        .frame(maxWidth: 130, alignment: .trailing)
+    }
+    .padding(14)
+    .gainsCardStyle()
+  }
+
+  /// Lime-Schattierungen für PR-Karten — frischere visuelle Hierarchie.
+  private func prAccentColor(at index: Int) -> Color {
+    switch index % 4 {
+    case 0: return GainsColor.lime
+    case 1: return GainsColor.moss
+    case 2: return GainsColor.lime.opacity(0.75)
+    default: return GainsColor.lime.opacity(0.55)
     }
   }
 
@@ -850,10 +1161,20 @@ struct WorkoutHubView: View {
   // Wird ausgeblendet, wenn noch keine PRs existieren.
 
   private var runQuickPRStrip: some View {
+    quickPRStrip(label: "BESTZEITEN", prs: store.distancePRs)
+  }
+
+  /// Bike-Variante des Quick-PR-Strips. Wird im Hub angezeigt, sobald die
+  /// Modalität auf Rad steht und mindestens ein Bike-PR existiert.
+  private var bikeQuickPRStrip: some View {
+    quickPRStrip(label: "RAD-RECORDS", prs: store.bikePersonalBests)
+  }
+
+  private func quickPRStrip(label: String, prs: [RunPersonalBest]) -> some View {
     VStack(alignment: .leading, spacing: 10) {
       HStack(alignment: .firstTextBaseline) {
         SlashLabel(
-          parts: ["BESTZEITEN"], primaryColor: GainsColor.lime,
+          parts: [label], primaryColor: GainsColor.lime,
           secondaryColor: GainsColor.softInk)
         Spacer()
         Button {
@@ -873,7 +1194,7 @@ struct WorkoutHubView: View {
 
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 8) {
-          ForEach(store.distancePRs) { pr in
+          ForEach(prs) { pr in
             prChip(pr)
           }
         }
@@ -882,6 +1203,15 @@ struct WorkoutHubView: View {
     }
     .padding(14)
     .gainsCardStyle()
+  }
+
+  /// Modus-spezifischer Footer-Text für die Run-Activity-Card.
+  private func repeatActionLabel(for modality: CardioModality) -> String {
+    switch modality {
+    case .run:         return "Erneut laufen"
+    case .bikeOutdoor: return "Erneut fahren"
+    case .bikeIndoor:  return "Wieder am Heimtrainer"
+    }
   }
 
   private func prChip(_ pr: RunPersonalBest) -> some View {
@@ -903,18 +1233,24 @@ struct WorkoutHubView: View {
     .frame(height: 32)
     .background(GainsColor.background.opacity(0.85))
     .overlay(
-      Capsule().strokeBorder(GainsColor.lime.opacity(0.3), lineWidth: 0.6)
+      Capsule().strokeBorder(GainsColor.lime.opacity(0.3), lineWidth: GainsBorder.hairline)
     )
     .clipShape(Capsule())
   }
 
   // MARK: - Helpers
 
-  private func startOrResumeRun() {
+  /// Einheitlicher Hero-CTA-Pfad (P1-2 + P0-3): Startet eine neue Quick-
+  /// Session in der gerade gewählten Modalität oder öffnet die laufende.
+  /// Vorher gab es zwei Funktionen (`startOrResumeRun`/`startQuickCardio`),
+  /// jeweils mit dem fehleranfälligen `isShowingRunTracker = false; = true`-
+  /// Pattern. Da das Hub-Sheet `isShowingRunTracker` zu diesem Zeitpunkt
+  /// niemals offen ist (Hero ist nur sichtbar, wenn kein Sheet aktiv ist),
+  /// reicht ein einzelnes `= true`.
+  private func startOrResumeCardio() {
     if store.activeRun == nil {
-      store.startQuickRun()
+      store.startQuickRun(modality: preferredModality)
     }
-    isShowingRunTracker = false
     isShowingRunTracker = true
   }
 }
@@ -1091,9 +1427,9 @@ struct WorkoutBuilderView: View {
         .padding(.horizontal, 14)
         .frame(height: 50)
         .background(GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
             .stroke(
               workoutName.isEmpty ? GainsColor.border.opacity(0.5) : GainsColor.lime.opacity(0.5),
               lineWidth: 1.5)
@@ -1168,11 +1504,12 @@ struct WorkoutBuilderView: View {
             }
           }
         }
+        // A13 (Cleaner-Pass): cornerRadius 18→16, lineWidth 1→0.6 (hairline).
         .background(GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+            .strokeBorder(GainsColor.border.opacity(0.5), lineWidth: GainsBorder.hairline)
         )
       }
     }
@@ -1367,9 +1704,9 @@ struct WorkoutBuilderView: View {
       .padding(.horizontal, 14)
       .frame(height: 48)
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(GainsColor.border.opacity(0.6), lineWidth: 1)
       )
 
@@ -1417,11 +1754,12 @@ struct WorkoutBuilderView: View {
             }
           }
         }
+        // A13 (Cleaner-Pass): cornerRadius 18→16, lineWidth 1→0.6.
         .background(GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+            .strokeBorder(GainsColor.border.opacity(0.5), lineWidth: GainsBorder.hairline)
         )
       }
     }
@@ -1506,10 +1844,11 @@ struct WorkoutBuilderView: View {
           ? GainsColor.lime
           : GainsColor.card
       )
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      // A13 (Cleaner-Pass): cornerRadius 18→16, Glow 0.35→0.18, Radius 12→8.
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .shadow(
-        color: canSave ? GainsColor.lime.opacity(0.35) : .clear,
-        radius: 12, x: 0, y: 4)
+        color: canSave ? GainsColor.lime.opacity(0.18) : .clear,
+        radius: 8, x: 0, y: 4)
     }
     .buttonStyle(.plain)
     .disabled(!canSave)

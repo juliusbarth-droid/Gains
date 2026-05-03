@@ -256,13 +256,13 @@ struct CustomPlanBuilderSheet: View {
       .frame(height: 38)
       .background(isSelected ? GainsColor.lime : GainsColor.background.opacity(0.85))
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(
             isSelected ? Color.clear : GainsColor.border.opacity(0.55),
             lineWidth: 1
           )
       )
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -311,7 +311,7 @@ struct CustomPlanBuilderSheet: View {
           Text(plan?.title ?? "Workout wählen")
             .font(GainsFont.label(13))
             .foregroundStyle(plan == nil ? GainsColor.softInk : GainsColor.ink)
-          Text(plan == nil ? "Optional · ohne Bindung" : "\(plan!.exercises.count) Übungen · \(plan!.estimatedDurationMinutes) Min")
+          Text(plan.map { "\($0.exercises.count) Übungen · \($0.estimatedDurationMinutes) Min" } ?? "Optional · ohne Bindung")
             .font(GainsFont.label(10))
             .foregroundStyle(GainsColor.softInk)
         }
@@ -322,7 +322,7 @@ struct CustomPlanBuilderSheet: View {
       }
       .padding(10)
       .background(GainsColor.background.opacity(0.6))
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
   }
 
@@ -438,10 +438,10 @@ struct CustomPlanBuilderSheet: View {
       .frame(height: 56)
       .background(canSave ? GainsColor.lime : GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(canSave ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
     .disabled(!canSave)

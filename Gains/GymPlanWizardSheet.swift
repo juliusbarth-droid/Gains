@@ -301,7 +301,7 @@ struct GymPlanWizardSheet: View {
               .frame(maxWidth: .infinity)
               .frame(height: 62)
               .background(sessionLength == min ? GainsColor.lime : GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
             .buttonStyle(.plain)
           }
@@ -372,7 +372,7 @@ struct GymPlanWizardSheet: View {
             .frame(maxWidth: .infinity)
             .frame(height: 72)
             .background(selected ? GainsColor.lime : GainsColor.card)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -422,9 +422,9 @@ struct GymPlanWizardSheet: View {
             }
             .padding(14)
             .background(selected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
             .overlay(
-              RoundedRectangle(cornerRadius: 16, style: .continuous)
+              RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
                 .stroke(
                   selected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.5),
                   lineWidth: 1.2
@@ -653,7 +653,7 @@ struct GymPlanWizardSheet: View {
           .frame(height: 54)
           .frame(maxWidth: .infinity)
           .background(GainsColor.elevated)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
       }
@@ -676,7 +676,7 @@ struct GymPlanWizardSheet: View {
         .frame(height: 54)
         .frame(maxWidth: .infinity)
         .background(GainsColor.lime)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
     }
@@ -727,7 +727,7 @@ struct GymPlanWizardSheet: View {
           .font(.system(size: 22))
           .frame(width: 44, height: 44)
           .background(isSelected ? GainsColor.lime.opacity(0.2) : GainsColor.elevated)
-          .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         VStack(alignment: .leading, spacing: 3) {
           Text(title)
             .font(GainsFont.label(15))
@@ -746,9 +746,9 @@ struct GymPlanWizardSheet: View {
       }
       .padding(14)
       .background(isSelected ? GainsColor.lime.opacity(0.06) : GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(
             isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.5),
             lineWidth: 1.2
@@ -781,10 +781,10 @@ struct GymPlanWizardSheet: View {
       .padding(14)
       .background(isSelected ? GainsColor.lime.opacity(0.18) : GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(isSelected ? GainsColor.lime.opacity(0.55) : Color.clear, lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
   }

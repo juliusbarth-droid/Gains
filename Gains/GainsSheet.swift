@@ -148,7 +148,7 @@ struct GainsSheetHeader: View {
       .frame(height: 32)
       .background(accent.opacity(0.12))
       .overlay(
-        Capsule().strokeBorder(accent.opacity(0.4), lineWidth: 0.6)
+        Capsule().strokeBorder(accent.opacity(0.4), lineWidth: GainsBorder.hairline)
       )
       .clipShape(Capsule())
     }
@@ -163,7 +163,7 @@ struct GainsSheetHeader: View {
         .frame(width: 32, height: 32)
         .background(GainsColor.card)
         .overlay(
-          Circle().strokeBorder(GainsColor.border.opacity(0.7), lineWidth: 0.6)
+          Circle().strokeBorder(GainsColor.border.opacity(0.7), lineWidth: GainsBorder.hairline)
         )
         .clipShape(Circle())
     }

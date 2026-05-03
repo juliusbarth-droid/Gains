@@ -190,7 +190,7 @@ struct StructuredWorkoutDetailSheet: View {
           .frame(maxWidth: .infinity)
           .frame(height: 56)
           .background(GainsColor.lime)
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(store.activeRun != nil)
@@ -220,7 +220,7 @@ struct StructuredWorkoutDetailSheet: View {
         .foregroundStyle(GainsColor.lime)
         .frame(width: 60, height: 60)
         .background(GainsColor.lime.opacity(0.18))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
       Text(workout.title)
         .font(GainsFont.title(28))
@@ -243,7 +243,7 @@ struct StructuredWorkoutDetailSheet: View {
     .padding(.vertical, 14)
     .padding(.horizontal, 12)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func summaryCell(label: String, value: String, unit: String) -> some View {
@@ -283,7 +283,7 @@ struct StructuredWorkoutDetailSheet: View {
         }
       }
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
   }
 

@@ -22,6 +22,22 @@ struct GymTodayTab: View {
   @Binding var isShowingWorkoutBuilder: Bool
   @Binding var showsPlanWizard: Bool
 
+  // Welle 2 — Day-One-Window: in den ersten 24h nach Onboarding und solange
+  // noch kein Workout abgeschlossen ist, zeigen wir eine kompakte Mini-Tour
+  // über dem Hero, die die drei Gym-Sub-Tabs (Plan/Bibliothek/Stats) erklärt.
+  // Verschwindet automatisch nach der ersten Session ODER nach 24h.
+  @AppStorage(GainsKey.onboardingCompletedAt) private var onboardingCompletedAt: Double = 0
+
+  private var isInGymDayOneWindow: Bool {
+    guard onboardingCompletedAt > 0 else { return false }
+    let completedAt = Date(timeIntervalSince1970: onboardingCompletedAt)
+    let hoursSince = Date().timeIntervalSince(completedAt) / 3600
+    guard hoursSince >= 0, hoursSince < 24 else { return false }
+    if !store.workoutHistory.isEmpty { return false }
+    if store.lastCompletedWorkout != nil { return false }
+    return true
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
       if store.activeWorkout != nil {
@@ -35,6 +51,10 @@ struct GymTodayTab: View {
         // Wochenpuls ist jetzt nach oben gezogen, damit Sessions/Volumen/Trend
         // ohne Scrollen einsehbar sind — das ist, was Nutzer täglich zuerst
         // sehen wollen.
+        if isInGymDayOneWindow {
+          dayOneGymGuide
+        }
+
         todayHeroCard
 
         compactWeeklyPulse
@@ -42,7 +62,80 @@ struct GymTodayTab: View {
         secondaryActionsRow
 
         contextCard
+
+        // 2026-05-01: lastWorkoutBanner war Dead-Code — aktiviert, damit der
+        // Header-Comment ("Letztes-Training-Banner sorgt für Kontinuität")
+        // wieder zur Realität passt.
+        if let last = store.lastCompletedWorkout {
+          lastWorkoutBanner(last)
+        }
       }
+    }
+  }
+
+  // MARK: - Day-One Gym Guide
+  //
+  // Mini-Tour für Tab-Erstkontakt: Erklärt die drei Sub-Tabs in einer
+  // einzigen Card, damit der User den Gym-Bereich auf einen Blick mental
+  // einsortieren kann. Bewusst kompakter als die Nutrition-Welcome-Card —
+  // der Hero darunter erklärt sich selbst, hier geht es nur um Orientierung.
+
+  private var dayOneGymGuide: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 8) {
+        Image(systemName: "sparkles")
+          .font(.system(size: 11, weight: .bold))
+          .foregroundStyle(GainsColor.lime)
+        Text("ERSTER BLICK")
+          .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.4)
+      }
+
+      Text("So findest du dich im Gym zurecht.")
+        .font(GainsFont.title(15))
+        .foregroundStyle(GainsColor.ink)
+        .fixedSize(horizontal: false, vertical: true)
+
+      VStack(spacing: 6) {
+        dayOneTourRow(icon: "calendar.badge.clock", title: "Plan",
+                      detail: "Deine Wochenstruktur — anpassen oder neu bauen.")
+        dayOneTourRow(icon: "square.stack.3d.up.fill", title: "Bibliothek",
+                      detail: "Fertige Vorlagen + deine eigenen Workouts.")
+        dayOneTourRow(icon: "chart.bar.fill", title: "Stats",
+                      detail: "Volumen, Frequenz, persönliche Rekorde.")
+      }
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      LinearGradient(
+        colors: [GainsColor.lime.opacity(0.06), GainsColor.card],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.28), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  private func dayOneTourRow(icon: String, title: String, detail: String) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: icon)
+        .font(.system(size: 11, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+        .frame(width: 22, height: 22)
+        .background(Circle().fill(GainsColor.lime.opacity(0.12)))
+      Text(title)
+        .font(GainsFont.title(12))
+        .foregroundStyle(GainsColor.ink)
+        .frame(width: 78, alignment: .leading)
+      Text(detail)
+        .font(GainsFont.body(11))
+        .foregroundStyle(GainsColor.softInk)
+        .lineLimit(2)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
   }
 
@@ -236,8 +329,12 @@ struct GymTodayTab: View {
   }
 
   private func handlePrimaryAction(day: WorkoutDayPlan, isLive: Bool) {
+    // G1/G2-Fix (2026-05-01): Doppelte State-Toggles entfernt.
+    // SwiftUI batcht synchrone Bindings-Updates, daher hatte das Setzen
+    // von `isShowingWorkoutTracker = false; isShowingWorkoutTracker = true`
+    // KEINE Wirkung (gleicher Tick → keine View-Diff → kein Re-Present).
+    // Stattdessen einfach einmal auf `true` setzen.
     if isLive {
-      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
       return
     }
@@ -257,18 +354,15 @@ struct GymTodayTab: View {
           return
         }
       }
-      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
       return
     }
 
     if let plan = store.todayPlannedWorkout {
       store.startWorkout(from: plan)
-      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
     } else if let fallback = store.savedWorkoutPlans.first {
       store.startWorkout(from: fallback)
-      isShowingWorkoutTracker = false
       isShowingWorkoutTracker = true
     } else {
       isShowingWorkoutBuilder = true
@@ -296,10 +390,10 @@ struct GymTodayTab: View {
       .padding(.horizontal, 12)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.6), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -360,7 +454,7 @@ struct GymTodayTab: View {
             liveStat("ÜBUNGEN", "\(session.exercises.count)")
           }
           .background(GainsColor.background.opacity(0.55))
-          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
           // A10: Live-Session-CTA nutzt die neue Premium-Pille — gleiche
           // Sprache wie der Hero-Start-Button, damit „weitermachen" und
@@ -371,13 +465,17 @@ struct GymTodayTab: View {
             action: { isShowingWorkoutTracker = true }
           )
         }
+        // A13 (Cleaner-Pass): Hero-Resume-Card auf Standard-Card-Geometrie
+        // (`GainsRadius.standard` 16, accent-Border statt 1.5pt-Stroke).
+        // Der CTA-Button trägt jetzt den Akzent — die Card muss nicht
+        // zusätzlich glühen.
         .padding(18)
         .background(GainsColor.card)
         .overlay(
-          RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .stroke(GainsColor.lime.opacity(0.5), lineWidth: 1.5)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+            .strokeBorder(GainsColor.lime.opacity(0.32), lineWidth: GainsBorder.accent)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
     }
   }

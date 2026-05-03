@@ -161,7 +161,7 @@ struct GymView: View {
             .frame(height: 42)
             .padding(.horizontal, 4)
             .background(
-              RoundedRectangle(cornerRadius: 12, style: .continuous)
+              RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
                 .fill(isActive ? GainsColor.lime : Color.clear)
             )
             .overlay(alignment: .trailing) {
@@ -176,7 +176,7 @@ struct GymView: View {
                   .transition(.opacity)
               }
             }
-            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.rawValue.capitalized)
@@ -186,10 +186,10 @@ struct GymView: View {
     .padding(4)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .strokeBorder(GainsColor.border.opacity(0.4), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   // MARK: - Navigation

@@ -140,7 +140,7 @@ struct WeekdayDetailSheet: View {
     .padding(.vertical, 10)
     .padding(.horizontal, 12)
     .background(
-      RoundedRectangle(cornerRadius: 10, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .fill(Color.white.opacity(0.04))
     )
   }
@@ -281,12 +281,12 @@ struct WeekdayDetailSheet: View {
       .frame(maxWidth: .infinity)
       .padding(.vertical, 12)
       .background(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .fill(isActive ? tint : Color.white.opacity(0.04))
       )
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .stroke(isActive ? tint.opacity(0.6) : GainsColor.border.opacity(0.5), lineWidth: 0.8)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .stroke(isActive ? tint.opacity(0.6) : GainsColor.border.opacity(0.5), lineWidth: GainsBorder.accent)
       )
     }
     .buttonStyle(.plain)
@@ -311,7 +311,7 @@ struct WeekdayDetailSheet: View {
       .frame(height: 52)
       .frame(maxWidth: .infinity)
       .background(GainsColor.lime)
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -478,11 +478,11 @@ struct WeekdayDetailSheet: View {
       .padding(12)
       .frame(maxWidth: .infinity, alignment: .leading)
       .background(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .fill(isSelected ? GainsColor.lime.opacity(0.10) : GainsColor.card)
       )
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(
             isSelected ? GainsColor.lime.opacity(0.55) : GainsColor.border.opacity(0.5),
             lineWidth: isSelected ? 1.0 : 0.6
@@ -560,7 +560,9 @@ struct WeekdayDetailSheet: View {
   /// auf `PlannedSessionKind`.
   private var cardioModality: CardioModality? { runTemplate?.modality }
   private var isRunDay: Bool { cardioModality == .run }
-  private var isBikeDay: Bool { cardioModality == .bike }
+  /// 2026-05-03: `CardioModality` wurde auf `.bikeOutdoor` und `.bikeIndoor`
+  /// gesplittet. Für die Tagesplan-Logik zählt jeder Rad-Modus als Bike-Tag.
+  private var isBikeDay: Bool { cardioModality?.isCycling ?? false }
   private var isCardioDay: Bool { cardioModality != nil }
   private var isRestDay: Bool { currentPreference == .rest }
   private var isFlexDay: Bool { currentPreference == .flexible && !isCardioDay }

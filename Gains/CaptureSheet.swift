@@ -252,7 +252,7 @@ struct CaptureSheet: View {
           .frame(maxWidth: .infinity)
           .frame(height: 52)
           .background(GainsColor.lime)
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
       .disabled(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto))
@@ -343,7 +343,7 @@ struct CaptureSheet: View {
       .padding(.horizontal, 16)
       .frame(height: 50)
       .background(GainsColor.background.opacity(0.82))
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 10) {
@@ -370,7 +370,7 @@ struct CaptureSheet: View {
                 .foregroundStyle(selectedRecipe?.id == recipe.id ? GainsColor.onLime : GainsColor.lime)
                 .frame(width: 36, height: 36)
                 .background(selectedRecipe?.id == recipe.id ? GainsColor.lime : GainsColor.ctaSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
               VStack(alignment: .leading, spacing: 4) {
                 Text(recipe.title)
@@ -396,7 +396,7 @@ struct CaptureSheet: View {
             .background(
               selectedRecipe?.id == recipe.id ? GainsColor.lime.opacity(0.16) : GainsColor.card
             )
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -435,7 +435,7 @@ struct CaptureSheet: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(12)
           .background(GainsColor.background.opacity(0.82))
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
       }
 
@@ -447,7 +447,7 @@ struct CaptureSheet: View {
           .frame(maxWidth: .infinity)
           .frame(height: 52)
           .background(GainsColor.lime)
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
     }

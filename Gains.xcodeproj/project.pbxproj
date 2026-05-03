@@ -60,6 +60,8 @@
 		AM0000000000000000000001 /* RunGoalPlanModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AM0000000000000000000002 /* RunGoalPlanModels.swift */; };
 		AN0000000000000000000001 /* RunGoalPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0000000000000000000002 /* RunGoalPlanView.swift */; };
 		AO0000000000000000000001 /* WeekdayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AO0000000000000000000002 /* WeekdayDetailSheet.swift */; };
+		AP0000000000000000000001 /* FoodModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AP0000000000000000000002 /* FoodModels.swift */; };
+		AQ0000000000000000000001 /* GainsStore+Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000002 /* GainsStore+Community.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -118,6 +120,8 @@
 		AM0000000000000000000002 /* RunGoalPlanModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunGoalPlanModels.swift; sourceTree = "<group>"; };
 		AN0000000000000000000002 /* RunGoalPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunGoalPlanView.swift; sourceTree = "<group>"; };
 		AO0000000000000000000002 /* WeekdayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekdayDetailSheet.swift; sourceTree = "<group>"; };
+		AP0000000000000000000002 /* FoodModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodModels.swift; sourceTree = "<group>"; };
+		AQ0000000000000000000002 /* GainsStore+Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GainsStore+Community.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -156,8 +160,10 @@
 				AA000000000000000000001A /* CommunityView.swift */,
 				AA000000000000000000001B /* GainsScreen.swift */,
 				AA000000000000000000001C /* GainsStore.swift */,
+				AQ0000000000000000000002 /* GainsStore+Community.swift */,
 				AA000000000000000000001D /* WorkoutTrackerView.swift */,
 				AA000000000000000000001E /* RecipesView.swift */,
+				AP0000000000000000000002 /* FoodModels.swift */,
 				FF0000000000000000000002 /* NutritionTrackerView.swift */,
 				GG0000000000000000000002 /* BarcodeScannerView.swift */,
 				HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */,
@@ -329,6 +335,8 @@
 				AM0000000000000000000001 /* RunGoalPlanModels.swift in Sources */,
 				AN0000000000000000000001 /* RunGoalPlanView.swift in Sources */,
 				AO0000000000000000000001 /* WeekdayDetailSheet.swift in Sources */,
+				AP0000000000000000000001 /* FoodModels.swift in Sources */,
+				AQ0000000000000000000001 /* GainsStore+Community.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

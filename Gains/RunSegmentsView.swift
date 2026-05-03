@@ -91,7 +91,7 @@ struct RunSegmentsTab: View {
         .frame(maxWidth: .infinity)
         .frame(height: 46)
         .background(GainsColor.lime)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
       .disabled(store.runHistory.isEmpty)
@@ -374,7 +374,7 @@ struct RunSegmentDetailSheet: View {
     .padding(.vertical, 14)
     .padding(.horizontal, 12)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func sheetStat(label: String, value: String, unit: String) -> some View {
@@ -410,7 +410,7 @@ struct RunSegmentDetailSheet: View {
           .padding(14)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(GainsColor.card)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       } else {
         VStack(spacing: 0) {
           ForEach(Array(efforts.enumerated()), id: \.element.id) { idx, effort in
@@ -421,7 +421,7 @@ struct RunSegmentDetailSheet: View {
           }
         }
         .background(GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
     }
   }
@@ -544,7 +544,7 @@ struct SegmentCreatorSheet: View {
               TextField("z.B. Westpark-Anstieg", text: $title)
                 .padding(12)
                 .background(GainsColor.card)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
           } else {
             EmptyStateView(
@@ -576,7 +576,7 @@ struct SegmentCreatorSheet: View {
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(canSave ? GainsColor.lime : GainsColor.card)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
         .disabled(!canSave)
@@ -625,7 +625,7 @@ struct SegmentCreatorSheet: View {
               .padding(.horizontal, 12)
               .padding(.vertical, 8)
               .background(selectedRunID == run.id ? GainsColor.lime : GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
             .buttonStyle(.plain)
           }
@@ -672,7 +672,7 @@ struct SegmentCreatorSheet: View {
     }
     .padding(14)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func createSegment() {

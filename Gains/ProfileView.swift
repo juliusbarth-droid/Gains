@@ -1,15 +1,17 @@
+import PhotosUI
 import SwiftUI
 import UIKit
 
-// A7: Wrapper-Modell für das Diagnose-Share-Sheet — Identifiable, damit
-// `.sheet(item:)` korrekt anspringt.
+// MARK: - Diagnose-Share-Wrapper
+//
+// Identifiable-Wrapper, damit `.sheet(item:)` korrekt anspringt — der reine
+// String-Inhalt wäre nicht `Identifiable`.
+
 struct DiagnosticsShareItem: Identifiable {
   let id = UUID()
   let text: String
 }
 
-// A7: Wrapper für `UIActivityViewController` — gibt den Diagnose-Text-Report
-// als Share-Aktion (Mail/Messages/Files) raus.
 struct DiagnosticsShareSheet: UIViewControllerRepresentable {
   let text: String
 
@@ -20,488 +22,691 @@ struct DiagnosticsShareSheet: UIViewControllerRepresentable {
   func updateUIViewController(_ vc: UIActivityViewController, context: Context) {}
 }
 
+// MARK: - ProfileView (Re-Design 2026-05-03)
+//
+// Vor diesem Pass war das Profil ein loser Stapel aus 6+ SlashLabel-Sektionen
+// mit Stats-Kacheln (die im Fortschritt schon doppelt da sind), Buttons mit
+// Chevron-Pfeilen, die in Wirklichkeit Toggles waren, und einer Header-Card,
+// in der weder der Name noch das Avatar editiert werden konnten — der einzige
+// Weg den Namen zu ändern war das Onboarding zu replayen.
+//
+// Die neue Struktur räumt entlang von zwei Linien auf:
+// (1) **Profil-Identität** wird Hero-Card am Anfang: editierbares Foto (oder
+//     Initial), editierbarer Name, „MITGLIED SEIT"-Eyebrow, dazu drei Pulse-
+//     Tiles (Streak / Sessions / PRs) — die Stats-Sektion ist damit obsolet.
+// (2) **App-Hub** ist eine Kette aus drei selbsterklärenden Cards:
+//     - Plan-Card (Wochenplan-Summary + „Anpassen"-CTA)
+//     - Tracker-Card (eine Zeile, öffnet Tracker-Hub-Sheet)
+//     - Optionen-Card (echte SwiftUI-Toggles statt Buttons-mit-Chevron)
+// Diagnose + DEBUG bleiben als Footer.
+//
+// Visuell hält sich die Card-Sprache ans A14 Coach-Brief-Vokabular: 22pt Hero-
+// Radius, einfacher Akzent-Glow oben links, hairline Border, kein doppelter
+// Drop-Shadow. So wirkt das Profil als Teil der Home-Familie, nicht als
+// Fremdkörper.
+
 struct ProfileView: View {
   @EnvironmentObject private var store: GainsStore
+  @EnvironmentObject private var navigation: AppNavigationStore
+  @Environment(\.dismiss) private var dismissProfile
   @ObservedObject private var ble = BLEHeartRateManager.shared
   @ObservedObject private var diagnostics = MetricKitObserver.shared
-  @State private var showWearablePicker = false
+
+  // Sheet-/Edit-State
+  @State private var showsNameEditor = false
+  @State private var showsAvatarOptions = false
+  @State private var showsAvatarPicker = false
+  @State private var avatarPickerItem: PhotosPickerItem?
+  @State private var showsTrackerHub = false
   @State private var showsResetConfirmation = false
   @State private var diagnosticsShareItem: DiagnosticsShareItem? = nil
 
   var body: some View {
-    // Konsistenz: gleicher animierter Hintergrund wie in den restlichen
-    // Tabs, statt einer einfachen Background-Color. Vorher fühlte sich das
-    // Profil dadurch optisch wie ein Fremdkörper an.
     ZStack {
       GainsAppBackground()
 
       ScrollView(showsIndicators: false) {
-        VStack(alignment: .leading, spacing: 22) {
-          header
-          statsRow
-          trackerSection
-          goalsSection
-          settingsSection
-          diagnosticsSection
+        VStack(alignment: .leading, spacing: 18) {
+          heroCard
+          pulseStrip
+          planCard
+          trackerCard
+          optionsCard
+          diagnosticsCard
           #if DEBUG
-          debugSection
+          debugCard
           #endif
         }
         .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 28)
+        .padding(.top, 8)
+        .padding(.bottom, 32)
       }
+    }
+    // Avatar-Picker: PhotosPicker hängt am View, getriggert durch das
+    // ConfirmationDialog (Foto wählen / Entfernen / Abbrechen). Das
+    // entkoppelt Tap-Source (Avatar-Tile) von Picker-Lifecycle und macht
+    // „Entfernen" ohne Picker-Umweg möglich.
+    .photosPicker(isPresented: $showsAvatarPicker, selection: $avatarPickerItem, matching: .images)
+    .onChange(of: avatarPickerItem) { _, newItem in
+      Task { await loadAvatar(from: newItem) }
+    }
+    .confirmationDialog("Profilbild", isPresented: $showsAvatarOptions, titleVisibility: .visible) {
+      Button("Foto auswählen") { showsAvatarPicker = true }
+      if store.userAvatarImage != nil {
+        Button("Foto entfernen", role: .destructive) {
+          store.setUserAvatar(nil)
+        }
+      }
+      Button("Abbrechen", role: .cancel) {}
+    }
+    .sheet(isPresented: $showsNameEditor) {
+      NameEditSheet(currentName: store.userName) { newName in
+        store.setUserName(newName)
+      }
+      .presentationDetents([.height(280)])
+      .presentationBackground(GainsColor.background)
+    }
+    .sheet(isPresented: $showsTrackerHub) {
+      WearablePickerSheet()
     }
     .sheet(item: $diagnosticsShareItem) { item in
       DiagnosticsShareSheet(text: item.text)
     }
   }
 
-  // MARK: - Header
+  // MARK: - Hero (editierbarer Avatar + Name)
 
-  private var header: some View {
-    HStack(spacing: 16) {
-      Circle()
-        .fill(GainsColor.ctaSurface)
-        .frame(width: 64, height: 64)
-        .overlay {
-          Text(store.userName.isEmpty ? "?" : String(store.userName.prefix(1)).uppercased())
-            .font(GainsFont.display(28))
-            .foregroundStyle(GainsColor.lime)
-        }
+  private var heroCard: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.l) {
+      heroHeader
+      heroIdentity
+    }
+    .padding(GainsSpacing.l)
+    .background(heroBackground)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
+        .strokeBorder(GainsColor.lime.opacity(0.32), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
+    .gainsAccentGlow(GainsColor.lime, radius: 14)
+    .gainsHeroShadow()
+  }
 
+  private var heroBackground: some View {
+    ZStack {
+      GainsColor.card
+      RadialGradient(
+        colors: [GainsColor.lime.opacity(0.16), .clear],
+        center: .topLeading,
+        startRadius: 0,
+        endRadius: 240
+      )
+      .blendMode(.screen)
+    }
+  }
+
+  private var heroHeader: some View {
+    HStack(spacing: 10) {
+      PulsingDot(color: GainsColor.lime, coreSize: 6, haloSize: 16)
+      Text("PROFIL")
+        .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.6)
+      Spacer(minLength: 8)
+      Text(memberSinceLine)
+        .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.4)
+        .lineLimit(1)
+    }
+  }
+
+  private var heroIdentity: some View {
+    HStack(alignment: .center, spacing: 18) {
+      avatarTile
       VStack(alignment: .leading, spacing: 6) {
-        Text(store.userName)
-          .font(GainsFont.title(24))
-          .foregroundStyle(GainsColor.ink)
-
-        SlashLabel(
-          parts: ["STREAK", "\(store.streakDays) TAGE", "REKORD \(store.recordDays)"],
-          primaryColor: GainsColor.lime,
-          secondaryColor: GainsColor.softInk
-        )
-      }
-
-      Spacer()
-    }
-    .padding(18)
-    .gainsCardStyle()
-  }
-
-  // MARK: - Stats
-
-  private var statsRow: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["DEINE", "STATS"],
-        primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk
-      )
-
-      HStack(spacing: 10) {
-        StatCard(
-          title: "SESSIONS",
-          value: "\(store.workoutHistory.count)",
-          valueAccent: false,
-          subtitle: "Gesamt",
-          background: GainsColor.card,
-          foreground: GainsColor.ink
-        )
-
-        StatCard(
-          title: "VOLUMEN",
-          value: String(format: "%.1f T", store.weeklyVolumeTons),
-          valueAccent: false,
-          subtitle: "7 Tage",
-          background: GainsColor.card,
-          foreground: GainsColor.ink
-        )
-
-        StatCard(
-          title: "PRs",
-          value: "+ \(store.personalRecordCount)",
-          valueAccent: false,
-          subtitle: "Rekorde",
-          background: GainsColor.lime,
-          foreground: GainsColor.onLime
-        )
-      }
-    }
-  }
-
-  // MARK: - Tracker
-
-  private var trackerSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["TRACKER", "VERBINDEN"],
-        primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk
-      )
-
-      // ── Bluetooth-Sensor-Zeile (echte BLE-Verbindung) ───────────────
-      Button { showWearablePicker = true } label: {
-        bleTrackerRow
-      }
-      .buttonStyle(.plain)
-      .sheet(isPresented: $showWearablePicker) {
-        WearablePickerSheet()
-      }
-
-      // ── HealthKit + App-basierte Tracker ─────────────────────────────
-      VStack(spacing: 1) {
-        ForEach(Array(store.trackerOptions.enumerated()), id: \.element.id) { index, tracker in
-          Button {
-            store.toggleTrackerConnection(tracker.id)
-          } label: {
-            trackerRow(tracker: tracker)
+        Button {
+          showsNameEditor = true
+        } label: {
+          HStack(spacing: 8) {
+            Text(displayName)
+              .font(GainsFont.display(28))
+              .foregroundStyle(GainsColor.ink)
+              .lineLimit(1)
+              .minimumScaleFactor(0.7)
+            Image(systemName: "pencil.circle.fill")
+              .font(.system(size: 16, weight: .semibold))
+              .foregroundStyle(GainsColor.lime.opacity(0.7))
           }
-          .buttonStyle(.plain)
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Name ändern")
 
-          if index < store.trackerOptions.count - 1 {
-            Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        Text(displayName == "Dein Name" ? "Tippe, um deinen Namen festzulegen" : currentTagline)
+          .gainsBody(secondary: true)
+          .lineLimit(2)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      Spacer(minLength: 0)
+    }
+  }
+
+  private var avatarTile: some View {
+    Button {
+      showsAvatarOptions = true
+    } label: {
+      ZStack(alignment: .bottomTrailing) {
+        Group {
+          if let image = store.userAvatarImage {
+            Image(uiImage: image)
+              .resizable()
+              .scaledToFill()
+          } else {
+            ZStack {
+              GainsColor.ctaSurface
+              Text(initialLetter)
+                .font(GainsFont.display(34))
+                .foregroundStyle(GainsColor.lime)
+            }
           }
         }
-      }
-      .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.65), lineWidth: 1)
-      )
-    }
-  }
+        .frame(width: 84, height: 84)
+        .clipShape(Circle())
+        .overlay(
+          Circle().stroke(GainsColor.lime.opacity(0.55), lineWidth: 1.2)
+        )
+        .shadow(color: GainsColor.lime.opacity(0.18), radius: 10, x: 0, y: 4)
 
-  // Zeile für echte BLE-Geräte (Polar, Garmin, Wahoo …)
-  private var bleTrackerRow: some View {
-    HStack(spacing: 12) {
-      ZStack {
-        Circle()
-          .fill(ble.isConnected ? GainsColor.lime.opacity(0.18) : GainsColor.elevated)
-          .frame(width: 36, height: 36)
-        Image(systemName: ble.isConnected ? "heart.fill" : "sensor.tag.radiowaves.forward.fill")
-          .font(.system(size: 15, weight: .semibold))
-          .foregroundStyle(ble.isConnected ? GainsColor.lime : GainsColor.softInk)
-      }
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text(ble.connectedDevice?.name ?? "Bluetooth HR-Sensor")
-          .font(GainsFont.body())
-          .foregroundStyle(GainsColor.ink)
-
-        if ble.isConnected, let bpm = ble.liveHeartRate {
-          Text("\(bpm) bpm · Live")
-            .font(GainsFont.label(10))
-            .tracking(1.0)
-            .foregroundStyle(GainsColor.lime)
-        } else {
-          Text(ble.isConnected ? "Verbunden · keine HF" : "Polar · Garmin · Wahoo · u.v.m.")
-            .font(GainsFont.label(10))
-            .tracking(1.0)
-            .foregroundStyle(GainsColor.softInk)
-        }
-      }
-
-      Spacer()
-
-      HStack(spacing: 6) {
-        if ble.isConnected {
+        ZStack {
           Circle()
             .fill(GainsColor.lime)
-            .frame(width: 6, height: 6)
+            .frame(width: 28, height: 28)
+            .overlay(Circle().stroke(GainsColor.background, lineWidth: 2))
+          Image(systemName: "camera.fill")
+            .font(.system(size: 11, weight: .heavy))
+            .foregroundStyle(GainsColor.onLime)
         }
-        Text(ble.isConnected ? "VERBUNDEN" : "EINRICHTEN")
-          .font(GainsFont.label(10))
-          .tracking(1.4)
-          .foregroundStyle(ble.isConnected ? GainsColor.onLime : GainsColor.lime)
-          .frame(height: 30)
-          .padding(.horizontal, 10)
-          .background(ble.isConnected ? GainsColor.lime : GainsColor.elevated)
-          .clipShape(Capsule())
+        .offset(x: 2, y: 2)
       }
+      .contentShape(Rectangle())
     }
+    .buttonStyle(.plain)
+    .accessibilityLabel("Profilbild ändern")
+  }
+
+  // MARK: - Pulse Strip (Streak / Sessions / PRs)
+  //
+  // Ersetzt die ehemalige „DEINE STATS"-Sektion mit drei großen Cards. Die
+  // gleiche Mini-Tile-Sprache wie der Home-Pulse-Strip — kompakt, ohne
+  // SlashLabel-Überschrift (würde hier nur Lärm machen).
+
+  private var pulseStrip: some View {
+    HStack(spacing: 10) {
+      profilePulseTile(
+        icon: "flame.fill",
+        eyebrow: "STREAK",
+        value: "\(store.streakDays)",
+        detail: store.streakDays == 1 ? "TAG" : "TAGE",
+        accent: GainsColor.lime
+      )
+      profilePulseTile(
+        icon: "checkmark.seal.fill",
+        eyebrow: "SESSIONS",
+        value: "\(store.workoutHistory.count)",
+        detail: "GESAMT",
+        accent: GainsColor.accentCool
+      )
+      profilePulseTile(
+        icon: "trophy.fill",
+        eyebrow: "PRs",
+        value: "+\(store.personalRecordCount)",
+        detail: "REKORDE",
+        accent: GainsColor.ember
+      )
+    }
+  }
+
+  private func profilePulseTile(
+    icon: String,
+    eyebrow: String,
+    value: String,
+    detail: String,
+    accent: Color
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 6) {
+        Image(systemName: icon)
+          .font(.system(size: 11, weight: .heavy))
+          .foregroundStyle(accent)
+        Text(eyebrow)
+          .gainsEyebrow(accent, size: 10, tracking: 1.4)
+          .lineLimit(1)
+      }
+      Text(value)
+        .gainsMetric(GainsColor.ink, size: .standard)
+      Text(detail)
+        .gainsEyebrow(GainsColor.softInk, size: 9, tracking: 1.2)
+        .lineLimit(1)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.horizontal, 14)
     .padding(.vertical, 12)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     .overlay(
-      RoundedRectangle(cornerRadius: 20, style: .continuous)
-        .stroke(
-          ble.isConnected ? GainsColor.lime.opacity(0.4) : GainsColor.border.opacity(0.65),
-          lineWidth: 1
-        )
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .strokeBorder(GainsColor.border.opacity(0.55), lineWidth: GainsBorder.hairline)
     )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
-  private func trackerRow(tracker: TrackerDevice) -> some View {
-    let isConnected = store.isTrackerConnected(tracker.id)
-    return HStack(spacing: 12) {
-      Circle()
-        .fill(Color(hex: tracker.accentHex).opacity(0.18))
-        .frame(width: 36, height: 36)
-        .overlay {
-          Circle()
-            .fill(Color(hex: tracker.accentHex))
-            .frame(width: 10, height: 10)
-        }
+  // MARK: - Plan-Card
 
-      VStack(alignment: .leading, spacing: 2) {
-        Text(tracker.name)
-          .font(GainsFont.body())
+  private var planCard: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      cardHeader(eyebrow: "PLAN", icon: "calendar.badge.plus", accent: GainsColor.lime)
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text("Wochenstruktur")
+          .font(GainsFont.title(20))
           .foregroundStyle(GainsColor.ink)
-
-        Text(tracker.source)
-          .font(GainsFont.label(10))
-          .tracking(1.2)
-          .foregroundStyle(GainsColor.softInk)
+        Text("Trainingstage, Kraft/Lauf/Rad und Sessionlänge — alles im PLAN-Tab.")
+          .gainsBody(secondary: true)
+          .lineLimit(3)
+          .fixedSize(horizontal: false, vertical: true)
       }
 
-      Spacer()
-
-      Text(isConnected ? "VERBUNDEN" : "VERBINDEN")
-        .font(GainsFont.label(10))
-        .tracking(1.4)
-        .foregroundStyle(isConnected ? GainsColor.onLime : GainsColor.lime)
-        .frame(width: 96, height: 30)
-        .background(isConnected ? GainsColor.lime : GainsColor.elevated)
-        .clipShape(Capsule())
-    }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
-  }
-
-  // MARK: - Goals
-
-  private var goalsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["ZIELE", "EINSTELLUNGEN"],
-        primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk
-      )
-
-      VStack(spacing: 1) {
-        settingsRow(
+      VStack(spacing: 0) {
+        planSummaryRow(
           icon: "calendar.badge.checkmark",
-          title: "Sessions pro Woche",
+          title: "Sessions / Woche",
           value: "\(store.plannerSettings.sessionsPerWeek)"
         )
-
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        settingsRow(
+        planDivider
+        planSummaryRow(
           icon: "clock",
           title: "Session-Länge",
           value: "\(store.plannerSettings.preferredSessionLength) Min"
         )
-
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        settingsRow(
+        planDivider
+        planSummaryRow(
           icon: "target",
           title: "Fokus",
           value: store.plannerSettings.goal.title
         )
-
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        settingsRow(
+        planDivider
+        planSummaryRow(
           icon: "figure.strengthtraining.traditional",
           title: "Trainingstyp",
           value: store.plannerSettings.trainingFocus.shortTitle
         )
       }
-      .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.65), lineWidth: 1)
-      )
-    }
-  }
+      .padding(.vertical, 4)
+      .background(GainsColor.ctaSurface.opacity(0.6))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
-  // MARK: - Settings
-
-  private var settingsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["APP", "OPTIONEN"],
-        primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk
-      )
-
-      VStack(spacing: 1) {
-        Button {
-          store.toggleNotificationsEnabled()
-        } label: {
-          settingsRow(
-            icon: "bell",
-            title: "Benachrichtigungen",
-            value: store.notificationsEnabled ? "Ein" : "Aus"
-          )
+      Button {
+        // Reihenfolge: erst openPlanner (setzt pendingGymTab + selectedTab),
+        // dann das Sheet schließen — User sieht keinen leeren Home-Zwischenzustand.
+        navigation.openPlanner()
+        dismissProfile()
+      } label: {
+        HStack(spacing: 12) {
+          Image(systemName: "slider.horizontal.3")
+            .font(.system(size: 13, weight: .heavy))
+            .foregroundStyle(GainsColor.lime)
+          Text("PLAN ANPASSEN")
+            .font(GainsFont.label(13))
+            .tracking(1.8)
+            .foregroundStyle(GainsColor.ink)
+          Spacer(minLength: 0)
+          Image(systemName: "arrow.right")
+            .font(.system(size: 12, weight: .heavy))
+            .foregroundStyle(GainsColor.lime)
         }
-        .buttonStyle(.plain)
-
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        Button {
-          store.toggleHealthAutoSyncEnabled()
-        } label: {
-          settingsRow(
-            icon: "arrow.trianglehead.2.clockwise",
-            title: "Auto-Sync",
-            value: store.healthAutoSyncEnabled ? "Aktiv" : "Pausiert"
-          )
-        }
-        .buttonStyle(.plain)
-
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        Button {
-          store.toggleStudyBasedCoachingEnabled()
-        } label: {
-          settingsRow(
-            icon: "brain",
-            title: "Coach-Empfehlungen",
-            value: store.studyBasedCoachingEnabled ? "Aktiv" : "Aus"
-          )
-        }
-        .buttonStyle(.plain)
-
-        // A8: Darstellungs-Row entfernt — App läuft jetzt Dark-Only,
-        // Picker hätte keine Wirkung mehr.
-
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
-
-        settingsRow(icon: "info.circle", title: "Version", value: "1.0")
+        .padding(.horizontal, 16)
+        .frame(height: 50)
+        .background(GainsColor.lime.opacity(0.10))
+        .overlay(
+          RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+            .strokeBorder(GainsColor.lime.opacity(0.45), lineWidth: GainsBorder.hairline)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
-      .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.65), lineWidth: 1)
-      )
+      .buttonStyle(.plain)
     }
+    .padding(18)
+    .gainsCardStyle()
   }
 
-  // MARK: - Diagnose (immer sichtbar — auch in TestFlight)
+  private func planSummaryRow(icon: String, title: String, value: String) -> some View {
+    HStack(spacing: 12) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+        .frame(width: 28, height: 28)
+        .background(GainsColor.lime.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.tiny, style: .continuous))
 
-  private var diagnosticsSection: some View {
-    VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["DIAGNOSE", "REPORTS"],
-        primaryColor: GainsColor.lime,
-        secondaryColor: GainsColor.softInk
-      )
-
-      Text("Wenn die App abstürzt oder hängt, sammelt iOS automatisch einen Diagnose-Report. Du kannst ihn hier teilen, um uns beim Fehlersuchen zu helfen.")
-        .font(GainsFont.body(13))
+      Text(title)
+        .font(GainsFont.body(14))
+        .foregroundStyle(GainsColor.ink)
+      Spacer()
+      Text(value)
+        .font(.system(size: 14, weight: .semibold, design: .monospaced))
         .foregroundStyle(GainsColor.softInk)
+    }
+    .padding(.horizontal, 14)
+    .padding(.vertical, 10)
+  }
+
+  private var planDivider: some View {
+    Divider()
+      .overlay(GainsColor.border.opacity(0.4))
+      .padding(.horizontal, 14)
+  }
+
+  // MARK: - Tracker-Card
+  //
+  // Vor dem Re-Design hat das Profil zwei separate Tracker-UIs gerendert:
+  // eine BLE-Zeile + eine 4-Plattform-Liste. Beide sind heute im
+  // `TrackerHubSheet` zusammengefasst — die Profil-Card zeigt nur noch eine
+  // einzige Status-Zeile mit Connection-Counter.
+
+  private var trackerCard: some View {
+    Button {
+      showsTrackerHub = true
+    } label: {
+      VStack(alignment: .leading, spacing: 14) {
+        cardHeader(eyebrow: "TRACKER", icon: "antenna.radiowaves.left.and.right", accent: GainsColor.accentCool)
+
+        HStack(alignment: .center, spacing: 14) {
+          ZStack {
+            Circle()
+              .fill(trackerAccent.opacity(0.15))
+              .frame(width: 48, height: 48)
+            Image(systemName: trackerIcon)
+              .font(.system(size: 19, weight: .semibold))
+              .foregroundStyle(trackerAccent)
+          }
+
+          VStack(alignment: .leading, spacing: 4) {
+            Text(trackerHeadline)
+              .font(GainsFont.title(18))
+              .foregroundStyle(GainsColor.ink)
+              .lineLimit(1)
+            Text(trackerSubline)
+              .gainsBody(secondary: true)
+              .lineLimit(2)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+
+          Spacer(minLength: 0)
+
+          Image(systemName: "chevron.right")
+            .font(.system(size: 13, weight: .bold))
+            .foregroundStyle(GainsColor.softInk)
+        }
+      }
+      .padding(18)
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .buttonStyle(.plain)
+    .gainsCardStyle()
+  }
+
+  private var connectedTrackerCount: Int {
+    store.connectedTrackerIDs.count + (ble.isConnected ? 1 : 0)
+  }
+
+  private var totalTrackerCount: Int {
+    store.trackerOptions.count + 1 // BLE-Sensor zählt mit
+  }
+
+  private var trackerAccent: Color {
+    connectedTrackerCount > 0 ? GainsColor.lime : GainsColor.accentCool
+  }
+
+  private var trackerIcon: String {
+    if ble.isConnected { return "heart.fill" }
+    return connectedTrackerCount > 0 ? "checkmark.circle.fill" : "sensor.tag.radiowaves.forward.fill"
+  }
+
+  private var trackerHeadline: String {
+    if connectedTrackerCount == 0 { return "Tracker verbinden" }
+    return "\(connectedTrackerCount) von \(totalTrackerCount) verbunden"
+  }
+
+  private var trackerSubline: String {
+    if let bpm = ble.liveHeartRate, ble.isConnected {
+      return "Live-HF \(bpm) bpm · Apple Health, WHOOP, Garmin u.v.m."
+    }
+    if connectedTrackerCount == 0 {
+      return "Apple Health, WHOOP, Garmin, Polar — alles in einem Sheet."
+    }
+    return "Apple Health, WHOOP, Garmin, BLE-Sensoren verwalten."
+  }
+
+  // MARK: - Optionen-Card (echte Toggles)
+
+  private var optionsCard: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      cardHeader(eyebrow: "OPTIONEN", icon: "slider.horizontal.3", accent: GainsColor.softInk)
+
+      VStack(spacing: 0) {
+        toggleRow(
+          icon: "bell.fill",
+          title: "Benachrichtigungen",
+          subtitle: "Erinnerungen für Workouts und Coach-Tipps",
+          binding: Binding(
+            get: { store.notificationsEnabled },
+            set: { _ in store.toggleNotificationsEnabled() }
+          )
+        )
+        planDivider
+        toggleRow(
+          icon: "arrow.trianglehead.2.clockwise",
+          title: "Auto-Sync",
+          subtitle: "Apple Health & Tracker im Hintergrund abgleichen",
+          binding: Binding(
+            get: { store.healthAutoSyncEnabled },
+            set: { _ in store.toggleHealthAutoSyncEnabled() }
+          )
+        )
+        planDivider
+        toggleRow(
+          icon: "brain",
+          title: "Coach-Empfehlungen",
+          subtitle: "Adaptive Tipps aus Studien & Trainingsdaten",
+          binding: Binding(
+            get: { store.studyBasedCoachingEnabled },
+            set: { _ in store.toggleStudyBasedCoachingEnabled() }
+          )
+        )
+        planDivider
+        infoRow(icon: "info.circle", title: "Version", value: "1.0")
+      }
+      .padding(.vertical, 4)
+      .background(GainsColor.ctaSurface.opacity(0.6))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    }
+    .padding(18)
+    .gainsCardStyle()
+  }
+
+  private func toggleRow(
+    icon: String,
+    title: String,
+    subtitle: String,
+    binding: Binding<Bool>
+  ) -> some View {
+    HStack(alignment: .center, spacing: 12) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(binding.wrappedValue ? GainsColor.lime : GainsColor.softInk)
+        .frame(width: 32, height: 32)
+        .background((binding.wrappedValue ? GainsColor.lime : GainsColor.softInk).opacity(0.14))
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(GainsFont.body(15))
+          .foregroundStyle(GainsColor.ink)
+        Text(subtitle)
+          .gainsCaption(GainsColor.softInk)
+          .lineLimit(2)
+      }
+      Spacer(minLength: 6)
+      Toggle("", isOn: binding)
+        .labelsHidden()
+        .tint(GainsColor.lime)
+    }
+    .padding(.horizontal, 14)
+    .padding(.vertical, 10)
+  }
+
+  private func infoRow(icon: String, title: String, value: String) -> some View {
+    HStack(spacing: 12) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(GainsColor.softInk)
+        .frame(width: 32, height: 32)
+        .background(GainsColor.softInk.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+
+      Text(title)
+        .font(GainsFont.body(15))
+        .foregroundStyle(GainsColor.ink)
+      Spacer()
+      Text(value)
+        .font(.system(size: 14, weight: .semibold, design: .monospaced))
+        .foregroundStyle(GainsColor.softInk)
+    }
+    .padding(.horizontal, 14)
+    .padding(.vertical, 12)
+  }
+
+  // MARK: - Diagnose
+
+  private var diagnosticsCard: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      cardHeader(eyebrow: "DIAGNOSE", icon: "stethoscope", accent: GainsColor.softInk)
+
+      Text("Wenn die App abstürzt oder hängt, sammelt iOS einen Diagnose-Report. Du kannst ihn hier teilen, um beim Fehlersuchen zu helfen.")
+        .gainsCaption(GainsColor.softInk)
         .lineSpacing(2)
         .fixedSize(horizontal: false, vertical: true)
 
-      VStack(spacing: 1) {
+      HStack(spacing: 10) {
         Button {
           diagnosticsShareItem = DiagnosticsShareItem(text: diagnostics.exportableText())
         } label: {
-          settingsRow(
+          diagnosticsButton(
             icon: "square.and.arrow.up",
-            title: "Reports teilen",
-            value: diagnostics.diagnosticCount == 0
+            title: "REPORTS TEILEN",
+            subtitle: diagnostics.diagnosticCount == 0
               ? "Keine"
-              : "\(diagnostics.diagnosticCount) gespeichert"
+              : "\(diagnostics.diagnosticCount) gespeichert",
+            accent: GainsColor.lime
           )
         }
         .buttonStyle(.plain)
         .disabled(diagnostics.diagnosticCount == 0)
+        .opacity(diagnostics.diagnosticCount == 0 ? 0.45 : 1.0)
 
         if diagnostics.diagnosticCount > 0 {
-          Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
           Button {
             diagnostics.clearStoredEntries()
           } label: {
-            settingsRow(
+            diagnosticsButton(
               icon: "xmark.bin",
-              title: "Reports löschen",
-              value: "Lokal"
+              title: "LÖSCHEN",
+              subtitle: "Lokal",
+              accent: GainsColor.ember
             )
           }
           .buttonStyle(.plain)
         }
       }
-      .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.65), lineWidth: 1)
-      )
     }
+    .padding(18)
+    .gainsCardStyle()
+  }
+
+  private func diagnosticsButton(icon: String, title: String, subtitle: String, accent: Color) -> some View {
+    HStack(spacing: 10) {
+      Image(systemName: icon)
+        .font(.system(size: 13, weight: .heavy))
+        .foregroundStyle(accent)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(title)
+          .font(GainsFont.label(11))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.ink)
+        Text(subtitle)
+          .gainsEyebrow(GainsColor.softInk, size: 9, tracking: 1.2)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, 14)
+    .padding(.vertical, 12)
+    .background(GainsColor.ctaSurface.opacity(0.7))
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .strokeBorder(accent.opacity(0.3), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: - DEBUG
 
   #if DEBUG
-  @AppStorage("gains_hasCompletedOnboarding") private var hasCompletedOnboarding = false
+  @AppStorage(GainsKey.hasCompletedOnboarding) private var hasCompletedOnboarding = false
 
-  private var debugSection: some View {
+  private var debugCard: some View {
     VStack(alignment: .leading, spacing: 12) {
-      SlashLabel(
-        parts: ["DEBUG", "DEMO-DATEN"],
-        primaryColor: GainsColor.ember,
-        secondaryColor: GainsColor.softInk
-      )
+      cardHeader(eyebrow: "DEBUG · DEMO", icon: "wrench.and.screwdriver.fill", accent: GainsColor.ember)
 
-      Text("Nur in Entwicklungs-Builds sichtbar — fürs Aufnehmen von Screenshots oder das schnelle Test-Befüllen.")
-        .font(GainsFont.body(12))
-        .foregroundStyle(GainsColor.softInk)
+      Text("Nur in Entwicklungs-Builds sichtbar — fürs Aufnehmen von Screenshots oder schnelles Test-Befüllen.")
+        .gainsCaption(GainsColor.softInk)
 
-      VStack(spacing: 1) {
+      VStack(spacing: 0) {
         Button {
           store.loadDemoData()
         } label: {
-          settingsRow(
-            icon: "wand.and.stars",
-            title: "Demo-Daten laden",
-            value: "Mock"
-          )
+          infoRow(icon: "wand.and.stars", title: "Demo-Daten laden", value: "Mock")
         }
         .buttonStyle(.plain)
 
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        planDivider
 
         Button {
           hasCompletedOnboarding = false
         } label: {
-          settingsRow(
-            icon: "arrow.uturn.backward.circle",
-            title: "Onboarding erneut zeigen",
-            value: "Replay"
-          )
+          infoRow(icon: "arrow.uturn.backward.circle", title: "Onboarding zeigen", value: "Replay")
         }
         .buttonStyle(.plain)
 
-        Divider().overlay(GainsColor.border.opacity(0.5)).padding(.horizontal, 14)
+        planDivider
 
         Button {
           showsResetConfirmation = true
         } label: {
-          settingsRow(
-            icon: "trash",
-            title: "Alle Daten löschen",
-            value: "Reset"
-          )
+          infoRow(icon: "trash", title: "Alle Daten löschen", value: "Reset")
         }
         .buttonStyle(.plain)
       }
-      .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-      .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .stroke(GainsColor.ember.opacity(0.4), lineWidth: 1)
-      )
+      .padding(.vertical, 4)
+      .background(GainsColor.ctaSurface.opacity(0.6))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
-    .alert("Wirklich alle Daten löschen?",
-           isPresented: $showsResetConfirmation) {
+    .padding(18)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .strokeBorder(GainsColor.ember.opacity(0.4), lineWidth: GainsBorder.accent)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    .alert(
+      "Wirklich alle Daten löschen?",
+      isPresented: $showsResetConfirmation
+    ) {
       Button("Abbrechen", role: .cancel) {}
       Button("Löschen", role: .destructive) {
         store.clearAllData()
@@ -512,32 +717,197 @@ struct ProfileView: View {
   }
   #endif
 
-  // MARK: - Helpers
+  // MARK: - Card-Header (gemeinsamer Eyebrow + Icon-Kapsel)
 
-  private func settingsRow(icon: String, title: String, value: String) -> some View {
-    HStack(spacing: 12) {
-      Image(systemName: icon)
-        .font(.system(size: 16, weight: .medium))
-        .foregroundStyle(GainsColor.moss)
-        .frame(width: 32, height: 32)
-        .background(GainsColor.lime.opacity(0.28))
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-
-      Text(title)
-        .font(GainsFont.body())
-        .foregroundStyle(GainsColor.ink)
-
-      Spacer()
-
-      Text(value)
-        .font(GainsFont.body())
-        .foregroundStyle(GainsColor.softInk)
-
-      Image(systemName: "chevron.right")
-        .font(.system(size: 12, weight: .semibold))
-        .foregroundStyle(GainsColor.border)
+  private func cardHeader(eyebrow: String, icon: String, accent: Color) -> some View {
+    HStack(spacing: 10) {
+      ZStack {
+        Circle()
+          .fill(accent.opacity(0.16))
+          .frame(width: 26, height: 26)
+        Image(systemName: icon)
+          .font(.system(size: 11, weight: .heavy))
+          .foregroundStyle(accent)
+      }
+      Text(eyebrow)
+        .gainsEyebrow(accent, size: 11, tracking: 1.6)
+      Spacer(minLength: 0)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 12)
+  }
+
+  // MARK: - Computed Helpers
+
+  private var displayName: String {
+    store.userName.isEmpty ? "Dein Name" : store.userName
+  }
+
+  private var initialLetter: String {
+    let trimmed = store.userName.trimmingCharacters(in: .whitespaces)
+    guard let first = trimmed.first else { return "·" }
+    return String(first).uppercased()
+  }
+
+  private var memberSinceLine: String {
+    // workoutHistory + runHistory sind beide DESC sortiert (neueste zuerst),
+    // also liefert `.last` den ältesten Eintrag — perfekter „seit"-Anker.
+    let firstWorkout = store.workoutHistory.last?.finishedAt
+    let firstRun = store.runHistory.last?.finishedAt
+    let earliest: Date?
+    switch (firstWorkout, firstRun) {
+    case let (w?, r?): earliest = min(w, r)
+    case let (w?, nil): earliest = w
+    case let (nil, r?): earliest = r
+    default: earliest = nil
+    }
+    if let earliest {
+      return "MITGLIED SEIT \(monthYearFormatter.string(from: earliest).uppercased())"
+    }
+    return "FRISCH AN BORD"
+  }
+
+  /// Eine knappe, auf den User zugeschnittene Subline. Variiert mit Streak/
+  /// Aktivität — so liest sich das Profil nicht wie ein leeres Account-Form.
+  private var currentTagline: String {
+    let sessions = store.workoutHistory.count
+    let streak = store.streakDays
+    if sessions == 0 && streak == 0 {
+      return "Bereit für deine erste Session."
+    }
+    if streak >= 7 {
+      return "\(streak) Tage in Folge — du bist im Groove."
+    }
+    if streak >= 3 {
+      return "Streak läuft — \(streak) Tage am Stück."
+    }
+    if sessions >= 50 {
+      return "\(sessions) Sessions im Logbuch."
+    }
+    if sessions > 0 {
+      return "\(sessions) abgeschlossene Sessions bisher."
+    }
+    return "Lass uns deinen ersten Tag starten."
+  }
+
+  private var monthYearFormatter: DateFormatter {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_DE")
+    f.dateFormat = "MMM yyyy"
+    return f
+  }
+
+  // MARK: - Avatar-Loading
+
+  private func loadAvatar(from item: PhotosPickerItem?) async {
+    guard let item else { return }
+    do {
+      if let data = try await item.loadTransferable(type: Data.self),
+         let image = UIImage(data: data) {
+        await MainActor.run {
+          store.setUserAvatar(image)
+          avatarPickerItem = nil
+        }
+      }
+    } catch {
+      // Fehler still ignorieren — der User kann's nochmal versuchen.
+      await MainActor.run { avatarPickerItem = nil }
+    }
+  }
+}
+
+// MARK: - NameEditSheet
+//
+// Kleines, fokussiertes Sheet für die Namensänderung. TextField mit Auto-
+// Focus, Speichern-Primär-Button + Abbrechen — passt visuell ins Profil-
+// Vokabular (Lime-Akzent, Card-Surface).
+
+private struct NameEditSheet: View {
+  let currentName: String
+  let onSave: (String) -> Void
+
+  @Environment(\.dismiss) private var dismiss
+  @State private var draft: String = ""
+  @FocusState private var nameFocused: Bool
+
+  var body: some View {
+    ZStack {
+      GainsColor.background.ignoresSafeArea()
+
+      VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 6) {
+          Text("DEIN NAME")
+            .gainsEyebrow(GainsColor.lime, size: 11, tracking: 1.6)
+          Text("Wie sollen wir dich nennen?")
+            .font(GainsFont.title(20))
+            .foregroundStyle(GainsColor.ink)
+        }
+
+        TextField("z. B. Julius", text: $draft)
+          .font(GainsFont.body(17))
+          .foregroundStyle(GainsColor.ink)
+          .padding(.horizontal, 14)
+          .padding(.vertical, 14)
+          .background(GainsColor.card)
+          .overlay(
+            RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+              .strokeBorder(GainsColor.lime.opacity(0.45), lineWidth: GainsBorder.hairline)
+          )
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+          .focused($nameFocused)
+          .submitLabel(.done)
+          .onSubmit(save)
+          .textInputAutocapitalization(.words)
+          .autocorrectionDisabled(true)
+
+        Spacer(minLength: 0)
+
+        HStack(spacing: 10) {
+          Button {
+            dismiss()
+          } label: {
+            Text("Abbrechen")
+              .font(GainsFont.label(13))
+              .tracking(1.6)
+              .foregroundStyle(GainsColor.softInk)
+              .frame(maxWidth: .infinity)
+              .frame(height: 48)
+              .background(GainsColor.card)
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+              .overlay(
+                RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+                  .strokeBorder(GainsColor.border.opacity(0.6), lineWidth: GainsBorder.hairline)
+              )
+          }
+          .buttonStyle(.plain)
+
+          Button(action: save) {
+            Text("SPEICHERN")
+              .font(GainsFont.label(13))
+              .tracking(1.8)
+              .foregroundStyle(GainsColor.onLime)
+              .frame(maxWidth: .infinity)
+              .frame(height: 48)
+              .background(GainsColor.lime)
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+          }
+          .buttonStyle(.plain)
+          .disabled(draft.trimmingCharacters(in: .whitespaces).isEmpty)
+          .opacity(draft.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
+        }
+      }
+      .padding(.horizontal, 22)
+      .padding(.top, 28)
+      .padding(.bottom, 22)
+    }
+    .onAppear {
+      draft = currentName
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        nameFocused = true
+      }
+    }
+  }
+
+  private func save() {
+    onSave(draft)
+    dismiss()
   }
 }

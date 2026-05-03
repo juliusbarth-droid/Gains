@@ -141,22 +141,32 @@ final class HealthKitManager: ObservableObject {
     }
   }
 
-  /// Speichert einen Lauf als HKWorkout inklusive Distanz, optionaler Energie
-  /// und — wenn vorhanden — der GPS-Route. Die Route wird als `HKWorkoutRoute`
-  /// an das Workout gehängt, damit sie in der iOS-Health-App sichtbar wird.
+  /// Speichert einen Lauf oder eine Rad-Session als HKWorkout inklusive
+  /// Distanz, optionaler Energie und — wenn vorhanden — der GPS-Route.
+  /// Die Route wird als `HKWorkoutRoute` an das Workout gehängt, damit sie
+  /// in der iOS-Health-App sichtbar wird. Indoor-Bike landet als
+  /// `cycling` ohne Route.
+  ///
+  /// `isCycling` schaltet zwischen `.running`/`.cycling` als Activity-Typ
+  /// und zwischen `distanceWalkingRunning`/`distanceCycling` als Distance-
+  /// Typ um, damit Bike-Kilometer nicht in der Lauf-Statistik der Health-App
+  /// landen. Wir nehmen Bool statt `HKWorkoutActivityType`, damit der Store
+  /// nicht zusätzlich `import HealthKit` braucht.
   func saveRunWorkout(
     title: String,
     start: Date,
     end: Date,
     distanceKm: Double,
     totalEnergyKcal: Double = 0,
-    routeCoordinates: [CLLocationCoordinate2D] = []
+    routeCoordinates: [CLLocationCoordinate2D] = [],
+    isCycling: Bool = false
   ) {
     guard canWriteWorkouts else { return }
 
+    let activity: HKWorkoutActivityType = isCycling ? .cycling : .running
     let builder = HKWorkoutBuilder(
       healthStore: healthStore,
-      configuration: workoutConfiguration(activity: .running),
+      configuration: workoutConfiguration(activity: activity),
       device: .local()
     )
     var metadata: [String: Any] = [HKMetadataKeyWorkoutBrandName: "Gains"]
@@ -168,8 +178,13 @@ final class HealthKitManager: ObservableObject {
       guard success, let self else { return }
 
       var samples: [HKSample] = []
+      // Bike-Sessions schreiben Distanz unter `distanceCycling`, Lauf unter
+      // `distanceWalkingRunning` — sonst landen Rad-Kilometer in der
+      // Lauf-Statistik der Health-App.
+      let distanceIdentifier: HKQuantityTypeIdentifier =
+        isCycling ? .distanceCycling : .distanceWalkingRunning
       if distanceKm > 0,
-         let distanceType = HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning) {
+         let distanceType = HKQuantityType.quantityType(forIdentifier: distanceIdentifier) {
         let quantity = HKQuantity(unit: .meterUnit(with: .kilo), doubleValue: distanceKm)
         samples.append(
           HKQuantitySample(type: distanceType, quantity: quantity, start: start, end: end))

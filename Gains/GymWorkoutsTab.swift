@@ -108,7 +108,7 @@ struct GymWorkoutsTab: View {
               .frame(maxWidth: .infinity)
               .frame(height: 42)
               .background(GainsColor.background.opacity(0.8))
-              .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
             .buttonStyle(.plain)
           }
@@ -219,10 +219,10 @@ struct GymWorkoutsTab: View {
     .frame(height: 44)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.6), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: - Library-Stats Zeile

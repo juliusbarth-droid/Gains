@@ -140,7 +140,65 @@ struct ProgressContentView: View {
       goalsSection
       highlightsSection
       historySection
+      // H4-Fix (2026-05-01): Footer-CTA, damit der lange Scroll nicht
+      // ohne nächstes Schritt-Signal endet. Verlinkt kontextsensitiv:
+      // wenn heute geplant ist → Plan, sonst → Training starten.
+      progressFooterCTA
     }
+  }
+
+  /// Footer-CTA, der am Ende der ProgressContentView den nächsten Schritt
+  /// signalisiert. Wirkt wie ein Pulsschluss am Ende der Story-Sektionen.
+  private var progressFooterCTA: some View {
+    let plan = store.todayPlannedDay
+    let isPlanned = plan.status == .planned
+    let title: String = isPlanned ? "Heute starten" : "Plan ansehen"
+    let subtitle: String = isPlanned
+      ? plan.workoutPlan?.title ?? plan.title
+      : "Wochenplan anpassen"
+    let icon: String = isPlanned ? "play.fill" : "calendar"
+
+    return Button {
+      if isPlanned {
+        navigation.openTraining(workspace: .kraft)
+      } else {
+        navigation.openPlanner()
+      }
+    } label: {
+      HStack(spacing: 14) {
+        ZStack {
+          Circle()
+            .fill(GainsColor.lime.opacity(0.18))
+            .frame(width: 42, height: 42)
+          Image(systemName: icon)
+            .font(.system(size: 16, weight: .bold))
+            .foregroundStyle(GainsColor.onLime)
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          Text("NÄCHSTER SCHRITT")
+            .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.4)
+          Text(title)
+            .font(GainsFont.title(17))
+            .foregroundStyle(GainsColor.ink)
+          Text(subtitle)
+            .font(GainsFont.body(11))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(1)
+        }
+        Spacer(minLength: 0)
+        Image(systemName: "arrow.up.right")
+          .font(.system(size: 13, weight: .heavy))
+          .foregroundStyle(GainsColor.softInk)
+      }
+      .padding(14)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+          .strokeBorder(GainsColor.lime.opacity(0.4), lineWidth: GainsBorder.hairline)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    }
+    .buttonStyle(.plain)
   }
 
   // MARK: - 1. Story-Hero (dynamisch)
@@ -396,8 +454,14 @@ struct ProgressContentView: View {
 
   private func heroAction(for hero: ProgressHero) {
     switch hero {
-    case .personalRecord, .streak, .weekComplete, .onTrack, .starting:
+    case .personalRecord, .streak, .weekComplete, .onTrack:
       navigation.openTraining(workspace: .kraft)
+    case .starting:
+      // H6-Fix (2026-05-01): Erstanfänger ohne Plan/Daten landeten via
+      // openTraining(.kraft) in einer leeren Gym-Session. Stattdessen
+      // den Planner öffnen, damit sie zuerst einen Plan auswählen oder
+      // einen eigenen anlegen.
+      navigation.openPlanner()
     case .weightLow:
       store.logWeightCheckIn()
     case .longestRun:
@@ -454,7 +518,11 @@ struct ProgressContentView: View {
       let baseline = bestAllTime[name] ?? 0
       let delta = weight - baseline
       if delta > 0.01 {
-        if bestDelta == nil || delta > bestDelta!.delta {
+        if let current = bestDelta {
+          if delta > current.delta {
+            bestDelta = (name, weight, delta)
+          }
+        } else {
           bestDelta = (name, weight, delta)
         }
       }
@@ -562,12 +630,16 @@ struct ProgressContentView: View {
             .multilineTextAlignment(.leading)
         }
       }
-      .padding(16)
+      // A13 (Cleaner-Pass): cornerRadius 18→16 (`GainsRadius.standard`,
+      // konsistent mit gainsCardStyle), Akzent-Glow 0.15→0.07,
+      // Black-Shadow 0.45→0.32. Coach-Insight bleibt spürbar tone-getragen,
+      // ohne als zweite Hero-Card zu konkurrieren.
+      .padding(GainsSpacing.m)
       .background(coachInsightBackground(accent: current.accent))
       .overlay(coachInsightBorder(accent: current.accent))
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-      .shadow(color: current.accent.opacity(0.15), radius: 14, x: 0, y: 6)
-      .shadow(color: Color.black.opacity(0.45), radius: 14, x: 0, y: 6)
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+      .shadow(color: current.accent.opacity(0.07), radius: 10, x: 0, y: 5)
+      .gainsSoftShadow()
       .id("coach-\(safeIndex)") // Forces transition on insight change
       .transition(.opacity.combined(with: .scale(scale: 0.98)))
     }
@@ -577,17 +649,20 @@ struct ProgressContentView: View {
   /// Größere Icon-Plate (44pt) mit Halo + leichtem Akzent-Glow — Insights
   /// bekommen damit ein klares visuelles Gewicht je nach Tone.
   private func coachIconPlate(icon: String, accent: Color) -> some View {
+    // A13 (Cleaner-Pass): Border 0.45→0.35, Glow 0.35→0.16. Icon-Plate
+    // bleibt klar identifizierbar (Akzentfarbe + leichter Halo), aber
+    // konkurriert nicht mehr mit dem Hero-Story-Card-Akzent.
     ZStack {
       Circle()
         .fill(accent.opacity(0.10))
       Circle()
-        .strokeBorder(accent.opacity(0.45), lineWidth: 0.8)
+        .strokeBorder(accent.opacity(0.35), lineWidth: GainsBorder.hairline)
       Image(systemName: icon)
         .font(.system(size: 18, weight: .semibold))
         .foregroundStyle(accent)
     }
     .frame(width: 44, height: 44)
-    .shadow(color: accent.opacity(0.35), radius: 8)
+    .shadow(color: accent.opacity(0.16), radius: 6)
   }
 
   /// Tone-spezifischer Hintergrund-Wash: Lime = Momentum, Ember = Warnung,
@@ -610,18 +685,20 @@ struct ProgressContentView: View {
   /// als „aktiv" markiert. Anstelle der gleichmäßigen Hairline der
   /// Standard-Card-Style gibt das eine direktere Tone-Lesart.
   private func coachInsightBorder(accent: Color) -> some View {
-    RoundedRectangle(cornerRadius: 18, style: .continuous)
+    // A13: Border-Top-Stop 0.55→0.40, lineWidth 0.8 → GainsBorder.accent (0.8).
+    // Konsistent zur HeroCard-Border-Stärke.
+    RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
       .strokeBorder(
         LinearGradient(
           colors: [
-            accent.opacity(0.55),
-            accent.opacity(0.10),
-            GainsColor.border.opacity(0.7)
+            accent.opacity(0.40),
+            accent.opacity(0.08),
+            GainsColor.border.opacity(0.6)
           ],
           startPoint: .top,
           endPoint: .bottom
         ),
-        lineWidth: 0.8
+        lineWidth: GainsBorder.accent
       )
   }
 
@@ -815,10 +892,10 @@ struct ProgressContentView: View {
             .frame(height: 36)
             .background(GainsColor.card)
             .overlay(
-              RoundedRectangle(cornerRadius: 12, style: .continuous)
+              RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
                 .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -861,10 +938,10 @@ struct ProgressContentView: View {
       .padding(.vertical, 10)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -944,10 +1021,10 @@ struct ProgressContentView: View {
     .padding(.vertical, 11)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: - 5. Drei Story-Karten (Stärke / Körper / Cardio)
@@ -1252,10 +1329,10 @@ struct ProgressContentView: View {
       .padding(.vertical, 12)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -1475,10 +1552,10 @@ struct ProgressContentView: View {
       .padding(.vertical, 10)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }

@@ -4,7 +4,7 @@ import SwiftUI
 struct GainsApp: App {
   @StateObject private var store = GainsStore()
   @StateObject private var navigation = AppNavigationStore()
-  @AppStorage("gains_hasCompletedOnboarding") private var hasCompletedOnboarding = false
+  @AppStorage(GainsKey.hasCompletedOnboarding) private var hasCompletedOnboarding = false
 
   // Singleton früh initialisieren, damit CoreBluetooth beim App-Start bereit ist.
   // Der eigentliche Scan startet erst, wenn der Nutzer auf "Suche starten" tippt.

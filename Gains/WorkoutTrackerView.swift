@@ -1,3 +1,4 @@
+import AudioToolbox
 import Combine
 import SwiftUI
 import UIKit
@@ -9,15 +10,30 @@ struct WorkoutTrackerView: View {
 
   @State private var activeSetID: UUID?
   @State private var activeSetStartedAt: Date?
-  @State private var restTimerEndsAt: Date?
-  /// Standard-Satzpause: 2:30 Minuten. Wird per Preset-Reihe oder ±15-Chips angepasst.
-  @State private var restDuration: Int = 150
-  @State private var currentTime = Date()
+  // 2026-05-01 P1-3: restTimerEndsAt und restDuration leben jetzt im
+  // GainsStore (`activeRestTimerEndsAt` / `activeRestDuration`), damit
+  // der Pause-Timer View-Resets übersteht (Tab-Switch, Memory-Pressure).
+  // Wir wrappen den Store-Zugriff in lokale Computed-Properties, damit
+  // bestehende Call-Sites unverändert bleiben.
+  private var restTimerEndsAt: Date? {
+    get { store.activeRestTimerEndsAt }
+    nonmutating set { store.activeRestTimerEndsAt = newValue }
+  }
+  private var restDuration: Int {
+    get { store.activeRestDuration }
+    nonmutating set { store.activeRestDuration = newValue }
+  }
   @State private var isFinishing = false
   @State private var collapsedExerciseIDs: Set<UUID> = []
   @State private var formGuideExercise: ExerciseLibraryItem?
-
-  private let ticker = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+  // Optimierungs-Sweep 2026-05-03:
+  // - skipConfirmExercise: Mis-Tap-Schutz für „ÜBERSPRINGEN".
+  // - lastAutoCollapsedID: Track, welche Übung wir zuletzt beim
+  //   Erreichen von „all done" automatisch eingeklappt haben — verhindert
+  //   ständiges Re-Collapsen, wenn der User die Karte manuell wieder
+  //   öffnet.
+  @State private var skipConfirmExercise: TrackedExercise?
+  @State private var lastAutoCollapsedID: UUID?
 
   var body: some View {
     NavigationStack {
@@ -25,14 +41,29 @@ struct WorkoutTrackerView: View {
         GainsAppBackground()
 
         if let workout = store.activeWorkout {
-          ScrollView(showsIndicators: false) {
-            VStack(spacing: 14) {
-              commandBar(workout)
-              exercisesList(workout)
+          ScrollViewReader { proxy in
+            ScrollView(showsIndicators: false) {
+              VStack(spacing: 14) {
+                commandBar(workout)
+                exercisesList(workout)
+              }
+              .padding(.horizontal, 18)
+              .padding(.top, 10)
+              .padding(.bottom, 124)
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 10)
-            .padding(.bottom, 124)
+            // Auto-Scroll zur aktiven Übung (Optimierungs-Sweep 2026-05-03):
+            // Sobald sich die `nextPending`-Übung ändert (Satz fertig →
+            // letzter Satz der Übung erledigt → springt zur nächsten),
+            // schiebt der Reader die neue Karte sanft an den oberen Rand.
+            // Verzögert leicht, damit Auto-Collapse vorher durchläuft.
+            .onChange(of: currentExerciseID(in: workout)) { _, newID in
+              guard let newID else { return }
+              DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                withAnimation(.easeInOut(duration: 0.32)) {
+                  proxy.scrollTo(newID, anchor: .top)
+                }
+              }
+            }
           }
 
           bottomCTA(workout)
@@ -52,8 +83,25 @@ struct WorkoutTrackerView: View {
           }
         }
       }
-      .onReceive(ticker) { now in
-        currentTime = now
+      // Pause-Ende-Trigger (Optimierungs-Sweep 2026-05-03):
+      // .task(id:) wird neu gestartet, sobald restTimerEndsAt sich ändert
+      // (Set abgeschlossen → neuer Endzeitpunkt; ÜBERSPRINGEN → nil).
+      // Wir schlafen bis zum exakten Ende und feuern dann Haptik + Sound,
+      // bevor der Endzeitpunkt geräuschlos auf nil gesetzt wird. So gibt
+      // es genau eine Benachrichtigung pro Pause, kein 1s-Polling nötig.
+      .task(id: restTimerEndsAt) {
+        guard let end = restTimerEndsAt else { return }
+        let interval = end.timeIntervalSinceNow
+        if interval > 0 {
+          try? await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
+        }
+        guard !Task.isCancelled, restTimerEndsAt == end else { return }
+        let generator = UINotificationFeedbackGenerator()
+        generator.prepare()
+        generator.notificationOccurred(.success)
+        // 1057 = "Tink" (kurz, dezent — passt zu „Pause vorbei")
+        AudioServicesPlaySystemSound(SystemSoundID(1057))
+        restTimerEndsAt = nil
       }
       .onAppear {
         HealthKitManager.shared.startHeartRateObserver()
@@ -136,13 +184,37 @@ struct WorkoutTrackerView: View {
       } message: {
         Text("Speicher deinen Fortschritt oder verwirf das aktuelle Workout.")
       }
+      // Mis-Tap-Schutz für Skip (Optimierungs-Sweep 2026-05-03)
+      .confirmationDialog(
+        skipConfirmExercise.map { "„\($0.name)" + "\u{201C} überspringen?" } ?? "Übung überspringen?",
+        isPresented: Binding(
+          get: { skipConfirmExercise != nil },
+          set: { if !$0 { skipConfirmExercise = nil } }
+        ),
+        titleVisibility: .visible,
+        presenting: skipConfirmExercise
+      ) { exercise in
+        Button("Überspringen", role: .destructive) {
+          performSkipExercise(exercise)
+        }
+        Button("Abbrechen", role: .cancel) {}
+      } message: { exercise in
+        let pending = exercise.sets.filter { !$0.isCompleted }.count
+        Text("\(pending) offene Sätze werden als erledigt markiert.")
+      }
     }
   }
 
   // MARK: - Command Bar (Header + Timer + Stats fusioniert)
 
   private func commandBar(_ workout: WorkoutSession) -> some View {
-    let isRest = restTimerEndsAt != nil && remainingRestSeconds > 0
+    // Optimierungs-Sweep 2026-05-03:
+    // isRest/isSet werden hier nur noch grob ermittelt (existiert die
+    // Pause überhaupt? läuft ein Satz?). Die Sekunden-genaue Anzeige
+    // läuft in TimelineView-Subviews, sodass der Body nicht mehr jede
+    // Sekunde re-rendert. Der Body ändert sich nur noch bei echten
+    // State-Wechseln (Pause start/Ende, Set-Toggle).
+    let isRest = restTimerEndsAt != nil
     let isSet = activeSetID != nil
     let accent: Color = isRest ? GainsColor.ember : (isSet ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.9))
 
@@ -173,26 +245,20 @@ struct WorkoutTrackerView: View {
           Image(systemName: "clock")
             .font(.system(size: 10, weight: .semibold))
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.55))
-          Text(sessionTimeString(workout.startedAt))
-            .font(GainsFont.title(15))
-            .monospacedDigit()
-            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.92))
+          // Nur dieser kleine Subtree tickt jede Sekunde — nicht der
+          // ganze Tracker. ⚡
+          TimelineView(.periodic(from: .now, by: 1)) { context in
+            Text(sessionTimeString(start: workout.startedAt, now: context.date))
+              .font(GainsFont.title(15))
+              .monospacedDigit()
+              .foregroundStyle(GainsColor.onCtaSurface.opacity(0.92))
+          }
         }
         .layoutPriority(1)
       }
 
       // Zeile 2: Großer Status-Timer + kontextuelle Actions
       timerRow(isRest: isRest, isSet: isSet, accent: accent)
-
-      // Optionaler Pause-Fortschrittsbalken
-      if isRest {
-        SwiftUI.ProgressView(
-          value: Double(remainingRestSeconds),
-          total: Double(max(restDuration, 1))
-        )
-        .tint(GainsColor.ember)
-        .frame(height: 4)
-      }
 
       // Trennlinie (Hairline)
       Rectangle()
@@ -213,10 +279,10 @@ struct WorkoutTrackerView: View {
       )
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 22, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
         .stroke(accent.opacity(isRest || isSet ? 0.32 : 0.18), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
     .shadow(color: accent.opacity(isRest || isSet ? 0.16 : 0), radius: 18, x: 0, y: 10)
     .animation(.easeInOut(duration: 0.18), value: isRest)
     .animation(.easeInOut(duration: 0.18), value: isSet)
@@ -229,17 +295,56 @@ struct WorkoutTrackerView: View {
           .font(GainsFont.label(9))
           .tracking(2)
           .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
-        Text(currentTimerLabel(isRest: isRest, isSet: isSet))
-          .font(.system(size: 44, weight: .semibold, design: .rounded))
-          .monospacedDigit()
-          .foregroundStyle(accent)
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
+        // TimelineView (Optimierungs-Sweep 2026-05-03):
+        // Nur dieser Text re-rendert sekündlich. Der Watch-Style-Ring
+        // wird als Overlay um den Pause-Countdown gelegt.
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+          let label = liveTimerLabel(isRest: isRest, isSet: isSet, now: context.date)
+          ZStack(alignment: .leading) {
+            if isRest {
+              watchStyleRestRing(now: context.date, accent: accent)
+                .frame(width: 64, height: 64)
+                .offset(x: -10)
+            }
+            Text(label)
+              .font(.system(size: 44, weight: .semibold, design: .rounded))
+              .monospacedDigit()
+              .foregroundStyle(accent)
+              .lineLimit(1)
+              .minimumScaleFactor(0.7)
+              .padding(.leading, isRest ? 6 : 0)
+          }
+        }
       }
 
       Spacer(minLength: 8)
 
       contextActions(isRest: isRest, isSet: isSet)
+    }
+  }
+
+  // Watch-Style Pause-Ring (Optimierungs-Sweep 2026-05-03):
+  // Ringförmiger Fortschritt um den Pause-Countdown — leichter Glow,
+  // animierter Trim, ähnlich Apple-Watch Timer-App.
+  private func watchStyleRestRing(now: Date, accent: Color) -> some View {
+    let remaining: Int = {
+      guard let end = restTimerEndsAt else { return 0 }
+      return max(Int(end.timeIntervalSince(now)), 0)
+    }()
+    let total = max(restDuration, 1)
+    let progress = Double(remaining) / Double(total)
+    return ZStack {
+      Circle()
+        .stroke(accent.opacity(0.18), lineWidth: 4)
+      Circle()
+        .trim(from: 0, to: max(progress, 0.001))
+        .stroke(
+          accent,
+          style: StrokeStyle(lineWidth: 4, lineCap: .round)
+        )
+        .rotationEffect(.degrees(-90))
+        .shadow(color: accent.opacity(0.45), radius: 6)
+        .animation(.linear(duration: 0.95), value: progress)
     }
   }
 
@@ -382,6 +487,9 @@ struct WorkoutTrackerView: View {
           isActive: exercise.id == currentID,
           focusSetID: exercise.id == currentID ? nextPending(in: workout)?.set.id : nil
         )
+        // ID-Marker für ScrollViewReader → ermöglicht
+        // proxy.scrollTo(exercise.id, anchor: .top)
+        .id(exercise.id)
       }
     }
   }
@@ -537,11 +645,25 @@ struct WorkoutTrackerView: View {
               set: set,
               isFocused: set.id == focusSetID,
               isTimerRunning: activeSetID == set.id,
+              canDelete: exercise.sets.count > 1,
               onTogglePlay: {
                 toggleSetTimer(for: set.id)
               },
               onComplete: {
                 completeSet(exerciseID: exercise.id, set: set)
+              },
+              onDuplicate: {
+                if store.duplicateSet(exerciseID: exercise.id, setID: set.id) {
+                  UISelectionFeedbackGenerator().selectionChanged()
+                }
+              },
+              onDelete: {
+                // Falls der zu löschende Satz gerade aktiv läuft → Timer
+                // sauber stoppen, sonst hängt activeSetID auf einer ID,
+                // die nicht mehr existiert.
+                if activeSetID == set.id { stopActiveSet() }
+                store.removeSet(exerciseID: exercise.id, setID: set.id)
+                UINotificationFeedbackGenerator().notificationOccurred(.warning)
               }
             )
           }
@@ -564,11 +686,32 @@ struct WorkoutTrackerView: View {
           .disabled(exercise.sets.count <= 1)
           .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
 
+          // G4-Fix (2026-05-01): „Wdh." legt einen neuen, bereits abge-
+          // schlossenen Satz mit Gewicht/Reps des letzten Satzes an und
+          // startet den Rest-Timer. Spart 2 Taps gegenüber „+ Satz" →
+          // Werte tippen → „Complete".
+          Button {
+            if store.repeatLastSet(for: exercise.id) {
+              restTimerEndsAt = Calendar.current.date(
+                byAdding: .second,
+                value: restDuration,
+                to: Date()
+              )
+              UISelectionFeedbackGenerator().selectionChanged()
+            }
+          } label: {
+            chipButton(icon: "arrow.uturn.forward", title: "Wdh.")
+          }
+          .buttonStyle(.plain)
+          .disabled(exercise.sets.isEmpty)
+          .opacity(exercise.sets.isEmpty ? 0.4 : 1)
+          .accessibilityLabel("Letzten Satz wiederholen")
+
           Spacer()
 
           if !isAllDone {
             Button {
-              skipExercise(exercise)
+              skipConfirmExercise = exercise
             } label: {
               HStack(spacing: 5) {
                 Image(systemName: "forward.fill")
@@ -598,11 +741,23 @@ struct WorkoutTrackerView: View {
         : (isAllDone ? GainsColor.elevated : GainsColor.card)
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .stroke(accentBorder, lineWidth: isActive ? 1.4 : 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .animation(.easeInOut(duration: 0.18), value: isCollapsed)
+    // Auto-Collapse fertiger Übungen (Optimierungs-Sweep 2026-05-03):
+    // Sobald alle Sätze einer Übung erledigt sind, klappt die Karte
+    // einmalig automatisch ein. `lastAutoCollapsedID` verhindert, dass
+    // wir die Karte erneut einklappen, falls der User sie manuell wieder
+    // öffnet (sonst wäre das Verhalten frustrierend).
+    .onChange(of: isAllDone) { _, allDone in
+      guard allDone, lastAutoCollapsedID != exercise.id else { return }
+      withAnimation(.easeInOut(duration: 0.22)) {
+        collapsedExerciseIDs.insert(exercise.id)
+      }
+      lastAutoCollapsedID = exercise.id
+    }
   }
 
   private func progressDots(exercise: TrackedExercise) -> some View {
@@ -654,10 +809,10 @@ struct WorkoutTrackerView: View {
     .padding(.vertical, 12)
     .background(GainsColor.elevated)
     .overlay(
-      RoundedRectangle(cornerRadius: 18, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .stroke(GainsColor.moss.opacity(0.45), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   // MARK: - Bottom CTA
@@ -721,10 +876,10 @@ struct WorkoutTrackerView: View {
       .frame(height: 60)
       .background(GainsColor.ctaSurface)
       .overlay(
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
           .stroke(GainsColor.lime.opacity(0.55), lineWidth: 1.4)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
       .shadow(color: GainsColor.lime.opacity(0.18), radius: 18, x: 0, y: 10)
     }
     .buttonStyle(.plain)
@@ -785,7 +940,7 @@ struct WorkoutTrackerView: View {
     }
   }
 
-  private func skipExercise(_ exercise: TrackedExercise) {
+  private func performSkipExercise(_ exercise: TrackedExercise) {
     // Markiere alle ausstehenden Sätze als erledigt, um zur nächsten Übung zu springen.
     for set in exercise.sets where !set.isCompleted {
       store.toggleSet(exerciseID: exercise.id, setID: set.id)
@@ -795,30 +950,35 @@ struct WorkoutTrackerView: View {
     }
     restTimerEndsAt = nil
     collapsedExerciseIDs.insert(exercise.id)
+    UISelectionFeedbackGenerator().selectionChanged()
   }
 
-  private var remainingRestSeconds: Int {
-    guard let restTimerEndsAt else { return 0 }
-    return max(Int(restTimerEndsAt.timeIntervalSince(currentTime)), 0)
+  // Optimierungs-Sweep 2026-05-03: alle Time-Helper akzeptieren jetzt
+  // einen expliziten `now`-Parameter, damit sie aus TimelineView heraus
+  // mit context.date gefüttert werden können — kein @State mehr nötig.
+
+  private func remainingRestSeconds(now: Date) -> Int {
+    guard let endDate = restTimerEndsAt else { return 0 }
+    return max(Int(endDate.timeIntervalSince(now)), 0)
   }
 
-  private var restTimerLabel: String {
-    let seconds = remainingRestSeconds
+  private func restTimerLabel(now: Date) -> String {
+    let seconds = remainingRestSeconds(now: now)
     let minutes = seconds / 60
     let rest = seconds % 60
     return String(format: "%02d:%02d", minutes, rest)
   }
 
-  private func elapsedLabel(since date: Date?) -> String {
+  private func elapsedLabel(since date: Date?, now: Date) -> String {
     guard let date else { return "00:00" }
-    let seconds = max(Int(currentTime.timeIntervalSince(date)), 0)
+    let seconds = max(Int(now.timeIntervalSince(date)), 0)
     let minutes = seconds / 60
     let rest = seconds % 60
     return String(format: "%02d:%02d", minutes, rest)
   }
 
-  private func sessionTimeString(_ start: Date) -> String {
-    let seconds = max(Int(currentTime.timeIntervalSince(start)), 0)
+  private func sessionTimeString(start: Date, now: Date) -> String {
+    let seconds = max(Int(now.timeIntervalSince(start)), 0)
     let hours = seconds / 3600
     let minutes = (seconds % 3600) / 60
     let secs = seconds % 60
@@ -834,9 +994,9 @@ struct WorkoutTrackerView: View {
     return "BEREIT"
   }
 
-  private func currentTimerLabel(isRest: Bool, isSet: Bool) -> String {
-    if isRest { return restTimerLabel }
-    if isSet { return elapsedLabel(since: activeSetStartedAt) }
+  private func liveTimerLabel(isRest: Bool, isSet: Bool, now: Date) -> String {
+    if isRest { return restTimerLabel(now: now) }
+    if isSet { return elapsedLabel(since: activeSetStartedAt, now: now) }
     return "00:00"
   }
 
@@ -900,8 +1060,11 @@ private struct CompactSetRow: View {
   let set: TrackedSet
   let isFocused: Bool
   let isTimerRunning: Bool
+  let canDelete: Bool
   let onTogglePlay: () -> Void
   let onComplete: () -> Void
+  let onDuplicate: () -> Void
+  let onDelete: () -> Void
 
   @State private var weightText: String = ""
   @State private var repsText: String = ""
@@ -993,10 +1156,10 @@ private struct CompactSetRow: View {
         : (isFocused ? GainsColor.background.opacity(0.6) : GainsColor.background.opacity(0.35))
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(accent, lineWidth: isFocused || isTimerRunning ? 1.3 : 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     .onAppear {
       weightText = formattedWeight(set.weight)
       repsText = "\(set.reps)"
@@ -1009,6 +1172,25 @@ private struct CompactSetRow: View {
     .onChange(of: set.reps) { _, newValue in
       if focusedField != .reps {
         repsText = "\(newValue)"
+      }
+    }
+    // Set-Context-Menu (Optimierungs-Sweep 2026-05-03):
+    // Long-press auf eine Set-Row → Duplizieren oder Löschen. Swipe
+    // funktioniert nicht, weil Sätze in einem VStack sitzen, nicht in
+    // einer List. Long-Press ist auch schwerer aus Versehen auszulösen
+    // als Swipe.
+    .contextMenu {
+      Button {
+        onDuplicate()
+      } label: {
+        Label("Satz duplizieren", systemImage: "plus.square.on.square")
+      }
+      if canDelete {
+        Button(role: .destructive) {
+          onDelete()
+        } label: {
+          Label("Satz löschen", systemImage: "trash")
+        }
       }
     }
   }

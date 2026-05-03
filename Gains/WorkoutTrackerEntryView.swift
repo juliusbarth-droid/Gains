@@ -115,9 +115,15 @@ struct WorkoutTrackerEntryView: View {
 
   // MARK: - FORTSCHRITT
 
+  /// Limit für die History-Liste — eine Konstante statt zweier verteilter
+  /// Magic-Number-Stellen, sodass „prefix" und „count - X" immer synchron
+  /// bleiben.
+  private static let progressHistoryLimit = 15
+
   @ViewBuilder
   private var progressTab: some View {
-    if store.workoutHistory.isEmpty {
+    let history = store.workoutHistory
+    if history.isEmpty {
       EmptyStateView(
         style: .prominent,
         title: "Noch kein Workout abgeschlossen",
@@ -125,6 +131,9 @@ struct WorkoutTrackerEntryView: View {
         icon: "chart.line.uptrend.xyaxis"
       )
     } else {
+      let limit = Self.progressHistoryLimit
+      let recent = history.prefix(limit)
+      let hiddenCount = max(history.count - limit, 0)
       VStack(alignment: .leading, spacing: 14) {
         Text("LETZTE WORKOUTS")
           .font(GainsFont.label(10))
@@ -132,13 +141,13 @@ struct WorkoutTrackerEntryView: View {
           .foregroundStyle(GainsColor.softInk)
 
         VStack(spacing: 10) {
-          ForEach(store.workoutHistory.prefix(15)) { workout in
+          ForEach(recent) { workout in
             historyCard(workout)
           }
         }
 
-        if store.workoutHistory.count > 15 {
-          Text("\(store.workoutHistory.count - 15) ältere Workouts ausgeblendet")
+        if hiddenCount > 0 {
+          Text("\(hiddenCount) ältere Workouts ausgeblendet")
             .font(GainsFont.body(12))
             .foregroundStyle(GainsColor.mutedInk)
             .frame(maxWidth: .infinity)
@@ -171,10 +180,10 @@ struct WorkoutTrackerEntryView: View {
     .padding(14)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func statTile(label: String, value: String) -> some View {
@@ -195,8 +204,12 @@ struct WorkoutTrackerEntryView: View {
   @ViewBuilder
   private var meineTrainingsTab: some View {
     VStack(alignment: .leading, spacing: 18) {
-      aiBanner
-      manualCreateButton
+      // 2026-05-03 Cleanup: Vorher gab es hier zwei CTAs — einen großen
+      // „GAINS COACH"-Banner und einen kleinen „MANUELL ERSTELLEN"-Button.
+      // Beide riefen `onCreateWorkout` und öffneten denselben manuellen
+      // Builder. Der Banner versprach eine KI-Generierung, die es im Code
+      // nicht gibt. Konsolidiert in einen ehrlichen Builder-CTA.
+      builderCTA
 
       if let plannedWorkout = store.todayPlannedWorkout {
         section(title: "HEUTE GEPLANT", accent: true) {
@@ -221,25 +234,25 @@ struct WorkoutTrackerEntryView: View {
     }
   }
 
-  private var aiBanner: some View {
+  private var builderCTA: some View {
     Button(action: onCreateWorkout) {
       VStack(alignment: .leading, spacing: 12) {
         HStack(spacing: 8) {
-          Image(systemName: "sparkles")
+          Image(systemName: "plus.rectangle.on.rectangle")
             .font(.system(size: 12, weight: .heavy))
             .foregroundStyle(GainsColor.lime)
-          Text("GAINS COACH")
+          Text("WORKOUT BUILDER")
             .font(GainsFont.label(10))
             .tracking(2.0)
             .foregroundStyle(GainsColor.lime)
         }
 
-        Text("Workout für dich zusammenstellen")
+        Text("Eigenes Workout zusammenstellen")
           .font(GainsFont.title(20))
           .foregroundStyle(GainsColor.onCtaSurface)
           .multilineTextAlignment(.leading)
 
-        Text("Wähle aus über \(ExerciseLibraryItem.fullCatalog.count) Übungen, sortiert nach Muskelgruppe und Equipment.")
+        Text("Wähle aus über \(ExerciseLibraryItem.fullCatalog.count) Übungen, sortiert nach Muskelgruppe und Equipment. Sets, Reps und Reihenfolge bestimmst du.")
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.onCtaSurface.opacity(0.78))
           .multilineTextAlignment(.leading)
@@ -259,45 +272,24 @@ struct WorkoutTrackerEntryView: View {
       .padding(20)
       .background(
         ZStack {
-          RoundedRectangle(cornerRadius: 24, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
             .fill(GainsColor.ctaSurface)
           LinearGradient(
             colors: [GainsColor.lime.opacity(0.22), GainsColor.lime.opacity(0.0)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
           )
-          .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
         }
       )
       .overlay(
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
           .stroke(GainsColor.lime.opacity(0.35), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
     }
     .buttonStyle(.plain)
-  }
-
-  private var manualCreateButton: some View {
-    Button(action: onCreateWorkout) {
-      HStack(spacing: 10) {
-        Image(systemName: "plus")
-          .font(.system(size: 13, weight: .bold))
-        Text("MANUELL ERSTELLEN")
-          .font(GainsFont.label(11))
-          .tracking(2.0)
-      }
-      .foregroundStyle(GainsColor.ink)
-      .frame(maxWidth: .infinity)
-      .frame(height: 52)
-      .background(GainsColor.card)
-      .overlay(
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .stroke(GainsColor.border.opacity(0.6), lineWidth: 1)
-      )
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-    }
-    .buttonStyle(.plain)
+    .accessibilityLabel("Eigenes Workout zusammenstellen")
   }
 
   // MARK: - GAINS-TRAINING
@@ -359,13 +351,13 @@ struct WorkoutTrackerEntryView: View {
       .padding(.vertical, 12)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(
             isPrimary ? GainsColor.lime.opacity(0.6) : GainsColor.border.opacity(0.4),
             lineWidth: 1
           )
       )
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -445,10 +437,10 @@ struct ExerciseLibraryBrowser: View {
         .padding(.vertical, 12)
         .background(GainsColor.card)
         .overlay(
-          RoundedRectangle(cornerRadius: 14, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
             .stroke(GainsColor.border.opacity(0.45), lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
         // Category filter
         ScrollView(.horizontal, showsIndicators: false) {
@@ -563,10 +555,10 @@ struct ExerciseLibraryBrowser: View {
     .padding(.vertical, 10)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 }
 
@@ -674,7 +666,7 @@ struct ExerciseDetailSheet: View {
     if let url = exercise.videoURL {
       VideoPlayer(player: AVPlayer(url: url))
         .frame(height: 200)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     } else {
       VStack(spacing: 8) {
         Image(systemName: "play.rectangle.on.rectangle")
@@ -694,10 +686,10 @@ struct ExerciseDetailSheet: View {
       .frame(height: 160)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
   }
 
@@ -734,10 +726,10 @@ struct ExerciseDetailSheet: View {
     .padding(.vertical, 10)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.3), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   private var instructionSection: some View {
@@ -762,10 +754,10 @@ struct ExerciseDetailSheet: View {
       .padding(14)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
   }
 
@@ -790,10 +782,10 @@ struct ExerciseDetailSheet: View {
       .padding(14)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
   }
 
@@ -821,10 +813,10 @@ struct ExerciseDetailSheet: View {
     .padding(12)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.3), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   private func sectionHeader(title: String, icon: String) -> some View {

@@ -70,9 +70,9 @@ struct RunRoutesTab: View {
 
       heatmapMap
         .frame(height: 220)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 20, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
             .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
         )
     }
@@ -224,7 +224,7 @@ struct RunRoutesTab: View {
     }
     .gainsCardStyle()
     .overlay(
-      RoundedRectangle(cornerRadius: 24, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
         .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
     )
   }
@@ -424,7 +424,7 @@ struct SavedRouteDetailSheet: View {
       .padding(.vertical, 14)
       .padding(.horizontal, 12)
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
   }
 
@@ -464,7 +464,7 @@ struct SavedRouteDetailSheet: View {
           .padding(14)
           .frame(maxWidth: .infinity, alignment: .leading)
           .background(GainsColor.card)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       } else {
         VStack(spacing: 10) {
           ForEach(related) { run in
@@ -508,7 +508,7 @@ struct SavedRouteDetailSheet: View {
     }
     .padding(14)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func paceLabel(_ seconds: Int) -> String {

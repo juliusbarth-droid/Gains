@@ -1,6 +1,41 @@
 import Contacts
 import CoreLocation
 import Foundation
+import UIKit  // 2026-05-03: UIImage / UIGraphicsImageRenderer für Avatar-Resize.
+
+// MARK: - Cached Formatters
+// Static-Instanzen, damit Computed-Properties (z. B. `weekRangeLabel`,
+// `selectedCalendarHeadline`) in Hot-Paths kein DateFormatter pro Aufruf
+// allokieren. Alle Aufrufe erfolgen auf MainActor (ObservableObject).
+fileprivate enum StoreFormatters {
+  static let dayMonthDE: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_DE")
+    f.dateFormat = "dd. MMM"
+    return f
+  }()
+
+  static let weekdayDayMonthDE: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_DE")
+    f.dateFormat = "EEEE, dd. MMMM"
+    return f
+  }()
+
+  static let timeHHmmDE: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_DE")
+    f.dateFormat = "HH:mm"
+    return f
+  }()
+
+  static let monthDayEN: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "en_US_POSIX")
+    f.dateFormat = "MMM dd"
+    return f
+  }()
+}
 
 final class GainsStore: ObservableObject {
   enum HealthConnectionStatus {
@@ -39,6 +74,13 @@ final class GainsStore: ObservableObject {
 
   @Published var activeWorkout: WorkoutSession?
   @Published var activeRun: ActiveRunSession?
+  /// 2026-05-01 P1-3: Pause-Timer-Endpunkt im Store statt View-State, damit
+  /// er View-Resets übersteht (Tab-Switch, Sheet-Dismiss, Memory-Pressure-
+  /// driven View-Recreation). View-State (`@State`) wird beim Drop des
+  /// View-Subtrees verworfen — der Store-Singleton überlebt das.
+  @Published var activeRestTimerEndsAt: Date?
+  /// Aktuell eingestellte Pausen-Dauer in Sekunden (Default 150s = 2:30).
+  @Published var activeRestDuration: Int = 150
   @Published var lastCompletedWorkout: CompletedWorkoutSummary?
   // A1: Frische Installation startet leer — Mock-Historien sind nur noch im
   // DEBUG-Demo-Modus erreichbar (siehe `loadDemoData()` unten).
@@ -90,6 +132,12 @@ final class GainsStore: ObservableObject {
   @Published var bodyFatChange: Double = 0
   @Published var proteinProgress: Double = 0
   @Published var userName: String = ""
+  /// Profil-Bild als komprimierter JPEG-Blob. nil = Initial-Letter-Avatar.
+  /// Wird in den UserDefaults persistiert (Re-Design 2026-05-03 — Profil
+  /// kann jetzt Foto + Namen editieren). HomeView-Greeting + ProfileView
+  /// observieren beide diese Property; nach `setUserAvatar` rendern beide
+  /// das neue Bild ohne Restart.
+  @Published var userAvatarData: Data? = nil
   @Published var streakDays = 0
   @Published var recordDays = 0
   @Published var vitalSyncCount = 0
@@ -135,6 +183,11 @@ final class GainsStore: ObservableObject {
 
     if let name = ud.string(forKey: PersistenceKey.userName) {
       userName = name
+    }
+    // 2026-05-03: Avatar laden (Profil-Re-Design). Defensiv — beschädigte
+    // Blobs einfach ignorieren statt die App beim Start zu blockieren.
+    if let data = ud.data(forKey: PersistenceKey.userAvatarData), !data.isEmpty {
+      userAvatarData = data
     }
     // A5: Historien lenient laden — einzelne korrupte Einträge dürfen nicht
     // die ganze Liste verwerfen.
@@ -258,6 +311,7 @@ final class GainsStore: ObservableObject {
     // Nutrition-Logs, Routen).
     let ud = UserDefaults.standard
     let _userName              = self.userName
+    let _userAvatarData        = self.userAvatarData
     let _workoutHistory        = self.workoutHistory
     let _runHistory            = self.runHistory
     let _savedRoutes           = self.savedRoutes
@@ -292,6 +346,13 @@ final class GainsStore: ObservableObject {
 
     DispatchQueue.global(qos: .utility).async {
       ud.set(_userName, forKey: PersistenceKey.userName)
+      // 2026-05-03: Avatar — nil ⇒ Key entfernen, sonst rohe Data-Bytes.
+      // UserDefaults toleriert ein paar hundert KB ohne Performance-Hit.
+      if let data = _userAvatarData, !data.isEmpty {
+        ud.set(data, forKey: PersistenceKey.userAvatarData)
+      } else {
+        ud.removeObject(forKey: PersistenceKey.userAvatarData)
+      }
       ud.encodedSave(_workoutHistory,      forKey: PersistenceKey.workoutHistory)
       ud.encodedSave(_runHistory,          forKey: PersistenceKey.runHistory)
       // Strava-Erweiterung: Routen / Segmente / strukturierte Workouts.
@@ -379,7 +440,8 @@ final class GainsStore: ObservableObject {
   func clearAllData() {
     let ud = UserDefaults.standard
     let allKeys: [String] = [
-      PersistenceKey.userName, PersistenceKey.workoutHistory, PersistenceKey.runHistory,
+      PersistenceKey.userName, PersistenceKey.userAvatarData,
+      PersistenceKey.workoutHistory, PersistenceKey.runHistory,
       PersistenceKey.savedWorkoutPlans, PersistenceKey.plannerSettings,
       PersistenceKey.weightTrend, PersistenceKey.waistMeasurement,
       PersistenceKey.bodyFatChange, PersistenceKey.proteinProgress,
@@ -534,8 +596,68 @@ final class GainsStore: ObservableObject {
     runHistory.first
   }
 
+  /// Letzte abgeschlossene Cardio-Session, nach Modalität gefiltert. Für
+  /// modality-aware Headlines im Hero (Lauf/Rad/Indoor).
+  func latestCompletedCardio(modality: CardioModality) -> CompletedRunSummary? {
+    runHistory.first { $0.modality == modality }
+  }
+
+  // MARK: - Cardio-Stats — Lauf vs. Rad
+  //
+  // 2026-05-03 (Audit-Fix P0-1): Vorher mischten alle Hero-Metriken Lauf- und
+  // Rad-Sessions in einen Topf — Ø PACE wurde durch Bike-Pace verfälscht,
+  // 5K/10K-PRs wurden durch kurze Radtouren überschrieben, Pace-Zonen
+  // (Easy/Moderat/Tempo/Hart) erhielten Bike-Werte. Wir trennen jetzt
+  // Run-only- und Cardio-Total-Aggregate sauber.
+
+  /// Run-only Slice der `runHistory` (kein Bike).
+  private var runOnlyHistory: [CompletedRunSummary] {
+    runHistory.filter { $0.modality == .run }
+  }
+
+  /// Bike-only Slice der `runHistory` (Outdoor + Indoor).
+  private var bikeOnlyHistory: [CompletedRunSummary] {
+    runHistory.filter { $0.modality.isCycling }
+  }
+
+  /// Letzte 7 Tage, run-only.
+  private var recentRunOnlyHistory: [CompletedRunSummary] {
+    let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date.distantPast
+    return runOnlyHistory.filter { $0.finishedAt >= cutoff }
+  }
+
+  /// Letzte 7 Tage, bike-only.
+  private var recentBikeHistory: [CompletedRunSummary] {
+    let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date.distantPast
+    return bikeOnlyHistory.filter { $0.finishedAt >= cutoff }
+  }
+
+  // ----- Wochen-Aggregate (gemischt = Cardio-Total, run-only für Pace) -----
+
+  /// Cardio-Wochen-Distanz: Lauf + Rad zusammen. Wird im Hero-Tile „7 TAGE"
+  /// und im Wochen-Chart als Gesamt-Cardio-Volumen gerendert.
   var weeklyRunDistanceKm: Double {
     recentRunHistory.reduce(0) { $0 + $1.distanceKm }
+  }
+
+  /// Reine Lauf-km der letzten 7 Tage. Für separate Run-Statistiken.
+  var weeklyRunOnlyDistanceKm: Double {
+    recentRunOnlyHistory.reduce(0) { $0 + $1.distanceKm }
+  }
+
+  /// Reine Rad-km der letzten 7 Tage.
+  var weeklyBikeDistanceKm: Double {
+    recentBikeHistory.reduce(0) { $0 + $1.distanceKm }
+  }
+
+  /// Anzahl Lauf-Sessions in den letzten 7 Tagen.
+  var weeklyRunOnlyCountThisWeek: Int {
+    recentRunOnlyHistory.count
+  }
+
+  /// Anzahl Bike-Sessions in den letzten 7 Tagen.
+  var bikeOnlyCountThisWeek: Int {
+    recentBikeHistory.count
   }
 
   var weeklyRunDurationMinutes: Int {
@@ -555,16 +677,30 @@ final class GainsStore: ObservableObject {
       .reduce(0) { $0 + $1.distanceKm }
   }
 
+  /// Ø Pace (Sek./km) der letzten 7 Tage — **nur Lauf**. Bike-Sessions würden
+  /// den Mittelwert sonst Richtung Sprint verzerren (25 km/h ≈ 144 s/km vs.
+  /// ein Lauf bei ~300 s/km).
   var averageRunPaceSeconds: Int {
-    guard !recentRunHistory.isEmpty else { return 0 }
-    let totalDistance = recentRunHistory.reduce(0) { $0 + $1.distanceKm }
-    let totalSeconds = recentRunHistory.reduce(0) { $0 + ($1.durationMinutes * 60) }
+    guard !recentRunOnlyHistory.isEmpty else { return 0 }
+    let totalDistance = recentRunOnlyHistory.reduce(0) { $0 + $1.distanceKm }
+    let totalSeconds = recentRunOnlyHistory.reduce(0) { $0 + ($1.durationMinutes * 60) }
     guard totalDistance > 0 else { return 0 }
     return Int(Double(totalSeconds) / totalDistance)
   }
 
+  /// Ø Geschwindigkeit (km/h) der letzten 7 Tage — **nur Rad**. Wird im Hero
+  /// gerendert, wenn die zuletzt genutzte Modalität Bike ist.
+  var averageBikeSpeedKmh: Double {
+    guard !recentBikeHistory.isEmpty else { return 0 }
+    let totalDistance = recentBikeHistory.reduce(0) { $0 + $1.distanceKm }
+    let totalSeconds = recentBikeHistory.reduce(0) { $0 + ($1.durationMinutes * 60) }
+    guard totalSeconds > 0 else { return 0 }
+    return totalDistance / (Double(totalSeconds) / 3600.0)
+  }
+
+  /// Beste Lauf-Pace aller Zeit — Bike-Sessions werden ausgeschlossen.
   var bestRunPaceSeconds: Int {
-    runHistory.map(\.averagePaceSeconds).min() ?? 0
+    runOnlyHistory.map(\.averagePaceSeconds).min() ?? 0
   }
 
   var runningGoalProgress: Double {
@@ -617,7 +753,7 @@ final class GainsStore: ObservableObject {
     var personalBests: [RunPersonalBest] = []
 
     if let fastest5K =
-      runHistory
+      runOnlyHistory
       .filter({ $0.distanceKm >= 5 })
       .min(by: { $0.averagePaceSeconds < $1.averagePaceSeconds })
     {
@@ -630,7 +766,7 @@ final class GainsStore: ObservableObject {
       )
     }
 
-    if let longestRun = runHistory.max(by: { $0.distanceKm < $1.distanceKm }) {
+    if let longestRun = runOnlyHistory.max(by: { $0.distanceKm < $1.distanceKm }) {
       personalBests.append(
         RunPersonalBest(
           title: "Längster Lauf",
@@ -640,7 +776,10 @@ final class GainsStore: ObservableObject {
       )
     }
 
-    if let highestElevation = runHistory.max(by: { $0.elevationGain < $1.elevationGain }) {
+    // Höhenmeter darf weiter aus allen Outdoor-Sessions kommen — Lauf wie
+    // Radtour. Indoor-Sessions ignorieren wir, weil dort kein GPS läuft.
+    let outdoorSessions = runHistory.filter { !$0.modality.isIndoor }
+    if let highestElevation = outdoorSessions.max(by: { $0.elevationGain < $1.elevationGain }) {
       personalBests.append(
         RunPersonalBest(
           title: "Höhenmeter",
@@ -651,6 +790,39 @@ final class GainsStore: ObservableObject {
     }
 
     return personalBests
+  }
+
+  /// Bike-spezifische PRs (Schnellste Tour, Längste Strecke, max. km/h).
+  /// Wird im STATS-Tab als zweites Grid gerendert, sobald Bike-Sessions
+  /// vorhanden sind.
+  var bikePersonalBests: [RunPersonalBest] {
+    var bests: [RunPersonalBest] = []
+
+    if let fastest = bikeOnlyHistory
+      .filter({ $0.distanceKm >= 5 && $0.averagePaceSeconds > 0 })
+      .min(by: { $0.averagePaceSeconds < $1.averagePaceSeconds })
+    {
+      let kmh = 3600.0 / Double(fastest.averagePaceSeconds)
+      bests.append(
+        RunPersonalBest(
+          title: "Schnellste Tour",
+          value: String(format: "%.1f km/h", kmh),
+          context: fastest.routeName
+        )
+      )
+    }
+
+    if let longest = bikeOnlyHistory.max(by: { $0.distanceKm < $1.distanceKm }) {
+      bests.append(
+        RunPersonalBest(
+          title: "Längste Tour",
+          value: String(format: "%.1f km", longest.distanceKm),
+          context: longest.routeName
+        )
+      )
+    }
+
+    return bests
   }
 
   // MARK: - Strava-style running stats
@@ -728,9 +900,11 @@ final class GainsStore: ObservableObject {
     return runHistory.filter { $0.finishedAt >= startOfYear }.reduce(0) { $0 + $1.durationMinutes }
   }
 
-  /// Distribution of runs across pace zones
+  /// Distribution of runs across pace zones — **nur Lauf**. Easy/Moderat/
+  /// Tempo/Hart sind Run-Pace-Konzepte; Bike-Pace gehört nicht in diese
+  /// Klassifikation.
   var paceZones: [PaceZoneEntry] {
-    let paces = runHistory.compactMap { $0.averagePaceSeconds > 0 ? $0.averagePaceSeconds : nil }
+    let paces = runOnlyHistory.compactMap { $0.averagePaceSeconds > 0 ? $0.averagePaceSeconds : nil }
     guard !paces.isEmpty else { return [] }
     let total = Double(paces.count)
     let entries: [(String, String, Double)] = [
@@ -742,7 +916,9 @@ final class GainsStore: ObservableObject {
     return entries.filter { $0.2 > 0 }.map { PaceZoneEntry(label: $0.0, description: $0.1, fraction: $0.2) }
   }
 
-  /// Best finish times for standard distances (5K, 10K, Half, Marathon)
+  /// Best finish times for standard distances (5K, 10K, Half, Marathon).
+  /// **Nur Lauf** — eine 5-km-Radtour soll nicht die schnellste 5K-Laufzeit
+  /// überschreiben.
   var distancePRs: [RunPersonalBest] {
     let targets: [(title: String, minKm: Double, exactKm: Double)] = [
       ("5K",           4.8,  5.0),
@@ -751,7 +927,7 @@ final class GainsStore: ObservableObject {
       ("Marathon",     41.0, 42.2),
     ]
     return targets.compactMap { target in
-      let eligible = runHistory.filter { $0.distanceKm >= target.minKm }
+      let eligible = runOnlyHistory.filter { $0.distanceKm >= target.minKm }
       guard let best = eligible.min(by: { a, b in
         let aTime = Double(a.durationMinutes) * (target.exactKm / a.distanceKm)
         let bTime = Double(b.durationMinutes) * (target.exactKm / b.distanceKm)
@@ -933,33 +1109,236 @@ final class GainsStore: ObservableObject {
     saveAll()
   }
 
+  // MARK: - Nutrition Power-Actions (Welle 3 — 2026-05-03)
+
+  /// Loggt einen bestehenden Eintrag erneut (selbe Werte, jetzt als neue
+  /// Mahlzeit). Wird vom Recents-Strip und vom Long-Press-Menu „Wieder loggen"
+  /// auf einer Food-Row genutzt.
+  func repeatNutritionEntry(
+    _ entry: NutritionEntry,
+    in mealType: RecipeMealType? = nil,
+    on date: Date? = nil
+  ) {
+    let targetMeal = mealType ?? entry.mealType
+    let targetDate = mergedStamp(for: date ?? Date())
+    let copy = NutritionEntry(
+      id: UUID(),
+      title: entry.title,
+      mealType: targetMeal,
+      loggedAt: targetDate,
+      calories: entry.calories,
+      protein: entry.protein,
+      carbs: entry.carbs,
+      fat: entry.fat
+    )
+    nutritionEntries.insert(copy, at: 0)
+    proteinProgress = min(260, rounded(proteinProgress + Double(max(0, entry.protein))))
+    lastProgressEvent = "Wieder geloggt: \(entry.title)."
+    saveAll()
+  }
+
+  /// Verschiebt einen Eintrag in eine andere Mahlzeit-Sektion (gleicher Tag).
+  /// NutritionEntry hat let-Felder — also löschen und mit identischer ID wäre
+  /// nicht möglich. Wir entfernen + fügen mit neuer ID neu ein, behalten aber
+  /// `loggedAt` damit die Reihenfolge stabil bleibt.
+  func moveNutritionEntry(_ id: UUID, to mealType: RecipeMealType) {
+    guard let entry = nutritionEntries.first(where: { $0.id == id }) else { return }
+    if entry.mealType == mealType { return }
+    let updated = NutritionEntry(
+      id: UUID(),
+      title: entry.title,
+      mealType: mealType,
+      loggedAt: entry.loggedAt,
+      calories: entry.calories,
+      protein: entry.protein,
+      carbs: entry.carbs,
+      fat: entry.fat
+    )
+    nutritionEntries.removeAll { $0.id == id }
+    nutritionEntries.insert(updated, at: 0)
+    lastProgressEvent = "\(entry.title) in \(mealType.title) verschoben."
+    saveAll()
+  }
+
+  /// Dupliziert einen bestehenden Eintrag — selbe Mahlzeit, neue ID, jetzt
+  /// als Logging-Zeitpunkt. Praktisch für „nochmal das gleiche".
+  func duplicateNutritionEntry(_ id: UUID) {
+    guard let entry = nutritionEntries.first(where: { $0.id == id }) else { return }
+    repeatNutritionEntry(entry, in: entry.mealType)
+  }
+
+  /// Schnell-Eintrag mit nur kcal (+ optional Makros). Mahlzeit kommt aus
+  /// dem Quick-Add-Sheet, Titel default „Schnell-Eintrag".
+  func quickAddNutrition(
+    calories: Int,
+    protein: Int = 0,
+    carbs: Int = 0,
+    fat: Int = 0,
+    mealType: RecipeMealType,
+    title: String = "Schnell-Eintrag",
+    on date: Date = Date()
+  ) {
+    let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let resolvedTitle = trimmed.isEmpty ? "Schnell-Eintrag" : trimmed
+    let entry = NutritionEntry(
+      id: UUID(),
+      title: resolvedTitle,
+      mealType: mealType,
+      loggedAt: mergedStamp(for: date),
+      calories: max(0, calories),
+      protein: max(0, protein),
+      carbs: max(0, carbs),
+      fat: max(0, fat)
+    )
+    nutritionEntries.insert(entry, at: 0)
+    proteinProgress = min(260, rounded(proteinProgress + Double(max(0, protein))))
+    lastProgressEvent = "Schnell-Eintrag erfasst: \(resolvedTitle)."
+    saveAll()
+  }
+
+  /// Wenn der User in einen anderen Tag loggt, soll der Zeitstempel den
+  /// Tageswechsel respektieren — wir setzen die UHRZEIT des angegebenen
+  /// Datums auf „jetzt", damit chronologische Sortierung innerhalb des Tags
+  /// stabil bleibt.
+  private func mergedStamp(for date: Date) -> Date {
+    let calendar = Calendar.current
+    if calendar.isDateInToday(date) { return Date() }
+    let now = Date()
+    var components = calendar.dateComponents([.year, .month, .day], from: date)
+    let timeComponents = calendar.dateComponents([.hour, .minute, .second], from: now)
+    components.hour = timeComponents.hour
+    components.minute = timeComponents.minute
+    components.second = timeComponents.second
+    return calendar.date(from: components) ?? date
+  }
+
+  // MARK: - Nutrition Streak & Charts (Welle 3 — 2026-05-03)
+
+  /// Aufeinanderfolgende Tage rückwärts ab heute mit ≥1 Logging-Eintrag.
+  var nutritionStreakDays: Int {
+    let calendar = Calendar.current
+    var streak = 0
+    var daysBack = 0
+    while true {
+      let date = calendar.date(byAdding: .day, value: -daysBack, to: Date()) ?? Date()
+      let startOfDay = calendar.startOfDay(for: date)
+      let hasEntry = nutritionEntries.contains {
+        calendar.isDate($0.loggedAt, inSameDayAs: startOfDay)
+      }
+      if hasEntry {
+        streak += 1
+        daysBack += 1
+      } else {
+        break
+      }
+    }
+    return streak
+  }
+
+  /// Tagesarrays kcal — N Tage rückwärts (oldest → today).
+  func dailyCalories(lastDays days: Int) -> [Int] {
+    let calendar = Calendar.current
+    let today = calendar.startOfDay(for: Date())
+    return (0..<max(1, days)).reversed().map { offset -> Int in
+      let day = calendar.date(byAdding: .day, value: -offset, to: today) ?? today
+      return nutritionEntries
+        .filter { calendar.isDate($0.loggedAt, inSameDayAs: day) }
+        .reduce(0) { $0 + $1.calories }
+    }
+  }
+
+  /// Anteil der letzten N Tage (incl. heute), an denen das Protein-Ziel
+  /// erreicht wurde (mind. 90 % des Tagesziels).
+  func proteinHitRate(lastDays days: Int) -> Double {
+    let calendar = Calendar.current
+    let today = calendar.startOfDay(for: Date())
+    let total = max(1, days)
+    let target = max(1, nutritionTargetProtein)
+    var hits = 0
+    for offset in 0..<total {
+      let day = calendar.date(byAdding: .day, value: -offset, to: today) ?? today
+      let proteinForDay = nutritionEntries
+        .filter { calendar.isDate($0.loggedAt, inSameDayAs: day) }
+        .reduce(0) { $0 + $1.protein }
+      if Double(proteinForDay) >= Double(target) * 0.9 {
+        hits += 1
+      }
+    }
+    return Double(hits) / Double(total)
+  }
+
+  /// Letzte unique Lebensmittel der vergangenen 14 Tage (ohne Heute,
+  /// damit der Recents-Strip nicht den eben getätigten Log nochmal anbietet).
+  /// Dedupliziert anhand des normalisierten Titels — neuester Log gewinnt.
+  var recentNutritionFoods: [NutritionEntry] {
+    let calendar = Calendar.current
+    let now = Date()
+    let cutoff = calendar.date(byAdding: .day, value: -14, to: now) ?? now
+    let todayStart = calendar.startOfDay(for: now)
+
+    var seen: Set<String> = []
+    var result: [NutritionEntry] = []
+    for entry in nutritionEntries.sorted(by: { $0.loggedAt > $1.loggedAt }) {
+      if entry.loggedAt < cutoff { break }
+      if entry.loggedAt >= todayStart { continue }
+      let key = entry.title.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+      if key.isEmpty { continue }
+      if seen.contains(key) { continue }
+      seen.insert(key)
+      result.append(entry)
+      if result.count >= 12 { break }
+    }
+    return result
+  }
+
+  /// Headline-String für den Cardio-Hero. 2026-05-03 (P1-6): Modality-aware
+  /// — Bike-Sessions zeigen km/h statt Pace, Latest-Cardio nutzt das richtige
+  /// Verb (Lauf/Tour/Heimtrainer) und der Empty-State spricht nicht mehr nur
+  /// von „Lauf".
   var runningHeadline: String {
     if let activeRun {
-      return
-        "Live: \(String(format: "%.1f", activeRun.distanceKm)) km · \(formattedPace(secondsPerKilometer: activeRun.averagePaceSeconds))"
+      let distance = String(format: "%.1f", activeRun.distanceKm)
+      if activeRun.modality.isCycling {
+        let kmh = activeRun.averagePaceSeconds > 0
+          ? String(format: "%.1f km/h", 3600.0 / Double(activeRun.averagePaceSeconds))
+          : "--,- km/h"
+        return "Live: \(distance) km · \(kmh)"
+      }
+      return "Live: \(distance) km · \(formattedPace(secondsPerKilometer: activeRun.averagePaceSeconds))"
     }
 
     if let latestCompletedRun {
-      return
-        "Letzter Lauf: \(latestCompletedRun.title) über \(String(format: "%.1f", latestCompletedRun.distanceKm)) km"
+      let distance = String(format: "%.1f", latestCompletedRun.distanceKm)
+      switch latestCompletedRun.modality {
+      case .run:
+        return "Letzter Lauf: \(latestCompletedRun.title) über \(distance) km"
+      case .bikeOutdoor:
+        return "Letzte Tour: \(latestCompletedRun.title) über \(distance) km"
+      case .bikeIndoor:
+        return "Heimtrainer: \(latestCompletedRun.title) — \(distance) km"
+      }
     }
 
-    return "Starte deinen ersten Lauf in Gains"
+    return "Starte deine erste Cardio-Session"
   }
 
   var runningDescription: String {
-    if activeRun != nil {
+    if let activeRun {
+      if activeRun.modality.isCycling {
+        return
+          "Distanz, Geschwindigkeit und Puls laufen live. Du kannst die Tour direkt steuern oder beenden."
+      }
       return
         "Deine Pace, Herzfrequenz und Distanz laufen gerade live mit. Du kannst den Lauf direkt tracken oder abschließen."
     }
 
     if weeklyRunCount > 0 {
       return
-        "\(weeklyRunCount) Läufe und \(String(format: "%.1f", weeklyRunDistanceKm)) km in den letzten 7 Tagen. Genau dafür ist der Strava-artige Bereich gedacht."
+        "\(weeklyRunCount) Sessions und \(String(format: "%.1f", weeklyRunDistanceKm)) km in den letzten 7 Tagen — Lauf und Rad zusammen."
     }
 
     return
-      "Nutze Vorlagen wie Easy 5K, Tempo oder Long Run und teile den Lauf danach direkt in die Community."
+      "Wähle Lauf, Rad oder Heimtrainer — Gains tracked Pace/Geschwindigkeit, Distanz und Splits automatisch."
   }
 
   var customWorkoutPlans: [WorkoutPlan] {
@@ -1763,17 +2142,12 @@ final class GainsStore: ObservableObject {
       for: Calendar.current.date(byAdding: .weekOfYear, value: calendarWeekOffset, to: Date())
         ?? Date())
     let end = Calendar.current.date(byAdding: .day, value: 6, to: start) ?? start
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "de_DE")
-    formatter.dateFormat = "dd. MMM"
-    return "\(formatter.string(from: start)) – \(formatter.string(from: end))"
+    let f = StoreFormatters.dayMonthDE
+    return "\(f.string(from: start)) – \(f.string(from: end))"
   }
 
   var selectedCalendarHeadline: String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "de_DE")
-    formatter.dateFormat = "EEEE, dd. MMMM"
-    return formatter.string(from: selectedCalendarDate).capitalized
+    StoreFormatters.weekdayDayMonthDE.string(from: selectedCalendarDate).capitalized
   }
 
   var selectedCalendarDescription: String {
@@ -1843,6 +2217,9 @@ final class GainsStore: ObservableObject {
 
   func discardWorkout() {
     activeWorkout = nil
+    // P1-3: Pause-Timer-State mit dem Workout zusammen wegwerfen, sonst
+    // wirkt er beim nächsten Workout-Start fehlerhaft fort.
+    activeRestTimerEndsAt = nil
   }
 
   func startRun(from template: RunTemplate) {
@@ -1851,10 +2228,22 @@ final class GainsStore: ObservableObject {
   }
 
   /// Quick-Run ohne Template — bewusst frei, damit der User im Pre-Run-Setup
-  /// Intensität / Ziel / Audio-Cues selbst wählt.
-  func startQuickRun() {
+  /// Intensität / Ziel / Audio-Cues selbst wählt. Optional kann eine
+  /// Cardio-Modalität mitgegeben werden (Lauf / Outdoor-Rad / Indoor-Rad).
+  func startQuickRun(modality: CardioModality = .run) {
     guard activeRun == nil else { return }
-    activeRun = ActiveRunSession.freshQuickRun()
+    activeRun = ActiveRunSession.freshQuickRun(modality: modality)
+  }
+
+  /// Setzt die Cardio-Modalität (Lauf/Rad outdoor/Rad indoor) auf einem
+  /// bereits aktiven Run-Setup. Wird vom PreRunSetupView genutzt, damit der
+  /// Wechsel im Picker auch nach `startQuickRun()` greift.
+  func setRunModality(_ modality: CardioModality) {
+    guard var run = activeRun else { return }
+    run.modality = modality
+    // Auto-Pause für Indoor abschalten — Heimtrainer steht ohnehin still.
+    if modality.isIndoor { run.autoPauseEnabled = false }
+    activeRun = run
   }
 
   func startRunLike(_ run: CompletedRunSummary) {
@@ -1879,7 +2268,8 @@ final class GainsStore: ObservableObject {
       audioCuesEnabled: true,
       routeCoordinates: [],
       splits: [],
-      hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
+      hrZoneSecondsBuckets: [0, 0, 0, 0, 0],
+      modality: run.modality
     )
   }
 
@@ -1922,7 +2312,8 @@ final class GainsStore: ObservableObject {
         elevationGain: run.elevationGain, currentHeartRate: run.currentHeartRate,
         isPaused: run.isPaused, autoPauseEnabled: run.autoPauseEnabled,
         audioCuesEnabled: run.audioCuesEnabled, routeCoordinates: run.routeCoordinates,
-        splits: run.splits, hrZoneSecondsBuckets: run.hrZoneSecondsBuckets
+        splits: run.splits, hrZoneSecondsBuckets: run.hrZoneSecondsBuckets,
+        modality: run.modality
       )
     case .duration:
       run = ActiveRunSession(
@@ -1934,7 +2325,8 @@ final class GainsStore: ObservableObject {
         elevationGain: run.elevationGain, currentHeartRate: run.currentHeartRate,
         isPaused: run.isPaused, autoPauseEnabled: run.autoPauseEnabled,
         audioCuesEnabled: run.audioCuesEnabled, routeCoordinates: run.routeCoordinates,
-        splits: run.splits, hrZoneSecondsBuckets: run.hrZoneSecondsBuckets
+        splits: run.splits, hrZoneSecondsBuckets: run.hrZoneSecondsBuckets,
+        modality: run.modality
       )
     case .pace:
       run.targetPaceSeconds = max(paceSeconds, 0)
@@ -2102,7 +2494,8 @@ final class GainsStore: ObservableObject {
       intensity: run.intensity,
       feel: feel,
       note: note.trimmingCharacters(in: .whitespacesAndNewlines),
-      hrZoneSecondsBuckets: run.hrZoneSecondsBuckets
+      hrZoneSecondsBuckets: run.hrZoneSecondsBuckets,
+      modality: run.modality
     )
 
     registerCompletedDay(summary.finishedAt)
@@ -2118,14 +2511,16 @@ final class GainsStore: ObservableObject {
     lastProgressEvent =
       "Lauf gespeichert: \(String(format: "%.1f", summary.distanceKm)) km mit \(formattedPace(secondsPerKilometer: summary.averagePaceSeconds))."
 
-    // Apple Health: Lauf inklusive Distanz und GPS-Route nach HKWorkoutRoute
-    // schreiben — sonst doppeltes Tracking gegenüber Strava / Apple-Workout.
+    // Apple Health: Lauf bzw. Rad-Session inklusive Distanz und (bei Outdoor)
+    // GPS-Route nach HKWorkoutRoute schreiben — sonst doppeltes Tracking
+    // gegenüber Strava / Apple-Workout. Indoor-Bike → ohne Route.
     HealthKitManager.shared.saveRunWorkout(
       title: trimmedTitle,
       start: runStartedAt,
       end: summary.finishedAt,
       distanceKm: summary.distanceKm,
-      routeCoordinates: summary.routeCoordinates
+      routeCoordinates: summary.modality.isIndoor ? [] : summary.routeCoordinates,
+      isCycling: summary.modality.isCycling
     )
 
     if socialSharingSettings.autoShareRuns {
@@ -2532,6 +2927,9 @@ final class GainsStore: ObservableObject {
     lastCompletedWorkout = summary
     workoutHistory.insert(summary, at: 0)
     activeWorkout = nil
+    // P1-3: Pause-Timer beim Workout-Ende clearen, damit er beim nächsten
+    // Start nicht aus Versehen weiterläuft.
+    activeRestTimerEndsAt = nil
 
     // Apple Health: Workout zurückschreiben, damit Gains-Aktivitäten in der
     // iOS-Health-App und in den Aktivitäts-Ringen auftauchen. Schlägt still
@@ -2625,6 +3023,80 @@ final class GainsStore: ObservableObject {
       (activeWorkout?.exercises[exerciseIndex].sets.count ?? 0) > 1
     else { return }
     activeWorkout?.exercises[exerciseIndex].sets.removeLast()
+  }
+
+  /// Optimierungs-Sweep 2026-05-03: Entfernt einen einzelnen Satz aus einer
+  /// Übung. Genutzt vom Set-Context-Menu im WorkoutTrackerView. Lässt
+  /// mindestens einen Satz stehen, damit die Übungs-Karte nicht leer wird,
+  /// und nummeriert die verbleibenden Sätze neu durch.
+  func removeSet(exerciseID: UUID, setID: UUID) {
+    guard let exerciseIndex = activeWorkout?.exercises.firstIndex(where: { $0.id == exerciseID })
+    else { return }
+    let sets = activeWorkout?.exercises[exerciseIndex].sets ?? []
+    guard sets.count > 1, sets.contains(where: { $0.id == setID }) else { return }
+    activeWorkout?.exercises[exerciseIndex].sets.removeAll { $0.id == setID }
+    // Order neu vergeben, damit die UI die Sätze als 1..n anzeigt.
+    if var renumbered = activeWorkout?.exercises[exerciseIndex].sets {
+      for index in renumbered.indices {
+        renumbered[index].order = index + 1
+      }
+      activeWorkout?.exercises[exerciseIndex].sets = renumbered
+    }
+  }
+
+  /// Optimierungs-Sweep 2026-05-03: Dupliziert einen einzelnen Satz als
+  /// neuen, OFFENEN Satz hinter dem Original. Anders als `repeatLastSet`
+  /// (das einen abgeschlossenen Satz anhängt) erzeugt dies einen neuen
+  /// Satz, den der User noch tracken muss — perfekt für Drop-Sätze.
+  @discardableResult
+  func duplicateSet(exerciseID: UUID, setID: UUID) -> Bool {
+    guard let exerciseIndex = activeWorkout?.exercises.firstIndex(where: { $0.id == exerciseID })
+    else { return false }
+    let sets = activeWorkout?.exercises[exerciseIndex].sets ?? []
+    guard let sourceIndex = sets.firstIndex(where: { $0.id == setID }) else { return false }
+    let source = sets[sourceIndex]
+    let newSet = TrackedSet(
+      order: source.order + 1,
+      reps: source.reps,
+      weight: source.weight,
+      isCompleted: false
+    )
+    activeWorkout?.exercises[exerciseIndex].sets.insert(newSet, at: sourceIndex + 1)
+    // Order neu vergeben, damit Folge-Sätze ihre Nummer behalten.
+    if var renumbered = activeWorkout?.exercises[exerciseIndex].sets {
+      for index in renumbered.indices {
+        renumbered[index].order = index + 1
+      }
+      activeWorkout?.exercises[exerciseIndex].sets = renumbered
+    }
+    return true
+  }
+
+  /// G4-Fix (2026-05-01): „Letzten Satz wiederholen" — kopiert Gewicht/Reps
+  /// vom vorherigen completed Set und legt einen NEU completeden Satz an.
+  /// Wenn kein vorheriger Satz vorhanden ist (sollte nicht passieren, da
+  /// `startWorkout` immer mindestens einen Set erzeugt), wird die Funktion
+  /// stillschweigend übersprungen. Returns: true, wenn der Satz angelegt
+  /// wurde — der Caller kann dann z. B. den Pause-Timer starten.
+  @discardableResult
+  func repeatLastSet(for exerciseID: UUID) -> Bool {
+    guard let exerciseIndex = activeWorkout?.exercises.firstIndex(where: { $0.id == exerciseID })
+    else { return false }
+    let existingSets = activeWorkout?.exercises[exerciseIndex].sets ?? []
+    // Bevorzugt der letzte abgeschlossene Satz; wenn keiner abgeschlossen
+    // ist, der schlicht letzte. So wirkt der Knopf konsistent: er
+    // wiederholt das, was zuletzt zählte.
+    let reference = existingSets.last(where: { $0.isCompleted }) ?? existingSets.last
+    guard let ref = reference else { return false }
+    let newOrder = (existingSets.last?.order ?? 0) + 1
+    let newSet = TrackedSet(
+      order: newOrder,
+      reps: ref.reps,
+      weight: ref.weight,
+      isCompleted: true
+    )
+    activeWorkout?.exercises[exerciseIndex].sets.append(newSet)
+    return true
   }
 
   func toggleCoachCheckIn(_ id: UUID) {
@@ -2930,106 +3402,6 @@ final class GainsStore: ObservableObject {
     saveAll()
   }
 
-  // MARK: - Forum
-
-  func createForumThread(category: ForumCategory, title: String, body: String, location: String? = nil) {
-    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-    let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmedTitle.isEmpty else { return }
-
-    let thread = ForumThread(
-      id: UUID(),
-      category: category,
-      title: trimmedTitle,
-      body: trimmedBody,
-      author: userName,
-      handle: "@julius.gains",
-      createdAt: Date(),
-      location: location?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
-      replies: [],
-      likeCount: 0
-    )
-    forumThreads.insert(thread, at: 0)
-    saveAll()
-  }
-
-  func addReply(to threadID: UUID, body: String) {
-    let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty,
-          let index = forumThreads.firstIndex(where: { $0.id == threadID }) else { return }
-    let reply = ForumReply(
-      id: UUID(),
-      author: userName,
-      handle: "@julius.gains",
-      body: trimmed,
-      createdAt: Date()
-    )
-    forumThreads[index].replies.append(reply)
-    saveAll()
-  }
-
-  func toggleForumLike(threadID: UUID) {
-    guard let index = forumThreads.firstIndex(where: { $0.id == threadID }) else { return }
-    forumThreads[index].likeCount += 1
-    saveAll()
-  }
-
-  // MARK: - Meetups
-
-  func createMeetup(
-    sport: MeetupSport,
-    title: String,
-    locationName: String,
-    startsAt: Date,
-    pace: String?,
-    notes: String,
-    maxParticipants: Int
-  ) {
-    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-    let trimmedLocation = locationName.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmedTitle.isEmpty, !trimmedLocation.isEmpty else { return }
-
-    let meetup = Meetup(
-      id: UUID(),
-      sport: sport,
-      title: trimmedTitle,
-      locationName: trimmedLocation,
-      startsAt: startsAt,
-      pace: pace?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty,
-      hostHandle: "@julius.gains",
-      hostName: userName,
-      notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
-      maxParticipants: max(2, maxParticipants),
-      participantHandles: ["@julius.gains"]
-    )
-    meetups.insert(meetup, at: 0)
-    joinedMeetupIDs.insert(meetup.id)
-    saveAll()
-  }
-
-  func toggleMeetupParticipation(meetupID: UUID) {
-    guard let index = meetups.firstIndex(where: { $0.id == meetupID }) else { return }
-    let ownHandle = "@julius.gains"
-    if meetups[index].participantHandles.contains(ownHandle) {
-      meetups[index].participantHandles.removeAll { $0 == ownHandle }
-      joinedMeetupIDs.remove(meetupID)
-    } else if meetups[index].participantHandles.count < meetups[index].maxParticipants {
-      meetups[index].participantHandles.append(ownHandle)
-      joinedMeetupIDs.insert(meetupID)
-    }
-    saveAll()
-  }
-
-  var upcomingMeetups: [Meetup] {
-    meetups
-      .filter { $0.startsAt >= Date().addingTimeInterval(-3600) }
-      .sorted { $0.startsAt < $1.startsAt }
-  }
-
-  func threads(in category: ForumCategory) -> [ForumThread] {
-    forumThreads.filter { $0.category == category }
-  }
-
   // MARK: - Personal Records
 
   func detectAndShareNewPRs(from summary: CompletedWorkoutSummary) {
@@ -3074,6 +3446,58 @@ final class GainsStore: ObservableObject {
       shares: 0
     )
     communityPosts.insert(post, at: 0)
+  }
+
+  // MARK: - Profil (2026-05-03)
+  //
+  // Hilfsmethoden, die von der neuen ProfileView aufgerufen werden um den
+  // angezeigten Namen oder das Avatar-Bild zu ändern. Beide setzen die
+  // @Published-Eigenschaft (UI-Update) und persistieren danach asynchron
+  // via saveAll() — der Caller muss sich nicht um Speicherung kümmern.
+
+  /// Setzt den Anzeigenamen. Leerzeichen werden getrimmt; ein leerer
+  /// Name fällt auf den unbenutzten Initial-Zustand zurück (Greeting
+  /// rendert dann ohne Komma + Name, Avatar zeigt „·").
+  func setUserName(_ newName: String) {
+    let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed != userName else { return }
+    userName = trimmed
+    saveAll()
+  }
+
+  /// Speichert ein neu gewähltes Profilbild. Komprimiert auf max. 512×512
+  /// (kürzere Kante) als JPEG-Quality 0.7 — ~50-150 KB pro Bild, liegt
+  /// problemlos in den UserDefaults und ist schnell zu deserialisieren.
+  /// `nil` setzt zurück auf den Initial-Letter-Avatar.
+  func setUserAvatar(_ image: UIImage?) {
+    guard let image else {
+      userAvatarData = nil
+      saveAll()
+      return
+    }
+    let target: CGFloat = 512
+    let aspect = image.size.width / max(image.size.height, 1)
+    let newSize: CGSize
+    if image.size.width <= target && image.size.height <= target {
+      newSize = image.size
+    } else if aspect >= 1 {
+      newSize = CGSize(width: target, height: target / aspect)
+    } else {
+      newSize = CGSize(width: target * aspect, height: target)
+    }
+    let renderer = UIGraphicsImageRenderer(size: newSize)
+    let resized = renderer.image { _ in
+      image.draw(in: CGRect(origin: .zero, size: newSize))
+    }
+    userAvatarData = resized.jpegData(compressionQuality: 0.7)
+    saveAll()
+  }
+
+  /// Convenience: gibt das gespeicherte Profilbild als UIImage zurück
+  /// (oder nil, wenn keins gesetzt ist).
+  var userAvatarImage: UIImage? {
+    guard let data = userAvatarData, !data.isEmpty else { return nil }
+    return UIImage(data: data)
   }
 
   func toggleNotificationsEnabled() {
@@ -3366,10 +3790,7 @@ final class GainsStore: ObservableObject {
   }
 
   private func timeLabel(for date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "de_DE")
-    formatter.dateFormat = "HH:mm"
-    return formatter.string(from: date)
+    StoreFormatters.timeHHmmDE.string(from: date)
   }
 
   private func applyRunProgress(from summary: CompletedRunSummary) {
@@ -3410,10 +3831,7 @@ final class GainsStore: ObservableObject {
   }
 
   private func milestoneLabel(for date: Date) -> String {
-    let formatter = DateFormatter()
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "MMM dd"
-    return formatter.string(from: date).uppercased()
+    StoreFormatters.monthDayEN.string(from: date).uppercased()
   }
 
   private func rounded(_ value: Double) -> Double {

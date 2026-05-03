@@ -333,7 +333,7 @@ struct GymStatsTab: View {
       }
       .padding(12)
       .background(GainsColor.background.opacity(0.5))
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -496,7 +496,7 @@ struct GymStatsTab: View {
           .frame(maxWidth: .infinity)
           .frame(height: 42)
           .background(GainsColor.background.opacity(0.8))
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
         .buttonStyle(.plain)
       }

@@ -123,7 +123,7 @@ struct CoachView: View {
             store.completedCoachCheckInIDs.contains(item.id)
               ? GainsColor.lime.opacity(0.45) : GainsColor.card
           )
-          .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
         }
         .buttonStyle(.plain)
       }

@@ -81,7 +81,7 @@ struct BarcodeScannerSheet: View {
         Spacer()
 
         // Finder frame
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(GainsColor.lime, lineWidth: 2.5)
           .frame(width: 260, height: 130)
           .overlay(
@@ -187,7 +187,7 @@ struct BarcodeScannerSheet: View {
             .frame(maxWidth: .infinity)
             .frame(height: 46)
             .background(GainsColor.elevated)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -235,7 +235,7 @@ struct BarcodeScannerSheet: View {
               .foregroundStyle(GainsColor.onLime)
               .frame(maxWidth: .infinity).frame(height: 52)
               .background(GainsColor.lime)
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
 
@@ -245,7 +245,7 @@ struct BarcodeScannerSheet: View {
               .foregroundStyle(GainsColor.softInk)
               .frame(maxWidth: .infinity).frame(height: 52)
               .background(GainsColor.elevated)
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -279,7 +279,7 @@ struct BarcodeScannerSheet: View {
             .foregroundStyle(GainsColor.onLime)
             .frame(width: 160, height: 50)
             .background(GainsColor.lime)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
         .buttonStyle(.plain)
         Spacer()
@@ -397,7 +397,7 @@ private struct BarcodeGramInputCard: View {
         .foregroundStyle(GainsColor.onLime)
         .frame(maxWidth: .infinity).frame(height: 52)
         .background(GainsColor.lime)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
     }

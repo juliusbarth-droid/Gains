@@ -73,7 +73,7 @@ struct GainsSparklineBar: View {
           }
           .stroke(
             GainsColor.softInk.opacity(0.28),
-            style: StrokeStyle(lineWidth: 0.6, dash: [3, 3])
+            style: StrokeStyle(lineWidth: GainsBorder.hairline, dash: [3, 3])
           )
         }
 
@@ -117,7 +117,7 @@ struct GainsSparklineBar: View {
               RoundedRectangle(cornerRadius: 4, style: .continuous)
                 .stroke(
                   isLatest ? Color.white.opacity(0.35) : Color.clear,
-                  lineWidth: 0.6
+                  lineWidth: GainsBorder.hairline
                 )
             )
             .frame(height: barHeight)
@@ -145,7 +145,7 @@ struct GainsSparklineBar: View {
     Circle()
       .fill(color)
       .frame(width: 4, height: 4)
-      .overlay(Circle().stroke(GainsColor.background, lineWidth: 0.8))
+      .overlay(Circle().stroke(GainsColor.background, lineWidth: GainsBorder.accent))
   }
 
   private func barFill(isLatest: Bool) -> LinearGradient {
@@ -284,7 +284,7 @@ struct GainsSparklineLine: View {
           }
           .stroke(
             GainsColor.softInk.opacity(0.28),
-            style: StrokeStyle(lineWidth: 0.6, dash: [3, 3])
+            style: StrokeStyle(lineWidth: GainsBorder.hairline, dash: [3, 3])
           )
         }
 

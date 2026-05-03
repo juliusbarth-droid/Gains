@@ -23,6 +23,10 @@ struct RunTrackerView: View {
   @State private var lastSpokenKilometer: Int = 0
   /// Letzter vom Audio-Cue gesprochener Step-Index — vermeidet doppelte Sprachausgabe.
   @State private var lastSpokenStepIndex: Int = -1
+  /// 2026-05-01 P1-4: Bestätigungs-Dialog wenn der User im Countdown auf
+  /// „Schließen" tippt — vorher wurde der Lauf in der Vorbereitung sofort
+  /// verworfen, was ärgerlich ist wenn man Ziel/Modus schon eingestellt hat.
+  @State private var isConfirmingCountdownAbort = false
 
   private enum Phase {
     case setup
@@ -62,11 +66,15 @@ struct RunTrackerView: View {
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
           Button(phase == .live ? "Beenden" : "Schließen") {
-            if phase == .live {
+            switch phase {
+            case .live:
               showsStopSheet = true
-            } else {
+            case .countdown:
+              // P1-4: Im Countdown-Phase Bestätigung verlangen, weil
+              // Setup (Ziel/Modus/Audio-Cues) sonst verloren ist.
+              isConfirmingCountdownAbort = true
+            case .setup:
               showsStopSheet = false
-              cancelCountdown()
               stopTracking()
               if store.activeRun != nil {
                 store.discardActiveRun()
@@ -77,9 +85,31 @@ struct RunTrackerView: View {
           .foregroundStyle(GainsColor.ink)
         }
       }
+      .confirmationDialog(
+        "Lauf-Vorbereitung abbrechen?",
+        isPresented: $isConfirmingCountdownAbort,
+        titleVisibility: .visible
+      ) {
+        Button("Abbrechen", role: .destructive) {
+          cancelCountdown()
+          stopTracking()
+          if store.activeRun != nil {
+            store.discardActiveRun()
+          }
+          dismiss()
+        }
+        Button("Weiter", role: .cancel) {}
+      } message: {
+        Text("Dein eingestelltes Ziel und der Modus gehen verloren.")
+      }
       .sheet(isPresented: $showsStopSheet) {
         StopRunSheet(
           run: store.activeRun,
+          // 2026-05-01 P1-5: Sekunden-genaue Save-Bedingung — durationMinutes
+          // (Int) ist 0 für Läufe < 60s, dadurch konnte ein 45s-Lauf nicht
+          // gespeichert werden. Wir reichen die exakten Sekunden aus dem
+          // GPS-Tracker durch.
+          elapsedSeconds: gpsTracker.elapsedSeconds,
           onSave: { title, note, feel in
             finishRun(title: title, note: note, feel: feel)
             showsStopSheet = false
@@ -169,7 +199,12 @@ struct RunTrackerView: View {
     if store.activeRun == nil {
       store.startQuickRun()
     }
-    audio.speak("Lauf gestartet.")
+    let modality = store.activeRun?.modality ?? .run
+    switch modality {
+    case .run:         audio.speak("Lauf gestartet.")
+    case .bikeOutdoor: audio.speak("Fahrt gestartet.")
+    case .bikeIndoor:  audio.speak("Indoor-Bike gestartet.")
+    }
     synchronizeTrackerState()
   }
 
@@ -182,8 +217,21 @@ struct RunTrackerView: View {
     }
 
     gpsTracker.autoPauseEnabled = run.autoPauseEnabled
+    // 2026-05-01 P1 Bike-Fix: Modalität in den GPS-Tracker spiegeln, damit die
+    // Speed-Validation den richtigen Schwellwert nutzt (Lauf 10 m/s vs. Rad
+    // 25 m/s). Vorher blieb der Wert konstant `.run` — Bike-Sessions haben
+    // legitime Punkte oberhalb von 36 km/h verworfen.
+    gpsTracker.cardioModality = run.modality
 
     guard !run.isPaused else { return }
+
+    // 2026-05-03: Indoor-Bike (Heimtrainer/Spinning) bekommt einen eigenen
+    // Tracking-Pfad ohne GPS — kein Authorize, kein Map-Updates, nur Timer.
+    // Distanz wird vom LiveRunView per Stepper-Tile manuell hochgeschoben.
+    if !run.modality.requiresGPS {
+      gpsTracker.beginIndoorTracking(from: run)
+      return
+    }
 
     if gpsTracker.canStartTracking {
       gpsTracker.beginTracking(from: run)
@@ -203,7 +251,7 @@ struct RunTrackerView: View {
   }
 
   private func syncStoreWithTracker() {
-    guard gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback else { return }
+    guard gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback || gpsTracker.isIndoor else { return }
     store.syncActiveRunGPS(
       distanceKm: gpsTracker.trackedDistanceKm,
       durationMinutes: gpsTracker.durationMinutes,
@@ -250,6 +298,12 @@ struct RunTrackerView: View {
 
   private func displayedPaceLabel(for tracker: RunLocationTracker) -> String {
     guard tracker.trackedDistanceKm > 0 else { return "noch unbekannt" }
+    if tracker.cardioModality.isCycling {
+      let kmh = (Double(tracker.elapsedSeconds) > 0)
+        ? tracker.trackedDistanceKm * 3600.0 / Double(tracker.elapsedSeconds)
+        : 0
+      return String(format: "%.1f Kilometer pro Stunde", kmh)
+    }
     let secsPerKm = Int(Double(tracker.elapsedSeconds) / tracker.trackedDistanceKm)
     let m = secsPerKm / 60
     let s = secsPerKm % 60
@@ -296,8 +350,13 @@ struct RunTrackerView: View {
 
   private func finishRun(title: String, note: String, feel: RunFeel?) {
     syncStoreWithTracker()
+    let modality = store.activeRun?.modality ?? .run
     stopTracking()
-    audio.speak("Lauf beendet.")
+    switch modality {
+    case .run:         audio.speak("Lauf beendet.")
+    case .bikeOutdoor: audio.speak("Fahrt beendet.")
+    case .bikeIndoor:  audio.speak("Indoor-Bike beendet.")
+    }
     store.finishRun(customTitle: title, note: note, feel: feel)
   }
 }
@@ -307,26 +366,46 @@ struct RunTrackerView: View {
 private struct PreRunSetupView: View {
   @ObservedObject var store: GainsStore
   @ObservedObject var gpsTracker: RunLocationTracker
+  @ObservedObject private var ble = BLEHeartRateManager.shared
   let onStart: () -> Void
 
   @State private var selectedIntensity: RunIntensity = .free
+  @State private var selectedModality: CardioModality = .run
   @State private var targetMode: RunTargetMode = .free
   @State private var targetDistance: Double = 5.0
   @State private var targetDurationMinutes: Int = 30
+  /// Pace-Ziel — bei Lauf interpretiert als Sekunden pro Kilometer
+  /// (`5:30 /km`), bei Rad als Sekunden pro Kilometer der gewünschten
+  /// Durchschnittsgeschwindigkeit (intern: 30 km/h ≙ 120 s/km).
   @State private var targetPaceSeconds: Int = 5 * 60 + 30  // 5:30 /km
+  /// Ziel-Geschwindigkeit für Bike-Modi in km/h. Wird nur in der Bike-Pace-
+  /// Anzeige verwendet und beim Apply in `targetPaceSeconds` umgerechnet.
+  @State private var targetSpeedKmh: Double = 25.0
   @State private var autoPauseEnabled: Bool = true
   @State private var audioCuesEnabled: Bool = true
+  // C1/C2-Fix (2026-05-01): Settings standardmäßig zugeklappt. Default-
+  // Zustand (Frei/Frei/Auto-Pause/Audio) ist für 80 % der Läufe genau
+  // richtig — Quick-Start-CTA reicht aus. Power-User klappen auf.
+  @State private var showsAdvanced: Bool = false
+  // C3-Fix (2026-05-01): HF-Sensor-Suggestion inline statt vergraben
+  // im globalen Picker. User-Tap öffnet das WearablePickerSheet.
+  @State private var showsWearablePicker: Bool = false
+  @State private var hfHintDismissed: Bool = false
 
   var body: some View {
     ScrollView(showsIndicators: false) {
       VStack(alignment: .leading, spacing: 22) {
         header
 
-        intensityPicker
+        modalityPicker
 
-        targetSection
+        if showsHFSensorHint {
+          hfSensorHint
+        }
 
-        optionsSection
+        quickStartCard
+
+        advancedDisclosure
 
         Color.clear.frame(height: 12)
       }
@@ -335,17 +414,17 @@ private struct PreRunSetupView: View {
     }
     .safeAreaInset(edge: .bottom) {
       VStack(spacing: 8) {
-        gpsStatusRow
+        modalityStatusRow
         Button {
           applyAndStart()
         } label: {
-          Text("Lauf starten")
+          Text(primaryCTALabel)
             .font(.system(size: 16, weight: .semibold))
             .foregroundStyle(GainsColor.onLime)
             .frame(maxWidth: .infinity)
             .frame(height: 56)
             .background(GainsColor.lime)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
       }
@@ -354,16 +433,246 @@ private struct PreRunSetupView: View {
       .padding(.top, 12)
       .background(GainsColor.background)
     }
+    .onAppear { syncModalityFromActiveRun() }
+    .sheet(isPresented: $showsWearablePicker) {
+      WearablePickerSheet()
+    }
+  }
+
+  // MARK: – Modality-Picker (Lauf / Rad / Rad Indoor)
+
+  /// Drei-Segment-Picker: Lauf / Rad / Rad Indoor. Schaltet UI-Beschriftungen
+  /// (km/h vs. min/km) sowie die GPS-Status-Zeile. Wird im Apply per
+  /// `store.setRunModality` in den aktiven Run gespiegelt.
+  private var modalityPicker: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Text("MODUS")
+        .font(GainsFont.label(10))
+        .tracking(1.6)
+        .foregroundStyle(GainsColor.softInk)
+
+      HStack(spacing: 8) {
+        ForEach(CardioModality.allCases, id: \.self) { modality in
+          Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+              selectedModality = modality
+            }
+          } label: {
+            modalityChip(for: modality, isSelected: modality == selectedModality)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  }
+
+  private func modalityChip(for modality: CardioModality, isSelected: Bool) -> some View {
+    VStack(spacing: 6) {
+      Image(systemName: modality.systemImage)
+        .font(.system(size: 18, weight: .semibold))
+      Text(modality.displayName)
+        .font(.system(size: 12, weight: .semibold))
+        .lineLimit(1)
+        .minimumScaleFactor(0.85)
+    }
+    .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.ink)
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 12)
+    .background(isSelected ? GainsColor.lime : GainsColor.card)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private func syncModalityFromActiveRun() {
+    if let modality = store.activeRun?.modality {
+      selectedModality = modality
+    }
+  }
+
+  private var primaryCTALabel: String {
+    switch selectedModality {
+    case .run:         return "Lauf starten"
+    case .bikeOutdoor: return "Fahrt starten"
+    case .bikeIndoor:  return "Indoor-Bike starten"
+    }
+  }
+
+  // MARK: HF-Sensor-Suggestion (C3)
+
+  /// True, wenn weder BLE-HR noch HealthKit-HR live sind und der User die
+  /// Suggestion nicht in dieser Sitzung weggetippt hat.
+  private var showsHFSensorHint: Bool {
+    if hfHintDismissed { return false }
+    if ble.isConnected || ble.liveHeartRate != nil { return false }
+    if HealthKitManager.shared.liveHeartRate != nil { return false }
+    return true
+  }
+
+  private var hfSensorHint: some View {
+    HStack(spacing: 12) {
+      Image(systemName: "heart.fill")
+        .font(.system(size: 16, weight: .semibold))
+        .foregroundStyle(GainsColor.accentCool)
+        .frame(width: 36, height: 36)
+        .background(GainsColor.accentCool.opacity(0.16))
+        .clipShape(Circle())
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text("HERZFREQUENZ NICHT VERBUNDEN")
+          .gainsEyebrow(GainsColor.accentCool, size: 9, tracking: 1.4)
+        Text("Sensor verbinden für genaue Zonen.")
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.ink)
+      }
+
+      Spacer(minLength: 0)
+
+      Button {
+        showsWearablePicker = true
+      } label: {
+        Text("VERBINDEN")
+          .font(GainsFont.label(11))
+          .tracking(1.2)
+          .foregroundStyle(GainsColor.onLime)
+          .padding(.horizontal, 12)
+          .frame(height: 32)
+          .background(GainsColor.accentCool)
+          .clipShape(Capsule())
+      }
+      .buttonStyle(.plain)
+
+      Button {
+        withAnimation(.spring(response: 0.3)) {
+          hfHintDismissed = true
+        }
+      } label: {
+        Image(systemName: "xmark")
+          .font(.system(size: 10, weight: .bold))
+          .foregroundStyle(GainsColor.softInk)
+          .frame(width: 22, height: 22)
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Hinweis ausblenden")
+    }
+    .padding(12)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .strokeBorder(GainsColor.accentCool.opacity(0.30), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  // MARK: Quick-Start-Card (C1/C2)
+
+  /// Eine fett gerandete Hero-Card mit dem aktuellen Setup als One-Liner +
+  /// großem „Sofort starten"-CTA. Wer nichts anpasst, ist mit zwei Taps
+  /// (Sheet öffnen → Sofort starten) draußen.
+  private var quickStartCard: some View {
+    Button {
+      applyAndStart()
+    } label: {
+      HStack(alignment: .center, spacing: 16) {
+        ZStack {
+          Circle()
+            .fill(GainsColor.lime.opacity(0.18))
+            .frame(width: 52, height: 52)
+          Image(systemName: "play.fill")
+            .font(.system(size: 22, weight: .bold))
+            .foregroundStyle(GainsColor.onLime)
+        }
+        VStack(alignment: .leading, spacing: 4) {
+          Text("SOFORT STARTEN")
+            .gainsEyebrow(GainsColor.lime, size: 10, tracking: 1.6)
+          Text(quickStartHeadline)
+            .font(GainsFont.title(18))
+            .foregroundStyle(GainsColor.ink)
+            .lineLimit(1)
+            .minimumScaleFactor(0.85)
+          Text(quickStartSubtitle)
+            .font(GainsFont.body(11))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(1)
+        }
+        Spacer(minLength: 0)
+        Image(systemName: "arrow.up.right")
+          .font(.system(size: 14, weight: .bold))
+          .foregroundStyle(GainsColor.softInk)
+      }
+      .padding(16)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+          .strokeBorder(GainsColor.lime.opacity(0.45), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel("Lauf sofort starten — \(quickStartSubtitle)")
+  }
+
+  private var quickStartHeadline: String {
+    switch targetMode {
+    case .free:     return selectedModality.freshTitle
+    case .distance: return String(format: "%.1f km", targetDistance)
+    case .duration: return "\(targetDurationMinutes) min"
+    case .pace:
+      if selectedModality.isCycling {
+        return String(format: "%.0f km/h", targetSpeedKmh)
+      } else {
+        return paceLabel(targetPaceSeconds) + " /km"
+      }
+    }
+  }
+
+  private var quickStartSubtitle: String {
+    var parts: [String] = [selectedIntensity.title]
+    if autoPauseEnabled { parts.append("Auto-Pause") }
+    if audioCuesEnabled { parts.append("Audio") }
+    return parts.joined(separator: " · ")
+  }
+
+  private var advancedDisclosure: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Button {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+          showsAdvanced.toggle()
+        }
+      } label: {
+        HStack {
+          Text(showsAdvanced ? "Anpassen ausblenden" : "Anpassen")
+            .font(GainsFont.label(12))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.softInk)
+          Spacer(minLength: 0)
+          Image(systemName: showsAdvanced ? "chevron.up" : "chevron.down")
+            .font(.system(size: 12, weight: .bold))
+            .foregroundStyle(GainsColor.softInk)
+        }
+        .padding(.vertical, 8)
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+
+      if showsAdvanced {
+        VStack(alignment: .leading, spacing: 22) {
+          intensityPicker
+          targetSection
+          optionsSection
+        }
+        .padding(.top, 14)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+      }
+    }
   }
 
   // MARK: Header
 
   private var header: some View {
     VStack(alignment: .leading, spacing: 10) {
-      Text("LAUF")
+      Text(selectedModality.shortLabel)
         .gainsEyebrow(GainsColor.softInk, size: 12, tracking: 2.4)
 
-      Text("Lauf starten")
+      Text(primaryCTALabel)
         .font(.system(size: 38, weight: .semibold))
         .foregroundStyle(GainsColor.ink)
 
@@ -443,7 +752,7 @@ private struct PreRunSetupView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 36)
               .background(targetMode == mode ? GainsColor.lime : GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -476,12 +785,21 @@ private struct PreRunSetupView: View {
         increment: { targetDurationMinutes = min(targetDurationMinutes + 5, 240) }
       )
     case .pace:
-      stepperRow(
-        label: "Pace",
-        valueText: paceLabel(targetPaceSeconds) + " /km",
-        decrement: { targetPaceSeconds = max(targetPaceSeconds - 5, 3 * 60) },
-        increment: { targetPaceSeconds = min(targetPaceSeconds + 5, 9 * 60) }
-      )
+      if selectedModality.isCycling {
+        stepperRow(
+          label: "Speed",
+          valueText: String(format: "%.0f km/h", targetSpeedKmh),
+          decrement: { targetSpeedKmh = max(targetSpeedKmh - 1, 8) },
+          increment: { targetSpeedKmh = min(targetSpeedKmh + 1, 60) }
+        )
+      } else {
+        stepperRow(
+          label: "Pace",
+          valueText: paceLabel(targetPaceSeconds) + " /km",
+          decrement: { targetPaceSeconds = max(targetPaceSeconds - 5, 3 * 60) },
+          increment: { targetPaceSeconds = min(targetPaceSeconds + 5, 9 * 60) }
+        )
+      }
     }
   }
 
@@ -530,24 +848,31 @@ private struct PreRunSetupView: View {
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
-      Toggle(isOn: $autoPauseEnabled) {
-        VStack(alignment: .leading, spacing: 2) {
-          Text("Auto-Pause")
-            .font(GainsFont.body(14))
-            .foregroundStyle(GainsColor.ink)
-          Text("Stoppt die Zeit automatisch, wenn du stehen bleibst.")
-            .font(GainsFont.body(11))
-            .foregroundStyle(GainsColor.softInk)
+      // Indoor: Auto-Pause ergibt keinen Sinn (Heimtrainer steht ohnehin),
+      // also blenden wir den Toggle aus, statt den User mit toter Option
+      // zu konfrontieren.
+      if !selectedModality.isIndoor {
+        Toggle(isOn: $autoPauseEnabled) {
+          VStack(alignment: .leading, spacing: 2) {
+            Text("Auto-Pause")
+              .font(GainsFont.body(14))
+              .foregroundStyle(GainsColor.ink)
+            Text("Stoppt die Zeit automatisch, wenn du stehen bleibst.")
+              .font(GainsFont.body(11))
+              .foregroundStyle(GainsColor.softInk)
+          }
         }
+        .tint(GainsColor.lime)
       }
-      .tint(GainsColor.lime)
 
       Toggle(isOn: $audioCuesEnabled) {
         VStack(alignment: .leading, spacing: 2) {
           Text("Audio-Hinweise")
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
-          Text("Sprachausgabe bei jedem Kilometer mit aktueller Pace.")
+          Text(selectedModality.isCycling
+               ? "Sprachausgabe bei jedem Kilometer mit aktueller Geschwindigkeit."
+               : "Sprachausgabe bei jedem Kilometer mit aktueller Pace.")
             .font(GainsFont.body(11))
             .foregroundStyle(GainsColor.softInk)
         }
@@ -556,21 +881,37 @@ private struct PreRunSetupView: View {
     }
     .padding(14)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
-  // MARK: GPS-Status
+  // MARK: GPS- bzw. Modus-Status
 
-  private var gpsStatusRow: some View {
-    HStack(spacing: 6) {
-      Circle()
-        .fill(gpsTracker.canStartTracking ? GainsColor.lime : GainsColor.softInk)
-        .frame(width: 6, height: 6)
-      Text(gpsTracker.canStartTracking ? "GPS BEREIT" : "GPS WIRD VORBEREITET")
-        .font(GainsFont.label(10))
-        .tracking(1.6)
-        .foregroundStyle(GainsColor.softInk)
-      Spacer()
+  /// Zeile im Bottom-Inset: GPS-Status für Outdoor-Aktivitäten, Indoor-Hinweis
+  /// für stationäre Sessions (kein GPS, manuelle Distanz-Eingabe).
+  @ViewBuilder
+  private var modalityStatusRow: some View {
+    if selectedModality.isIndoor {
+      HStack(spacing: 6) {
+        Image(systemName: "house.fill")
+          .font(.system(size: 10, weight: .bold))
+          .foregroundStyle(GainsColor.softInk)
+        Text("INDOOR · DISTANZ MANUELL · KEIN GPS")
+          .font(GainsFont.label(10))
+          .tracking(1.6)
+          .foregroundStyle(GainsColor.softInk)
+        Spacer()
+      }
+    } else {
+      HStack(spacing: 6) {
+        Circle()
+          .fill(gpsTracker.canStartTracking ? GainsColor.lime : GainsColor.softInk)
+          .frame(width: 6, height: 6)
+        Text(gpsTracker.canStartTracking ? "GPS BEREIT" : "GPS WIRD VORBEREITET")
+          .font(GainsFont.label(10))
+          .tracking(1.6)
+          .foregroundStyle(GainsColor.softInk)
+        Spacer()
+      }
     }
   }
 
@@ -578,16 +919,28 @@ private struct PreRunSetupView: View {
 
   private func applyAndStart() {
     if store.activeRun == nil {
-      store.startQuickRun()
+      store.startQuickRun(modality: selectedModality)
     }
+    // Modus auch nachträglich spiegeln, damit Mode-Wechsel im offenen Sheet
+    // („User hat erst Lauf gewählt, dann auf Rad gewechselt") greift.
+    store.setRunModality(selectedModality)
     store.setRunIntensity(selectedIntensity)
+    // Bike-Pace-Ziel ist als km/h gewählt, intern brauchen wir Sekunden/km.
+    let appliedPaceSeconds: Int = {
+      if selectedModality.isCycling, targetSpeedKmh > 0 {
+        return Int((3600.0 / targetSpeedKmh).rounded())
+      }
+      return targetPaceSeconds
+    }()
     store.setRunTarget(
       mode: targetMode,
       distanceKm: targetDistance,
       durationMinutes: targetDurationMinutes,
-      paceSeconds: targetPaceSeconds
+      paceSeconds: appliedPaceSeconds
     )
-    store.setAutoPause(autoPauseEnabled)
+    // Indoor erzwingt Auto-Pause aus (Heimtrainer steht — sonst würde der
+    // Tracker fälschlich pausieren). Outdoor übernimmt die Toggle-Wahl.
+    store.setAutoPause(selectedModality.isIndoor ? false : autoPauseEnabled)
     store.setAudioCues(audioCuesEnabled)
     onStart()
   }
@@ -699,6 +1052,7 @@ private struct LiveRunView: View {
 
   private var statusText: String {
     if run.isPaused { return "PAUSIERT" }
+    if gpsTracker.isIndoor { return "\(run.modality.shortLabel) LIVE" }
     if gpsTracker.isUsingGPS { return "GPS LIVE" }
     return "LIVE"
   }
@@ -776,7 +1130,7 @@ private struct LiveRunView: View {
     }
     .padding(12)
     .background(GainsColor.card.opacity(0.85))
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: Target Progress
@@ -815,28 +1169,90 @@ private struct LiveRunView: View {
     case .free:     return ""
     case .distance: return "ZIEL · \(String(format: "%.1f", run.targetDistanceKm)) km"
     case .duration: return "ZIEL · \(run.targetDurationMinutes) min"
-    case .pace:     return "ZIEL · \(formatPace(run.targetPaceSeconds)) /km"
+    case .pace:
+      if run.modality.isCycling, run.targetPaceSeconds > 0 {
+        let kmh = 3600.0 / Double(run.targetPaceSeconds)
+        return String(format: "ZIEL · %.0f km/h", kmh)
+      }
+      return "ZIEL · \(formatPace(run.targetPaceSeconds)) /km"
     }
   }
 
   // MARK: Map / Route
 
+  /// Outdoor-Aktivitäten: Karte mit Tracklinie. Indoor-Bike: Manueller
+  /// Distanz-Stepper, weil ohne GPS nichts zu zeichnen wäre.
+  @ViewBuilder
   private var routeSection: some View {
-    Map(position: .constant(gpsTracker.cameraPosition)) {
-      if !displayedRouteCoordinates.isEmpty {
-        MapPolyline(coordinates: displayedRouteCoordinates)
-          .stroke(GainsColor.lime, lineWidth: 5)
-      }
-      if let coord = displayedRouteCoordinates.last ?? gpsTracker.currentCoordinate {
-        Annotation("Aktuell", coordinate: coord) {
-          Circle()
-            .fill(GainsColor.lime)
-            .frame(width: 16, height: 16)
-            .overlay { Circle().stroke(GainsColor.ink, lineWidth: 3) }
+    if run.modality.isIndoor {
+      indoorDistanceTile
+    } else {
+      Map(position: .constant(gpsTracker.cameraPosition)) {
+        if !displayedRouteCoordinates.isEmpty {
+          MapPolyline(coordinates: displayedRouteCoordinates)
+            .stroke(GainsColor.lime, lineWidth: 5)
+        }
+        if let coord = displayedRouteCoordinates.last ?? gpsTracker.currentCoordinate {
+          Annotation("Aktuell", coordinate: coord) {
+            Circle()
+              .fill(GainsColor.lime)
+              .frame(width: 16, height: 16)
+              .overlay { Circle().stroke(GainsColor.ink, lineWidth: 3) }
+          }
         }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
+  }
+
+  /// Indoor-Tile: zeigt die aufaddierte Distanz groß und bietet ±0.5/±1.0 km
+  /// Stepper, damit der Anwender beim Heimtrainer-Display die gefahrenen km
+  /// nachpflegen kann. Tap auf einen Button schiebt den GPS-Tracker hoch und
+  /// erzeugt automatisch 1-km-Splits — derselbe Pfad wie beim Outdoor-Lauf.
+  private var indoorDistanceTile: some View {
+    VStack(spacing: 18) {
+      VStack(spacing: 4) {
+        Text("INDOOR · DISTANZ MANUELL")
+          .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.6)
+        Text(String(format: "%.2f km", displayedDistance))
+          .font(.system(size: 48, weight: .semibold, design: .rounded))
+          .foregroundStyle(GainsColor.ink)
+        Text("z. B. vom Display deines Heimtrainers")
+          .font(GainsFont.body(11))
+          .foregroundStyle(GainsColor.softInk)
+      }
+
+      HStack(spacing: 10) {
+        indoorStepperButton(label: "−1.0", deltaKm: -1.0)
+        indoorStepperButton(label: "−0.5", deltaKm: -0.5)
+        indoorStepperButton(label: "+0.5", deltaKm: 0.5, accent: true)
+        indoorStepperButton(label: "+1.0", deltaKm: 1.0, accent: true)
+      }
+      .padding(.horizontal, 8)
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.vertical, 28)
+    .padding(.horizontal, 18)
+    .background(GainsColor.card)
+  }
+
+  private func indoorStepperButton(label: String, deltaKm: Double, accent: Bool = false) -> some View {
+    Button {
+      gpsTracker.adjustIndoorDistance(by: deltaKm)
+    } label: {
+      Text(label)
+        .font(.system(size: 15, weight: .semibold, design: .rounded))
+        .foregroundStyle(accent ? GainsColor.onLime : GainsColor.ink)
+        .frame(maxWidth: .infinity)
+        .frame(height: 44)
+        .background(accent ? GainsColor.lime : GainsColor.elevated)
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .disabled(run.isPaused)
+    .accessibilityLabel(deltaKm > 0
+      ? "Distanz um \(label) Kilometer erhöhen"
+      : "Distanz um \(label) Kilometer reduzieren")
   }
 
   // MARK: Metrics
@@ -845,12 +1261,46 @@ private struct LiveRunView: View {
     HStack(spacing: 0) {
       metric(title: "DISTANZ", value: String(format: "%.2f", displayedDistance), unit: "km")
       metricSeparator
-      metric(title: "PACE", value: paceCompact(displayedPace), unit: "/km")
+      // Pace (Lauf) vs. Geschwindigkeit (Rad outdoor + indoor). Wir prüfen
+      // die Modalität direkt am Run, damit auch Indoor-Sessions (kein GPS)
+      // konsistent km/h anzeigen.
+      if run.modality.isCycling {
+        metric(title: "TEMPO", value: speedCompact(displayedSpeedKmh), unit: "km/h")
+      } else {
+        metric(title: "PACE", value: paceCompact(displayedPace), unit: "/km")
+      }
       metricSeparator
       metric(title: "HF", value: run.currentHeartRate > 0 ? "\(run.currentHeartRate)" : "–", unit: "bpm")
       metricSeparator
-      metric(title: "ELEV", value: "+\(displayedElevation)", unit: "m")
+      // Indoor-Bike hat keine echte Höhe (Heimtrainer steht still) — wir
+      // zeigen statt „+0 m" eine Kalorien-Schätzung, die der Anwender im
+      // Eifer der Session direkt sieht.
+      if run.modality.isIndoor {
+        metric(title: "KCAL", value: "\(estimatedCalories)", unit: "kcal")
+      } else {
+        metric(title: "ELEV", value: "+\(displayedElevation)", unit: "m")
+      }
     }
+  }
+
+  /// Sehr grobe Kalorien-Schätzung für Indoor-Bike (kein Powermeter):
+  /// `kcal ≈ MET × 75 kg × Stunden`. Dient als Motivations-Anzeige, nicht als
+  /// medizinische Größe — Anwender wird darauf nicht aufgebaut.
+  private var estimatedCalories: Int {
+    let hours = Double(displayedDurationSeconds) / 3600.0
+    return Int((run.modality.defaultMET * 75.0 * hours).rounded())
+  }
+
+  /// Pace (Sek/km) → km/h. 0 wenn Pace 0 ist.
+  private var displayedSpeedKmh: Double {
+    let pace = displayedPace
+    guard pace > 0 else { return 0 }
+    return 3600.0 / Double(pace)
+  }
+
+  private func speedCompact(_ kmh: Double) -> String {
+    guard kmh > 0 else { return "–" }
+    return String(format: "%.1f", kmh)
   }
 
   private var metricSeparator: some View {
@@ -907,7 +1357,7 @@ private struct LiveRunView: View {
     .padding(.horizontal, 12)
     .frame(height: 36)
     .background(GainsColor.background.opacity(0.85))
-    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: Controls
@@ -921,7 +1371,7 @@ private struct LiveRunView: View {
           .frame(maxWidth: .infinity)
           .frame(height: 50)
           .background(GainsColor.elevated)
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
 
@@ -935,7 +1385,7 @@ private struct LiveRunView: View {
         .foregroundStyle(GainsColor.ink)
         .frame(width: 60, height: 50)
         .background(GainsColor.elevated)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
       .disabled(run.isPaused)
@@ -947,7 +1397,7 @@ private struct LiveRunView: View {
           .frame(maxWidth: .infinity)
           .frame(height: 50)
           .background(GainsColor.lime)
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
     }
@@ -991,7 +1441,7 @@ private struct LiveRunView: View {
           .padding(.horizontal, 10)
           .padding(.vertical, 8)
           .background(GainsColor.background.opacity(0.9))
-          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
       }
     }
@@ -1017,21 +1467,25 @@ private struct LiveRunView: View {
     return String(format: "%02d:%02d:%02d", h, m, s)
   }
 
+  /// True, sobald ein Tracker (GPS, Fallback oder Indoor) den Run aktiv
+  /// fortschreibt. Wird mehrfach in den `displayed*`-Helfern genutzt.
+  private var isTrackerActive: Bool {
+    gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback || gpsTracker.isIndoor
+  }
+
   private var displayedDurationSeconds: Int {
-    if gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback {
+    if isTrackerActive {
       return gpsTracker.elapsedSeconds
     }
     return run.durationMinutes * 60
   }
 
   private var displayedDistance: Double {
-    (gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback)
-      ? gpsTracker.trackedDistanceKm : run.distanceKm
+    isTrackerActive ? gpsTracker.trackedDistanceKm : run.distanceKm
   }
 
   private var displayedElevation: Int {
-    (gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback)
-      ? gpsTracker.elevationGain : run.elevationGain
+    isTrackerActive ? gpsTracker.elevationGain : run.elevationGain
   }
 
   private var displayedPace: Int {
@@ -1040,15 +1494,11 @@ private struct LiveRunView: View {
   }
 
   private var displayedSplits: [RunSplit] {
-    (gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback)
-      ? gpsTracker.splits : run.splits
+    isTrackerActive ? gpsTracker.splits : run.splits
   }
 
   private var displayedRouteCoordinates: [CLLocationCoordinate2D] {
-    if gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback {
-      return gpsTracker.routeCoordinates
-    }
-    return run.routeCoordinates
+    isTrackerActive ? gpsTracker.routeCoordinates : run.routeCoordinates
   }
 }
 
@@ -1056,6 +1506,10 @@ private struct LiveRunView: View {
 
 private struct StopRunSheet: View {
   let run: ActiveRunSession?
+  /// Aktuelle Lauf-Dauer in Sekunden (vom GPS-Tracker durchgereicht).
+  /// Wird statt `run.durationMinutes` (Int, rundet < 60s auf 0) für die
+  /// Save-Bedingung benutzt — siehe P1-5.
+  let elapsedSeconds: Int
   let onSave: (_ title: String, _ note: String, _ feel: RunFeel?) -> Void
   let onDiscard: () -> Void
   let onResume: () -> Void
@@ -1066,13 +1520,12 @@ private struct StopRunSheet: View {
   @State private var isConfirmingDiscard = false
 
   /// Speichern erlauben, sobald der Lauf entweder Distanz ODER mindestens
-  /// eine halbe Minute Dauer aufgebaut hat. Vorher war ausschließlich
-  /// `distanceKm > 0` ausschlaggebend — dadurch konnte der Nutzer einen Lauf
-  /// nicht speichern, wenn das GPS keine Distanz lieferte (Indoor-Treadmill,
-  /// fehlende Berechtigung, kein Fix). Jetzt reicht eine messbare Dauer.
+  /// 30 Sekunden Dauer aufgebaut hat. Vorher: `durationMinutes >= 1` →
+  /// 45s-Lauf landete bei 0 Minuten und konnte nicht gespeichert werden;
+  /// 65s wurde als „1 min" gerundet. Jetzt: Sekunden-genau aus dem Tracker.
   private var canSaveRun: Bool {
     guard let run else { return false }
-    return run.distanceKm > 0 || run.durationMinutes >= 1
+    return run.distanceKm > 0 || elapsedSeconds >= 30
   }
 
   var body: some View {
@@ -1090,7 +1543,7 @@ private struct StopRunSheet: View {
               .textFieldStyle(.plain)
               .padding(12)
               .background(GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
 
           feelPicker
@@ -1105,7 +1558,7 @@ private struct StopRunSheet: View {
               .lineLimit(3...6)
               .padding(12)
               .background(GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
         }
         .padding(20)
@@ -1130,11 +1583,29 @@ private struct StopRunSheet: View {
               .frame(maxWidth: .infinity)
               .frame(height: 52)
               .background(GainsColor.lime)
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
           .disabled(!canSaveRun)
           .opacity(canSaveRun ? 1 : 0.5)
+
+          // C4-Fix (2026-05-01): Klar machen, was Speichern bewirkt und —
+          // wenn die Save-Bedingung NICHT erfüllt ist — warum nicht.
+          if !canSaveRun {
+            Text("Mindestens 30 Sekunden oder 0,01 km, sonst geht der Lauf nicht ins Archiv.")
+              .font(GainsFont.label(11))
+              .foregroundStyle(GainsColor.softInk)
+              .multilineTextAlignment(.center)
+              .frame(maxWidth: .infinity)
+              .padding(.horizontal, 4)
+          } else {
+            Text("Landet im Feed und in den Routen.")
+              .font(GainsFont.label(11))
+              .foregroundStyle(GainsColor.softInk)
+              .multilineTextAlignment(.center)
+              .frame(maxWidth: .infinity)
+              .padding(.horizontal, 4)
+          }
 
           Button {
             isConfirmingDiscard = true
@@ -1145,7 +1616,7 @@ private struct StopRunSheet: View {
               .frame(maxWidth: .infinity)
               .frame(height: 44)
               .background(GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -1220,7 +1691,7 @@ private struct StopRunSheet: View {
             .padding(.vertical, 10)
             .foregroundStyle(feel == f ? GainsColor.onLime : GainsColor.ink)
             .background(feel == f ? GainsColor.lime : GainsColor.card)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -1256,11 +1727,20 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   @Published var splits: [RunSplit] = []
   @Published var isUsingGPS = false
   @Published var isTrackingFallback = false
+  /// True, wenn der Tracker im Indoor-Modus läuft (Heimtrainer/Spinning).
+  /// Kein GPS, keine Map, Distanz wird vom View per `adjustIndoorDistance`
+  /// hochgeschoben. Der Timer für Dauer/Splits läuft normal weiter.
+  @Published var isIndoor = false
   @Published var autoPaused = false
 
   /// Wird vom View aus HealthKit befüllt und für Split-Durchschnitte genutzt.
   var currentHeartRate: Int = 0
   var autoPauseEnabled: Bool = true
+  /// 2026-05-01 P1-7: Modus-Differenzierung für GPS-Plausibilitätsprüfung.
+  /// Lauf akzeptiert bis 10 m/s (~36 km/h Sprint), Rad bis 25 m/s (~90 km/h).
+  /// Wird vom View beim Start des Trackings aus `ActiveRunSession.modality`
+  /// gesetzt; Default `.run` bleibt für den Bestandsfall.
+  var cardioModality: CardioModality = .run
 
   private let manager = CLLocationManager()
   private var lastLocation: CLLocation?
@@ -1394,15 +1874,38 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     startTimer()
   }
 
+  /// Indoor-Tracking ohne GPS — der Heimtrainer/Spinning-Pfad. Es läuft nur
+  /// der Sekunden-Timer; Distanz wird vom View über `adjustIndoorDistance(by:)`
+  /// hochgeschoben (Stepper-UI). Auto-Pause ist hier sinnlos und bleibt aus.
+  func beginIndoorTracking(from run: ActiveRunSession) {
+    guard !isUsingGPS, !isTrackingFallback, !isIndoor else { return }
+    prepareTrackingState(from: run)
+    cardioModality = run.modality
+    isIndoor = true
+    autoPauseEnabled = false
+    startTimer()
+  }
+
+  /// Erhöht (oder reduziert, wenn negativ) die Indoor-Distanz manuell.
+  /// Erzeugt automatische 1-km-Splits genau wie der GPS-Pfad.
+  func adjustIndoorDistance(by deltaKm: Double) {
+    guard isIndoor else { return }
+    let nextDistance = max(0, trackedDistanceKm + deltaKm)
+    trackedDistanceKm = nextDistance
+    generateAutomaticSplits(currentHeartRate: currentHeartRate > 0 ? currentHeartRate : 130)
+  }
+
   func pauseTracking() {
-    guard isUsingGPS || isTrackingFallback else { return }
+    guard isUsingGPS || isTrackingFallback || isIndoor else { return }
     pauseDate = Date()
-    manager.stopUpdatingLocation()
+    if isUsingGPS {
+      manager.stopUpdatingLocation()
+    }
     stopTimer()
   }
 
   func resumeTracking() {
-    guard isUsingGPS || isTrackingFallback else { return }
+    guard isUsingGPS || isTrackingFallback || isIndoor else { return }
 
     if let pauseDate {
       pausedDuration += Date().timeIntervalSince(pauseDate)
@@ -1421,6 +1924,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   func stopTracking() {
     isUsingGPS = false
     isTrackingFallback = false
+    isIndoor = false
     autoPaused = false
     manager.stopUpdatingLocation()
     // Hintergrund-Berechtigung wieder einkassieren — die App soll außerhalb
@@ -1493,7 +1997,18 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
 
       if let lastLocation {
         let delta = location.distance(from: lastLocation)
-        if delta >= 3, delta <= 250 {
+        // 2026-05-01 P1-7: GPS-Plausibilitätsprüfung speed-basiert statt fix
+        // 250m. Vorher: feste Obergrenze schluckte legitime schnelle Sprints
+        // (Bergab) und längere Tunnel-Recovery-Updates. Jetzt: berechne
+        // implizite Geschwindigkeit über dt und vergleiche gegen einen
+        // realistischen Modus-Threshold (Lauf ~10 m/s, Rad ~25 m/s).
+        // Untergrenze 3m bleibt — Filter gegen GPS-Jitter im Stand.
+        let dt = max(location.timestamp.timeIntervalSince(lastLocation.timestamp), 0.001)
+        let impliedSpeed = delta / dt // m/s
+        // Modus-spezifische Speed-Grenze (Lauf 10 m/s, Rad 25 m/s, Indoor wird
+        // hier ohnehin nicht durchlaufen, da `isUsingGPS` dann false ist).
+        let maxSpeed: Double = cardioModality.maxPlausibleSpeed
+        if delta >= 3, impliedSpeed <= maxSpeed {
           trackedDistanceKm += delta / 1000
 
           let elevationDelta = location.altitude - lastLocation.altitude

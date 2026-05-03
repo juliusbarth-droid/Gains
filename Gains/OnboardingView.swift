@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - OnboardingView
 //
-// Vier-Schritt-Onboarding für die TestFlight-Beta.
+// Fünf-Schritt-Onboarding für die TestFlight-Beta.
 // Wird von `GainsApp` als FullScreenCover gezeigt, wenn
 // `gains_hasCompletedOnboarding` noch false ist.
 //
@@ -11,16 +11,25 @@ import SwiftUI
 //   2. Profil    — Name, Geschlecht, Alter, Größe, Gewicht, Aktivität → NutritionProfile
 //   3. Berechtigungen — erklärt Health/Location/Bluetooth/Push, ohne System-Prompts
 //   4. Training  — Ziel + Sessions/Woche → WorkoutPlannerSettings
+//   5. Summary   — Wochen-Vorschau, „Setup geschafft"-Moment, erstes CTA
 //
 // Permissions werden hier nur erklärt; die echten System-Prompts triggern
 // erst, wenn der Nutzer das Feature konkret aufruft (Lauf-Tracking,
 // HF-Sensor-Suche, etc.).
+//
+// Aha-Moment-Architektur (2026-05-01 Phase 1): Der Summary-Step zeigt dem
+// User auf einen Blick die Woche, die die App für ihn aufgebaut hat —
+// damit das Onboarding nicht mit „leeren Händen" endet, sondern mit
+// einem konkreten Plan. Der Finish-Schritt setzt zusätzlich
+// `gains_onboardingCompletedAt`, damit der HomeView in den ersten 24h
+// einen personalisierten Day-One-Coach-Brief zeigt.
 
 enum OnboardingStep: Int, CaseIterable, Identifiable {
   case welcome
   case profile
   case permissions
   case training
+  case summary
 
   var id: Int { rawValue }
   var index: Int { rawValue }
@@ -36,7 +45,12 @@ enum OnboardingPlanMode: String {
 
 struct OnboardingView: View {
   @EnvironmentObject private var store: GainsStore
-  @AppStorage("gains_hasCompletedOnboarding") private var hasCompletedOnboarding = false
+  @AppStorage(GainsKey.hasCompletedOnboarding) private var hasCompletedOnboarding = false
+  // Day-One-Window: HomeView nutzt diese Timestamp, um in den ersten 24h
+  // einen personalisierten Welcome-Coach-Brief zu zeigen. Wird im finish()
+  // gesetzt — als Double (timeIntervalSince1970), weil @AppStorage Date
+  // nicht nativ unterstützt.
+  @AppStorage(GainsKey.onboardingCompletedAt) private var onboardingCompletedAt: Double = 0
   @State private var currentStep: OnboardingStep = .welcome
 
   // Profil-Felder
@@ -108,6 +122,7 @@ struct OnboardingView: View {
     case .profile:     profileStep
     case .permissions: permissionsStep
     case .training:    trainingStep
+    case .summary:     summaryStep
     }
   }
 
@@ -167,10 +182,10 @@ struct OnboardingView: View {
     .padding(14)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: - Step 2: Profile
@@ -194,10 +209,10 @@ struct OnboardingView: View {
           .padding(.vertical, 14)
           .background(GainsColor.card)
           .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
               .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
           )
-          .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           .submitLabel(.next)
       }
 
@@ -254,10 +269,10 @@ struct OnboardingView: View {
       .frame(height: 48)
       .background(isSelected ? GainsColor.lime : GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(isSelected ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -284,10 +299,10 @@ struct OnboardingView: View {
     .padding(12)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 12, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   private func activityRow(_ level: ActivityLevel) -> some View {
@@ -322,13 +337,13 @@ struct OnboardingView: View {
       .padding(.vertical, 12)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(
             isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
             lineWidth: 1
           )
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -396,10 +411,10 @@ struct OnboardingView: View {
       .padding(14)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
     .disabled(notificationsState != .idle)
@@ -465,10 +480,10 @@ struct OnboardingView: View {
     .padding(14)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   // MARK: - Step 4: Training
@@ -519,10 +534,10 @@ struct OnboardingView: View {
                 .frame(height: 48)
                 .background(sessionsPerWeek == count ? GainsColor.lime : GainsColor.card)
                 .overlay(
-                  RoundedRectangle(cornerRadius: 12, style: .continuous)
+                  RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
                     .stroke(sessionsPerWeek == count ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
             .buttonStyle(.plain)
           }
@@ -571,7 +586,7 @@ struct OnboardingView: View {
             .frame(height: 48)
             .frame(maxWidth: .infinity)
             .background(GainsColor.lime)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
 
@@ -596,6 +611,297 @@ struct OnboardingView: View {
       CustomPlanBuilderSheet()
         .environmentObject(store)
     }
+  }
+
+  // MARK: - Step 5: Summary
+  //
+  // Aha-Moment-Bühne: Der User sieht hier zum ersten Mal seinen Plan
+  // als konkrete Wochen-Übersicht. Ziel: das Onboarding endet nicht
+  // mit „und was jetzt?", sondern mit „aha, das ist mein Plan und so
+  // sieht meine Woche aus".
+  //
+  // Layout:
+  //   1) Hero — „[Name], Plan steht." in Display-Font, Akzent-Glow.
+  //   2) Setup-Checklist — 4 abgehakte Punkte (Profil, Permissions, Plan,
+  //      Ernährungsziele) als visueller Endowed-Progress.
+  //   3) Wochen-Vorschau — 7 Mini-Karten Mo–So mit Plan-Inhalt aus
+  //      `store.weeklyWorkoutSchedule`. Heutiger Tag highlighted.
+  //   4) Was kommt zuerst — konkrete Empfehlung des heutigen Schritts
+  //      (oder, wenn heute Rest, der nächste Trainingstag).
+
+  private var summaryStep: some View {
+    VStack(alignment: .leading, spacing: 22) {
+      summaryHero
+      summaryChecklist
+      summaryWeekPreview
+      summaryFirstStep
+    }
+  }
+
+  private var summaryHero: some View {
+    let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let displayName = trimmedName.isEmpty ? "" : ", \(trimmedName)"
+
+    return VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 8) {
+        Image(systemName: "sparkles")
+          .font(.system(size: 12, weight: .bold))
+          .foregroundStyle(GainsColor.lime)
+        Text("SETUP GESCHAFFT")
+          .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
+      }
+
+      Text("Plan steht\(displayName).")
+        .font(GainsFont.display(34))
+        .foregroundStyle(GainsColor.ink)
+        .lineSpacing(-2)
+        .fixedSize(horizontal: false, vertical: true)
+
+      Text("Wir haben deine Woche aufgebaut. Schau drüber — du kannst alles im Plan-Tab nochmal anpassen.")
+        .font(GainsFont.body(15))
+        .foregroundStyle(GainsColor.softInk)
+        .lineSpacing(2)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  private var summaryChecklist: some View {
+    VStack(spacing: 0) {
+      summaryCheckRow(icon: "person.fill", title: "Profil komplett",
+                      detail: profileSummaryDetail)
+      summaryCheckRow(icon: "shield.lefthalf.filled", title: "Berechtigungen erklärt",
+                      detail: "Du gibst sie frei, wenn du das Feature nutzt.")
+      summaryCheckRow(icon: "target", title: "Ziel & Frequenz",
+                      detail: trainingSummaryDetail)
+      summaryCheckRow(icon: "fork.knife", title: "Ernährungsziele berechnet",
+                      detail: nutritionSummaryDetail, isLast: true)
+    }
+    .padding(14)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: GainsBorder.hairline)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  private func summaryCheckRow(icon: String, title: String, detail: String, isLast: Bool = false) -> some View {
+    VStack(spacing: 0) {
+      HStack(spacing: 12) {
+        ZStack {
+          Circle()
+            .fill(GainsColor.lime.opacity(0.14))
+            .frame(width: 32, height: 32)
+          Image(systemName: "checkmark")
+            .font(.system(size: 11, weight: .heavy))
+            .foregroundStyle(GainsColor.lime)
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          HStack(spacing: 6) {
+            Image(systemName: icon)
+              .font(.system(size: 11, weight: .semibold))
+              .foregroundStyle(GainsColor.softInk)
+            Text(title)
+              .font(GainsFont.title(14))
+              .foregroundStyle(GainsColor.ink)
+          }
+          Text(detail)
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+        }
+        Spacer(minLength: 0)
+      }
+      .padding(.vertical, 8)
+
+      if !isLast {
+        Divider()
+          .overlay(GainsColor.border.opacity(0.25))
+      }
+    }
+  }
+
+  private var profileSummaryDetail: String {
+    "\(age) Jahre · \(heightCm) cm · \(weightKg) kg · \(activityLevel.title)"
+  }
+
+  private var trainingSummaryDetail: String {
+    let goalLabel = goal.title
+    return "\(goalLabel) · \(sessionsPerWeek)× pro Woche"
+  }
+
+  private var nutritionSummaryDetail: String {
+    let kcal = store.nutritionTargetCalories
+    let protein = store.nutritionTargetProtein
+    if kcal > 0 {
+      return "Tagesziel ~\(kcal) kcal · \(protein) g Protein"
+    }
+    return "Werte werden im Profil berechnet."
+  }
+
+  private var summaryWeekPreview: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      Text("DEINE WOCHE")
+        .gainsEyebrow(size: 12, tracking: 1.4)
+
+      VStack(spacing: 8) {
+        ForEach(store.weeklyWorkoutSchedule, id: \.weekday) { day in
+          summaryWeekRow(day)
+        }
+      }
+    }
+  }
+
+  private func summaryWeekRow(_ day: WorkoutDayPlan) -> some View {
+    let accent: Color = {
+      switch day.status {
+      case .planned:  return day.runTemplate != nil ? GainsColor.ember : GainsColor.lime
+      case .rest:     return GainsColor.softInk
+      case .flexible: return GainsColor.accentCool
+      }
+    }()
+    let icon: String = {
+      if let _ = day.runTemplate { return "figure.run" }
+      switch day.status {
+      case .planned:  return "dumbbell.fill"
+      case .rest:     return "leaf.fill"
+      case .flexible: return "infinity"
+      }
+    }()
+    let titleText: String = {
+      switch day.status {
+      case .planned:  return day.workoutPlan?.title ?? day.title
+      case .rest:     return "Recovery"
+      case .flexible: return "Flexibel"
+      }
+    }()
+
+    return HStack(spacing: 12) {
+      VStack(spacing: 2) {
+        Text(day.weekday.shortLabel.uppercased())
+          .font(GainsFont.label(10))
+          .tracking(1.2)
+          .foregroundStyle(day.isToday ? GainsColor.lime : GainsColor.softInk)
+        Image(systemName: day.isToday ? "circle.fill" : "circle")
+          .font(.system(size: 5, weight: .bold))
+          .foregroundStyle(day.isToday ? GainsColor.lime : GainsColor.border.opacity(0.5))
+      }
+      .frame(width: 36)
+
+      ZStack {
+        Circle()
+          .fill(accent.opacity(0.14))
+        Image(systemName: icon)
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(accent)
+      }
+      .frame(width: 32, height: 32)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(titleText)
+          .font(GainsFont.title(14))
+          .foregroundStyle(GainsColor.ink)
+        Text(day.focus)
+          .font(GainsFont.body(11))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(1)
+      }
+
+      Spacer(minLength: 0)
+
+      if day.isToday {
+        Text("HEUTE")
+          .font(GainsFont.label(9))
+          .tracking(1.2)
+          .foregroundStyle(GainsColor.onLime)
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(Capsule().fill(GainsColor.lime))
+      }
+    }
+    .padding(.horizontal, 12)
+    .padding(.vertical, 10)
+    .background(
+      day.isToday ? GainsColor.lime.opacity(0.06) : GainsColor.card
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .stroke(
+          day.isToday ? GainsColor.lime.opacity(0.45) : GainsColor.border.opacity(0.3),
+          lineWidth: day.isToday ? 0.8 : 0.6
+        )
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private var summaryFirstStep: some View {
+    let today = store.todayPlannedDay
+    let (eyebrow, headline, sub): (String, String, String) = {
+      switch today.status {
+      case .planned:
+        if let run = today.runTemplate {
+          return (
+            "ALS NÄCHSTES",
+            "Heute: \(run.title)",
+            String(format: "%.1f km · ~%d min. Sobald du fertig bist, kannst du direkt im Lauf-Tab starten.",
+                   run.targetDistanceKm, run.targetDurationMinutes)
+          )
+        }
+        let title = today.workoutPlan?.title ?? today.title
+        let count = today.workoutPlan?.exercises.count ?? 0
+        return (
+          "ALS NÄCHSTES",
+          "Heute: \(title)",
+          count > 0
+            ? "\(count) Übungen im Plan. Du findest das Workout sofort auf deinem Home-Screen."
+            : "Dein Coach-Brief auf dem Home-Screen führt dich Schritt für Schritt."
+        )
+      case .rest:
+        return (
+          "ALS ERSTES",
+          "Heute ist Recovery-Tag",
+          "Perfekt zum Reinkommen — log deine erste Mahlzeit oder einen Spaziergang. Morgen geht's los."
+        )
+      case .flexible:
+        return (
+          "ALS ERSTES",
+          "Heute ist flexibel",
+          "Wähl spontan: kurzes Workout, Lauf oder Mobility. Der Home-Screen schlägt dir was vor."
+        )
+      }
+    }()
+
+    return VStack(alignment: .leading, spacing: 10) {
+      HStack(spacing: 8) {
+        Image(systemName: "arrow.forward.circle.fill")
+          .font(.system(size: 12, weight: .bold))
+          .foregroundStyle(GainsColor.lime)
+        Text(eyebrow)
+          .gainsEyebrow(GainsColor.lime, size: 12, tracking: 1.4)
+      }
+      Text(headline)
+        .font(GainsFont.title(20))
+        .foregroundStyle(GainsColor.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(sub)
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.softInk)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(16)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      LinearGradient(
+        colors: [GainsColor.lime.opacity(0.08), GainsColor.card],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.32), lineWidth: GainsBorder.accent)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   // Card-artige Auswahl-Reihe für den Plan-Modus.
@@ -635,13 +941,13 @@ struct OnboardingView: View {
       .padding(14)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(
             isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
             lineWidth: 1
           )
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -677,13 +983,13 @@ struct OnboardingView: View {
       .padding(14)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(
             isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
             lineWidth: 1
           )
       )
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -725,10 +1031,10 @@ struct OnboardingView: View {
             .frame(width: 56, height: 56)
             .background(GainsColor.card)
             .overlay(
-              RoundedRectangle(cornerRadius: 16, style: .continuous)
+              RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
                 .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
       }
@@ -737,10 +1043,10 @@ struct OnboardingView: View {
         advance()
       } label: {
         HStack(spacing: 8) {
-          Text(currentStep == .training ? "Los geht's" : "Weiter")
+          Text(currentStep == .summary ? "Los geht's" : "Weiter")
             .font(GainsFont.label(13))
             .tracking(1.4)
-          Image(systemName: "arrow.right")
+          Image(systemName: currentStep == .summary ? "sparkles" : "arrow.right")
             .font(.system(size: 13, weight: .heavy))
         }
         .foregroundStyle(canAdvance ? GainsColor.onLime : GainsColor.ink.opacity(0.5))
@@ -748,10 +1054,10 @@ struct OnboardingView: View {
         .frame(height: 56)
         .background(canAdvance ? GainsColor.lime : GainsColor.card)
         .overlay(
-          RoundedRectangle(cornerRadius: 16, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
             .stroke(canAdvance ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
       .disabled(!canAdvance)
@@ -764,12 +1070,38 @@ struct OnboardingView: View {
     case .profile:     return !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     case .permissions: return true
     case .training:    return true
+    case .summary:     return true
     }
   }
 
   private func advance() {
+    // H5-Fix (2026-05-01): Wenn der Nutzer „Selbst erstellen" gewählt,
+    // aber den Builder nie gespeichert hat, fällt der Mode hier still auf
+    // „Auto-Plan" zurück. Sonst landet der User mit planMode=.manual und
+    // !isManualPlan in einem inkonsistenten Zustand: UI sagt manuell,
+    // App rendert aber Auto-Plan.
+    if currentStep == .training,
+       planMode == .manual,
+       !store.plannerSettings.isManualPlan {
+      planMode = .automatic
+    }
+
+    // Phase 1 Aha-Moment (2026-05-01): Wenn der User von .training nach
+    // .summary geht, müssen wir die Plan-Settings BEREITS partial committen,
+    // damit der Summary-Step die echte Wochen-Vorschau aus
+    // `store.weeklyWorkoutSchedule` rendern kann. Das volle saveAll()
+    // läuft erst im finish() — hier nur In-Memory-Update.
+    if currentStep == .training {
+      var settings = store.plannerSettings
+      settings.goal = goal
+      if !settings.isManualPlan {
+        settings.sessionsPerWeek = sessionsPerWeek
+      }
+      store.plannerSettings = settings
+    }
+
     withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-      if currentStep == .training {
+      if currentStep == .summary {
         finish()
       } else if let next = OnboardingStep(rawValue: currentStep.rawValue + 1) {
         currentStep = next
@@ -814,7 +1146,12 @@ struct OnboardingView: View {
     // Zeilen killt, war die AppStorage-Flag persistiert aber Profil/Settings
     // nicht — App startete dann mit leerem Profil und Default-Werten.
     // Jetzt: Flag erst setzen, wenn Save garantiert durch ist.
+    //
+    // Phase 1 Aha-Moment (2026-05-01): Zusätzlich `onboardingCompletedAt`
+    // setzen, damit HomeView in den ersten 24h einen Welcome-Coach-Brief
+    // statt des generischen „Bereit?"-Defaults zeigen kann.
     store.saveAll {
+      onboardingCompletedAt = Date().timeIntervalSince1970
       hasCompletedOnboarding = true
     }
   }

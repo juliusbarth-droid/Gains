@@ -43,7 +43,7 @@ struct CommunityView: View {
   // A1b: Community ist bewusst noch nicht live. Backend, Auth und Moderation
   // kommen in Phase B. Statt Mock-Profile zu zeigen, präsentieren wir hier
   // eine ehrliche Coming-Soon-Surface.
-  @AppStorage("gains_communityWaitlist") private var isOnWaitlist = false
+  @AppStorage(GainsKey.communityWaitlist) private var isOnWaitlist = false
 
   var body: some View {
     CommunityComingSoonView(isOnWaitlist: $isOnWaitlist)
@@ -227,12 +227,12 @@ struct CommunityView: View {
           .frame(height: 48)
           .background(store.joinedChallenge ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.14))
           .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
+            RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
               .stroke(
                 store.joinedChallenge ? GainsColor.lime : GainsColor.onCtaSurface.opacity(0.28),
                 lineWidth: 1)
           }
-          .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
     }
@@ -285,7 +285,7 @@ struct CommunityView: View {
               .frame(maxWidth: .infinity)
               .frame(height: 44)
               .background(GainsColor.ctaSurface)
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
         } else if store.hasContactsAccess && !store.communityContacts.isEmpty {
@@ -451,7 +451,7 @@ struct CommunityView: View {
           .frame(maxWidth: .infinity)
           .frame(height: 42)
           .background(isEnabled ? GainsColor.ctaSurface : GainsColor.card)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
       .disabled(!isEnabled)
@@ -562,7 +562,7 @@ private struct CommunityFeedCard: View {
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(12)
           .background(GainsColor.background.opacity(0.8))
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
       }
 
@@ -608,7 +608,7 @@ private struct CommunityFeedCard: View {
 
   private var postArtwork: some View {
     ZStack(alignment: .bottomLeading) {
-      RoundedRectangle(cornerRadius: 24, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
         .fill(
           LinearGradient(
             colors: artworkColors,
@@ -720,7 +720,7 @@ private struct ForumSurface: View {
         .padding(.horizontal, 16)
         .frame(height: 48)
         .background(GainsColor.ctaSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
 
@@ -901,7 +901,7 @@ private struct ForumThreadCard: View {
               .padding(12)
               .frame(maxWidth: .infinity, alignment: .leading)
               .background(GainsColor.background.opacity(0.7))
-              .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
           }
 
@@ -912,7 +912,7 @@ private struct ForumThreadCard: View {
               .padding(.horizontal, 12)
               .padding(.vertical, 10)
               .background(GainsColor.background.opacity(0.9))
-              .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
             Button {
               store.addReply(to: thread.id, body: replyDraft)
@@ -923,7 +923,7 @@ private struct ForumThreadCard: View {
                 .foregroundStyle(GainsColor.lime)
                 .frame(width: 44, height: 44)
                 .background(GainsColor.ctaSurface)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
             }
             .buttonStyle(.plain)
             .disabled(replyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -1025,7 +1025,7 @@ private struct MeetupSurface: View {
         .padding(.horizontal, 16)
         .frame(height: 48)
         .background(GainsColor.ctaSurface)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
 
@@ -1136,7 +1136,7 @@ private struct MeetupCard: View {
           .frame(maxWidth: .infinity)
           .frame(height: 44)
           .background(buttonBackground)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .buttonStyle(.plain)
       .disabled(isFull && !isJoined)
@@ -1331,7 +1331,7 @@ private struct SocialSettingsSurface: View {
                 store.socialSharingSettings.visibility == visibility
                   ? GainsColor.lime.opacity(0.18) : GainsColor.background.opacity(0.7)
               )
-              .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
             }
             .buttonStyle(.plain)
           }
@@ -1381,7 +1381,7 @@ private struct SocialSettingsSurface: View {
     .padding(14)
     .frame(maxWidth: .infinity, alignment: .leading)
     .background(GainsColor.background.opacity(0.7))
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 }
 
@@ -1394,11 +1394,15 @@ private func relativeTimestamp(for date: Date) -> String {
   return formatter.localizedString(for: date, relativeTo: Date())
 }
 
+private let _meetupTimeFormatter: DateFormatter = {
+  let f = DateFormatter()
+  f.locale = Locale(identifier: "de_DE")
+  f.dateFormat = "EE, d. MMM · HH:mm"
+  return f
+}()
+
 private func meetupTimeLabel(_ date: Date) -> String {
-  let formatter = DateFormatter()
-  formatter.locale = Locale(identifier: "de_DE")
-  formatter.dateFormat = "EE, d. MMM · HH:mm"
-  return formatter.string(from: date) + " Uhr"
+  _meetupTimeFormatter.string(from: date) + " Uhr"
 }
 
 // MARK: - Coming Soon (Phase A)
@@ -1489,13 +1493,13 @@ struct CommunityComingSoonView: View {
       .padding(16)
       .background(GainsColor.card)
       .overlay(
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(
             isOnWaitlist ? GainsColor.lime.opacity(0.6) : GainsColor.border.opacity(0.5),
             lineWidth: 1
           )
       )
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -1537,10 +1541,10 @@ struct CommunityComingSoonView: View {
     .padding(14)
     .background(GainsColor.card)
     .overlay(
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
         .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
     )
-    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   private var privacyNote: some View {

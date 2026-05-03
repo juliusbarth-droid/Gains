@@ -14,7 +14,11 @@ enum RecipeSortOrder: String, CaseIterable {
 struct RecipesView: View {
   @EnvironmentObject private var store: GainsStore
   @EnvironmentObject private var navigation: AppNavigationStore
-  let viewModel: RecipesViewModel
+  // 2026-05-03 Cleanup: Vor diesem Pass nahm RecipesView ein
+  // `viewModel: RecipesViewModel` an, das nirgends gelesen wurde — alle
+  // Daten kommen aus `store.recipes` / `store.favoriteRecipeIDs`. Der
+  // Parameter wurde von NutritionTrackerView mit `.mock` befüllt, was
+  // den Eindruck erweckte, der Tab zeige Mock-Daten. War tot, jetzt raus.
 
   // Suche & Filter
   @State private var searchText = ""
@@ -169,7 +173,7 @@ struct RecipesView: View {
             .foregroundStyle(accent)
             .frame(width: 36, height: 36)
             .background(accent.opacity(0.18))
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
           Spacer()
 
@@ -596,14 +600,14 @@ private struct FeaturedRecipeCard: View {
           }
         }
         .frame(height: 130)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
         LinearGradient(
           colors: [Color.clear, GainsColor.ink.opacity(0.7)],
           startPoint: .center, endPoint: .bottom
         )
         .frame(height: 130)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
         // Tag badge (top-right)
         if let primaryTag = recipe.tags.first {
@@ -683,7 +687,7 @@ private struct FeaturedRecipeCard: View {
   }
 
   private var fallbackArtwork: some View {
-    RoundedRectangle(cornerRadius: 20, style: .continuous)
+    RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
       .fill(LinearGradient(
         colors: [GainsColor.lime.opacity(0.6), GainsColor.ctaSurface],
         startPoint: .topLeading, endPoint: .bottomTrailing
@@ -712,7 +716,7 @@ private struct CompactRecipeRow: View {
         }
       }
       .frame(width: 72, height: 72)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
 
       VStack(alignment: .leading, spacing: 4) {
         Text(recipe.title)
@@ -751,7 +755,7 @@ private struct CompactRecipeRow: View {
   }
 
   private var fallback: some View {
-    RoundedRectangle(cornerRadius: 16, style: .continuous)
+    RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
       .fill(LinearGradient(
         colors: [GainsColor.lime.opacity(0.4), GainsColor.ctaSurface],
         startPoint: .topLeading, endPoint: .bottomTrailing
@@ -831,7 +835,7 @@ private struct RecipeFilterSheet: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .background(GainsColor.card)
-              .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
 
@@ -845,7 +849,7 @@ private struct RecipeFilterSheet: View {
               .frame(maxWidth: .infinity)
               .frame(height: 50)
               .background(GainsColor.lime)
-              .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -889,7 +893,7 @@ private struct RecipeFilterSheet: View {
       .padding(.horizontal, 16)
       .frame(height: 56)
       .background(isSelected ? GainsColor.lime.opacity(0.25) : GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -1005,11 +1009,11 @@ private struct RecipeCard: View {
         }
       }
       .frame(height: 164)
-      .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
 
       LinearGradient(colors: [Color.clear, GainsColor.ink.opacity(0.72)], startPoint: .center, endPoint: .bottom)
         .frame(height: 164)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
 
       Text(recipe.category)
         .font(GainsFont.label(9))
@@ -1027,7 +1031,7 @@ private struct RecipeCard: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(10)
     .background(GainsColor.background.opacity(0.8))
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func recipeBadge(_ text: String, background: Color, foreground: Color) -> some View {
@@ -1058,7 +1062,7 @@ private struct RecipeCard: View {
   }
 
   private func fallbackArtwork(height: CGFloat, fontSize: CGFloat) -> some View {
-    RoundedRectangle(cornerRadius: 24, style: .continuous)
+    RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
       .fill(LinearGradient(
         colors: [accentColor(recipe.goal), GainsColor.ctaSurface],
         startPoint: .topLeading, endPoint: .bottomTrailing
@@ -1150,7 +1154,7 @@ struct RecipeDetailView: View {
                   .foregroundStyle(scaledServings > 1 ? GainsColor.ink : GainsColor.mutedInk)
                   .frame(width: 32, height: 32)
                   .background(GainsColor.elevated)
-                  .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                  .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
               }
               .buttonStyle(.plain)
               .disabled(scaledServings <= 1)
@@ -1170,7 +1174,7 @@ struct RecipeDetailView: View {
                   .foregroundStyle(GainsColor.ink)
                   .frame(width: 32, height: 32)
                   .background(GainsColor.elevated)
-                  .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                  .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
               }
               .buttonStyle(.plain)
 
@@ -1251,9 +1255,9 @@ struct RecipeDetailView: View {
                     ? GainsColor.elevated
                     : GainsColor.card
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
                 .overlay(
-                  RoundedRectangle(cornerRadius: 16, style: .continuous)
+                  RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
                     .stroke(
                       checkedIngredients.contains(index)
                         ? GainsColor.lime.opacity(0.3)
@@ -1313,7 +1317,7 @@ struct RecipeDetailView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(GainsColor.ctaSurface)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
 
@@ -1331,7 +1335,7 @@ struct RecipeDetailView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(GainsColor.lime)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
           }
           .buttonStyle(.plain)
         }
@@ -1406,7 +1410,7 @@ struct RecipeDetailView: View {
   }
 
   private func fallbackArtwork(height: CGFloat, fontSize: CGFloat) -> some View {
-    RoundedRectangle(cornerRadius: 24, style: .continuous)
+    RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
       .fill(LinearGradient(
         colors: [accentColor(recipe.goal), GainsColor.ctaSurface],
         startPoint: .topLeading, endPoint: .bottomTrailing

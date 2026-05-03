@@ -59,7 +59,7 @@ struct FoodPhotoRecognitionSheet: View {
               .padding(.vertical, 2)
               .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
-              .overlay(Capsule().stroke(GainsColor.lime.opacity(0.45), lineWidth: 0.5))
+              .overlay(Capsule().stroke(GainsColor.lime.opacity(0.45), lineWidth: GainsBorder.hairline))
           }
         }
         ToolbarItem(placement: .navigationBarLeading) {
@@ -125,7 +125,7 @@ struct FoodPhotoRecognitionSheet: View {
               .padding(.vertical, 2)
               .background(GainsColor.lime.opacity(0.18))
               .clipShape(Capsule())
-              .overlay(Capsule().stroke(GainsColor.lime.opacity(0.45), lineWidth: 0.5))
+              .overlay(Capsule().stroke(GainsColor.lime.opacity(0.45), lineWidth: GainsBorder.hairline))
           }
           Text("Die KI erkennt Lebensmittel auf dem Foto\nund schlägt dir die passenden Kalorien vor.")
             .font(GainsFont.body(14))
@@ -145,7 +145,7 @@ struct FoodPhotoRecognitionSheet: View {
               .foregroundStyle(GainsColor.moss)
               .frame(width: 44, height: 44)
               .background(GainsColor.lime.opacity(0.15))
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
               Text("Foto aufnehmen")
@@ -162,8 +162,8 @@ struct FoodPhotoRecognitionSheet: View {
           }
           .padding(16)
           .background(GainsColor.card)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+          .overlay(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
         }
         .buttonStyle(.plain)
 
@@ -175,7 +175,7 @@ struct FoodPhotoRecognitionSheet: View {
               .foregroundStyle(Color(hex: "5BC4F5"))
               .frame(width: 44, height: 44)
               .background(Color(hex: "5BC4F5").opacity(0.12))
-              .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+              .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
               Text("Aus Fotobibliothek")
@@ -192,8 +192,8 @@ struct FoodPhotoRecognitionSheet: View {
           }
           .padding(16)
           .background(GainsColor.card)
-          .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-          .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+          .overlay(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
         }
         .buttonStyle(.plain)
       }
@@ -234,9 +234,9 @@ struct FoodPhotoRecognitionSheet: View {
         .resizable()
         .scaledToFill()
         .frame(width: 200, height: 200)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 20, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
             .stroke(GainsColor.lime, lineWidth: 2)
         )
         .shadow(color: GainsColor.lime.opacity(0.3), radius: 16)
@@ -268,7 +268,7 @@ struct FoodPhotoRecognitionSheet: View {
             .resizable()
             .scaledToFill()
             .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
           VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
@@ -344,7 +344,7 @@ struct FoodPhotoRecognitionSheet: View {
           .foregroundStyle(GainsColor.softInk)
           .frame(maxWidth: .infinity).frame(height: 46)
           .background(GainsColor.elevated)
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
         }
         .buttonStyle(.plain)
       }
@@ -375,7 +375,7 @@ struct FoodPhotoRecognitionSheet: View {
           .foregroundStyle(GainsColor.onLime)
           .frame(width: 200, height: 50)
           .background(GainsColor.lime)
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
       Spacer()
@@ -486,7 +486,7 @@ private struct ManualFoodSearchSection: View {
         .padding(.horizontal, 14)
         .frame(height: 44)
         .background(GainsColor.elevated)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
         // Results
         if filteredFoods.isEmpty {
@@ -512,8 +512,8 @@ private struct ManualFoodSearchSection: View {
     }
     .padding(16)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    .overlay(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous).stroke(GainsColor.border.opacity(0.5), lineWidth: 1))
   }
 }
 
@@ -545,7 +545,7 @@ private struct ManualFoodRow: View {
             .font(.system(size: 22))
             .frame(width: 38, height: 38)
             .background(GainsColor.elevated)
-            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
           VStack(alignment: .leading, spacing: 2) {
             Text(food.name)
@@ -664,16 +664,39 @@ private struct PhotoSuggestionCard: View {
   @State private var grams: Int
   @State private var isLogged = false
 
+  // N3-Fix (2026-05-01): Edit-Flow für KI-Erkennungen.
+  // Wenn die KI einen falschen Namen oder falsche Makros liefert, kann
+  // der User die Werte direkt hier korrigieren (Name + per-100g) ohne
+  // den Foto-Flow zu verwerfen. Gramm-Eingabe bleibt erhalten — das war
+  // der häufigste Korrektur-Reibungspunkt im Audit.
+  @State private var showsOverride = false
+  @State private var editedName: String
+  @State private var editedKcal: Int
+  @State private var editedProtein: Double
+  @State private var editedCarbs: Double
+  @State private var editedFat: Double
+
   init(suggestion: RecognizedFoodSuggestion, mealType: RecipeMealType, selectedDate: Date, onLog: @escaping () -> Void) {
     self.suggestion = suggestion
     self.mealType = mealType
     self.selectedDate = selectedDate
     self.onLog = onLog
     _grams = State(initialValue: suggestion.defaultGrams)
+    _editedName = State(initialValue: suggestion.name)
+    _editedKcal = State(initialValue: suggestion.caloriesPer100g)
+    _editedProtein = State(initialValue: suggestion.proteinPer100g)
+    _editedCarbs = State(initialValue: suggestion.carbsPer100g)
+    _editedFat = State(initialValue: suggestion.fatPer100g)
   }
 
+  private var displayKcalPer100g: Int { editedKcal }
+  private var displayProteinPer100g: Double { editedProtein }
+  private var displayCarbsPer100g: Double { editedCarbs }
+  private var displayFatPer100g: Double { editedFat }
+  private var displayName: String { editedName.isEmpty ? suggestion.name : editedName }
+
   private var calories: Int {
-    Int((Double(suggestion.caloriesPer100g) * Double(grams) / 100.0).rounded())
+    Int((Double(displayKcalPer100g) * Double(grams) / 100.0).rounded())
   }
 
   var body: some View {
@@ -683,19 +706,36 @@ private struct PhotoSuggestionCard: View {
           .font(.system(size: 28))
           .frame(width: 52, height: 52)
           .background(GainsColor.elevated)
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
         VStack(alignment: .leading, spacing: 4) {
           HStack(spacing: 6) {
-            Text(suggestion.name)
+            Text(displayName)
               .font(GainsFont.label(15))
               .foregroundStyle(GainsColor.ink)
+              .lineLimit(1)
             confidenceChip(suggestion.confidence)
+
+            // Edit-Pencil — N3-Fix
+            Button {
+              withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                showsOverride.toggle()
+              }
+            } label: {
+              Image(systemName: showsOverride ? "checkmark.circle.fill" : "pencil")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(showsOverride ? GainsColor.moss : GainsColor.softInk)
+                .frame(width: 22, height: 22)
+                .background(GainsColor.elevated)
+                .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(showsOverride ? "Korrektur fertig" : "Erkennung korrigieren")
           }
           HStack(spacing: 8) {
-            macroTag("P: \(Int(suggestion.proteinPer100g))g", color: GainsColor.lime)
-            macroTag("K: \(Int(suggestion.carbsPer100g))g", color: Color(hex: "5BC4F5"))
-            macroTag("F: \(Int(suggestion.fatPer100g))g", color: Color(hex: "FF8A4A"))
+            macroTag("P: \(Int(displayProteinPer100g))g", color: GainsColor.lime)
+            macroTag("K: \(Int(displayCarbsPer100g))g", color: Color(hex: "5BC4F5"))
+            macroTag("F: \(Int(displayFatPer100g))g", color: Color(hex: "FF8A4A"))
             Text("pro 100g")
               .font(GainsFont.label(10))
               .foregroundStyle(GainsColor.mutedInk)
@@ -712,6 +752,39 @@ private struct PhotoSuggestionCard: View {
             .font(GainsFont.label(10))
             .foregroundStyle(GainsColor.mutedInk)
         }
+      }
+
+      // Override-Editor (N3) — kollabiert standardmäßig.
+      if showsOverride {
+        VStack(alignment: .leading, spacing: 10) {
+          Text("KORRIGIEREN")
+            .font(GainsFont.label(9))
+            .tracking(1.4)
+            .foregroundStyle(GainsColor.softInk)
+          TextField("Lebensmittel", text: $editedName)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.ink)
+            .padding(.horizontal, 10)
+            .frame(height: 34)
+            .background(GainsColor.elevated)
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+          HStack(spacing: 8) {
+            overrideField(label: "kcal", value: Binding(
+              get: { Double(editedKcal) },
+              set: { editedKcal = Int($0.rounded()) }
+            ), step: 5, max: 900)
+            overrideField(label: "P", value: $editedProtein, step: 1, max: 99)
+            overrideField(label: "K", value: $editedCarbs, step: 1, max: 99)
+            overrideField(label: "F", value: $editedFat, step: 1, max: 99)
+          }
+          Text("pro 100g · Werte werden mit deiner Gramm-Eingabe verrechnet.")
+            .font(GainsFont.label(10))
+            .foregroundStyle(GainsColor.mutedInk)
+        }
+        .padding(10)
+        .background(GainsColor.elevated.opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+        .transition(.opacity.combined(with: .move(edge: .top)))
       }
 
       // Gram stepper
@@ -754,12 +827,12 @@ private struct PhotoSuggestionCard: View {
           guard !isLogged else { return }
           isLogged = true
           store.logNutritionEntry(
-            title: "\(suggestion.emoji) \(suggestion.name) (\(grams)g)",
+            title: "\(suggestion.emoji) \(displayName) (\(grams)g)",
             mealType: mealType,
             calories: calories,
-            protein: Int((suggestion.proteinPer100g * Double(grams) / 100).rounded()),
-            carbs:   Int((suggestion.carbsPer100g   * Double(grams) / 100).rounded()),
-            fat:     Int((suggestion.fatPer100g     * Double(grams) / 100).rounded())
+            protein: Int((displayProteinPer100g * Double(grams) / 100).rounded()),
+            carbs:   Int((displayCarbsPer100g   * Double(grams) / 100).rounded()),
+            fat:     Int((displayFatPer100g     * Double(grams) / 100).rounded())
           )
           onLog()
         } label: {
@@ -781,6 +854,45 @@ private struct PhotoSuggestionCard: View {
     }
     .padding(14)
     .gainsCardStyle(GainsColor.card)
+  }
+
+  /// Kompakter Stepper für die Override-Felder (kcal/P/K/F per 100g).
+  private func overrideField(label: String, value: Binding<Double>, step: Double, max: Double) -> some View {
+    VStack(spacing: 4) {
+      Text(label)
+        .font(GainsFont.label(9))
+        .tracking(1.0)
+        .foregroundStyle(GainsColor.softInk)
+      HStack(spacing: 4) {
+        Button {
+          value.wrappedValue = Swift.max(0, value.wrappedValue - step)
+        } label: {
+          Image(systemName: "minus")
+            .font(.system(size: 9, weight: .bold))
+            .frame(width: 22, height: 22)
+            .background(GainsColor.background)
+            .clipShape(Circle())
+            .foregroundStyle(GainsColor.softInk)
+        }
+        .buttonStyle(.plain)
+        Text("\(Int(value.wrappedValue))")
+          .font(.system(size: 12, weight: .semibold, design: .rounded))
+          .foregroundStyle(GainsColor.ink)
+          .frame(minWidth: 26)
+        Button {
+          value.wrappedValue = Swift.min(max, value.wrappedValue + step)
+        } label: {
+          Image(systemName: "plus")
+            .font(.system(size: 9, weight: .bold))
+            .frame(width: 22, height: 22)
+            .background(GainsColor.background)
+            .clipShape(Circle())
+            .foregroundStyle(GainsColor.softInk)
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .frame(maxWidth: .infinity)
   }
 
   private func confidenceChip(_ confidence: Double) -> some View {

@@ -78,8 +78,13 @@ struct WearablePickerSheet: View {
         Spacer()
       }
 
-      // Scan / Stop Button
-      Button {
+      // Scan / Stop Button — A15: GainsPrimaryButton, tone wechselt zwischen
+      // .lime (Verbinden/Suchen) und .ember (Trennen). Touch-Target und
+      // Akzent-Glow sind dadurch konsistent zum Rest der App.
+      GainsPrimaryButton(
+        primaryButtonLabel,
+        tone: ble.isConnected ? .ember : .lime
+      ) {
         if ble.isConnected {
           ble.disconnect()
         } else if case .scanning = ble.scanState {
@@ -87,23 +92,9 @@ struct WearablePickerSheet: View {
         } else {
           ble.startScanning()
         }
-      } label: {
-        Text(primaryButtonLabel)
-          .font(GainsFont.label(12))
-          .tracking(1.8)
-          .foregroundStyle(ble.isConnected ? GainsColor.ember : GainsColor.onLime)
-          .frame(maxWidth: .infinity)
-          .frame(height: 48)
-          .background(ble.isConnected ? GainsColor.ember.opacity(0.14) : GainsColor.lime)
-          .overlay(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-              .stroke(ble.isConnected ? GainsColor.ember.opacity(0.4) : .clear, lineWidth: 1)
-          )
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
       }
-      .buttonStyle(.plain)
     }
-    .padding(18)
+    .padding(GainsSpacing.m)
     .gainsCardStyle()
   }
 
@@ -174,9 +165,9 @@ struct WearablePickerSheet: View {
           }
         }
         .background(GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         .overlay(
-          RoundedRectangle(cornerRadius: 20, style: .continuous)
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
             .stroke(GainsColor.border.opacity(0.65), lineWidth: 1)
         )
       }
@@ -197,7 +188,7 @@ struct WearablePickerSheet: View {
     .frame(maxWidth: .infinity)
     .padding(28)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func deviceRow(_ device: BLEDevice) -> some View {
@@ -307,9 +298,9 @@ struct WearablePickerSheet: View {
         appleWatchRow
       }
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(GainsColor.border.opacity(0.65), lineWidth: 1)
       )
     }
@@ -347,7 +338,7 @@ struct WearablePickerSheet: View {
   private var whoopRow: some View {
     HStack(spacing: 12) {
       ZStack {
-        RoundedRectangle(cornerRadius: 8, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.tiny, style: .continuous)
           .fill(Color(hex: "F4F3EE").opacity(0.9))
           .frame(width: 36, height: 36)
         Text("W")

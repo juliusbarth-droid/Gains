@@ -271,7 +271,7 @@ enum GeminiFoodVisionClient {
 extension RecipeMealType {
   /// Englischer Hint, weil Gemini damit am stabilsten umgeht.
   var geminiHint: String {
-    switch self {
+      switch self {
     case .breakfast: return "breakfast"
     case .lunch:     return "lunch"
     case .dinner:    return "dinner"

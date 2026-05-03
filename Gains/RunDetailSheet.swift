@@ -127,7 +127,7 @@ struct RunDetailSheet: View {
         .frame(height: 48)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(savedRouteFlash ? GainsColor.lime.opacity(0.18) : GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
     }
@@ -220,32 +220,52 @@ struct RunDetailSheet: View {
           .padding(.bottom, 6)
       }
 
-      // Secondary stats: 2×2 grid
+      // Secondary stats: 2×2 grid — Bike-Sessions zeigen Geschwindigkeit
+      // (km/h) statt Pace (min/km), Indoor-Sessions verzichten auf
+      // Höhenmeter (kein GPS).
       VStack(spacing: 1) {
         HStack(spacing: 1) {
-          detailStatCell(label: "PACE", value: paceLabel(run.averagePaceSeconds), unit: "/km")
+          if run.modality.isCycling {
+            detailStatCell(
+              label: "TEMPO",
+              value: speedLabelKmh(run.averagePaceSeconds),
+              unit: "km/h"
+            )
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(GainsColor.card)
+          } else {
+            detailStatCell(label: "PACE", value: paceLabel(run.averagePaceSeconds), unit: "/km")
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 16)
+              .background(GainsColor.card)
+          }
           detailStatCell(label: "DAUER", value: formattedDuration(run.durationMinutes), unit: "")
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(GainsColor.card)
         }
         HStack(spacing: 1) {
-          detailStatCell(label: "HÖHENMETER", value: "+\(run.elevationGain)", unit: "m")
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(GainsColor.card)
+          if run.modality.isIndoor {
+            detailStatCell(label: "MODUS", value: run.modality.shortLabel, unit: "")
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 16)
+              .background(GainsColor.card)
+          } else {
+            detailStatCell(label: "HÖHENMETER", value: "+\(run.elevationGain)", unit: "m")
+              .frame(maxWidth: .infinity)
+              .padding(.vertical, 16)
+              .background(GainsColor.card)
+          }
           detailStatCell(label: "HF Ø", value: run.averageHeartRate > 0 ? "\(run.averageHeartRate)" : "–", unit: run.averageHeartRate > 0 ? "bpm" : "")
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(GainsColor.card)
         }
       }
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(GainsColor.border.opacity(0.25), lineWidth: 1)
       )
     }
@@ -323,9 +343,9 @@ struct RunDetailSheet: View {
           .background(idx % 2 == 0 ? GainsColor.card : GainsColor.elevated.opacity(0.5))
         }
       }
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
           .stroke(GainsColor.border.opacity(0.35), lineWidth: 1)
       )
     }
@@ -384,7 +404,7 @@ struct RunDetailSheet: View {
         }
         .padding(16)
         .background(GainsColor.card)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       }
       .padding(.horizontal, 20)
       .padding(.bottom, 20)
@@ -417,7 +437,7 @@ struct RunDetailSheet: View {
       }
       .padding(14)
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .padding(.horizontal, 20)
     .padding(.bottom, 20)
@@ -480,7 +500,7 @@ struct RunDetailSheet: View {
       }
       .padding(14)
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .padding(.horizontal, 20)
     .padding(.bottom, 20)
@@ -523,7 +543,7 @@ struct RunDetailSheet: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
             .background(GainsColor.card)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
         }
       }
@@ -570,6 +590,12 @@ struct RunDetailSheet: View {
     let m = seconds / 60
     let s = seconds % 60
     return String(format: "%d:%02d", m, s)
+  }
+
+  /// Wandelt Sekunden/km in km/h für Bike-Sessions um.
+  private func speedLabelKmh(_ secondsPerKm: Int) -> String {
+    guard secondsPerKm > 0 else { return "--,-" }
+    return String(format: "%.1f", 3600.0 / Double(secondsPerKm))
   }
 
   private func formattedDuration(_ minutes: Int) -> String {

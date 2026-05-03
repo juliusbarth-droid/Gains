@@ -135,10 +135,10 @@ struct GymPlanTab: View {
       .frame(maxWidth: .infinity)
       .background(Color.white.opacity(0.06))
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-          .strokeBorder(Color.white.opacity(0.10), lineWidth: 0.6)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .strokeBorder(Color.white.opacity(0.10), lineWidth: GainsBorder.hairline)
       )
-      .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
   }
@@ -227,11 +227,11 @@ struct GymPlanTab: View {
       .padding(.horizontal, 4)
       .frame(maxWidth: .infinity)
       .background(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .fill(isToday ? GainsColor.lime.opacity(0.10) : GainsColor.background.opacity(0.55))
       )
       .overlay(
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .stroke(
             isToday ? GainsColor.lime.opacity(0.7) : GainsColor.border.opacity(0.5),
             lineWidth: isToday ? 1.4 : 0.6
@@ -487,7 +487,10 @@ struct GymPlanTab: View {
         }
       } label: {
         HStack(spacing: 6) {
-          Text(isRunDay ? "Info" : (hasMissingAssignment ? "Workout reparieren" : "Workout wählen"))
+          // G3-Fix (2026-05-01): Klarere Action-Labels — „Workout
+          // wählen" war passiv, „Workout zuweisen" beschreibt die
+          // Wirkung des Tippens auf den Tag.
+          Text(isRunDay ? "Info" : (hasMissingAssignment ? "Workout reparieren" : "Workout zuweisen"))
             .font(GainsFont.label(9))
             .tracking(1.0)
           Image(systemName: "ellipsis.circle.fill")
@@ -709,10 +712,8 @@ struct GymPlanTab: View {
 
   private func weekRangeLabel(_ week: GymPlanPreviewWeek) -> String {
     guard let first = week.days.first?.date, let last = week.days.last?.date else { return "" }
-    let formatter = DateFormatter()
-    formatter.dateFormat = "d. MMM"
-    formatter.locale = Locale(identifier: "de_DE")
-    return "\(formatter.string(from: first)) – \(formatter.string(from: last))"
+    let f = Self.weekRangeFormatter
+    return "\(f.string(from: first)) – \(f.string(from: last))"
   }
 
   // MARK: - Lauf-Block

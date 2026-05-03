@@ -1,6 +1,28 @@
 import CoreLocation
 import Foundation
 
+// MARK: - Persistence Keys
+//
+// Zentrale Konstanten für UserDefaults / @AppStorage Keys. Vorher waren die
+// String-Literale in 5+ Files dupliziert ("gains_onboardingCompletedAt",
+// "gains_hasCompletedOnboarding") — Tippfehler hätten den Onboarding-Flow
+// stillschweigend gebrochen.
+//
+// **Wichtig**: Bei `@AppStorage` MUSS der Key als String-Literal übergeben
+// werden (Property-Wrapper akzeptiert kein static let). Daher sind die Werte
+// hier nur als Source-of-Truth dokumentiert; Call-Sites schreiben den Wert
+// per `@AppStorage(GainsKey.onboardingCompletedAt)` mit `static let` als
+// computed-konstantem String.
+enum GainsKey {
+  /// Bool — schaltet zwischen OnboardingView und ContentView.
+  static let hasCompletedOnboarding = "gains_hasCompletedOnboarding"
+  /// Double (timestamp) — `Date().timeIntervalSince1970` beim Onboarding-
+  /// Abschluss. Steuert den 24h-„Day-One"-Banner in Home/Gym/Lauf/Nutrition.
+  static let onboardingCompletedAt = "gains_onboardingCompletedAt"
+  /// Bool — Waitlist-Marker für die Community-Coming-Soon-Card.
+  static let communityWaitlist = "gains_communityWaitlist"
+}
+
 // MARK: - Enum Codable Conformances
 
 extension BiologicalSex: Codable {}
@@ -392,7 +414,7 @@ extension CompletedRunSummary: Codable {
   enum CodingKeys: String, CodingKey {
     case id, title, routeName, finishedAt, distanceKm, durationMinutes
     case elevationGain, averageHeartRate, routeCoordinates, splits
-    case intensity, feel, note, hrZoneSecondsBuckets
+    case intensity, feel, note, hrZoneSecondsBuckets, modality
   }
 
   // A5: id/title/finishedAt Pflicht; routeName, Messwerte und Routen-Coords
@@ -402,6 +424,7 @@ extension CompletedRunSummary: Codable {
     let coords = try c.decodeIfPresent([CodableCoordinate].self, forKey: .routeCoordinates) ?? []
     let intensityRaw = try c.decodeIfPresent(String.self,        forKey: .intensity)
     let feelRaw      = try c.decodeIfPresent(Int.self,           forKey: .feel)
+    let modalityRaw  = try c.decodeIfPresent(String.self,        forKey: .modality)
     self.init(
       id:               try c.decode(UUID.self,                       forKey: .id),
       title:            try c.decode(String.self,                     forKey: .title),
@@ -416,7 +439,8 @@ extension CompletedRunSummary: Codable {
       intensity:        intensityRaw.flatMap { RunIntensity(rawValue: $0) } ?? .free,
       feel:             feelRaw.flatMap { RunFeel(rawValue: $0) },
       note:             try c.decodeIfPresent(String.self,            forKey: .note)             ?? "",
-      hrZoneSecondsBuckets: try c.decodeIfPresent([Int].self,         forKey: .hrZoneSecondsBuckets) ?? [0,0,0,0,0]
+      hrZoneSecondsBuckets: try c.decodeIfPresent([Int].self,         forKey: .hrZoneSecondsBuckets) ?? [0,0,0,0,0],
+      modality:         CardioModality.decode(legacyRaw: modalityRaw)
     )
   }
 
@@ -439,6 +463,7 @@ extension CompletedRunSummary: Codable {
     if hrZoneSecondsBuckets.contains(where: { $0 > 0 }) {
       try c.encode(hrZoneSecondsBuckets, forKey: .hrZoneSecondsBuckets)
     }
+    if modality != .run { try c.encode(modality.rawValue, forKey: .modality) }
   }
 }
 
@@ -520,6 +545,11 @@ extension RunSegment: Codable {
 
 enum PersistenceKey {
   static let userName             = "gains_userName"
+  // 2026-05-03: Profil-Bild als JPEG-komprimierte Data-Blobs in den
+  // UserDefaults — klein genug (~50-150 KB nach 0.7-Quality-JPEG bei
+  // 512×512), kein extra Files-API-Pfad nötig, und der Avatar ist sofort
+  // verfügbar wenn HomeView den Greeting-Header rendert.
+  static let userAvatarData       = "gains_userAvatarData"
   static let workoutHistory       = "gains_workoutHistory"
   static let runHistory           = "gains_runHistory"
   static let savedWorkoutPlans    = "gains_savedWorkoutPlans"

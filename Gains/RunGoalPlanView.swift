@@ -14,6 +14,24 @@ import SwiftUI
 // gewachsen ist. Keine eigene Tab-Navigation — der Block ersetzt nichts,
 // sondern ergänzt den PLÄNE-Tab oben.
 
+// MARK: - Cached Formatters
+
+private enum RunGoalFormatters {
+  static let weekdayDayMonthShortDE: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_DE")
+    f.dateFormat = "EEE d.M."
+    return f
+  }()
+
+  static let weekdayDayMonthDE: DateFormatter = {
+    let f = DateFormatter()
+    f.locale = Locale(identifier: "de_DE")
+    f.dateFormat = "EEE d. MMM"
+    return f
+  }()
+}
+
 // MARK: - RunGoalPlannerSection
 
 struct RunGoalPlannerSection: View {
@@ -111,7 +129,7 @@ struct RunGoalPlannerSection: View {
           .foregroundStyle(GainsColor.lime)
           .frame(width: 44, height: 44)
           .background(GainsColor.lime.opacity(0.18))
-          .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
         VStack(alignment: .leading, spacing: 6) {
           Text("Trainings-Ziel setzen")
@@ -182,7 +200,7 @@ struct RunGoalPlannerSection: View {
         }
         .padding(.vertical, 12)
         .background(GainsColor.surfaceDeep.opacity(0.55))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
 
         progressBar(plan)
       }
@@ -220,7 +238,7 @@ struct RunGoalPlannerSection: View {
     .frame(height: 24)
     .background(tone.opacity(0.16))
     .overlay(
-      Capsule().strokeBorder(tone.opacity(0.4), lineWidth: 0.6)
+      Capsule().strokeBorder(tone.opacity(0.4), lineWidth: GainsBorder.hairline)
     )
     .clipShape(Capsule())
   }
@@ -400,10 +418,7 @@ struct RunGoalPlannerSection: View {
   }
 
   private func weekdayLabel(_ date: Date) -> String {
-    let f = DateFormatter()
-    f.locale = Locale(identifier: "de_DE")
-    f.dateFormat = "EEE d.M."
-    return f.string(from: date).uppercased()
+    RunGoalFormatters.weekdayDayMonthShortDE.string(from: date).uppercased()
   }
 
   private func distanceLabel(_ km: Double) -> String {
@@ -587,9 +602,9 @@ struct RunGoalPlanSetupSheet: View {
       .padding(.horizontal, 14)
       .frame(height: 50)
       .background(GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       .overlay(
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
           .strokeBorder(GainsColor.border.opacity(0.5), lineWidth: 1)
       )
     }
@@ -833,7 +848,7 @@ struct RunGoalPlanSetupSheet: View {
       .frame(maxWidth: .infinity)
       .frame(height: 56)
       .background(canSave ? GainsColor.lime : GainsColor.card)
-      .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
       .shadow(
         color: canSave ? GainsColor.lime.opacity(0.35) : .clear,
         radius: 12, x: 0, y: 4
@@ -943,7 +958,7 @@ struct RunGoalPlanDetailSheet: View {
     .padding(.vertical, 14)
     .padding(.horizontal, 12)
     .background(GainsColor.card)
-    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
   }
 
   private func summaryCell(label: String, value: String, unit: String) -> some View {
@@ -1013,11 +1028,11 @@ struct RunGoalPlanDetailSheet: View {
     }
     .padding(14)
     .background(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .fill(isCurrent ? GainsColor.lime.opacity(0.06) : GainsColor.card)
     )
     .overlay(
-      RoundedRectangle(cornerRadius: 16, style: .continuous)
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
         .strokeBorder(
           isCurrent ? GainsColor.lime.opacity(0.4) : GainsColor.border.opacity(0.4),
           lineWidth: isCurrent ? 1 : 0.6
@@ -1074,9 +1089,6 @@ struct RunGoalPlanDetailSheet: View {
   }
 
   private func weekdayMonthLabel(_ date: Date) -> String {
-    let f = DateFormatter()
-    f.locale = Locale(identifier: "de_DE")
-    f.dateFormat = "EEE d. MMM"
-    return f.string(from: date).uppercased()
+    RunGoalFormatters.weekdayDayMonthDE.string(from: date).uppercased()
   }
 }

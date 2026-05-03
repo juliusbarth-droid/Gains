@@ -65,12 +65,15 @@ struct ContentView: View {
         // Fortschritt-Tab entfernt: Fortschritt ist jetzt nur noch über
         // den Home-Screen erreichbar (aufklappbarer Bereich), damit der
         // Tab-Bar fokussierter bleibt und Details nur auf Klick erscheinen.
-
-        CommunityView(viewModel: CommunityViewModel.mock)
-          .tag(AppTab.community)
-          .tabItem {
-            Label(AppTab.community.title, systemImage: "person.2.wave.2.fill")
-          }
+        //
+        // Community-Tab entfernt (2026-05-01 Phase 4): Die Community-Surface
+        // ist Coming-Soon (`CommunityComingSoonView`). Ein Tab, der nur
+        // einen Platzhalter zeigt, signalisiert für Anfänger nicht „App ist
+        // weniger fertig", sondern „die App will von mir Aufmerksamkeit für
+        // Features, die nicht existieren". Tab kommt zurück, sobald Backend
+        // & Moderation in Phase B stehen. `AppTab.community`-Enum-Case und
+        // `CommunityView` bleiben im Code, um Reaktivierung mit einem
+        // einzigen `.tag(...)` zu ermöglichen.
       }
 
     }
@@ -90,6 +93,16 @@ struct ContentView: View {
           .environmentObject(navigation)
       }
       .presentationDetents([.large])
+    }
+    // H2-Fix (2026-05-01): Wenn der User manuell die Tab-Bar wechselt
+    // (z. B. von Home auf Gym), schließen wir ein evtl. offenes Capture-
+    // Sheet, damit es nicht über einem fremden Tab schwebt. Programm-
+    // gesteuerte Tab-Wechsel räumen bereits in AppNavigationStore auf;
+    // dieser onChange ist die Defensive-Linie für TabBar-Taps.
+    .onChange(of: navigation.selectedTab) { _, _ in
+      if navigation.pendingCaptureKind != nil {
+        navigation.pendingCaptureKind = nil
+      }
     }
   }
 

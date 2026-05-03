@@ -256,13 +256,6 @@ enum GainsSpacing {
   static let xxs: CGFloat = 4
   /// 6 — kompakt (Eyebrow → Wert, Icon → Label).
   static let xs: CGFloat = 6
-  /// 8 — eng (kleine Pill-Inhalte, Icon-Text-Pairs).
-  static let xsPlus: CGFloat = 8
-  /// 10 — „tight pair" (zwei zusammengehörige Bausteine, z. B. Greeting +
-  /// Coach-Brief auf dem Home: enger als zwischen Sektionen, aber luftiger
-  /// als ein Eyebrow-Spacing). Vorher als Magic-Number `10` an >190 Stellen
-  /// verstreut.
-  static let tight: CGFloat = 10
   /// 12 — Standard-Inhalts-Spacing innerhalb einer Card.
   static let s: CGFloat = 12
   /// 16 — Sektionen innerhalb einer Card, Card-Innenpadding.
@@ -1728,6 +1721,76 @@ struct GainsSectionHeader<Trailing: View>: View {
       }
       Spacer(minLength: GainsSpacing.s)
       trailing
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+  }
+}
+
+// MARK: - GainsSheetHeader (A15)
+//
+// Top-Block für Modal-Sheets. Ersetzt das Pattern „eyebrow + 28pt-Headline +
+// Close-Button" das in TrackerHubSheet, Profile-Sub-Sheets, Capture, Progress
+// einzeln implementiert war.
+
+struct GainsSheetHeader: View {
+  let eyebrow: String
+  let title: String
+  let subtitle: String?
+  let accent: Color
+  let onClose: (() -> Void)?
+
+  init(
+    eyebrow: String,
+    title: String,
+    subtitle: String? = nil,
+    accent: Color = GainsColor.lime,
+    onClose: (() -> Void)? = nil
+  ) {
+    self.eyebrow = eyebrow
+    self.title = title
+    self.subtitle = subtitle
+    self.accent = accent
+    self.onClose = onClose
+  }
+
+  var body: some View {
+    HStack(alignment: .top, spacing: GainsSpacing.s) {
+      VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+        HStack(spacing: GainsSpacing.xs) {
+          PulsingDot(color: accent)
+          Text(eyebrow).gainsEyebrow(accent)
+        }
+        Text(title)
+          .font(.system(size: 26, weight: .semibold))
+          .foregroundStyle(GainsColor.ink)
+          .lineLimit(2)
+          .minimumScaleFactor(0.85)
+        if let subtitle {
+          Text(subtitle)
+            .gainsBody(secondary: true)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      }
+      Spacer(minLength: GainsSpacing.s)
+      if let onClose {
+        Button(action: onClose) {
+          Image(systemName: "xmark")
+            .font(.system(size: 13, weight: .bold))
+            .foregroundStyle(GainsColor.softInk)
+            .frame(width: 32, height: 32)
+            .background(
+              Circle().fill(GainsColor.ctaRaised)
+            )
+            .overlay(
+              Circle().strokeBorder(
+                GainsColor.border.opacity(0.6),
+                lineWidth: GainsBorder.hairline
+              )
+            )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Schließen")
+      }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
   }
