@@ -4014,6 +4014,96 @@ extension RecipesViewModel {
         tags: [.noCook, .quick, .budget, .lowCarb],
         servings: 1
       ),
+      Recipe(
+        id: UUID(uuidString: "30000003-0000-0000-0000-000000000010")!,
+        title: "Skyr Protein Bowl To Go",
+        category: "Breakfast",
+        goal: .highProtein,
+        dietaryStyle: .vegetarian,
+        mealType: .breakfast,
+        imageURL:
+          "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=80",
+        placeholderSymbol: "bowl.fill",
+        prepMinutes: 4,
+        calories: 418,
+        protein: 43,
+        carbs: 39,
+        fat: 9,
+        ingredients: [
+          "300 g Skyr",
+          "30 g Vanille-Whey",
+          "40 g Haferflocken",
+          "100 g Beeren",
+          "10 g Nussmus",
+        ],
+        steps: [
+          "Skyr und Whey glatt verrühren.",
+          "Haferflocken und Beeren unterheben.",
+          "Mit etwas Nussmus toppen und direkt essen oder mitnehmen.",
+        ],
+        tags: [.quick, .noCook, .mealprep, .budget],
+        servings: 1
+      ),
+      Recipe(
+        id: UUID(uuidString: "30000003-0000-0000-0000-000000000011")!,
+        title: "Chicken Couscous Mealprep",
+        category: "Lunch",
+        goal: .highProtein,
+        dietaryStyle: .omnivore,
+        mealType: .lunch,
+        imageURL:
+          "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=1200&q=80",
+        placeholderSymbol: "shippingbox.fill",
+        prepMinutes: 15,
+        calories: 534,
+        protein: 49,
+        carbs: 47,
+        fat: 15,
+        ingredients: [
+          "180 g Hähnchenbrust",
+          "70 g Couscous",
+          "150 g Gurke und Tomate",
+          "80 g Joghurt light",
+          "Zitronensaft, Salz, Pfeffer",
+        ],
+        steps: [
+          "Hähnchen würzen und in der Pfanne anbraten.",
+          "Couscous mit heißem Wasser quellen lassen.",
+          "Alles mit Gemüse und Joghurt-Dressing in eine Box geben.",
+        ],
+        tags: [.mealprep, .quick, .budget, .postWorkout],
+        servings: 1
+      ),
+      Recipe(
+        id: UUID(uuidString: "30000003-0000-0000-0000-000000000012")!,
+        title: "Egg Fried Rice Express",
+        category: "Dinner",
+        goal: .highProtein,
+        dietaryStyle: .vegetarian,
+        mealType: .dinner,
+        imageURL:
+          "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=1200&q=80",
+        placeholderSymbol: "frying.pan.fill",
+        prepMinutes: 12,
+        calories: 562,
+        protein: 33,
+        carbs: 61,
+        fat: 19,
+        ingredients: [
+          "250 g gekochter Reis",
+          "3 Eier",
+          "150 g Eiklar",
+          "120 g Erbsen",
+          "Sojasauce, Frühlingszwiebel",
+        ],
+        steps: [
+          "Eier und Eiklar in der Pfanne stocken lassen.",
+          "Reis und Erbsen zugeben und heiß anbraten.",
+          "Mit Sojasauce und Frühlingszwiebel abschmecken.",
+        ],
+        tags: [.quick, .oneOnePan, .budget, .postWorkout],
+        servings: 1
+      ),
     ]
   )
 }
