@@ -862,24 +862,34 @@ struct GymPlanWizardSheet: View {
         .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
         .frame(width: 28, alignment: .leading)
 
-      Circle()
-        .fill(previewAccent(for: kind))
-        .frame(width: 8, height: 8)
+      ZStack {
+        Circle()
+          .fill(previewAccent(for: kind).opacity(isPlanned ? 0.18 : 0.10))
+          .frame(width: 24, height: 24)
 
-      Text(previewTitle(for: kind))
-        .font(GainsFont.body(13))
-        .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+        Image(systemName: previewIcon(for: kind))
+          .font(.system(size: 10, weight: .bold))
+          .foregroundStyle(isPlanned ? previewAccent(for: kind) : GainsColor.softInk)
+      }
+
+      VStack(alignment: .leading, spacing: 1) {
+        Text(previewTitle(for: kind))
+          .font(GainsFont.body(13))
+          .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+        if isPlanned {
+          Text(previewMeta(for: kind))
+            .font(GainsFont.label(9))
+            .tracking(1.0)
+            .foregroundStyle(GainsColor.softInk)
+        }
+      }
 
       Spacer()
-
-      if isPlanned {
-        Text(previewMeta(for: kind))
-          .font(GainsFont.label(9))
-          .tracking(1.0)
-          .foregroundStyle(GainsColor.softInk)
-      }
     }
-    .padding(.vertical, 2)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.xsPlus)
+    .background(GainsColor.elevated)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
   }
 
   private var previewScheduledDays: [Weekday] {
@@ -983,6 +993,18 @@ struct GymPlanWizardSheet: View {
   private func previewAccent(for kind: PlannedSessionKind?) -> Color {
     guard let kind else { return GainsColor.softInk.opacity(0.35) }
     return kind.isRun ? GainsColor.moss : GainsColor.lime
+  }
+
+  private func previewIcon(for kind: PlannedSessionKind?) -> String {
+    guard let kind else { return "moon.zzz.fill" }
+    switch kind {
+    case .strength:
+      return "dumbbell.fill"
+    case .easyRun, .tempoRun, .intervalRun, .longRun, .recoveryRun:
+      return "figure.run"
+    case .mobility:
+      return "figure.cooldown"
+    }
   }
 
   private func summaryRow(icon: String, label: String, value: String) -> some View {
