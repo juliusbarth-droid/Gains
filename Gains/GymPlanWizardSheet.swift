@@ -798,6 +798,17 @@ struct GymPlanWizardSheet: View {
         .tracking(1.6)
         .foregroundStyle(GainsColor.softInk)
 
+      HStack(spacing: GainsSpacing.xsPlus) {
+        overviewStatChip(title: "TRAINING", value: "\(previewScheduledDays.count)")
+        overviewStatChip(title: "FREI", value: "\(max(7 - previewScheduledDays.count, 0))")
+        if previewRunDaysCount > 0 {
+          overviewStatChip(title: "RUN", value: "\(previewRunDaysCount)")
+        }
+        if previewStrengthDaysCount > 0 {
+          overviewStatChip(title: "KRAFT", value: "\(previewStrengthDaysCount)")
+        }
+      }
+
       VStack(spacing: GainsSpacing.xsPlus) {
         ForEach(Weekday.allCases) { day in
           weeklyOverviewRow(day)
@@ -807,6 +818,31 @@ struct GymPlanWizardSheet: View {
     .padding(GainsSpacing.l)
     .gainsCardStyle(GainsColor.card)
     .padding(.horizontal, GainsSpacing.xl)
+  }
+
+  private func overviewStatChip(title: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(title)
+        .font(GainsFont.label(8))
+        .tracking(1.2)
+        .foregroundStyle(GainsColor.softInk)
+      Text(value)
+        .font(GainsFont.title(14))
+        .foregroundStyle(GainsColor.ink)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.xsPlus)
+    .background(GainsColor.elevated)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private var previewRunDaysCount: Int {
+    previewSessionKinds.values.filter(\.isRun).count
+  }
+
+  private var previewStrengthDaysCount: Int {
+    previewSessionKinds.values.filter { !$0.isRun }.count
   }
 
   private func weeklyOverviewRow(_ day: Weekday) -> some View {
