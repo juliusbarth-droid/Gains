@@ -46,17 +46,18 @@ struct GymStatsTab: View {
       if store.exerciseStrengthProgress.isEmpty && store.workoutHistory.isEmpty {
         EmptyStateView(
           style: .inline,
-          title: "Noch keine Daten",
-          message: "Absolviere dein erstes Training, um Fortschritt und Verlauf zu sehen.",
+          title: "Noch keine Trainingsdaten",
+          message: "Sobald du dein erstes Workout abschließt, siehst du hier Verlauf, Progress und persönliche Rekorde. Deine geplante Wochenverteilung kannst du schon jetzt unten prüfen.",
           icon: "chart.bar"
         )
-      } else {
+      }
+
+      if !store.exerciseStrengthProgress.isEmpty || !store.workoutHistory.isEmpty {
         timeRangeFilter
         summaryHeader
         if !store.workoutHistory.isEmpty {
           volumeTrendSection
         }
-        muscleDistributionSection
         prSection
         if !store.exerciseStrengthProgress.isEmpty {
           strengthProgressSection
@@ -65,6 +66,8 @@ struct GymStatsTab: View {
           historySection
         }
       }
+
+      muscleDistributionSection
     }
   }
 
