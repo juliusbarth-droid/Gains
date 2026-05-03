@@ -817,6 +817,8 @@ struct GymPlanWizardSheet: View {
 
       compactWeekStrip
 
+      weekLegend
+
       VStack(spacing: GainsSpacing.xsPlus) {
         ForEach(Weekday.allCases) { day in
           weeklyOverviewRow(day)
@@ -851,6 +853,30 @@ struct GymPlanWizardSheet: View {
         compactWeekDayCell(day)
       }
     }
+  }
+
+  private var weekLegend: some View {
+    HStack(spacing: GainsSpacing.s) {
+      legendItem(color: GainsColor.lime, icon: "dumbbell.fill", title: "Kraft")
+      legendItem(color: GainsColor.moss, icon: "figure.run", title: "Run")
+      legendItem(color: GainsColor.softInk.opacity(0.35), icon: "moon.zzz.fill", title: "Frei")
+      Spacer(minLength: 0)
+    }
+  }
+
+  private func legendItem(color: Color, icon: String, title: String) -> some View {
+    HStack(spacing: 6) {
+      Image(systemName: icon)
+        .font(.system(size: 9, weight: .bold))
+        .foregroundStyle(color)
+      Text(title)
+        .font(GainsFont.label(9))
+        .foregroundStyle(GainsColor.softInk)
+    }
+    .padding(.horizontal, GainsSpacing.xsPlus)
+    .padding(.vertical, 6)
+    .background(GainsColor.elevated)
+    .clipShape(Capsule())
   }
 
   private func compactWeekDayCell(_ day: Weekday) -> some View {
