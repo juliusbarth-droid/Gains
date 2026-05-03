@@ -1245,12 +1245,13 @@ struct WorkoutHubView: View {
   /// Vorher gab es zwei Funktionen (`startOrResumeRun`/`startQuickCardio`),
   /// jeweils mit dem fehleranfälligen `isShowingRunTracker = false; = true`-
   /// Pattern. Da das Hub-Sheet `isShowingRunTracker` zu diesem Zeitpunkt
-  /// niemals offen ist (Hero ist nur sichtbar, wenn kein Sheet aktiv ist),
-  /// reicht ein einzelnes `= true`.
+  /// startet den Tracker bewusst aus einem sauberen Sheet-State neu,
+  /// damit Start/Resume im Alltag deterministischer reagiert.
   private func startOrResumeCardio() {
     if store.activeRun == nil {
       store.startQuickRun(modality: preferredModality)
     }
+    isShowingRunTracker = false
     isShowingRunTracker = true
   }
 }
