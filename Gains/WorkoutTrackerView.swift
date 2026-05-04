@@ -754,6 +754,9 @@ struct WorkoutTrackerView: View {
                 completeSet(exerciseID: exercise.id, set: set)
               },
               onDuplicate: {
+                if activeSetID == set.id {
+                  stopActiveSet()
+                }
                 if store.duplicateSet(exerciseID: exercise.id, setID: set.id) {
                   UISelectionFeedbackGenerator().selectionChanged()
                 }
