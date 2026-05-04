@@ -568,7 +568,7 @@ struct WorkoutTrackerView: View {
     let currentID = currentExerciseID(in: workout)
 
     if nextPending(in: workout) == nil {
-      finishedCard
+      finishedCard(workout)
     }
 
     VStack(spacing: GainsSpacing.tight) {
@@ -880,11 +880,12 @@ struct WorkoutTrackerView: View {
     .clipShape(Capsule())
   }
 
-  private var finishedCard: some View {
+  private func finishedCard(_ workout: WorkoutSession) -> some View {
     HStack(alignment: .center, spacing: GainsSpacing.s) {
       Image(systemName: "checkmark.seal.fill")
         .font(.system(size: 22, weight: .semibold))
         .foregroundStyle(GainsColor.moss)
+
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text("Alle Sätze erledigt")
           .font(GainsFont.headline)
@@ -892,7 +893,14 @@ struct WorkoutTrackerView: View {
         Text("Stark – jetzt Workout abschließen.")
           .font(GainsFont.caption)
           .foregroundStyle(GainsColor.softInk)
+
+        HStack(spacing: GainsSpacing.s) {
+          finishedMetric(label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)")
+          finishedMetric(label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg")
+        }
+        .padding(.top, 2)
       }
+
       Spacer()
     }
     .padding(.horizontal, GainsSpacing.m)
@@ -903,6 +911,18 @@ struct WorkoutTrackerView: View {
         .stroke(GainsColor.moss.opacity(0.45), lineWidth: 1)
     )
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  private func finishedMetric(label: String, value: String) -> some View {
+    VStack(alignment: .leading, spacing: 1) {
+      Text(label)
+        .font(GainsFont.eyebrow)
+        .tracking(GainsTracking.eyebrow)
+        .foregroundStyle(GainsColor.softInk)
+      Text(value)
+        .font(GainsFont.label(11))
+        .foregroundStyle(GainsColor.ink)
+    }
   }
 
   // MARK: - Bottom CTA
