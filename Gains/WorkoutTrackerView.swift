@@ -792,6 +792,9 @@ struct WorkoutTrackerView: View {
           .buttonStyle(.plain)
 
           Button {
+            if let lastSet = exercise.sets.last, activeSetID == lastSet.id {
+              stopActiveSet()
+            }
             store.removeLastSet(from: exercise.id)
           } label: {
             chipButton(icon: "minus", title: "Satz")
