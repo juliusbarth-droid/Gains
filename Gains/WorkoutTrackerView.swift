@@ -374,7 +374,25 @@ struct WorkoutTrackerView: View {
   @ViewBuilder
   private func contextActions(workout: WorkoutSession, isRest: Bool, isSet: Bool) -> some View {
     if isRest {
-      VStack(spacing: GainsSpacing.xs) {
+      VStack(alignment: .trailing, spacing: GainsSpacing.xs) {
+        if let pending = nextPending(in: workout) {
+          VStack(alignment: .trailing, spacing: 4) {
+            Text("DANACH")
+              .font(GainsFont.eyebrow)
+              .tracking(GainsTracking.eyebrow)
+              .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+            Text("Satz \(pending.set.order) · \(pending.exercise.name)")
+              .font(GainsFont.label(12))
+              .foregroundStyle(GainsColor.onCtaSurface)
+              .lineLimit(2)
+              .multilineTextAlignment(.trailing)
+          }
+          .padding(.horizontal, GainsSpacing.tight)
+          .padding(.vertical, GainsSpacing.xs)
+          .background(GainsColor.onCtaSurface.opacity(0.08))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+        }
+
         HStack(spacing: GainsSpacing.xs) {
           adjustChip("−15", tone: .neutral) { adjustRest(by: -15) }
           adjustChip("+15", tone: .neutral) { adjustRest(by: 15) }
