@@ -915,10 +915,11 @@ struct WorkoutTrackerView: View {
       if isComplete { return "WORKOUT BEENDEN" }
       if isSetActive { return "SATZ STOPPEN" }
       if let pending {
+        let exerciseName = pending.exercise.name.uppercased()
         let order = pending.set.order
         return order == 1 && pending.exercise.sets.allSatisfy({ !$0.isCompleted })
-          ? "STARTE DEN ERSTEN SATZ"
-          : "SATZ \(order) STARTEN"
+          ? "ERSTEN SATZ IN \(exerciseName) STARTEN"
+          : "SATZ \(order) IN \(exerciseName) STARTEN"
       }
       return "STARTE DEN ERSTEN SATZ"
     }()
