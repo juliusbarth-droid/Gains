@@ -808,6 +808,11 @@ struct WorkoutTrackerView: View {
           // startet den Rest-Timer. Spart 2 Taps gegenüber „+ Satz" →
           // Werte tippen → „Complete".
           Button {
+            if let activeSetID,
+              exercise.sets.contains(where: { $0.id == activeSetID })
+            {
+              stopActiveSet()
+            }
             if store.repeatLastSet(for: exercise.id) {
               restTimerEndsAt = Calendar.current.date(
                 byAdding: .second,
