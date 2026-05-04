@@ -930,6 +930,7 @@ struct WorkoutTrackerView: View {
 
   private func bottomCTA(_ workout: WorkoutSession) -> some View {
     let pending = nextPending(in: workout)
+    let active = activeSetContext(in: workout)
     let isComplete = pending == nil
     let isSetActive = activeSetID != nil
     let title: String = {
@@ -943,6 +944,11 @@ struct WorkoutTrackerView: View {
           : "SATZ \(order) IN \(exerciseName) STARTEN"
       }
       return "STARTE DEN ERSTEN SATZ"
+    }()
+    let detail: String? = {
+      if let active { return setContextDetail(active.set) }
+      if let pending { return setContextDetail(pending.set) }
+      return nil
     }()
     let icon = isSetActive ? "stop.fill" : (isComplete ? "checkmark" : "play.fill")
 
@@ -969,10 +975,21 @@ struct WorkoutTrackerView: View {
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
 
-        Text(title)
-          .font(GainsFont.eyebrow)
-          .tracking(GainsTracking.eyebrowWide)
-          .foregroundStyle(GainsColor.lime)
+        VStack(alignment: .leading, spacing: 2) {
+          Text(title)
+            .font(GainsFont.eyebrow)
+            .tracking(GainsTracking.eyebrowWide)
+            .foregroundStyle(GainsColor.lime)
+            .lineLimit(2)
+            .minimumScaleFactor(0.75)
+
+          if let detail, !isComplete {
+            Text(detail)
+              .font(GainsFont.label(10))
+              .foregroundStyle(GainsColor.lime.opacity(0.72))
+              .lineLimit(1)
+          }
+        }
 
         Spacer()
 
