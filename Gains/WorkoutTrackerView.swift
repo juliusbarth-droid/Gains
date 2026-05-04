@@ -881,6 +881,10 @@ struct WorkoutTrackerView: View {
   }
 
   private func finishedCard(_ workout: WorkoutSession) -> some View {
+    let completedExercises = workout.exercises.filter { exercise in
+      exercise.sets.allSatisfy(\.isCompleted)
+    }.count
+
     HStack(alignment: .center, spacing: GainsSpacing.s) {
       Image(systemName: "checkmark.seal.fill")
         .font(.system(size: 22, weight: .semibold))
@@ -896,6 +900,7 @@ struct WorkoutTrackerView: View {
 
         HStack(spacing: GainsSpacing.s) {
           finishedMetric(label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)")
+          finishedMetric(label: "ÜBUNGEN", value: "\(completedExercises)/\(workout.exercises.count)")
           finishedMetric(label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg")
           finishedMetric(label: "DAUER", value: sessionTimeString(start: workout.startedAt, now: Date()))
         }
