@@ -897,6 +897,7 @@ struct WorkoutTrackerView: View {
         HStack(spacing: GainsSpacing.s) {
           finishedMetric(label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)")
           finishedMetric(label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg")
+          finishedMetric(label: "DAUER", value: sessionTimeString(start: workout.startedAt, now: Date()))
         }
         .padding(.top, 2)
       }
