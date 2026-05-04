@@ -1308,8 +1308,14 @@ private struct CompactSetRow: View {
         field: .weight,
         keyboard: .decimalPad,
         commit: commitWeight,
-        onMinus: { adjustWeight(by: -2.5) },
-        onPlus: { adjustWeight(by: 2.5) }
+        onMinus: {
+          stopRunningSetIfNeeded()
+          adjustWeight(by: -2.5)
+        },
+        onPlus: {
+          stopRunningSetIfNeeded()
+          adjustWeight(by: 2.5)
+        }
       )
 
       // REPS mit ±-Steppern
@@ -1319,8 +1325,14 @@ private struct CompactSetRow: View {
         field: .reps,
         keyboard: .numberPad,
         commit: commitReps,
-        onMinus: { adjustReps(by: -1) },
-        onPlus: { adjustReps(by: 1) }
+        onMinus: {
+          stopRunningSetIfNeeded()
+          adjustReps(by: -1)
+        },
+        onPlus: {
+          stopRunningSetIfNeeded()
+          adjustReps(by: 1)
+        }
       )
 
       // Play / Pause
@@ -1465,9 +1477,16 @@ private struct CompactSetRow: View {
     .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
   }
 
+  private func stopRunningSetIfNeeded() {
+    if isTimerRunning {
+      onTogglePlay()
+    }
+  }
+
   private func commitWeight() {
     let normalized = weightText.replacingOccurrences(of: ",", with: ".")
     if let value = Double(normalized) {
+      stopRunningSetIfNeeded()
       let rounded = max(0, value)
       store.updateSet(exerciseID: exerciseID, setID: set.id, weight: rounded)
       weightText = formattedWeight(rounded)
@@ -1478,6 +1497,7 @@ private struct CompactSetRow: View {
 
   private func commitReps() {
     if let value = Int(repsText) {
+      stopRunningSetIfNeeded()
       let bounded = max(0, value)
       store.updateSet(exerciseID: exerciseID, setID: set.id, reps: bounded)
       repsText = "\(bounded)"
