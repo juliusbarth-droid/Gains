@@ -924,7 +924,14 @@ struct WorkoutTrackerView: View {
           .font(GainsFont.caption)
           .foregroundStyle(GainsColor.softInk)
 
-        HStack(spacing: GainsSpacing.s) {
+        LazyVGrid(
+          columns: [
+            GridItem(.flexible(), spacing: GainsSpacing.s),
+            GridItem(.flexible(), spacing: GainsSpacing.s)
+          ],
+          alignment: .leading,
+          spacing: GainsSpacing.xsPlus
+        ) {
           finishedMetric(label: "SÄTZE", value: "\(workout.completedSets)/\(workout.totalSets)")
           finishedMetric(label: "ÜBUNGEN", value: "\(completedExercises)/\(workout.exercises.count)")
           finishedMetric(label: "VOLUMEN", value: "\(Int(workout.totalVolume)) kg")
