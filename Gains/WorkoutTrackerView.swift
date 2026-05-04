@@ -699,35 +699,21 @@ struct WorkoutTrackerView: View {
 
         // Letztes Mal Hinweis + "Ausführung"-Hinweis bei aktiver Übung
         HStack(spacing: GainsSpacing.xsPlus) {
-           if let nextExerciseSet, !isAllDone {
--            Text(
--              "Ziel: \(formattedWeightInline(nextExerciseSet.weight)) kg × \(nextExerciseSet.reps) Reps"
--            )
--            .font(GainsFont.caption)
--            .foregroundStyle(GainsColor.softInk)
-+            HStack(spacing: GainsSpacing.xs) {
-+              if isActive {
-+                Text("NÄCHSTER SATZ \(nextExerciseSet.order)")
-+                  .font(GainsFont.eyebrow)
-+                  .tracking(GainsTracking.eyebrowTight)
-+                  .foregroundStyle(GainsColor.lime)
-+              }
-+
-+              Text(
-+                "Ziel: \(formattedWeightInline(nextExerciseSet.weight)) kg × \(nextExerciseSet.reps) Reps"
-+              )
-+              .font(GainsFont.caption)
-+              .foregroundStyle(GainsColor.softInk)
-+            }
-           }
-
-           if isActive, hasFormGuide(for: exercise) {
           if let nextExerciseSet, !isAllDone {
-            Text(
-              "Ziel: \(formattedWeightInline(nextExerciseSet.weight)) kg × \(nextExerciseSet.reps) Reps"
-            )
-            .font(GainsFont.caption)
-            .foregroundStyle(GainsColor.softInk)
+            HStack(spacing: GainsSpacing.xs) {
+              if isActive {
+                Text("NÄCHSTER SATZ \(nextExerciseSet.order)")
+                  .font(GainsFont.eyebrow)
+                  .tracking(GainsTracking.eyebrowTight)
+                  .foregroundStyle(GainsColor.lime)
+              }
+
+              Text(
+                "Ziel: \(formattedWeightInline(nextExerciseSet.weight)) kg × \(nextExerciseSet.reps) Reps"
+              )
+              .font(GainsFont.caption)
+              .foregroundStyle(GainsColor.softInk)
+            }
           }
 
           if isActive, hasFormGuide(for: exercise) {
