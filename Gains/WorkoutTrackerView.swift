@@ -273,7 +273,7 @@ struct WorkoutTrackerView: View {
       }
 
       // Zeile 2: Großer Status-Timer + kontextuelle Actions
-      timerRow(isRest: isRest, isSet: isSet, accent: accent)
+      timerRow(workout: workout, isRest: isRest, isSet: isSet, accent: accent)
 
       // Trennlinie (Hairline)
       Rectangle()
@@ -303,7 +303,7 @@ struct WorkoutTrackerView: View {
     .animation(.easeInOut(duration: 0.18), value: isSet)
   }
 
-  private func timerRow(isRest: Bool, isSet: Bool, accent: Color) -> some View {
+  private func timerRow(workout: WorkoutSession, isRest: Bool, isSet: Bool, accent: Color) -> some View {
     HStack(alignment: .center, spacing: GainsSpacing.s) {
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(statusLabel(isRest: isRest, isSet: isSet))
@@ -342,7 +342,7 @@ struct WorkoutTrackerView: View {
 
       Spacer(minLength: 8)
 
-      contextActions(isRest: isRest, isSet: isSet)
+      contextActions(workout: workout, isRest: isRest, isSet: isSet)
     }
   }
 
@@ -372,7 +372,7 @@ struct WorkoutTrackerView: View {
   }
 
   @ViewBuilder
-  private func contextActions(isRest: Bool, isSet: Bool) -> some View {
+  private func contextActions(workout: WorkoutSession, isRest: Bool, isSet: Bool) -> some View {
     if isRest {
       VStack(spacing: GainsSpacing.xs) {
         HStack(spacing: GainsSpacing.xs) {
@@ -387,6 +387,22 @@ struct WorkoutTrackerView: View {
       adjustChip("STOP", tone: .accent) {
         stopActiveSet()
       }
+    } else if let pending = nextPending(in: workout) {
+      VStack(alignment: .trailing, spacing: 4) {
+        Text("ALS NÄCHSTES")
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrow)
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+        Text("Satz \(pending.set.order) · \(pending.exercise.name)")
+          .font(GainsFont.label(12))
+          .foregroundStyle(GainsColor.onCtaSurface)
+          .lineLimit(2)
+          .multilineTextAlignment(.trailing)
+      }
+      .padding(.horizontal, GainsSpacing.tight)
+      .padding(.vertical, GainsSpacing.xs)
+      .background(GainsColor.onCtaSurface.opacity(0.08))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     } else if let bpm = healthKit.liveHeartRate {
       HStack(spacing: GainsSpacing.xxs) {
         Image(systemName: "heart.fill")
