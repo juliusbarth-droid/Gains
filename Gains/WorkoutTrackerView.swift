@@ -1217,6 +1217,12 @@ struct WorkoutTrackerView: View {
   }
 
   private func openFormGuide(for exercise: TrackedExercise) {
+    if let activeSetID,
+      exercise.sets.contains(where: { $0.id == activeSetID })
+    {
+      stopActiveSet()
+    }
+
     if let item = libraryItem(for: exercise) {
       formGuideExercise = item
     } else {
