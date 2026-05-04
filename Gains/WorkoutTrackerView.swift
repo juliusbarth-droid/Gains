@@ -384,8 +384,21 @@ struct WorkoutTrackerView: View {
         }
       }
     } else if isSet {
-      adjustChip("STOP", tone: .accent) {
-        stopActiveSet()
+      VStack(alignment: .trailing, spacing: 4) {
+        if let active = activeSetContext(in: workout) {
+          Text("AKTUELL")
+            .font(GainsFont.eyebrow)
+            .tracking(GainsTracking.eyebrow)
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+          Text("Satz \(active.set.order) · \(active.exercise.name)")
+            .font(GainsFont.label(12))
+            .foregroundStyle(GainsColor.onCtaSurface)
+            .lineLimit(2)
+            .multilineTextAlignment(.trailing)
+        }
+        adjustChip("STOP", tone: .accent) {
+          stopActiveSet()
+        }
       }
     } else if let pending = nextPending(in: workout) {
       VStack(alignment: .trailing, spacing: 4) {
@@ -920,6 +933,20 @@ struct WorkoutTrackerView: View {
 
   private func currentExerciseID(in workout: WorkoutSession) -> UUID? {
     nextPending(in: workout)?.exercise.id
+  }
+
+  private func activeSetContext(in workout: WorkoutSession) -> (
+    exercise: TrackedExercise, set: TrackedSet
+  )? {
+    guard let activeSetID else { return nil }
+
+    for exercise in workout.exercises {
+      if let activeSet = exercise.sets.first(where: { $0.id == activeSetID }) {
+        return (exercise, activeSet)
+      }
+    }
+
+    return nil
   }
 
   private func nextPending(in workout: WorkoutSession) -> (
