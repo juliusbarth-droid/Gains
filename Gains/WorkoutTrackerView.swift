@@ -386,6 +386,9 @@ struct WorkoutTrackerView: View {
               .foregroundStyle(GainsColor.onCtaSurface)
               .lineLimit(2)
               .multilineTextAlignment(.trailing)
+            Text(setContextDetail(pending.set))
+              .font(GainsFont.label(10))
+              .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
           }
           .padding(.horizontal, GainsSpacing.tight)
           .padding(.vertical, GainsSpacing.xs)
@@ -413,6 +416,9 @@ struct WorkoutTrackerView: View {
             .foregroundStyle(GainsColor.onCtaSurface)
             .lineLimit(2)
             .multilineTextAlignment(.trailing)
+          Text(setContextDetail(active.set))
+            .font(GainsFont.label(10))
+            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
         }
         adjustChip("STOP", tone: .accent) {
           stopActiveSet()
@@ -429,6 +435,9 @@ struct WorkoutTrackerView: View {
           .foregroundStyle(GainsColor.onCtaSurface)
           .lineLimit(2)
           .multilineTextAlignment(.trailing)
+        Text(setContextDetail(pending.set))
+          .font(GainsFont.label(10))
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
       }
       .padding(.horizontal, GainsSpacing.tight)
       .padding(.vertical, GainsSpacing.xs)
@@ -1095,6 +1104,10 @@ struct WorkoutTrackerView: View {
     if isRest { return restTimerLabel(now: now) }
     if isSet { return elapsedLabel(since: activeSetStartedAt, now: now) }
     return "00:00"
+  }
+
+  private func setContextDetail(_ set: TrackedSet) -> String {
+    "\(formattedWeightInline(set.weight)) kg × \(set.reps) Wdh."
   }
 
   private func formattedWeightInline(_ value: Double) -> String {
