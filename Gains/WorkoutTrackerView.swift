@@ -933,9 +933,13 @@ struct WorkoutTrackerView: View {
     let active = activeSetContext(in: workout)
     let isComplete = pending == nil
     let isSetActive = activeSetID != nil
+    let isActivePendingSet = {
+      guard let active, let pending else { return false }
+      return active.set.id == pending.set.id
+    }()
     let title: String = {
       if isComplete { return "WORKOUT BEENDEN" }
-      if isSetActive { return "SATZ STOPPEN" }
+      if isSetActive { return isActivePendingSet ? "SATZ ABSCHLIESSEN" : "SATZ STOPPEN" }
       if let pending {
         let exerciseName = pending.exercise.name.uppercased()
         let order = pending.set.order
@@ -950,7 +954,11 @@ struct WorkoutTrackerView: View {
       if let pending { return setContextDetail(pending.set) }
       return nil
     }()
-    let icon = isSetActive ? "stop.fill" : (isComplete ? "checkmark" : "play.fill")
+    let icon: String = {
+      if isComplete { return "checkmark" }
+      if isSetActive { return isActivePendingSet ? "checkmark.circle.fill" : "stop.fill" }
+      return "play.fill"
+    }()
 
     return Button {
       if isComplete {
