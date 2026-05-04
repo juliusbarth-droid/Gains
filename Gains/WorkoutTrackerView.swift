@@ -655,19 +655,20 @@ struct WorkoutTrackerView: View {
         Spacer(minLength: 6)
 
         // Info-Button zeigt die Ausführung als Sheet
+        let hasGuide = hasFormGuide(for: exercise)
         Button {
           openFormGuide(for: exercise)
         } label: {
-          Image(systemName: "book.closed.fill")
+          Image(systemName: hasGuide ? "book.closed.fill" : "questionmark.circle")
             .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(GainsColor.lime)
+            .foregroundStyle(hasGuide ? GainsColor.lime : GainsColor.softInk)
             .frame(width: 32, height: 32)
-            .background(GainsColor.lime.opacity(0.16))
+            .background((hasGuide ? GainsColor.lime : GainsColor.softInk).opacity(0.16))
             .clipShape(Circle())
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Ausführung anzeigen")
+        .accessibilityLabel(hasGuide ? "Ausführung anzeigen" : "Hinweis zur Übung anzeigen")
 
         Text("\(completed)/\(total)")
           .font(GainsFont.metricSmall)
