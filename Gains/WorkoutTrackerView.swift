@@ -451,6 +451,21 @@ struct WorkoutTrackerView: View {
       .padding(.vertical, GainsSpacing.xs)
       .background(GainsColor.ember.opacity(0.18))
       .clipShape(Capsule())
+    } else {
+      VStack(alignment: .trailing, spacing: 4) {
+        Text("BEREIT FÜR DEN NÄCHSTEN SATZ")
+          .font(GainsFont.eyebrow)
+          .tracking(GainsTracking.eyebrow)
+          .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+        Text("Starte einen Satz oder hake ihn direkt ab.")
+          .font(GainsFont.label(11))
+          .foregroundStyle(GainsColor.onCtaSurface)
+          .multilineTextAlignment(.trailing)
+      }
+      .padding(.horizontal, GainsSpacing.tight)
+      .padding(.vertical, GainsSpacing.xs)
+      .background(GainsColor.onCtaSurface.opacity(0.08))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
   }
 
