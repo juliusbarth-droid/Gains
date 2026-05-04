@@ -891,6 +891,7 @@ struct GymPlanWizardSheet: View {
     HStack(spacing: GainsSpacing.s) {
       legendItem(color: GainsColor.lime, icon: "dumbbell.fill", title: "Kraft")
       legendItem(color: GainsColor.moss, icon: "figure.run", title: "Run")
+      legendItem(color: GainsColor.moss.opacity(0.55), icon: "sparkles", title: "Flex")
       legendItem(color: GainsColor.softInk.opacity(0.35), icon: "moon.zzz.fill", title: "Frei")
       Spacer(minLength: 0)
     }
@@ -919,15 +920,15 @@ struct GymPlanWizardSheet: View {
       Text(day.shortLabel)
         .font(GainsFont.label(8))
         .tracking(1.0)
-        .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+        .foregroundStyle(previewForeground(for: day, kind: kind, isPlanned: isPlanned))
 
       RoundedRectangle(cornerRadius: 10, style: .continuous)
-        .fill(previewAccent(for: kind).opacity(isPlanned ? 0.22 : 0.08))
+        .fill(previewAccent(for: day, kind: kind, isPlanned: isPlanned).opacity(isPlanned ? 0.22 : 0.08))
         .frame(height: 34)
         .overlay {
-          Image(systemName: previewIcon(for: kind))
+          Image(systemName: previewIcon(for: day, kind: kind, isPlanned: isPlanned))
             .font(.system(size: 12, weight: .bold))
-            .foregroundStyle(isPlanned ? previewAccent(for: kind) : GainsColor.softInk)
+            .foregroundStyle(previewAccent(for: day, kind: kind, isPlanned: isPlanned))
         }
     }
     .frame(maxWidth: .infinity)
@@ -941,6 +942,96 @@ struct GymPlanWizardSheet: View {
     previewSessionKinds.values.filter { !$0.isRun }.count
   }
 
+  private func previewUnscheduledPreference(for day: Weekday) -> WorkoutDayPreference? {
+    guard hasExistingDayPreferences, previewSessionKinds[day] == nil else { return nil }
+    return store.dayPreference(for: day)
+  }
+
+  private func previewForeground(for day: Weekday, kind: PlannedSessionKind?, isPlanned: Bool) -> Color {
+    isPlanned || previewUnscheduledPreference(for: day) == .flexible ? GainsColor.ink : GainsColor.softInk
+  }
+
+  private func previewAccent(for day: Weekday, kind: PlannedSessionKind?, isPlanned: Bool) -> Color {
+    if let preference = previewUnscheduledPreference(for: day), !isPlanned {
+      switch preference {
+      case .flexible:
+        return GainsColor.moss.opacity(0.55)
+      case .rest:
+        return GainsColor.softInk.opacity(0.35)
+      case .training:
+        break
+      }
+    }
+
+    guard let kind else { return GainsColor.softInk.opacity(0.35) }
+    return kind.isRun ? GainsColor.moss : GainsColor.lime
+  }
+
+  private func previewIcon(for day: Weekday, kind: PlannedSessionKind?, isPlanned: Bool) -> String {
+    if let preference = previewUnscheduledPreference(for: day), !isPlanned {
+      switch preference {
+      case .flexible:
+        return "sparkles"
+      case .rest:
+        return "moon.zzz.fill"
+      case .training:
+        break
+      }
+    }
+
+    guard let kind else { return "moon.zzz.fill" }
+    switch kind {
+    case .strength:
+      return "dumbbell.fill"
+    case .easyRun, .tempoRun, .intervalRun, .longRun, .recoveryRun:
+      return "figure.run"
+    case .mobility:
+      return "figure.cooldown"
+    }
+  }
+
+  private func previewTitle(for day: Weekday, kind: PlannedSessionKind?) -> String {
+    if let preference = previewUnscheduledPreference(for: day) {
+      switch preference {
+      case .flexible:
+        return "Flexibel offen"
+      case .rest:
+        return "Frei / Puffer"
+      case .training:
+        break
+      }
+    }
+
+    guard let kind else { return "Frei / Puffer" }
+    switch kind {
+    case .strength:
+      return "Krafttraining"
+    default:
+      return kind.title
+    }
+  }
+
+  private func previewMeta(for day: Weekday, kind: PlannedSessionKind?) -> String {
+    if let preference = previewUnscheduledPreference(for: day) {
+      switch preference {
+      case .flexible:
+        return "Kann bei Bedarf gefüllt werden"
+      case .rest:
+        return "Bewusst frei gehalten"
+      case .training:
+        break
+      }
+    }
+
+    guard let kind else { return "" }
+    switch kind {
+    case .strength:
+      return autoSplitName
+    default:
+      return "ca. \(sessionLength) Min"
+    }
+  }
+
   private func weeklyOverviewRow(_ day: Weekday) -> some View {
     let kind = previewSessionKinds[day]
     let isPlanned = kind != nil
@@ -949,29 +1040,27 @@ struct GymPlanWizardSheet: View {
       Text(day.shortLabel)
         .font(GainsFont.label(10))
         .tracking(1.4)
-        .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
+        .foregroundStyle(previewForeground(for: day, kind: kind, isPlanned: isPlanned))
         .frame(width: 28, alignment: .leading)
 
       ZStack {
         Circle()
-          .fill(previewAccent(for: kind).opacity(isPlanned ? 0.18 : 0.10))
+          .fill(previewAccent(for: day, kind: kind, isPlanned: isPlanned).opacity(isPlanned ? 0.18 : 0.10))
           .frame(width: 24, height: 24)
 
-        Image(systemName: previewIcon(for: kind))
+        Image(systemName: previewIcon(for: day, kind: kind, isPlanned: isPlanned))
           .font(.system(size: 10, weight: .bold))
-          .foregroundStyle(isPlanned ? previewAccent(for: kind) : GainsColor.softInk)
+          .foregroundStyle(previewAccent(for: day, kind: kind, isPlanned: isPlanned))
       }
 
       VStack(alignment: .leading, spacing: 1) {
-        Text(previewTitle(for: kind))
+        Text(previewTitle(for: day, kind: kind))
           .font(GainsFont.body(13))
-          .foregroundStyle(isPlanned ? GainsColor.ink : GainsColor.softInk)
-        if isPlanned {
-          Text(previewMeta(for: kind))
-            .font(GainsFont.label(9))
-            .tracking(1.0)
-            .foregroundStyle(GainsColor.softInk)
-        }
+          .foregroundStyle(previewForeground(for: day, kind: kind, isPlanned: isPlanned))
+        Text(previewMeta(for: day, kind: kind))
+          .font(GainsFont.label(9))
+          .tracking(1.0)
+          .foregroundStyle(GainsColor.softInk)
       }
 
       Spacer()
@@ -1070,43 +1159,6 @@ struct GymPlanWizardSheet: View {
       return [.easyRun, .tempoRun, .intervalRun, .longRun]
     default:
       return [.easyRun, .tempoRun, .recoveryRun, .intervalRun, .longRun]
-    }
-  }
-
-  private func previewTitle(for kind: PlannedSessionKind?) -> String {
-    guard let kind else { return "Frei / Puffer" }
-    switch kind {
-    case .strength:
-      return "Krafttraining"
-    default:
-      return kind.title
-    }
-  }
-
-  private func previewMeta(for kind: PlannedSessionKind?) -> String {
-    guard let kind else { return "" }
-    switch kind {
-    case .strength:
-      return autoSplitName
-    default:
-      return "ca. \(sessionLength) Min"
-    }
-  }
-
-  private func previewAccent(for kind: PlannedSessionKind?) -> Color {
-    guard let kind else { return GainsColor.softInk.opacity(0.35) }
-    return kind.isRun ? GainsColor.moss : GainsColor.lime
-  }
-
-  private func previewIcon(for kind: PlannedSessionKind?) -> String {
-    guard let kind else { return "moon.zzz.fill" }
-    switch kind {
-    case .strength:
-      return "dumbbell.fill"
-    case .easyRun, .tempoRun, .intervalRun, .longRun, .recoveryRun:
-      return "figure.run"
-    case .mobility:
-      return "figure.cooldown"
     }
   }
 
