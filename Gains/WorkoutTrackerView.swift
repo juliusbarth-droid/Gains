@@ -695,11 +695,13 @@ struct WorkoutTrackerView: View {
       }
 
       if !isCollapsed {
+        let nextExerciseSet = exercise.sets.first(where: { !$0.isCompleted }) ?? exercise.sets.first
+
         // Letztes Mal Hinweis + "Ausführung"-Hinweis bei aktiver Übung
         HStack(spacing: GainsSpacing.xsPlus) {
-          if let firstSet = exercise.sets.first, !isAllDone {
+          if let nextExerciseSet, !isAllDone {
             Text(
-              "Ziel: \(formattedWeightInline(firstSet.weight)) kg × \(firstSet.reps) Reps"
+              "Ziel: \(formattedWeightInline(nextExerciseSet.weight)) kg × \(nextExerciseSet.reps) Reps"
             )
             .font(GainsFont.caption)
             .foregroundStyle(GainsColor.softInk)
