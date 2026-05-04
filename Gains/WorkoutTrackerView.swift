@@ -771,6 +771,11 @@ struct WorkoutTrackerView: View {
 
         HStack(spacing: GainsSpacing.xsPlus) {
           Button {
+            if let activeSetID,
+              exercise.sets.contains(where: { $0.id == activeSetID })
+            {
+              stopActiveSet()
+            }
             store.addSet(to: exercise.id)
           } label: {
             chipButton(icon: "plus", title: "Satz")
