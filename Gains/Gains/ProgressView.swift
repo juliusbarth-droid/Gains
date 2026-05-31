@@ -1304,6 +1304,10 @@ struct ProgressContentView: View {
     }
     .padding(GainsSpacing.m)
     .gainsCardStyle()
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(topExercise?.exerciseName ?? "Stärke")
+    .accessibilityValue(topExercise.map { "\($0.currentValue), \($0.deltaLabel)" } ?? "Noch keine Kraftdaten")
+    .accessibilityHint("Zeigt deinen aktuellen Kraftfortschritt")
   }
 
   private func volumeSparkline(values: [Double]) -> some View {
