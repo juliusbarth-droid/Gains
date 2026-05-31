@@ -1162,6 +1162,10 @@ struct ProgressContentView: View {
     }
     .padding(GainsSpacing.m)
     .gainsCardStyle(GainsColor.card)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("365 Tage Aktivität")
+    .accessibilityValue("\(yearActivityDays.totalActiveDays) Tage aktiv")
+    .accessibilityHint("Zeigt deine Aktivität über die letzten 365 Tage")
   }
 
   private var yearActivityGridBody: some View {
