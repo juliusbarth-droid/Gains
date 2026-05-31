@@ -1166,6 +1166,10 @@ struct WorkoutTrackerView: View {
     .padding(.vertical, GainsSpacing.l)
     .padding(.horizontal, GainsSpacing.m)
     .gainsCardStyle(GainsColor.elevated)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Noch keine Übung")
+    .accessibilityValue("Füge deine erste Übung hinzu, um loszulegen.")
+    .accessibilityHint("Zeigt den leeren Zustand im Bearbeiten-Modus")
   }
 
   /// „Fertig"-Leiste, die im Bearbeiten-Modus die Satz-CTA ersetzt.
