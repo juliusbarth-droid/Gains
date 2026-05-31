@@ -1783,6 +1783,10 @@ struct ProgressContentView: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
+    .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    .accessibilityLabel(historyTitle(entry))
+    .accessibilityValue("\(historySubtitle(entry)), \(entry.date.formatted(.dateTime.day().month()))")
+    .accessibilityHint(entryHistoryAccessibilityHint(entry))
   }
 
   private func historyIcon(_ entry: HistoryEntry) -> String {
@@ -1812,6 +1816,15 @@ struct ProgressContentView: View {
       return String(format: "%.1f t · %d Sätze", w.volume / 1000, w.completedSets)
     case .run(let r):
       return "\(String(format: "%.1f km", r.distanceKm)) · \(paceLabel(r.averagePaceSeconds))"
+    }
+  }
+
+  private func entryHistoryAccessibilityHint(_ entry: HistoryEntry) -> String {
+    switch entry {
+    case .workout:
+      return "Schließt den Fortschritt und öffnet dein Krafttraining"
+    case .run:
+      return "Schließt den Fortschritt und öffnet dein Cardio-Training"
     }
   }
 
