@@ -1078,6 +1078,7 @@ struct WorkoutTrackerView: View {
     .buttonStyle(.plain)
     .disabled(!enabled)
     .accessibilityLabel(symbol == "chevron.up" ? "Nach oben" : "Nach unten")
+    .accessibilityHint(enabled ? (symbol == "chevron.up" ? "Verschiebt die Übung eine Position nach oben" : "Verschiebt die Übung eine Position nach unten") : "Diese Richtung ist hier nicht verfügbar")
   }
 
   // MARK: - Hinzufügen / Löschen / Empty-State (2026-05-31)
