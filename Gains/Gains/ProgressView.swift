@@ -208,7 +208,8 @@ struct ProgressContentView: View {
           Text(subtitle)
             .font(GainsFont.body(11))
             .foregroundStyle(GainsColor.softInk)
-            .lineLimit(1)
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 0)
         Image(systemName: "arrow.up.right")
