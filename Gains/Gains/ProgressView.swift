@@ -1376,6 +1376,10 @@ struct ProgressContentView: View {
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
+    .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    .accessibilityLabel("Gewicht")
+    .accessibilityValue("\(String(format: "%.1f Kilogramm", latest)), \(deltaLabel(delta))")
+    .accessibilityHint("Öffnet den Check-in für dein Gewicht")
   }
 
   private var weightSparkline: some View {
