@@ -1025,6 +1025,10 @@ struct ProgressContentView: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
+    .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    .accessibilityLabel("Readiness-Wert \(vital.title)")
+    .accessibilityValue(vital.value)
+    .accessibilityHint("Aktualisiert deine aktuellen Health-Daten")
   }
 
   // MARK: - 4. Pulse-Strip (Wochen-Snapshot in 4 Zellen)
