@@ -275,7 +275,8 @@ struct WorkoutTrackerView: View {
               .clipShape(Circle())
               .contentShape(Circle())
           }
-          .accessibilityLabel("Schließen")
+          .accessibilityLabel("Tracker schließen")
+          .accessibilityHint("Schließt den Workout-Tracker und kehrt zur Trainingsübersicht zurück")
         }
         ToolbarItem(placement: .principal) {
           Text("KRAFT-TRAINER")
