@@ -1706,6 +1706,11 @@ struct ProgressContentView: View {
                   .clipShape(Capsule())
               }
               .buttonStyle(.plain)
+              .accessibilityLabel(filter == .strength ? "Verlaufsfilter Kraft" : filter == .cardio ? "Verlaufsfilter Cardio" : "Verlaufsfilter Alle")
+              .accessibilityValue(historyFilter == filter ? "Ausgewählt" : "Nicht ausgewählt")
+              .accessibilityHint(historyFilter == filter ? "Dieser Filter ist bereits aktiv" : "Filtert den sichtbaren Verlauf")
+              .accessibilityAddTraits(historyFilter == filter ? .isSelected : [])
+              .disabled(historyFilter == filter)
             }
           }
         }
