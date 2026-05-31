@@ -1225,6 +1225,7 @@ struct ProgressContentView: View {
         guard !dayLevels.weeks.isEmpty else { return }
         proxy.scrollTo(dayLevels.weeks.count - 1, anchor: .trailing)
       }
+      .accessibilityHidden(true)
     }
   }
 
