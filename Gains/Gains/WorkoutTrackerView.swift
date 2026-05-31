@@ -201,9 +201,14 @@ struct WorkoutTrackerView: View {
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Tracker schließen")
+            .accessibilityHint("Schließt den leeren Workout-Tracker und kehrt zurück")
             .padding(.top, GainsSpacing.xs)
           }
           .padding(.horizontal, GainsSpacing.l)
+          .accessibilityElement(children: .contain)
+          .accessibilityLabel("Kein aktives Workout")
+          .accessibilityValue("Starte ein Workout vom Plan oder der Bibliothek.")
         }
       }
       // Pause-Ende-Trigger (Optimierungs-Sweep 2026-05-03):
