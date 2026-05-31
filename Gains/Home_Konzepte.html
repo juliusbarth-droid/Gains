@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAINS · Homescreen-Konzepte</title>
+<style>
+  :root {
+    --bg: #E8E6E0;
+    --card: #F4F2EC;
+    --ink: #1A1A1A;
+    --soft: #666;
+    --mute: #999;
+    --border: #c9c6be;
+    --lime: #D4E85C;
+    --moss: #4A5220;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 40px 24px 60px;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    max-width: 1400px;
+    margin: 0 auto 40px;
+  }
+  .meta {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--mute);
+    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .meta .slash { color: var(--lime); letter-spacing: 1px; margin: 0 4px; }
+  h1 {
+    font-size: 36px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+  header p {
+    font-size: 15px;
+    color: var(--soft);
+    max-width: 720px;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .grid {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+  @media (max-width: 1100px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .concept {
+    background: transparent;
+  }
+  .concept-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .concept-num {
+    font-size: 11px;
+    letter-spacing: 3px;
+    font-weight: 500;
+    color: var(--mute);
+  }
+  .concept-num .slash { color: var(--lime); }
+  .concept-title {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .tagline {
+    font-size: 12px;
+    color: var(--moss);
+    background: var(--lime);
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    margin-bottom: 16px;
+  }
+  .mockup {
+    background: var(--card);
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .mockup img, .mockup object {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .section {
+    margin-top: 16px;
+  }
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    font-weight: 500;
+    color: var(--ink);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .section-label .slash { color: var(--lime); margin: 0 4px; }
+  .section-label .tail { color: var(--mute); }
+  .section p, .section ul {
+    font-size: 13px;
+    color: var(--soft);
+    line-height: 1.55;
+    margin: 0 0 14px;
+  }
+  .section ul {
+    list-style: none;
+    padding: 0;
+  }
+  .section li {
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .section li:last-child { border-bottom: none; }
+  .dot {
+    color: var(--lime);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .verdict {
+    background: var(--ink);
+    color: var(--card);
+    padding: 14px 16px;
+    border-radius: 16px;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 14px;
+  }
+  .verdict strong { color: var(--lime); font-weight: 500; }
+
+  .summary {
+    max-width: 1400px;
+    margin: 60px auto 0;
+    background: var(--ink);
+    color: var(--card);
+    border-radius: 28px;
+    padding: 32px;
+  }
+  .summary h2 {
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 20px;
+    letter-spacing: -0.02em;
+  }
+  .summary h2 .slash { color: var(--lime); }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #bbb;
+  }
+  @media (max-width: 900px) { .summary-grid { grid-template-columns: 1fr; } }
+  .summary-grid h3 {
+    color: var(--lime);
+    font-size: 11px;
+    letter-spacing: 2.5px;
+    font-weight: 500;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+  .summary-grid p { margin: 0 0 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="meta">GAINS<span class="slash">/</span>HOMESCREEN<span class="slash">/</span>3 KONZEPTE</div>
+  <h1>Homescreen-Konzepte für Julius.</h1>
+  <p>Drei Content-Richtungen, die dein Problem lösen: echten Fortschritt zeigen <em>und</em> direkten Workout-Start ermöglichen. Gleiches Design-System (Lime · Cream · Ink · Slash) – unterschiedliche Priorisierung.</p>
+</header>
+
+<div class="grid">
+
+  <!-- CONCEPT A -->
+  <div class="concept">
+    <div class="concept-head">
+      <div class="concept-num">A<span class="slash"> / </span>COCKPIT</div>
+    </div>
+    <h2 class="concept-title">Sofort trainieren.</h2>
+    <span class="tagline">Action-First</span>
+
+    <div class="mockup">
+      <object data="prompt_assets/concepts/concept_a_cockpit.svg" type="image/svg+xml" aria-label="Konzept A Cockpit"></object>
+    </div>
+
+    <div class="section">
+      <div class="section-label">IDEE<span class="slash">/</span><span class="tail">IN EINEM SATZ</span></div>
+      <p>Der Home-Screen fühlt sich an wie die Fahrerkanzel einer Rennmaschine: du siehst exakt, was heute ansteht, was du letztes Mal geliftet hast und hast einen riesigen Start-Button.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label">INHALT<span class="slash">/</span><span class="tail">VON OBEN NACH UNTEN</span></div>
+      <ul>
+        <li><span class="dot">→</span>Hero: Push Day mit voll sichtbarer Übungsliste (je Row: letzte Last, Zielsätze × Reps)</li>
+        <li><span class="dot">→</span>Full-width Lime Start-CTA + 3 Quick-Modifikationen darunter (Plan anpassen, Übung tauschen, Warmup skip)</li>
+        <li><span class="dot">→</span>Readiness-Row: Schlaf, Recovery-Ring, Muskel-Status-Dots</li>
+        <li><span class="dot">→</span>Vergleich: letzte Push-Session vs. heutiges Zielvolumen mit +0.6T-Arrow</li>
+      </ul>
+    </div>
+
+    <div class="verdict">
+      <strong>Stärke:</strong> Kein Scroll bis Workout-Start. Zero friction. Fortschritt zeigt sich im direkten Vergleich „vorher/heute" statt in Charts.<br>
+      <strong>Risiko:</strong> Wenig Langzeit-Perspektive – wer gerade nicht trainieren <em>will</em>, sieht kaum Motivationshebel.
+    </div>
+  </div>
+
+  <!-- CONCEPT B -->
+  <div class="concept">
+    <div class="concept-head">
+      <div class="concept-num">B<span class="slash"> / </span>JOURNEY</div>
+    </div>
+    <h2 class="concept-title">Sieh, wie weit du schon bist.</h2>
+    <span class="tagline">Progress-First</span>
+
+    <div class="mockup">
+      <object data="prompt_assets/concepts/concept_b_journey.svg" type="image/svg+xml" aria-label="Konzept B Journey"></object>
+    </div>
+
+    <div class="section">
+      <div class="section-label">IDEE<span class="slash">/</span><span class="tail">IN EINEM SATZ</span></div>
+      <p>Der Hero ist dein echter Fortschritt: eine 12-Wochen-Kraft-Kurve mit +18.5 kg Bench-Delta. Darunter kommt ein klarer Meilenstein, dann das Workout als Quick-Action.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label">INHALT<span class="slash">/</span><span class="tail">VON OBEN NACH UNTEN</span></div>
+      <ul>
+        <li><span class="dot">→</span>Hero: Kraft-Kurve (12 Wochen Bench 1RM) mit PR-Markern und „+25% Kraft"-Pill</li>
+        <li><span class="dot">→</span>Meilenstein-Card: „100 kg Bench · noch 7.5 kg · in ~3 Wochen" mit Progress-Ring</li>
+        <li><span class="dot">→</span>Körper-Delta: Fett −2.4%, Muskel +3.1 kg mit Mini-Sparklines</li>
+        <li><span class="dot">→</span>Fixed-Bottom Quick-Start-Card (Push Day · 45 Min · Start →)</li>
+      </ul>
+    </div>
+
+    <div class="verdict">
+      <strong>Stärke:</strong> Maximale emotionale Wirkung. Du siehst jeden Tag deinen objektiven Fortschritt – das motiviert langfristig stärker als Streaks.<br>
+      <strong>Risiko:</strong> Braucht echte historische Daten, um nicht leer zu wirken. In den ersten 2 Wochen weniger wirkungsvoll.
+    </div>
+  </div>
+
+  <!-- CONCEPT C -->
+  <div class="concept">
+    <div class="concept-head">
+      <div class="concept-num">C<span class="slash"> / </span>PULSE</div>
+    </div>
+    <h2 class="concept-title">Dein Körper, in Echtzeit.</h2>
+    <span class="tagline">Insight-First</span>
+
+    <div class="mockup">
+      <object data="prompt_assets/concepts/concept_c_pulse.svg" type="image/svg+xml" aria-label="Konzept C Pulse"></object>
+    </div>
+
+    <div class="section">
+      <div class="section-label">IDEE<span class="slash">/</span><span class="tail">IN EINEM SATZ</span></div>
+      <p>Split-Hero: links Workout-Quickstart, rechts ein „Pulse"-Widget mit Wochen-Intensität. Darunter personalisierte Insights, eine Body-Map die zeigt welche Muskeln bereit sind, und ein 28-Tage-Rhythmus.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-label">INHALT<span class="slash">/</span><span class="tail">VON OBEN NACH UNTEN</span></div>
+      <ul>
+        <li><span class="dot">→</span>Split-Hero: Push-Day-Card mit Start + Pulse-Wave (Intensitäts-Trend vs. Vorwoche)</li>
+        <li><span class="dot">→</span>Insight-Row: „+8 kg Bench in 4 Wo." + „7 Wochen steigendes Volumen"</li>
+        <li><span class="dot">→</span>Body-Map: Silhouette mit Muskel-Status (bereit · recovery · überfällig) + „Leg Day planen"-CTA</li>
+        <li><span class="dot">→</span>28-Tage-Rhythmus-Heatmap mit Konsistenz-Stat</li>
+      </ul>
+    </div>
+
+    <div class="verdict">
+      <strong>Stärke:</strong> Beides in Balance. Der Pulse-Wave und die Body-Map sind die einzigartigsten Features – dein Home-Screen hebt sich stark von generischen Fitness-Apps ab.<br>
+      <strong>Risiko:</strong> Dichteste Variante – braucht sehr präzises visuelles Handwerk, sonst wirkt es überladen.
+    </div>
+  </div>
+
+</div>
+
+<!-- SUMMARY COMPARE -->
+<div class="summary">
+  <h2>Welches passt zu dir<span class="slash"> / </span>Entscheidungshilfe</h2>
+  <div class="summary-grid">
+    <div>
+      <h3>Wähle A wenn…</h3>
+      <p>Du willst beim Öffnen <strong style="color:#fff">sofort</strong> in ein Workout rein, ohne zu scrollen. Fortschritt soll sich „im Tun" zeigen (diese Session schlägt die letzte).</p>
+      <p style="color:#888">Primary Metric: Start-Rate innerhalb von 5 Sekunden nach App-Öffnen.</p>
+    </div>
+    <div>
+      <h3>Wähle B wenn…</h3>
+      <p>Dir fehlt vor allem das Gefühl, dass sich etwas <strong style="color:#fff">bewegt</strong>. Der große Chart soll dich jeden Morgen daran erinnern, warum du das machst.</p>
+      <p style="color:#888">Primary Metric: 90-Tage-Retention (Langzeit-Commitment).</p>
+    </div>
+    <div>
+      <h3>Wähle C wenn…</h3>
+      <p>Du willst, dass die App deinen Körper <strong style="color:#fff">versteht</strong> – dich nicht nur tracken, sondern dir etwas <em>erzählen</em>. Differenzierteste Richtung im Markt.</p>
+      <p style="color:#888">Primary Metric: Subjektive Bindung / „meine App versteht mich".</p>
+    </div>
+  </div>
+
+  <div style="margin-top:28px; padding-top:24px; border-top:1px solid #333; color:#888; font-size:12px; line-height:1.6">
+    <strong style="color:var(--lime); letter-spacing:2px; font-size:10px; display:block; margin-bottom:6px">EMPFEHLUNG</strong>
+    Für einen iOS-MVP der emotional und funktional wirkt, ist <strong style="color:#fff">Konzept B (Journey)</strong> die stärkste Basis – der Progress-Chart löst dein Kernproblem („ich will meinen Fortschritt sehen") auf den ersten Blick, und der Sticky-Start-Block unten adressiert den Action-Pain. Aus C kann man später einzelne Widgets (Body-Map, Insights) zusätzlich einbauen.
+  </div>
+</div>
+
+</body>
+</html>

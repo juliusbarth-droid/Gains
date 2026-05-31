@@ -1,0 +1,450 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AA0000000000000000000001 /* GainsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* GainsApp.swift */; };
+		AA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ContentView.swift */; };
+		AA0000000000000000000003 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000013 /* DesignSystem.swift */; };
+		AA0000000000000000000004 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000014 /* Models.swift */; };
+		AA0000000000000000000005 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000015 /* HomeView.swift */; };
+		AA0000000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000016 /* Assets.xcassets */; };
+		AA0000000000000000000007 /* RunTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000017 /* RunTrackerView.swift */; };
+		AA0000000000000000000008 /* CoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000018 /* CoachView.swift */; };
+		AA0000000000000000000009 /* ProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000019 /* ProgressView.swift */; };
+		AA000000000000000000000A /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001A /* CommunityView.swift */; };
+		AA000000000000000000000B /* GainsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001B /* GainsScreen.swift */; };
+		AA000000000000000000000C /* GainsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001C /* GainsStore.swift */; };
+		AA000000000000000000000D /* WorkoutTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001D /* WorkoutTrackerView.swift */; };
+		AA000000000000000000000E /* RecipesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001E /* RecipesView.swift */; };
+		AA000000000000000000000F /* WorkoutHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA000000000000000000001F /* WorkoutHubView.swift */; };
+		BB0000000000000000000001 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002 /* ProfileView.swift */; };
+		CC0000000000000000000001 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0000000000000000000002 /* HealthKitManager.swift */; };
+		DD0000000000000000000001 /* AppNavigationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0000000000000000000002 /* AppNavigationStore.swift */; };
+		EE0000000000000000000001 /* CaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0000000000000000000002 /* CaptureSheet.swift */; };
+		FF0000000000000000000001 /* NutritionTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0000000000000000000002 /* NutritionTrackerView.swift */; };
+		GG0000000000000000000001 /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GG0000000000000000000002 /* BarcodeScannerView.swift */; };
+		HH0000000000000000000001 /* FoodPhotoRecognitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */; };
+		II0000000000000000000001 /* RunDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = II0000000000000000000002 /* RunDetailSheet.swift */; };
+		JJ0000000000000000000001 /* GymView.swift in Sources */ = {isa = PBXBuildFile; fileRef = JJ0000000000000000000002 /* GymView.swift */; };
+		KK0000000000000000000001 /* BLEHeartRateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = KK0000000000000000000002 /* BLEHeartRateManager.swift */; };
+		LL0000000000000000000001 /* WearablePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LL0000000000000000000002 /* WearablePickerSheet.swift */; };
+		MM0000000000000000000001 /* GainsPersistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = MM0000000000000000000002 /* GainsPersistence.swift */; };
+		NN0000000000000000000001 /* ExerciseCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = NN0000000000000000000002 /* ExerciseCatalog.swift */; };
+		OO0000000000000000000001 /* WorkoutTrackerEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OO0000000000000000000002 /* WorkoutTrackerEntryView.swift */; };
+		PP0000000000000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PP0000000000000000000002 /* OnboardingView.swift */; };
+		QQ0000000000000000000001 /* MetricKitObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = QQ0000000000000000000002 /* MetricKitObserver.swift */; };
+		ZZ0000000000000000000001 /* NotificationsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ZZ0000000000000000000002 /* NotificationsManager.swift */; };
+		RR0000000000000000000001 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = RR0000000000000000000002 /* PrivacyInfo.xcprivacy */; };
+		SS0000000000000000000001 /* GymTodayTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = SS0000000000000000000002 /* GymTodayTab.swift */; };
+		TT0000000000000000000001 /* GymWorkoutsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = TT0000000000000000000002 /* GymWorkoutsTab.swift */; };
+		UU0000000000000000000001 /* GymPlanTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = UU0000000000000000000002 /* GymPlanTab.swift */; };
+		VV0000000000000000000001 /* GymStatsTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = VV0000000000000000000002 /* GymStatsTab.swift */; };
+		WW0000000000000000000001 /* GymPlanWizardSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = WW0000000000000000000002 /* GymPlanWizardSheet.swift */; };
+		XX0000000000000000000001 /* GymExerciseHistorySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = XX0000000000000000000002 /* GymExerciseHistorySheet.swift */; };
+		YY0000000000000000000001 /* GymSharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = YY0000000000000000000002 /* GymSharedComponents.swift */; };
+		AC0000000000000000000001 /* RunFeatureModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC0000000000000000000002 /* RunFeatureModels.swift */; };
+		AD0000000000000000000001 /* GainsStore+RunFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0000000000000000000002 /* GainsStore+RunFeatures.swift */; };
+		AE0000000000000000000001 /* RunRoutesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0000000000000000000002 /* RunRoutesView.swift */; };
+		AF0000000000000000000001 /* RunSegmentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF0000000000000000000002 /* RunSegmentsView.swift */; };
+		AG0000000000000000000001 /* RunWorkoutsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AG0000000000000000000002 /* RunWorkoutsView.swift */; };
+		AH0000000000000000000001 /* CustomPlanBuilderSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AH0000000000000000000002 /* CustomPlanBuilderSheet.swift */; };
+		AI0000000000000000000001 /* AppleFoundationModelsClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AI0000000000000000000002 /* AppleFoundationModelsClient.swift */; };
+		AJ0000000000000000000001 /* GeminiFoodVisionClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AJ0000000000000000000002 /* GeminiFoodVisionClient.swift */; };
+		AK0000000000000000000001 /* GainsCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = AK0000000000000000000002 /* GainsCharts.swift */; };
+		AL0000000000000000000001 /* GainsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AL0000000000000000000002 /* GainsSheet.swift */; };
+		AM0000000000000000000001 /* RunGoalPlanModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AM0000000000000000000002 /* RunGoalPlanModels.swift */; };
+		AN0000000000000000000001 /* RunGoalPlanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AN0000000000000000000002 /* RunGoalPlanView.swift */; };
+		AO0000000000000000000001 /* WeekdayDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AO0000000000000000000002 /* WeekdayDetailSheet.swift */; };
+		AP0000000000000000000001 /* FoodModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AP0000000000000000000002 /* FoodModels.swift */; };
+		AQ0000000000000000000001 /* GainsStore+Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = AQ0000000000000000000002 /* GainsStore+Community.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA0000000000000000000010 /* Gains.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gains.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000011 /* GainsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsApp.swift; sourceTree = "<group>"; };
+		AA0000000000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000013 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		AA0000000000000000000014 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		AA0000000000000000000015 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000016 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AA0000000000000000000017 /* RunTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunTrackerView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000018 /* CoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachView.swift; sourceTree = "<group>"; };
+		AA0000000000000000000019 /* ProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressView.swift; sourceTree = "<group>"; };
+		AA000000000000000000001A /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		AA000000000000000000001B /* GainsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsScreen.swift; sourceTree = "<group>"; };
+		AA000000000000000000001C /* GainsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsStore.swift; sourceTree = "<group>"; };
+		AA000000000000000000001D /* WorkoutTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTrackerView.swift; sourceTree = "<group>"; };
+		AA000000000000000000001E /* RecipesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipesView.swift; sourceTree = "<group>"; };
+		AA000000000000000000001F /* WorkoutHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutHubView.swift; sourceTree = "<group>"; };
+		BB0000000000000000000002 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		CC0000000000000000000002 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
+		CC0000000000000000000003 /* Gains.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Gains.entitlements; sourceTree = "<group>"; };
+		DD0000000000000000000002 /* AppNavigationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNavigationStore.swift; sourceTree = "<group>"; };
+		EE0000000000000000000002 /* CaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSheet.swift; sourceTree = "<group>"; };
+		FF0000000000000000000002 /* NutritionTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NutritionTrackerView.swift; sourceTree = "<group>"; };
+		GG0000000000000000000002 /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
+		HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodPhotoRecognitionView.swift; sourceTree = "<group>"; };
+		II0000000000000000000002 /* RunDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunDetailSheet.swift; sourceTree = "<group>"; };
+		JJ0000000000000000000002 /* GymView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymView.swift; sourceTree = "<group>"; };
+		KK0000000000000000000002 /* BLEHeartRateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEHeartRateManager.swift; sourceTree = "<group>"; };
+		LL0000000000000000000002 /* WearablePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WearablePickerSheet.swift; sourceTree = "<group>"; };
+		MM0000000000000000000002 /* GainsPersistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsPersistence.swift; sourceTree = "<group>"; };
+		NN0000000000000000000002 /* ExerciseCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCatalog.swift; sourceTree = "<group>"; };
+		OO0000000000000000000002 /* WorkoutTrackerEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTrackerEntryView.swift; sourceTree = "<group>"; };
+		PP0000000000000000000002 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		QQ0000000000000000000002 /* MetricKitObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricKitObserver.swift; sourceTree = "<group>"; };
+		ZZ0000000000000000000002 /* NotificationsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsManager.swift; sourceTree = "<group>"; };
+		RR0000000000000000000002 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		SS0000000000000000000002 /* GymTodayTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymTodayTab.swift; sourceTree = "<group>"; };
+		TT0000000000000000000002 /* GymWorkoutsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymWorkoutsTab.swift; sourceTree = "<group>"; };
+		UU0000000000000000000002 /* GymPlanTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymPlanTab.swift; sourceTree = "<group>"; };
+		VV0000000000000000000002 /* GymStatsTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymStatsTab.swift; sourceTree = "<group>"; };
+		WW0000000000000000000002 /* GymPlanWizardSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymPlanWizardSheet.swift; sourceTree = "<group>"; };
+		XX0000000000000000000002 /* GymExerciseHistorySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymExerciseHistorySheet.swift; sourceTree = "<group>"; };
+		YY0000000000000000000002 /* GymSharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymSharedComponents.swift; sourceTree = "<group>"; };
+		AC0000000000000000000002 /* RunFeatureModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunFeatureModels.swift; sourceTree = "<group>"; };
+		AD0000000000000000000002 /* GainsStore+RunFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GainsStore+RunFeatures.swift"; sourceTree = "<group>"; };
+		AE0000000000000000000002 /* RunRoutesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunRoutesView.swift; sourceTree = "<group>"; };
+		AF0000000000000000000002 /* RunSegmentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunSegmentsView.swift; sourceTree = "<group>"; };
+		AG0000000000000000000002 /* RunWorkoutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunWorkoutsView.swift; sourceTree = "<group>"; };
+		AH0000000000000000000002 /* CustomPlanBuilderSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomPlanBuilderSheet.swift; sourceTree = "<group>"; };
+		AI0000000000000000000002 /* AppleFoundationModelsClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleFoundationModelsClient.swift; sourceTree = "<group>"; };
+		AJ0000000000000000000002 /* GeminiFoodVisionClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiFoodVisionClient.swift; sourceTree = "<group>"; };
+		AK0000000000000000000002 /* GainsCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsCharts.swift; sourceTree = "<group>"; };
+		AL0000000000000000000002 /* GainsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainsSheet.swift; sourceTree = "<group>"; };
+		AM0000000000000000000002 /* RunGoalPlanModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunGoalPlanModels.swift; sourceTree = "<group>"; };
+		AN0000000000000000000002 /* RunGoalPlanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunGoalPlanView.swift; sourceTree = "<group>"; };
+		AO0000000000000000000002 /* WeekdayDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekdayDetailSheet.swift; sourceTree = "<group>"; };
+		AP0000000000000000000002 /* FoodModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodModels.swift; sourceTree = "<group>"; };
+		AQ0000000000000000000002 /* GainsStore+Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GainsStore+Community.swift"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AA0000000000000000000020 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AA0000000000000000000030 = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000031 /* Gains */,
+				AA0000000000000000000033 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000031 /* Gains */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000011 /* GainsApp.swift */,
+				DD0000000000000000000002 /* AppNavigationStore.swift */,
+				AA0000000000000000000012 /* ContentView.swift */,
+				EE0000000000000000000002 /* CaptureSheet.swift */,
+				AA0000000000000000000013 /* DesignSystem.swift */,
+				AA0000000000000000000014 /* Models.swift */,
+				AA0000000000000000000015 /* HomeView.swift */,
+				AA0000000000000000000016 /* Assets.xcassets */,
+				AA0000000000000000000017 /* RunTrackerView.swift */,
+				AA0000000000000000000018 /* CoachView.swift */,
+				AA0000000000000000000019 /* ProgressView.swift */,
+				AA000000000000000000001A /* CommunityView.swift */,
+				AA000000000000000000001B /* GainsScreen.swift */,
+				AA000000000000000000001C /* GainsStore.swift */,
+				AQ0000000000000000000002 /* GainsStore+Community.swift */,
+				AA000000000000000000001D /* WorkoutTrackerView.swift */,
+				AA000000000000000000001E /* RecipesView.swift */,
+				AP0000000000000000000002 /* FoodModels.swift */,
+				FF0000000000000000000002 /* NutritionTrackerView.swift */,
+				GG0000000000000000000002 /* BarcodeScannerView.swift */,
+				HH0000000000000000000002 /* FoodPhotoRecognitionView.swift */,
+				II0000000000000000000002 /* RunDetailSheet.swift */,
+				AC0000000000000000000002 /* RunFeatureModels.swift */,
+				AD0000000000000000000002 /* GainsStore+RunFeatures.swift */,
+				AE0000000000000000000002 /* RunRoutesView.swift */,
+				AF0000000000000000000002 /* RunSegmentsView.swift */,
+				AG0000000000000000000002 /* RunWorkoutsView.swift */,
+				AA000000000000000000001F /* WorkoutHubView.swift */,
+				JJ0000000000000000000002 /* GymView.swift */,
+				SS0000000000000000000002 /* GymTodayTab.swift */,
+				TT0000000000000000000002 /* GymWorkoutsTab.swift */,
+				UU0000000000000000000002 /* GymPlanTab.swift */,
+				VV0000000000000000000002 /* GymStatsTab.swift */,
+				WW0000000000000000000002 /* GymPlanWizardSheet.swift */,
+				AH0000000000000000000002 /* CustomPlanBuilderSheet.swift */,
+				XX0000000000000000000002 /* GymExerciseHistorySheet.swift */,
+				YY0000000000000000000002 /* GymSharedComponents.swift */,
+				AM0000000000000000000002 /* RunGoalPlanModels.swift */,
+				AN0000000000000000000002 /* RunGoalPlanView.swift */,
+				AO0000000000000000000002 /* WeekdayDetailSheet.swift */,
+				BB0000000000000000000002 /* ProfileView.swift */,
+				KK0000000000000000000002 /* BLEHeartRateManager.swift */,
+				LL0000000000000000000002 /* WearablePickerSheet.swift */,
+				MM0000000000000000000002 /* GainsPersistence.swift */,
+				NN0000000000000000000002 /* ExerciseCatalog.swift */,
+				OO0000000000000000000002 /* WorkoutTrackerEntryView.swift */,
+				PP0000000000000000000002 /* OnboardingView.swift */,
+				QQ0000000000000000000002 /* MetricKitObserver.swift */,
+				ZZ0000000000000000000002 /* NotificationsManager.swift */,
+				AI0000000000000000000002 /* AppleFoundationModelsClient.swift */,
+				AJ0000000000000000000002 /* GeminiFoodVisionClient.swift */,
+				AK0000000000000000000002 /* GainsCharts.swift */,
+				AL0000000000000000000002 /* GainsSheet.swift */,
+				RR0000000000000000000002 /* PrivacyInfo.xcprivacy */,
+				CC0000000000000000000002 /* HealthKitManager.swift */,
+				CC0000000000000000000003 /* Gains.entitlements */,
+			);
+			path = Gains;
+			sourceTree = "<group>";
+		};
+		AA0000000000000000000033 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AA0000000000000000000010 /* Gains.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AA0000000000000000000040 /* Gains */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0000000000000000000050 /* Build configuration list for PBXNativeTarget "Gains" */;
+			buildPhases = (
+				AA0000000000000000000021 /* Sources */,
+				AA0000000000000000000020 /* Frameworks */,
+				AA0000000000000000000022 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Gains;
+			productName = Gains;
+			productReference = AA0000000000000000000010 /* Gains.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AA0000000000000000000041 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					AA0000000000000000000040 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+				};
+			};
+			buildConfigurationList = AA0000000000000000000051 /* Build configuration list for PBXProject "Gains" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AA0000000000000000000030;
+			productRefGroup = AA0000000000000000000033 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AA0000000000000000000040 /* Gains */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AA0000000000000000000022 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000006 /* Assets.xcassets in Resources */,
+				RR0000000000000000000001 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AA0000000000000000000021 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000001 /* GainsApp.swift in Sources */,
+				AA0000000000000000000002 /* ContentView.swift in Sources */,
+				AA0000000000000000000003 /* DesignSystem.swift in Sources */,
+				AA0000000000000000000004 /* Models.swift in Sources */,
+				AA0000000000000000000005 /* HomeView.swift in Sources */,
+				AA0000000000000000000007 /* RunTrackerView.swift in Sources */,
+				AA0000000000000000000008 /* CoachView.swift in Sources */,
+				AA0000000000000000000009 /* ProgressView.swift in Sources */,
+				AA000000000000000000000A /* CommunityView.swift in Sources */,
+				AA000000000000000000000B /* GainsScreen.swift in Sources */,
+				AA000000000000000000000C /* GainsStore.swift in Sources */,
+				AA000000000000000000000D /* WorkoutTrackerView.swift in Sources */,
+				AA000000000000000000000E /* RecipesView.swift in Sources */,
+				AA000000000000000000000F /* WorkoutHubView.swift in Sources */,
+				BB0000000000000000000001 /* ProfileView.swift in Sources */,
+				CC0000000000000000000001 /* HealthKitManager.swift in Sources */,
+				DD0000000000000000000001 /* AppNavigationStore.swift in Sources */,
+				EE0000000000000000000001 /* CaptureSheet.swift in Sources */,
+				FF0000000000000000000001 /* NutritionTrackerView.swift in Sources */,
+				GG0000000000000000000001 /* BarcodeScannerView.swift in Sources */,
+				HH0000000000000000000001 /* FoodPhotoRecognitionView.swift in Sources */,
+				II0000000000000000000001 /* RunDetailSheet.swift in Sources */,
+				JJ0000000000000000000001 /* GymView.swift in Sources */,
+				SS0000000000000000000001 /* GymTodayTab.swift in Sources */,
+				TT0000000000000000000001 /* GymWorkoutsTab.swift in Sources */,
+				UU0000000000000000000001 /* GymPlanTab.swift in Sources */,
+				VV0000000000000000000001 /* GymStatsTab.swift in Sources */,
+				WW0000000000000000000001 /* GymPlanWizardSheet.swift in Sources */,
+				AH0000000000000000000001 /* CustomPlanBuilderSheet.swift in Sources */,
+				XX0000000000000000000001 /* GymExerciseHistorySheet.swift in Sources */,
+				YY0000000000000000000001 /* GymSharedComponents.swift in Sources */,
+				KK0000000000000000000001 /* BLEHeartRateManager.swift in Sources */,
+				LL0000000000000000000001 /* WearablePickerSheet.swift in Sources */,
+				MM0000000000000000000001 /* GainsPersistence.swift in Sources */,
+				NN0000000000000000000001 /* ExerciseCatalog.swift in Sources */,
+				OO0000000000000000000001 /* WorkoutTrackerEntryView.swift in Sources */,
+				PP0000000000000000000001 /* OnboardingView.swift in Sources */,
+				QQ0000000000000000000001 /* MetricKitObserver.swift in Sources */,
+				ZZ0000000000000000000001 /* NotificationsManager.swift in Sources */,
+				AC0000000000000000000001 /* RunFeatureModels.swift in Sources */,
+				AD0000000000000000000001 /* GainsStore+RunFeatures.swift in Sources */,
+				AE0000000000000000000001 /* RunRoutesView.swift in Sources */,
+				AF0000000000000000000001 /* RunSegmentsView.swift in Sources */,
+				AG0000000000000000000001 /* RunWorkoutsView.swift in Sources */,
+				AI0000000000000000000001 /* AppleFoundationModelsClient.swift in Sources */,
+				AJ0000000000000000000001 /* GeminiFoodVisionClient.swift in Sources */,
+				AK0000000000000000000001 /* GainsCharts.swift in Sources */,
+				AL0000000000000000000001 /* GainsSheet.swift in Sources */,
+				AM0000000000000000000001 /* RunGoalPlanModels.swift in Sources */,
+				AN0000000000000000000001 /* RunGoalPlanView.swift in Sources */,
+				AO0000000000000000000001 /* WeekdayDetailSheet.swift in Sources */,
+				AP0000000000000000000001 /* FoodModels.swift in Sources */,
+				AQ0000000000000000000001 /* GainsStore+Community.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AA0000000000000000000060 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Gains/Gains.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = DUZJZ3867T;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSContactsUsageDescription = "Gains verwendet deine Kontakte, um dir im Community-Bereich bekannte Personen und mögliche Fitness-Verbindungen anzuzeigen.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Gains liest Apple-Health-Daten wie Schritte, Schlaf, Ruhepuls, VO2max und Aktivität, damit deine Fitness- und Progress-Statistiken live aktualisiert werden.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Gains kann Health-Daten nutzen, um deine Trainings- und Fortschrittsansicht mit Apple Health zu synchronisieren.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gains verwendet deinen Standort, um Läufe per GPS zu tracken und deine Route, Distanz und Höhenmeter anzuzeigen.";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Gains verbindet sich per Bluetooth mit Herzfrequenz-Sensoren (Polar, Garmin, Wahoo u.a.), um deine Live-HF während des Trainings anzuzeigen.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Gains verwendet die Kamera, um Barcodes zu scannen und Mahlzeiten per KI-Fotoerkennung zu erfassen.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Gains greift auf deine Fotobibliothek zu, um Mahlzeiten per KI-Fotoerkennung zu analysieren.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "location";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.julius.gains;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		AA0000000000000000000061 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Gains/Gains.entitlements;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = DUZJZ3867T;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSContactsUsageDescription = "Gains verwendet deine Kontakte, um dir im Community-Bereich bekannte Personen und mögliche Fitness-Verbindungen anzuzeigen.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Gains liest Apple-Health-Daten wie Schritte, Schlaf, Ruhepuls, VO2max und Aktivität, damit deine Fitness- und Progress-Statistiken live aktualisiert werden.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Gains kann Health-Daten nutzen, um deine Trainings- und Fortschrittsansicht mit Apple Health zu synchronisieren.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Gains verwendet deinen Standort, um Läufe per GPS zu tracken und deine Route, Distanz und Höhenmeter anzuzeigen.";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Gains verbindet sich per Bluetooth mit Herzfrequenz-Sensoren (Polar, Garmin, Wahoo u.a.), um deine Live-HF während des Trainings anzuzeigen.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Gains verwendet die Kamera, um Barcodes zu scannen und Mahlzeiten per KI-Fotoerkennung zu erfassen.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Gains greift auf deine Fotobibliothek zu, um Mahlzeiten per KI-Fotoerkennung zu analysieren.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "location";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.julius.gains;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AA0000000000000000000050 /* Build configuration list for PBXNativeTarget "Gains" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000060 /* Debug */,
+				AA0000000000000000000061 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AA0000000000000000000051 /* Build configuration list for PBXProject "Gains" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA0000000000000000000060 /* Debug */,
+				AA0000000000000000000061 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AA0000000000000000000041 /* Project object */;
+}

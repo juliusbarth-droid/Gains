@@ -1,0 +1,199 @@
+/* ============================================
+   gains. design tokens
+   Alle Farben, Spacings, Radien und Font-Rollen.
+   Diese Datei in jeden Screen importieren.
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* ---------- Surfaces ---------- */
+  --ink: #0A0A0A;
+  --surface: #1A1A1A;
+  --elevated: #242424;
+  --border-dark: #2A2A2A;
+
+  --bone: #F4F4F2;
+  --paper: #FFFFFF;
+  --border-light: #E0E0D8;
+
+  /* ---------- Signal (einziger Akzent) ---------- */
+  --signal: #B8E035;
+  --signal-dark: #89A820;
+  --signal-deep: #4A5A10;
+  --signal-darker: #1A2A05;
+
+  /* ---------- Text ---------- */
+  --text-primary: #F4F4F2;
+  --text-secondary: #888888;
+  --text-tertiary: #666666;
+
+  --text-primary-light: #0A0A0A;
+  --text-secondary-light: #555555;
+  --text-tertiary-light: #888888;
+
+  /* ---------- Spacing ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* ---------- Typography ---------- */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* ============================================
+   Base
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  font-family: var(--font-sans);
+  background: var(--ink);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+}
+
+/* ============================================
+   Typografie-Klassen
+   ============================================ */
+
+.t-hero       { font-size: 72px; font-weight: 600; letter-spacing: -3px;   line-height: 1; }
+.t-display    { font-size: 40px; font-weight: 600; letter-spacing: -1.5px; line-height: 1.05; }
+.t-title      { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; line-height: 1.1; }
+.t-metric     { font-size: 96px; font-weight: 600; letter-spacing: -4px;   line-height: 1; }
+.t-metric-md  { font-size: 56px; font-weight: 600; letter-spacing: -2.5px; line-height: 1; }
+.t-metric-sm  { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; line-height: 1.1; }
+.t-body       { font-size: 16px; font-weight: 400; line-height: 1.5; }
+.t-body-sm    { font-size: 14px; font-weight: 400; line-height: 1.5; color: var(--text-secondary); }
+.t-label      { font-size: 11px; font-weight: 500; letter-spacing: 2px;   text-transform: uppercase; color: var(--text-tertiary); }
+.t-label-sm   { font-size: 9px;  font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-tertiary); }
+
+/* ---------- Der grüne Punkt und Slash ---------- */
+.dot,
+.slash {
+  color: var(--signal);
+}
+
+/* ============================================
+   Wortmarke
+   ============================================ */
+
+.wordmark {
+  font-weight: 600;
+  letter-spacing: -1.5px;
+  color: var(--text-primary);
+  display: inline-block;
+}
+
+.wordmark-xl { font-size: 72px; letter-spacing: -3px; }
+.wordmark-lg { font-size: 40px; letter-spacing: -1.5px; }
+.wordmark-md { font-size: 24px; letter-spacing: -0.8px; }
+.wordmark-sm { font-size: 20px; letter-spacing: -0.6px; }
+
+/* ============================================
+   Buttons
+   ============================================ */
+
+.btn {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  padding: 14px 24px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  background: var(--signal);
+  color: var(--signal-darker);
+}
+.btn-primary:hover { background: #A8D020; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  border: 0.5px solid var(--border-dark);
+}
+.btn-secondary:hover { background: var(--surface); }
+
+.btn-block { width: 100%; }
+
+/* ============================================
+   Karten
+   ============================================ */
+
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.card-elevated {
+  background: var(--elevated);
+}
+
+.card-signal {
+  background: var(--signal);
+  border: none;
+}
+.card-signal .t-label,
+.card-signal .t-label-sm { color: var(--signal-deep); }
+.card-signal .t-metric-sm,
+.card-signal .t-metric-md,
+.card-signal .t-metric { color: var(--signal-darker); }
+.card-signal .t-body-sm { color: var(--signal-deep); }
+
+/* ============================================
+   Progress Bar
+   ============================================ */
+
+.progress {
+  height: 4px;
+  background: var(--border-dark);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--signal);
+  border-radius: 2px;
+}
+
+/* ============================================
+   Divider
+   ============================================ */
+
+.divider {
+  height: 0.5px;
+  background: var(--border-dark);
+  border: none;
+  margin: var(--space-6) 0;
+}

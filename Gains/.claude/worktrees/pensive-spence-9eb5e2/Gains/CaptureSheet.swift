@@ -1,0 +1,568 @@
+import PhotosUI
+import SwiftUI
+
+private enum MealCaptureSurface: String, CaseIterable, Identifiable {
+  case photo
+  case recipes
+  case manual
+
+  var id: Self { self }
+
+  var title: String {
+    switch self {
+    case .photo:
+      return "Foto"
+    case .recipes:
+      return "Rezept wählen"
+    case .manual:
+      return "Frei eingeben"
+    }
+  }
+}
+
+struct CaptureSheet: View {
+  @EnvironmentObject private var store: GainsStore
+  @EnvironmentObject private var navigation: AppNavigationStore
+  @Environment(\.dismiss) private var dismiss
+
+  @State private var selectedKind: CaptureKind
+  @State private var selectedMealSurface: MealCaptureSurface = .photo
+  @State private var recipeSearchText = ""
+  @State private var selectedRecipeGoal: RecipeGoal?
+  @State private var selectedRecipe: Recipe?
+  @State private var mealPhotoItem: PhotosPickerItem?
+  @State private var hasSelectedMealPhoto = false
+  @State private var mealTitle = ""
+  @State private var mealType: RecipeMealType = .lunch
+  @State private var calories = ""
+  @State private var protein = ""
+  @State private var carbs = ""
+  @State private var fat = ""
+
+  init(initialKind: CaptureKind) {
+    _selectedKind = State(initialValue: initialKind)
+  }
+
+  var body: some View {
+    GainsScreen {
+      VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+        screenHeader(
+          eyebrow: "CAPTURE / GLOBAL",
+          title: "Alles an einer Stelle",
+          subtitle:
+            "Workout, Lauf, Progress und Meal Log laufen ueber denselben Capture-Flow."
+        )
+
+        kindPicker
+        autofillCard
+        selectedContent
+      }
+    }
+    .navigationBarTitleDisplayMode(.inline)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button("Fertig") {
+          dismiss()
+        }
+        .foregroundStyle(GainsColor.ink)
+      }
+    }
+  }
+
+  private var filteredRecipes: [Recipe] {
+    store.recipes.filter { recipe in
+      let matchesGoal = selectedRecipeGoal == nil || recipe.goal == selectedRecipeGoal
+      let search = recipeSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+      let matchesSearch =
+        search.isEmpty
+        || recipe.title.localizedCaseInsensitiveContains(search)
+        || recipe.category.localizedCaseInsensitiveContains(search)
+        || recipe.ingredients.joined(separator: " ").localizedCaseInsensitiveContains(search)
+      return matchesGoal && matchesSearch
+    }
+  }
+
+  private var kindPicker: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: GainsSpacing.tight) {
+        ForEach(CaptureKind.allCases) { kind in
+          Button {
+            selectedKind = kind
+          } label: {
+            HStack(spacing: GainsSpacing.xsPlus) {
+              Image(systemName: kind.systemImage)
+                .font(.system(size: 13, weight: .semibold))
+
+              Text(kind.title)
+                .font(GainsFont.label(10))
+                .tracking(1.4)
+            }
+            .foregroundStyle(selectedKind == kind ? GainsColor.onLime : GainsColor.softInk)
+            .padding(.horizontal, GainsSpacing.m)
+            .frame(height: 38)
+            .background(selectedKind == kind ? GainsColor.lime : GainsColor.card)
+            .clipShape(Capsule())
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.vertical, 2)
+    }
+  }
+
+  private var autofillCard: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      SlashLabel(
+        parts: ["AUTO", "FILL"], primaryColor: GainsColor.lime,
+        secondaryColor: GainsColor.onCtaSurface.opacity(0.72))
+
+      Text(autofillTitle)
+        .font(GainsFont.title(26))
+        .foregroundStyle(GainsColor.onCtaSurface)
+        .lineLimit(2)
+
+      Text(autofillSubtitle)
+        .font(GainsFont.body(14))
+        .foregroundStyle(GainsColor.onCtaSurface.opacity(0.78))
+        .lineLimit(3)
+    }
+    .padding(GainsSpacing.l)
+    .background(GainsColor.ctaSurface)
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
+  }
+
+  @ViewBuilder
+  private var selectedContent: some View {
+    switch selectedKind {
+    case .workout:
+      publishCard(
+        title: store.lastCompletedWorkout?.title ?? store.currentWorkoutPreview.title,
+        metrics: workoutMetrics,
+        actionTitle: selectedKind.actionTitle
+      ) {
+        store.shareLatestWorkout()
+        navigation.selectedTab = .home
+        dismiss()
+      }
+    case .run:
+      publishCard(
+        title: store.latestCompletedRun?.title ?? "Cardio-Check-in",
+        metrics: runMetrics,
+        actionTitle: selectedKind.actionTitle
+      ) {
+        store.shareLatestRun()
+        navigation.selectedTab = .run
+        dismiss()
+      }
+    case .progress:
+      publishCard(
+        title: "Progress Update",
+        metrics: [
+          ("Gewicht", String(format: "%.1f kg", store.currentWeight)),
+          ("Taille", String(format: "%.1f cm", store.waistMeasurement)),
+          ("Risiko", "-\(store.currentCardioRiskImprovement)%"),
+        ],
+        actionTitle: selectedKind.actionTitle
+      ) {
+        store.shareProgressUpdate()
+        // Fortschritt-Tab existiert nicht mehr — Home zeigt den
+        // aufklappbaren Fortschritts-Bereich.
+        navigation.selectedTab = .home
+        dismiss()
+      }
+    case .meal:
+      mealLogger
+    }
+  }
+
+  private var mealLogger: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      Picker("Meal Capture", selection: $selectedMealSurface) {
+        ForEach(MealCaptureSurface.allCases) { surface in
+          Text(surface.title).tag(surface)
+        }
+      }
+      .pickerStyle(.segmented)
+      .tint(GainsColor.lime)
+
+      if selectedMealSurface == .photo {
+        photoMealCapture
+      }
+
+      if selectedMealSurface == .recipes {
+        recipeChooser
+      }
+
+      fieldBlock(title: "Name") {
+        TextField("z. B. Mittagessen", text: $mealTitle)
+          .textInputAutocapitalization(.words)
+          .padding(.horizontal, GainsSpacing.m)
+          .frame(height: 54)
+          .gainsCardStyle()
+      }
+
+      fieldBlock(title: "Mahlzeit") {
+        ScrollView(.horizontal, showsIndicators: false) {
+          HStack(spacing: GainsSpacing.tight) {
+            ForEach(RecipeMealType.allCases, id: \.self) { currentType in
+              Button {
+                mealType = currentType
+              } label: {
+                Text(currentType.shortTitle)
+                  .font(GainsFont.label(10))
+                  .tracking(1.4)
+                  .foregroundStyle(mealType == currentType ? GainsColor.onLime : GainsColor.softInk)
+                  .padding(.horizontal, GainsSpacing.m)
+                  .frame(height: 36)
+                  .background(mealType == currentType ? GainsColor.lime : GainsColor.card)
+                  .clipShape(Capsule())
+              }
+              .buttonStyle(.plain)
+            }
+          }
+        }
+      }
+
+      HStack(spacing: GainsSpacing.tight) {
+        numberField(title: "kcal", text: $calories)
+        numberField(title: "Protein", text: $protein)
+      }
+
+      HStack(spacing: GainsSpacing.tight) {
+        numberField(title: "Carbs", text: $carbs)
+        numberField(title: "Fett", text: $fat)
+      }
+
+      Button {
+        store.logNutritionEntry(
+          title: mealTitle,
+          mealType: mealType,
+          calories: Int(calories) ?? 0,
+          protein: Int(protein) ?? 0,
+          carbs: Int(carbs) ?? 0,
+          fat: Int(fat) ?? 0
+        )
+        navigation.selectedTab = .nutrition
+        dismiss()
+      } label: {
+        Text(selectedKind.actionTitle)
+          .font(GainsFont.label(12))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.onLime)
+          .frame(maxWidth: .infinity)
+          .frame(height: 52)
+          .background(GainsColor.lime)
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+      }
+      .buttonStyle(.plain)
+      .disabled(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto))
+      .opacity(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto) ? 0.5 : 1)
+    }
+  }
+
+  private var photoMealCapture: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      fieldBlock(title: "Meal-Foto") {
+        VStack(alignment: .leading, spacing: GainsSpacing.s) {
+          PhotosPicker(selection: $mealPhotoItem, matching: .images) {
+            HStack(spacing: GainsSpacing.tight) {
+              Image(systemName: hasSelectedMealPhoto ? "photo.fill" : "camera.fill")
+                .font(.system(size: 14, weight: .semibold))
+              Text(hasSelectedMealPhoto ? "Foto wechseln" : "Essensfoto wählen")
+                .font(GainsFont.label(11))
+                .tracking(1.2)
+              Spacer()
+            }
+            .foregroundStyle(GainsColor.ink)
+            .padding(.horizontal, GainsSpacing.m)
+            .frame(height: 52)
+            .gainsCardStyle(GainsColor.elevated)
+          }
+          .buttonStyle(.plain)
+
+          Text(hasSelectedMealPhoto ? "Foto ausgewählt. Trage jetzt Kalorien und Makros direkt darunter ein." : "Wähle ein Foto von deinem Essen, dann kannst du die Kalorien sofort aus dem Bild heraus loggen.")
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(3)
+
+          HStack(spacing: GainsSpacing.xsPlus) {
+            quickMacroPreset(title: "Snack", calories: 250, protein: 15)
+            quickMacroPreset(title: "Meal", calories: 550, protein: 35)
+            quickMacroPreset(title: "Groß", calories: 850, protein: 45)
+          }
+        }
+      }
+    }
+    .onChange(of: mealPhotoItem) { _, newItem in
+      hasSelectedMealPhoto = newItem != nil
+      if mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, newItem != nil {
+        mealTitle = "Foto-Meal"
+      }
+    }
+  }
+
+  private func quickMacroPreset(title: String, calories: Int, protein: Int) -> some View {
+    Button {
+      if mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        mealTitle = title == "Meal" ? "Foto-Meal" : "Foto-Meal \(title)"
+      }
+      self.calories = "\(calories)"
+      self.protein = "\(protein)"
+    } label: {
+      Text(title)
+        .font(GainsFont.label(10))
+        .tracking(1.2)
+        .foregroundStyle(GainsColor.onLime)
+        .padding(.horizontal, GainsSpacing.s)
+        .frame(height: 34)
+        .background(GainsColor.lime)
+        .clipShape(Capsule())
+    }
+    .buttonStyle(.plain)
+  }
+
+  private var recipeChooser: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      HStack(spacing: GainsSpacing.s) {
+        Image(systemName: "magnifyingglass")
+          .foregroundStyle(GainsColor.softInk)
+
+        TextField("Rezept suchen", text: $recipeSearchText)
+          .textInputAutocapitalization(.words)
+
+        if !recipeSearchText.isEmpty {
+          Button {
+            recipeSearchText = ""
+          } label: {
+            Image(systemName: "xmark.circle.fill")
+              .foregroundStyle(GainsColor.softInk)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+      .padding(.horizontal, GainsSpacing.m)
+      .frame(height: 50)
+      .background(GainsColor.background.opacity(0.82))
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: GainsSpacing.tight) {
+          filterChip(title: "Alle", isSelected: selectedRecipeGoal == nil) {
+            selectedRecipeGoal = nil
+          }
+
+          ForEach(RecipeGoal.allCases, id: \.self) { goal in
+            filterChip(title: goal.title, isSelected: selectedRecipeGoal == goal) {
+              selectedRecipeGoal = goal
+            }
+          }
+        }
+      }
+
+      VStack(spacing: GainsSpacing.tight) {
+        ForEach(filteredRecipes.prefix(5)) { recipe in
+          Button {
+            fillMeal(from: recipe)
+          } label: {
+            HStack(spacing: GainsSpacing.s) {
+              Image(systemName: recipe.placeholderSymbol)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(selectedRecipe?.id == recipe.id ? GainsColor.onLime : GainsColor.lime)
+                .frame(width: 36, height: 36)
+                .background(selectedRecipe?.id == recipe.id ? GainsColor.lime : GainsColor.ctaSurface)
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+
+              VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+                Text(recipe.title)
+                  .font(GainsFont.title(16))
+                  .foregroundStyle(GainsColor.ink)
+                  .lineLimit(1)
+
+                Text("\(recipe.calories) kcal · \(recipe.protein)g Protein · \(recipe.prepMinutes) Min")
+                  .font(GainsFont.body(12))
+                  .foregroundStyle(GainsColor.softInk)
+                  .lineLimit(1)
+              }
+
+              Spacer()
+
+              if selectedRecipe?.id == recipe.id {
+                Image(systemName: "checkmark.circle.fill")
+                  .font(.system(size: 18, weight: .semibold))
+                  .foregroundStyle(GainsColor.lime)
+              }
+            }
+            .padding(GainsSpacing.s)
+            .background(
+              selectedRecipe?.id == recipe.id ? GainsColor.lime.opacity(0.16) : GainsColor.card
+            )
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+    .padding(GainsSpacing.m)
+    .gainsCardStyle(GainsColor.elevated)
+  }
+
+  private func publishCard(
+    title: String,
+    metrics: [(String, String)],
+    actionTitle: String,
+    action: @escaping () -> Void
+  ) -> some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      Text(title)
+        .font(GainsFont.title(24))
+        .foregroundStyle(GainsColor.ink)
+        .lineLimit(2)
+
+      HStack(spacing: GainsSpacing.tight) {
+        ForEach(metrics, id: \.0) { metric in
+          VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+            Text(metric.0.uppercased())
+              .font(GainsFont.label(9))
+              .tracking(1.7)
+              .foregroundStyle(GainsColor.softInk)
+
+            Text(metric.1)
+              .font(GainsFont.title(17))
+              .foregroundStyle(GainsColor.ink)
+              .lineLimit(1)
+              .minimumScaleFactor(0.75)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(GainsSpacing.s)
+          .background(GainsColor.background.opacity(0.82))
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+        }
+      }
+
+      Button(action: action) {
+        Text(actionTitle)
+          .font(GainsFont.label(12))
+          .tracking(1.4)
+          .foregroundStyle(GainsColor.onLime)
+          .frame(maxWidth: .infinity)
+          .frame(height: 52)
+          .background(GainsColor.lime)
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(GainsSpacing.l)
+    .gainsCardStyle()
+  }
+
+  private func fieldBlock<Content: View>(title: String, @ViewBuilder content: () -> Content)
+    -> some View
+  {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+      Text(title.uppercased())
+        .font(GainsFont.label(10))
+        .tracking(1.8)
+        .foregroundStyle(GainsColor.softInk)
+
+      content()
+    }
+  }
+
+  private func numberField(title: String, text: Binding<String>) -> some View {
+    fieldBlock(title: title) {
+      TextField("0", text: text)
+        .keyboardType(.numberPad)
+        .padding(.horizontal, GainsSpacing.m)
+        .frame(height: 54)
+        .gainsCardStyle()
+    }
+    .frame(maxWidth: .infinity)
+  }
+
+  private func filterChip(title: String, isSelected: Bool, action: @escaping () -> Void)
+    -> some View
+  {
+    Button(action: action) {
+      Text(title)
+        .font(GainsFont.label(10))
+        .tracking(1.4)
+        .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.softInk)
+        .padding(.horizontal, GainsSpacing.m)
+        .frame(height: 34)
+        .background(isSelected ? GainsColor.lime : GainsColor.card)
+        .clipShape(Capsule())
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func fillMeal(from recipe: Recipe) {
+    selectedRecipe = recipe
+    selectedMealSurface = .manual
+    mealTitle = recipe.title
+    mealType = recipe.mealType
+    calories = "\(recipe.calories)"
+    protein = "\(recipe.protein)"
+    carbs = "\(recipe.carbs)"
+    fat = "\(recipe.fat)"
+  }
+
+  private var autofillTitle: String {
+    switch selectedKind {
+    case .workout:
+      return store.lastCompletedWorkout?.title ?? "\(store.currentWorkoutPreview.title) geplant"
+    case .run:
+      return store.latestCompletedRun?.title ?? "Letzten Lauf vorbereiten"
+    case .progress:
+      return String(format: "%.1f kg / %.1f cm", store.currentWeight, store.waistMeasurement)
+    case .meal:
+      return store.nutritionGoal.shortTitle
+    }
+  }
+
+  private var autofillSubtitle: String {
+    switch selectedKind {
+    case .workout:
+      return "Nutzt dein letztes beendetes Workout oder die heutige Session als Vorschlag."
+    case .run:
+      return "Distanz, Pace und Herzfrequenz kommen aus deinem letzten gespeicherten Lauf."
+    case .progress:
+      return "Gewicht, Taille und Health-Fortschritt werden als Update vorbereitet."
+    case .meal:
+      return "Freier Meal-Log mit Zielmodus, Kalorien und Makros."
+    }
+  }
+
+  private var workoutMetrics: [(String, String)] {
+    if let workout = store.lastCompletedWorkout {
+      return [
+        ("Volumen", "\(Int(workout.volume / 1000)) t"),
+        ("Sätze", "\(workout.completedSets)"),
+        ("Dauer", "\(store.plannerSettings.preferredSessionLength) Min"),
+      ]
+    }
+
+    let plan = store.currentWorkoutPreview
+    return [
+      ("Übungen", "\(plan.exercises.count)"),
+      ("Dauer", "\(store.plannerSettings.preferredSessionLength) Min"),
+      ("Fokus", plan.focus),
+    ]
+  }
+
+  private var runMetrics: [(String, String)] {
+    guard let run = store.latestCompletedRun else {
+      return [("Distanz", "5.0 km"), ("Pace", "5:35"), ("HF", "152")]
+    }
+
+    return [
+      ("Distanz", String(format: "%.1f km", run.distanceKm)),
+      ("Pace", paceLabel(run.averagePaceSeconds)),
+      ("HF", "\(run.averageHeartRate)"),
+    ]
+  }
+
+  private func paceLabel(_ seconds: Int) -> String {
+    guard seconds > 0 else { return "--:--" }
+    return String(format: "%d:%02d", seconds / 60, seconds % 60)
+  }
+}

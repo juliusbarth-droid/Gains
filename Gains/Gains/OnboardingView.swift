@@ -1,0 +1,1374 @@
+import SwiftUI
+
+// MARK: - OnboardingView
+//
+// Fünf-Schritt-Onboarding für die TestFlight-Beta.
+// Wird von `GainsApp` als FullScreenCover gezeigt, wenn
+// `gains_hasCompletedOnboarding` noch false ist.
+//
+// Schritte:
+//   1. Welcome   — Wertversprechen, was die App macht
+//   2. Profil    — Name, Geschlecht, Alter, Größe, Gewicht, Aktivität → NutritionProfile
+//   3. Berechtigungen — erklärt Health/Location/Bluetooth/Push, ohne System-Prompts
+//   4. Training  — Ziel + Sessions/Woche → WorkoutPlannerSettings
+//   5. Summary   — Wochen-Vorschau, „Setup geschafft"-Moment, erstes CTA
+//
+// Permissions werden hier nur erklärt; die echten System-Prompts triggern
+// erst, wenn der Nutzer das Feature konkret aufruft (Lauf-Tracking,
+// HF-Sensor-Suche, etc.).
+//
+// Aha-Moment-Architektur (2026-05-01 Phase 1): Der Summary-Step zeigt dem
+// User auf einen Blick die Woche, die die App für ihn aufgebaut hat —
+// damit das Onboarding nicht mit „leeren Händen" endet, sondern mit
+// einem konkreten Plan. Der Finish-Schritt setzt zusätzlich
+// `gains_onboardingCompletedAt`, damit der HomeView in den ersten 24h
+// einen personalisierten Day-One-Coach-Brief zeigt.
+
+enum OnboardingStep: Int, CaseIterable, Identifiable {
+  case welcome
+  case profile
+  case permissions
+  case training
+  case summary
+
+  var id: Int { rawValue }
+  var index: Int { rawValue }
+  var total: Int { OnboardingStep.allCases.count }
+}
+
+// Wahl im Onboarding-Trainingsschritt: Engine erzeugt den Plan automatisch
+// oder der Nutzer baut die Wochenstruktur selbst zusammen.
+enum OnboardingPlanMode: String {
+  case automatic
+  case manual
+}
+
+struct OnboardingView: View {
+  @EnvironmentObject private var store: GainsStore
+  @AppStorage(GainsKey.hasCompletedOnboarding) private var hasCompletedOnboarding = false
+  // Day-One-Window: HomeView nutzt diese Timestamp, um in den ersten 24h
+  // einen personalisierten Welcome-Coach-Brief zu zeigen. Wird im finish()
+  // gesetzt — als Double (timeIntervalSince1970), weil @AppStorage Date
+  // nicht nativ unterstützt.
+  @AppStorage(GainsKey.onboardingCompletedAt) private var onboardingCompletedAt: Double = 0
+  @State private var currentStep: OnboardingStep = .welcome
+
+  // Profil-Felder
+  @State private var name: String = ""
+  @State private var sex: BiologicalSex = .male
+  @State private var age: Int = 28
+  @State private var heightCm: Int = 178
+  @State private var weightKg: Int = 76
+  @State private var activityLevel: ActivityLevel = .moderate
+
+  // Trainings-Felder
+  @State private var goal: WorkoutPlanningGoal = .muscleGain
+  @State private var nutritionGoal: NutritionGoal = .muscleGain
+  @State private var sessionsPerWeek: Int = 4
+  @State private var planMode: OnboardingPlanMode = .automatic
+  @State private var showsCustomPlanBuilder = false
+
+  // Permissions-Status
+  @State private var notificationsState: NotificationsPermissionState = .idle
+
+  enum NotificationsPermissionState {
+    case idle
+    case granted
+    case denied
+  }
+
+  var body: some View {
+    ZStack {
+      GainsAppBackground()
+
+      VStack(spacing: 0) {
+        progressBar
+          .padding(.horizontal, GainsSpacing.xl)
+          .padding(.top, GainsSpacing.s)
+
+        ScrollView(showsIndicators: false) {
+          stepContent
+            .padding(.horizontal, GainsSpacing.xl)
+            .padding(.top, GainsSpacing.xl)
+            .padding(.bottom, GainsSpacing.xl)
+        }
+
+        bottomBar
+          .padding(.horizontal, GainsSpacing.xl)
+          .padding(.bottom, GainsSpacing.m)
+      }
+    }
+    .interactiveDismissDisabled()
+  }
+
+  // MARK: - Progress Bar
+
+  // Polish-Loop 182 (2026-05-14): Onboarding-Progress-Bar mit
+  // plusLighter Inner-Light + Glow auf erledigten Steps statt flacher
+  // Lime-Capsule.
+  private var progressBar: some View {
+    HStack(spacing: GainsSpacing.xs) {
+      ForEach(OnboardingStep.allCases) { step in
+        let done = step.index <= currentStep.index
+        Capsule()
+          .fill(done ? GainsColor.lime : GainsColor.border.opacity(0.40))
+          .overlay(
+            Group {
+              if done {
+                Capsule()
+                  .fill(
+                    LinearGradient(
+                      colors: [Color.white.opacity(0.28), .clear],
+                      startPoint: .top,
+                      endPoint: .center
+                    )
+                  )
+                  .blendMode(.plusLighter)
+              }
+            }
+          )
+          .frame(height: 5)
+          .shadow(color: done ? GainsColor.lime.opacity(0.40) : .clear, radius: 4)
+      }
+    }
+    .compositingGroup()
+  }
+
+  // MARK: - Step Content
+
+  @ViewBuilder
+  private var stepContent: some View {
+    switch currentStep {
+    case .welcome:     welcomeStep
+    case .profile:     profileStep
+    case .permissions: permissionsStep
+    case .training:    trainingStep
+    case .summary:     summaryStep
+    }
+  }
+
+  // MARK: - Step 1: Welcome
+
+  private var welcomeStep: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
+        Text("WILLKOMMEN")
+          .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
+
+        Text("Hi.\nSchön, dass du da bist.")
+          .font(GainsFont.display(40))
+          .foregroundStyle(GainsColor.ink)
+          .lineSpacing(-2)
+          .fixedSize(horizontal: false, vertical: true)
+
+        Text("Gains begleitet deine Trainings, Läufe, Ernährung und deinen Fortschritt — alles in einer App, ohne Quatsch.")
+          .font(GainsFont.body(16))
+          .foregroundStyle(GainsColor.softInk)
+          .lineSpacing(2)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+
+      VStack(spacing: GainsSpacing.s) {
+        featureRow(icon: "dumbbell.fill", title: "Krafttraining tracken",
+                   description: "Eigene Pläne, vorgefertigte Templates, über 90 Übungen mit Anleitung.")
+        featureRow(icon: "figure.run", title: "Läufe per GPS",
+                   description: "Distanz, Pace, Splits, Höhenmeter — verbunden mit deinem HF-Gurt.")
+        featureRow(icon: "fork.knife", title: "Ernährung loggen",
+                   description: "Kalorien und Makros via Barcode, Suche oder Foto-Erkennung.")
+        featureRow(icon: "heart.text.square.fill", title: "Fortschritt sehen",
+                   description: "Volumen, Pace, Gewicht, Recovery — verständlich aufbereitet.")
+      }
+    }
+  }
+
+  private func featureRow(icon: String, title: String, description: String) -> some View {
+    // 2026-05-14 (Polish-Loop 76): Feature-Row im Onboarding mit
+    // Icon-Halo + leichtem Glas-Background, damit der erste Eindruck
+    // der App das gleiche Glow-Vokabular zeigt wie der Rest.
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
+      ZStack {
+        Circle().fill(GainsColor.lime.opacity(0.10))
+        Circle()
+          .fill(
+            RadialGradient(
+              colors: [GainsColor.lime.opacity(0.28), .clear],
+              center: .topLeading,
+              startRadius: 0,
+              endRadius: 38
+            )
+          )
+          .blendMode(.plusLighter)
+        Circle()
+          .strokeBorder(
+            LinearGradient(
+              colors: [GainsColor.lime.opacity(0.55), GainsColor.lime.opacity(0.12)],
+              startPoint: .top,
+              endPoint: .bottom
+            ),
+            lineWidth: 0.8
+          )
+        Image(systemName: icon)
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(GainsColor.lime)
+          .shadow(color: GainsColor.lime.opacity(0.225), radius: 4)
+      }
+      .frame(width: 38, height: 38)
+      .compositingGroup()
+      .shadow(color: GainsColor.lime.opacity(0.09), radius: 6)
+
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+        Text(title)
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+        Text(description)
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.softInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(GainsSpacing.m)
+    .background(
+      ZStack {
+        GainsColor.card
+        RadialGradient(
+          colors: [GainsColor.lime.opacity(0.05), .clear],
+          center: .topLeading,
+          startRadius: 0,
+          endRadius: 200
+        )
+        .blendMode(.screen)
+      }
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .strokeBorder(
+          LinearGradient(
+            colors: [GainsColor.lime.opacity(0.22), GainsColor.border.opacity(0.40)],
+            startPoint: .top,
+            endPoint: .bottom
+          ),
+          lineWidth: 1
+        )
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    .compositingGroup()
+  }
+
+  // MARK: - Step 2: Profile
+
+  private var profileStep: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+      stepHeader(
+        eyebrow: "PROFIL",
+        title: "Erzähl uns von dir.",
+        subtitle: "Wir berechnen daraus deinen Grundumsatz, Kalorien- und Proteinziele. Bleibt alles auf deinem Gerät."
+      )
+
+      // Name
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+        Text("DEIN NAME")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        TextField("Wie sollen wir dich nennen?", text: $name)
+          .font(GainsFont.body(17))
+          .foregroundStyle(GainsColor.ink)
+          .padding(.horizontal, GainsSpacing.m)
+          .padding(.vertical, GainsSpacing.m)
+          .background(GainsColor.card)
+          .overlay(
+            // 2026-05-16 (Release-Audit P1): Rote Border, sobald der User
+            // angefangen hat zu tippen, aber noch unter dem 2-Zeichen-Minimum
+            // liegt. Komplett-Leer bleibt neutral, sonst wirkt der erste
+            // Anblick des Profil-Steps unnötig aggressiv.
+            RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+              .stroke(
+                nameValidationBorderColor,
+                lineWidth: nameValidationBorderColor == GainsColor.border.opacity(0.5) ? 1 : 1.5
+              )
+          )
+          .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+          .submitLabel(.next)
+
+        // Hinweis-Text nur sichtbar wenn User angefangen hat zu tippen, aber
+        // unter dem Minimum bleibt. Empty-State bleibt geräuschlos.
+        if !name.isEmpty && !isNameValid {
+          HStack(spacing: GainsSpacing.xxs) {
+            Image(systemName: "exclamationmark.circle.fill")
+              .font(.system(size: 11, weight: .semibold))
+              .foregroundStyle(GainsColor.ember)
+            Text("Bitte mindestens 2 Zeichen.")
+              .font(GainsFont.body(12))
+              .foregroundStyle(GainsColor.ember)
+          }
+        }
+      }
+
+      // Sex
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+        Text("GESCHLECHT")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        HStack(spacing: GainsSpacing.tight) {
+          ForEach(BiologicalSex.allCases, id: \.self) { option in
+            sexChip(option)
+          }
+        }
+      }
+
+      // Age / Height / Weight
+      VStack(alignment: .leading, spacing: GainsSpacing.s) {
+        Text("KÖRPERDATEN")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+
+        HStack(spacing: GainsSpacing.tight) {
+          numberStepper(title: "ALTER", unit: "Jahre", value: $age, range: 14...90, step: 1)
+          numberStepper(title: "GRÖSSE", unit: "cm", value: $heightCm, range: 130...220, step: 1)
+          numberStepper(title: "GEWICHT", unit: "kg", value: $weightKg, range: 35...200, step: 1)
+        }
+      }
+
+      // Activity Level
+      VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
+        Text("AKTIVITÄT")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        VStack(spacing: GainsSpacing.xsPlus) {
+          ForEach(ActivityLevel.allCases, id: \.self) { level in
+            activityRow(level)
+          }
+        }
+      }
+    }
+  }
+
+  // Polish-Loop 183 (2026-05-14): Sex-Chip mit Inner-Light + Bottom-Dim
+  // auf aktiver Pille + Lime-Glow + Glas-Hairline auf inaktiver Pille.
+  private func sexChip(_ option: BiologicalSex) -> some View {
+    let isSelected = sex == option
+    return Button {
+      sex = option
+    } label: {
+      HStack(spacing: GainsSpacing.xsPlus) {
+        Text(option.emoji)
+          .font(.system(size: 16))
+        Text(option.title)
+          .font(GainsFont.label(13))
+          .tracking(0.4)
+      }
+      .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.ink)
+      .frame(maxWidth: .infinity)
+      .frame(height: 48)
+      .background(
+        ZStack {
+          RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+            .fill(isSelected ? GainsColor.lime : GainsColor.card)
+          if isSelected {
+            RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+              .fill(
+                LinearGradient(
+                  colors: [Color.white.opacity(0.24), .clear],
+                  startPoint: .top,
+                  endPoint: .center
+                )
+              )
+              .blendMode(.plusLighter)
+            RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+              .fill(
+                LinearGradient(
+                  colors: [.clear, Color.black.opacity(0.16)],
+                  startPoint: .center,
+                  endPoint: .bottom
+                )
+              )
+          }
+        }
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .strokeBorder(
+            isSelected ? Color.clear : GainsColor.border.opacity(0.55),
+            lineWidth: GainsBorder.hairline
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+      .compositingGroup()
+      .shadow(color: isSelected ? GainsColor.lime.opacity(0.32) : .clear, radius: 8)
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func numberStepper(title: String, unit: String, value: Binding<Int>, range: ClosedRange<Int>, step: Int) -> some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xs) {
+      Text(title)
+        .font(GainsFont.label(9))
+        .tracking(1.3)
+        .foregroundStyle(GainsColor.softInk)
+      HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xxs) {
+        Text("\(value.wrappedValue)")
+          .font(GainsFont.title(22))
+          .foregroundStyle(GainsColor.ink)
+        Text(unit)
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.softInk)
+      }
+      Stepper("", value: value, in: range, step: step)
+        .labelsHidden()
+        .tint(GainsColor.lime)
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(GainsSpacing.s)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  // Polish-Loop 184 (2026-05-14): Activity-Row mit Icon-Halo + Inner-
+  // Light + Lime-Gradient-Border auf selected — gleiche Sprache wie
+  // GoalPickerSheet (Loop 178).
+  private func activityRow(_ level: ActivityLevel) -> some View {
+    let isSelected = activityLevel == level
+    return Button {
+      activityLevel = level
+    } label: {
+      HStack(spacing: GainsSpacing.m) {
+        ZStack {
+          Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14))
+          Circle()
+            .fill(
+              LinearGradient(
+                colors: [Color.white.opacity(isSelected ? 0.24 : 0.10), .clear],
+                startPoint: .top,
+                endPoint: .center
+              )
+            )
+            .blendMode(.plusLighter)
+          Image(systemName: level.systemImage)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
+            .shadow(color: GainsColor.lime.opacity(0.225), radius: 3)
+        }
+        .frame(width: 36, height: 36)
+        .overlay(
+          Circle().strokeBorder(
+            isSelected ? GainsColor.lime.opacity(0.55) : GainsColor.lime.opacity(0.30),
+            lineWidth: GainsBorder.hairline
+          )
+        )
+
+        VStack(alignment: .leading, spacing: 2) {
+          Text(level.title)
+            .font(GainsFont.title(15))
+            .foregroundStyle(GainsColor.ink)
+          Text(level.detail)
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+        }
+
+        Spacer()
+
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
+          .shadow(color: isSelected ? GainsColor.lime.opacity(0.45) : .clear, radius: 4)
+      }
+      .padding(.horizontal, GainsSpacing.m)
+      .padding(.vertical, GainsSpacing.s)
+      .background(
+        ZStack {
+          RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+            .fill(isSelected ? GainsColor.lime.opacity(0.08) : GainsColor.card)
+          if isSelected {
+            RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+              .fill(
+                RadialGradient(
+                  colors: [GainsColor.lime.opacity(0.10), .clear],
+                  center: .topLeading,
+                  startRadius: 0,
+                  endRadius: 160
+                )
+              )
+              .blendMode(.plusLighter)
+          }
+        }
+      )
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .strokeBorder(
+            LinearGradient(
+              colors: isSelected
+                ? [GainsColor.lime.opacity(0.55), GainsColor.lime.opacity(0.15)]
+                : [GainsColor.border.opacity(0.50), GainsColor.border.opacity(0.25)],
+              startPoint: .top,
+              endPoint: .bottom
+            ),
+            lineWidth: isSelected ? GainsBorder.accent : GainsBorder.hairline
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+      .compositingGroup()
+      .shadow(color: isSelected ? GainsColor.lime.opacity(0.18) : .clear, radius: 9)
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Step 3: Permissions
+
+  private var permissionsStep: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+      stepHeader(
+        eyebrow: "BERECHTIGUNGEN",
+        title: "Was Gains braucht.",
+        subtitle: "Nichts wird im Hintergrund gesammelt. Du gibst jede Berechtigung erst frei, wenn du das jeweilige Feature nutzen willst."
+      )
+
+      VStack(spacing: GainsSpacing.tight) {
+        permissionCard(
+          icon: "heart.fill",
+          title: "Apple Health",
+          reason: "Liest Schritte, Schlaf, Ruhepuls und Aktivität, damit deine Statistiken nicht doppelt erfasst werden müssen."
+        )
+        permissionCard(
+          icon: "location.fill",
+          title: "Standort",
+          reason: "Brauchen wir nur während eines Laufs — für GPS-Route, Distanz und Höhenmeter."
+        )
+        permissionCard(
+          icon: "antenna.radiowaves.left.and.right",
+          title: "Bluetooth",
+          reason: "Verbindet HF-Sensoren wie Polar oder Wahoo, um deine Live-Herzfrequenz beim Training zu zeigen."
+        )
+        notificationsPermissionCard
+      }
+
+      // 2026-05-03 Intuitivitäts-Sweep P1-2: Skip-Hint, weil die Karten
+      // selbst keinen Selektions-Affordance haben (sind Info-Cards). Macht
+      // sichtbar, dass „Weiter" jederzeit ohne Berechtigung erlaubt ist.
+      HStack(alignment: .top, spacing: GainsSpacing.xs) {
+        Image(systemName: "info.circle.fill")
+          .font(.system(size: 11, weight: .semibold))
+          .foregroundStyle(GainsColor.mutedInk)
+        Text("Tippe Mitteilungen einzeln an oder ‚Weiter' — alle Berechtigungen lassen sich später jederzeit aktivieren.")
+          .font(GainsFont.body(12))
+          .foregroundStyle(GainsColor.mutedInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+
+  // Eigene Karte für Mitteilungen — die einzige Permission, für die es im
+  // späteren Flow keinen natürlichen Trigger-Moment gibt (Standort wird beim
+  // Lauf-Start gefragt, BLE beim Sensor-Pairing, Health beim ersten Sync).
+  // Hier kann der Nutzer die Permission direkt aus dem Onboarding heraus
+  // erteilen, ohne nachher die Settings durchsuchen zu müssen.
+  private var notificationsPermissionCard: some View {
+    Button {
+      requestNotificationsAuthorization()
+    } label: {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
+        Image(systemName: "bell.fill")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(GainsColor.lime)
+          .frame(width: 40, height: 40)
+          .background(Circle().fill(GainsColor.lime.opacity(0.14)))
+
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+          Text("Mitteilungen")
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+          Text(notificationsCardReason)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        notificationsCardTrailing
+      }
+      .padding(GainsSpacing.m)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .disabled(notificationsState != .idle)
+  }
+
+  private var notificationsCardReason: String {
+    switch notificationsState {
+    case .idle:
+      return "Dezent — nur Workout-Reminder und Streak-Save am Abend. Tippe zum Aktivieren."
+    case .granted:
+      return "Aktiviert. Du kannst die Reminder jederzeit im Profil wieder ausschalten."
+    case .denied:
+      return "Abgelehnt. Du kannst sie später in den iOS-Einstellungen freigeben."
+    }
+  }
+
+  @ViewBuilder
+  private var notificationsCardTrailing: some View {
+    switch notificationsState {
+    case .idle:
+      Image(systemName: "chevron.right")
+        .font(.system(size: 12, weight: .semibold))
+        .foregroundStyle(GainsColor.softInk)
+    case .granted:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.system(size: 18, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+    case .denied:
+      Image(systemName: "exclamationmark.triangle.fill")
+        .font(.system(size: 16, weight: .semibold))
+        // 2026-05-31 (Design-Optim): raw `.orange` → Token. War die einzige
+        // rohe SwiftUI-Systemfarbe der App; `ember` ist das adaptive Warn-Coral.
+        .foregroundStyle(GainsColor.ember)
+    }
+  }
+
+  private func requestNotificationsAuthorization() {
+    NotificationsManager.shared.requestAuthorization { granted in
+      notificationsState = granted ? .granted : .denied
+      if granted {
+        NotificationsManager.shared.refreshSchedule(for: store)
+      }
+    }
+  }
+
+  private func permissionCard(icon: String, title: String, reason: String) -> some View {
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(GainsColor.lime)
+        .frame(width: 40, height: 40)
+        .background(Circle().fill(GainsColor.lime.opacity(0.14)))
+
+      VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+        Text(title)
+          .font(GainsFont.title(16))
+          .foregroundStyle(GainsColor.ink)
+        Text(reason)
+          .font(GainsFont.body(13))
+          .foregroundStyle(GainsColor.softInk)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .padding(GainsSpacing.m)
+    .background(GainsColor.card)
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .stroke(GainsColor.border.opacity(0.4), lineWidth: 1)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  // MARK: - Step 4: Training
+
+  private var trainingStep: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+      stepHeader(
+        eyebrow: "TRAINING",
+        title: "Was willst du erreichen?",
+        subtitle: "Wir passen Volumen, Frequenz und Empfehlungen an dein Ziel an. Du kannst es jederzeit ändern."
+      )
+
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+        Text("HAUPTZIEL")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+        VStack(spacing: GainsSpacing.xsPlus) {
+          goalRow(.muscleGain, nutrition: .muscleGain,
+                  description: "Kalorienüberschuss, Volumen-Fokus, schwere Compound-Lifts.")
+          goalRow(.fatLoss, nutrition: .fatLoss,
+                  description: "Defizit mit Protein-Fokus, Kraft erhalten, mehr Cardio-Anteil.")
+          goalRow(.performance, nutrition: .maintain,
+                  description: "Kraftrekorde, Pace und Wiederholungen — Gewicht halten.")
+        }
+      }
+
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+        Text("TRAININGS PRO WOCHE")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+
+        HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.xs) {
+          Text("\(sessionsPerWeek)")
+            .font(GainsFont.display(48))
+            .foregroundStyle(GainsColor.ink)
+          Text("× pro Woche")
+            .font(GainsFont.body(15))
+            .foregroundStyle(GainsColor.softInk)
+        }
+
+        HStack(spacing: GainsSpacing.xsPlus) {
+          ForEach(2...6, id: \.self) { count in
+            Button {
+              sessionsPerWeek = count
+            } label: {
+              Text("\(count)")
+                .font(GainsFont.title(16))
+                .foregroundStyle(sessionsPerWeek == count ? GainsColor.onLime : GainsColor.ink)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(sessionsPerWeek == count ? GainsColor.lime : GainsColor.card)
+                .overlay(
+                  RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+                    .stroke(sessionsPerWeek == count ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+            }
+            .buttonStyle(.plain)
+          }
+        }
+      }
+
+      // Plan-Modus: Auto vs. Selbst erstellen.
+      // Wir bieten dem Nutzer hier explizit die Wahl, damit niemand erst
+      // im PLAN-Tab erfahren muss, dass es eine manuelle Variante gibt.
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+        Text("WIE WILLST DU DEINEN PLAN?")
+          .gainsEyebrow(size: 12, tracking: 1.4)
+
+        VStack(spacing: GainsSpacing.xsPlus) {
+          planModeRow(
+            mode: .automatic,
+            title: "Auto-Plan",
+            description: "Wir verteilen Trainings, Pausen und ggf. Läufe optimal auf die Woche — basierend auf Ziel und Frequenz."
+          )
+          planModeRow(
+            mode: .manual,
+            title: "Selbst erstellen",
+            description: "Du wählst pro Wochentag selbst: Krafttraining, Lauf-Typ oder Frei. Volle Kontrolle, ohne Wizard."
+          )
+        }
+
+        if planMode == .manual {
+          Button {
+            showsCustomPlanBuilder = true
+          } label: {
+            HStack(spacing: GainsSpacing.xsPlus) {
+              Image(systemName: store.plannerSettings.isManualPlan ? "checkmark.circle.fill" : "slider.horizontal.3")
+                .font(.system(size: 13, weight: .bold))
+              Text(store.plannerSettings.isManualPlan
+                   ? "Plan bearbeiten"
+                   : "Plan jetzt selbst zusammenstellen")
+                .font(GainsFont.label(12))
+                .tracking(GainsTracking.eyebrowTight)
+              Spacer(minLength: 0)
+              Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .opacity(0.7)
+            }
+            .foregroundStyle(GainsColor.ink)
+            .padding(.horizontal, GainsSpacing.m)
+            .frame(height: 48)
+            .frame(maxWidth: .infinity)
+            .gainsGlassCTA(corner: GainsRadius.small)
+          }
+          .buttonStyle(.plain)
+
+          if store.plannerSettings.isManualPlan {
+            HStack(spacing: GainsSpacing.xsPlus) {
+              Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(GainsColor.lime)
+              Text("Eigener Plan gespeichert · \(store.plannerSettings.manualSessionKinds.count) Trainingstage")
+                .font(GainsFont.label(11))
+                .foregroundStyle(GainsColor.softInk)
+            }
+          } else {
+            Text("Du kannst es auch später im PLAN-Tab nachholen.")
+              .font(GainsFont.body(11))
+              .foregroundStyle(GainsColor.softInk)
+          }
+        }
+      }
+    }
+    .sheet(isPresented: $showsCustomPlanBuilder) {
+      CustomPlanBuilderSheet()
+        .environmentObject(store)
+    }
+  }
+
+  // MARK: - Step 5: Summary
+  //
+  // Aha-Moment-Bühne: Der User sieht hier zum ersten Mal seinen Plan
+  // als konkrete Wochen-Übersicht. Ziel: das Onboarding endet nicht
+  // mit „und was jetzt?", sondern mit „aha, das ist mein Plan und so
+  // sieht meine Woche aus".
+  //
+  // Layout:
+  //   1) Hero — „[Name], Plan steht." in Display-Font, Akzent-Glow.
+  //   2) Setup-Checklist — 4 abgehakte Punkte (Profil, Permissions, Plan,
+  //      Ernährungsziele) als visueller Endowed-Progress.
+  //   3) Wochen-Vorschau — 7 Mini-Karten Mo–So mit Plan-Inhalt aus
+  //      `store.weeklyWorkoutSchedule`. Heutiger Tag highlighted.
+  //   4) Was kommt zuerst — konkrete Empfehlung des heutigen Schritts
+  //      (oder, wenn heute Rest, der nächste Trainingstag).
+
+  private var summaryStep: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+      summaryHero
+      summaryChecklist
+      summaryWeekPreview
+      summaryFirstStep
+    }
+  }
+
+  private var summaryHero: some View {
+    let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    let displayName = trimmedName.isEmpty ? "" : ", \(trimmedName)"
+
+    return VStack(alignment: .leading, spacing: GainsSpacing.s) {
+      HStack(spacing: GainsSpacing.xsPlus) {
+        Image(systemName: "sparkles")
+          .font(.system(size: 12, weight: .bold))
+          .foregroundStyle(GainsColor.lime)
+        Text("SETUP GESCHAFFT")
+          .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
+      }
+
+      Text("Plan steht\(displayName).")
+        .font(GainsFont.display(34))
+        .foregroundStyle(GainsColor.ink)
+        .lineSpacing(-2)
+        .fixedSize(horizontal: false, vertical: true)
+
+      Text("Wir haben deine Woche aufgebaut. Schau drüber — du kannst alles im Plan-Tab nochmal anpassen.")
+        .font(GainsFont.body(15))
+        .foregroundStyle(GainsColor.softInk)
+        .lineSpacing(2)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+  }
+
+  private var summaryChecklist: some View {
+    VStack(spacing: 0) {
+      summaryCheckRow(icon: "person.fill", title: "Profil komplett",
+                      detail: profileSummaryDetail)
+      summaryCheckRow(icon: "shield.lefthalf.filled", title: "Berechtigungen erklärt",
+                      detail: "Du gibst sie frei, wenn du das Feature nutzt.")
+      summaryCheckRow(icon: "target", title: "Ziel & Frequenz",
+                      detail: trainingSummaryDetail)
+      summaryCheckRow(icon: "fork.knife", title: "Ernährungsziele berechnet",
+                      detail: nutritionSummaryDetail, isLast: true)
+    }
+    .padding(GainsSpacing.m)
+    .gainsCardStyle(GainsColor.card)
+  }
+
+  private func summaryCheckRow(icon: String, title: String, detail: String, isLast: Bool = false) -> some View {
+    VStack(spacing: 0) {
+      HStack(spacing: GainsSpacing.s) {
+        ZStack {
+          Circle()
+            .fill(GainsColor.lime.opacity(0.14))
+            .frame(width: 32, height: 32)
+          Image(systemName: "checkmark")
+            .font(.system(size: 11, weight: .heavy))
+            .foregroundStyle(GainsColor.lime)
+        }
+        VStack(alignment: .leading, spacing: 2) {
+          HStack(spacing: GainsSpacing.xs) {
+            Image(systemName: icon)
+              .font(.system(size: 11, weight: .semibold))
+              .foregroundStyle(GainsColor.softInk)
+            Text(title)
+              .font(GainsFont.title(14))
+              .foregroundStyle(GainsColor.ink)
+          }
+          Text(detail)
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+        }
+        Spacer(minLength: 0)
+      }
+      .padding(.vertical, GainsSpacing.xsPlus)
+
+      if !isLast {
+        Divider()
+          .overlay(GainsColor.border.opacity(0.25))
+      }
+    }
+  }
+
+  private var profileSummaryDetail: String {
+    "\(age) Jahre · \(heightCm) cm · \(weightKg) kg · \(activityLevel.title)"
+  }
+
+  private var trainingSummaryDetail: String {
+    let goalLabel = goal.title
+    return "\(goalLabel) · \(sessionsPerWeek)× pro Woche"
+  }
+
+  private var nutritionSummaryDetail: String {
+    let kcal = store.nutritionTargetCalories
+    let protein = store.nutritionTargetProtein
+    if kcal > 0 {
+      return "Tagesziel ~\(kcal) kcal · \(protein) g Protein"
+    }
+    return "Werte werden im Profil berechnet."
+  }
+
+  private var summaryWeekPreview: some View {
+    VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+      Text("DEINE WOCHE")
+        .gainsEyebrow(size: 12, tracking: 1.4)
+
+      VStack(spacing: GainsSpacing.xsPlus) {
+        ForEach(store.weeklyWorkoutSchedule, id: \.weekday) { day in
+          summaryWeekRow(day)
+        }
+      }
+    }
+  }
+
+  private func summaryWeekRow(_ day: WorkoutDayPlan) -> some View {
+    let accent: Color = {
+      switch day.status {
+      case .planned:  return day.runTemplate != nil ? GainsColor.ember : GainsColor.lime
+      case .rest:     return GainsColor.softInk
+      case .flexible: return GainsColor.accentCool
+      }
+    }()
+    let icon: String = {
+      if day.runTemplate != nil { return "figure.run" }
+      switch day.status {
+      case .planned:  return "dumbbell.fill"
+      case .rest:     return "leaf.fill"
+      case .flexible: return "infinity"
+      }
+    }()
+    let titleText: String = {
+      switch day.status {
+      case .planned:  return day.workoutPlan?.title ?? day.title
+      case .rest:     return "Recovery"
+      case .flexible: return "Flexibel"
+      }
+    }()
+
+    return HStack(spacing: GainsSpacing.s) {
+      VStack(spacing: 2) {
+        Text(day.weekday.shortLabel.uppercased())
+          .font(GainsFont.label(10))
+          .tracking(GainsTracking.eyebrowTight)
+          .foregroundStyle(day.isToday ? GainsColor.lime : GainsColor.softInk)
+        Image(systemName: day.isToday ? "circle.fill" : "circle")
+          .font(.system(size: 5, weight: .bold))
+          .foregroundStyle(day.isToday ? GainsColor.lime : GainsColor.border.opacity(0.5))
+      }
+      .frame(width: 36)
+
+      ZStack {
+        Circle()
+          .fill(accent.opacity(0.14))
+        Image(systemName: icon)
+          .font(.system(size: 12, weight: .semibold))
+          .foregroundStyle(accent)
+      }
+      .frame(width: 32, height: 32)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(titleText)
+          .font(GainsFont.title(14))
+          .foregroundStyle(GainsColor.ink)
+        Text(day.focus)
+          .font(GainsFont.body(11))
+          .foregroundStyle(GainsColor.softInk)
+          .lineLimit(1)
+      }
+
+      Spacer(minLength: 0)
+
+      if day.isToday {
+        Text("HEUTE")
+          .font(GainsFont.label(9))
+          .tracking(GainsTracking.eyebrowTight)
+          .foregroundStyle(GainsColor.onLime)
+          .padding(.horizontal, GainsSpacing.xsPlus)
+          .padding(.vertical, GainsSpacing.xxs)
+          .background(Capsule().fill(GainsColor.lime))
+      }
+    }
+    .padding(.horizontal, GainsSpacing.s)
+    .padding(.vertical, GainsSpacing.tight)
+    .background(
+      day.isToday ? GainsColor.lime.opacity(0.06) : GainsColor.card
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+        .stroke(
+          day.isToday ? GainsColor.lime.opacity(0.45) : GainsColor.border.opacity(0.3),
+          lineWidth: day.isToday ? 0.8 : 0.6
+        )
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+  }
+
+  private var summaryFirstStep: some View {
+    let today = store.todayPlannedDay
+    let (eyebrow, headline, sub): (String, String, String) = {
+      switch today.status {
+      case .planned:
+        if let run = today.runTemplate {
+          return (
+            "ALS NÄCHSTES",
+            "Heute: \(run.title)",
+            String(format: "%.1f km · ~%d min. Sobald du fertig bist, kannst du direkt im Lauf-Tab starten.",
+                   run.targetDistanceKm, run.targetDurationMinutes)
+          )
+        }
+        let title = today.workoutPlan?.title ?? today.title
+        let count = today.workoutPlan?.exercises.count ?? 0
+        return (
+          "ALS NÄCHSTES",
+          "Heute: \(title)",
+          count > 0
+            ? "\(count) Übungen im Plan. Du findest das Workout sofort auf deinem Home-Screen."
+            : "Dein Coach-Brief auf dem Home-Screen führt dich Schritt für Schritt."
+        )
+      case .rest:
+        return (
+          "ALS ERSTES",
+          "Heute ist Recovery-Tag",
+          "Perfekt zum Reinkommen — log deine erste Mahlzeit oder einen Spaziergang. Morgen geht's los."
+        )
+      case .flexible:
+        return (
+          "ALS ERSTES",
+          "Heute ist flexibel",
+          "Wähl spontan: kurzes Workout, Lauf oder Mobility. Der Home-Screen schlägt dir was vor."
+        )
+      }
+    }()
+
+    return VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+      HStack(spacing: GainsSpacing.xsPlus) {
+        Image(systemName: "arrow.forward.circle.fill")
+          .font(.system(size: 12, weight: .bold))
+          .foregroundStyle(GainsColor.lime)
+        Text(eyebrow)
+          .gainsEyebrow(GainsColor.lime, size: 12, tracking: 1.4)
+      }
+      Text(headline)
+        .font(GainsFont.title(20))
+        .foregroundStyle(GainsColor.ink)
+        .fixedSize(horizontal: false, vertical: true)
+      Text(sub)
+        .font(GainsFont.body(13))
+        .foregroundStyle(GainsColor.softInk)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    .padding(GainsSpacing.m)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background(
+      LinearGradient(
+        colors: [GainsColor.lime.opacity(0.08), GainsColor.card],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+      )
+    )
+    .overlay(
+      RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+        .stroke(GainsColor.lime.opacity(0.32), lineWidth: GainsBorder.accent)
+    )
+    .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+  }
+
+  // Card-artige Auswahl-Reihe für den Plan-Modus.
+  private func planModeRow(
+    mode: OnboardingPlanMode,
+    title: String,
+    description: String
+  ) -> some View {
+    let isSelected = planMode == mode
+    return Button {
+      withAnimation(.spring(response: 0.25, dampingFraction: 0.85)) {
+        planMode = mode
+      }
+    } label: {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
+        Image(systemName: mode == .automatic ? "wand.and.stars" : "slider.horizontal.3")
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
+          .frame(width: 40, height: 40)
+          .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14)))
+
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+          Text(title)
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+          Text(description)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
+      }
+      .padding(GainsSpacing.m)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .stroke(
+            isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
+            lineWidth: 1
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  private func goalRow(_ planning: WorkoutPlanningGoal, nutrition: NutritionGoal, description: String) -> some View {
+    let isSelected = goal == planning
+    return Button {
+      goal = planning
+      nutritionGoal = nutrition
+    } label: {
+      HStack(alignment: .top, spacing: GainsSpacing.m) {
+        Image(systemName: nutrition.systemImage)
+          .font(.system(size: 14, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.onLime : GainsColor.lime)
+          .frame(width: 40, height: 40)
+          .background(Circle().fill(isSelected ? GainsColor.lime : GainsColor.lime.opacity(0.14)))
+
+        VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+          Text(planning.title)
+            .font(GainsFont.title(16))
+            .foregroundStyle(GainsColor.ink)
+          Text(description)
+            .font(GainsFont.body(13))
+            .foregroundStyle(GainsColor.softInk)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+
+        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+          .font(.system(size: 18, weight: .semibold))
+          .foregroundStyle(isSelected ? GainsColor.lime : GainsColor.border)
+      }
+      .padding(GainsSpacing.m)
+      .background(GainsColor.card)
+      .overlay(
+        RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
+          .stroke(
+            isSelected ? GainsColor.lime.opacity(0.5) : GainsColor.border.opacity(0.4),
+            lineWidth: 1
+          )
+      )
+      .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Header Helper
+
+  private func stepHeader(eyebrow: String, title: String, subtitle: String) -> some View {
+    // 2026-05-14 (Polish-Loop 77): Step-Header bekommt eine kleine
+    // vertikale Lime-Akzent-Bar links — analog GainsSectionHeader,
+    // ankert jeden Onboarding-Schritt visuell.
+    HStack(alignment: .top, spacing: GainsSpacing.m) {
+      RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+        .fill(
+          LinearGradient(
+            colors: [GainsColor.lime, GainsColor.lime.opacity(0.20)],
+            startPoint: .top,
+            endPoint: .bottom
+          )
+        )
+        .frame(width: 3, height: 56)
+        .shadow(color: GainsColor.lime.opacity(0.25), radius: 4)
+        .padding(.top, 4)
+
+      VStack(alignment: .leading, spacing: GainsSpacing.tight) {
+        Text(eyebrow)
+          .gainsEyebrow(GainsColor.lime, size: 13, tracking: 1.6)
+        Text(title)
+          .font(GainsFont.display(32))
+          .foregroundStyle(GainsColor.ink)
+          .lineSpacing(-2)
+          .fixedSize(horizontal: false, vertical: true)
+        Text(subtitle)
+          .font(GainsFont.body(15))
+          .foregroundStyle(GainsColor.softInk)
+          .lineSpacing(2)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    }
+  }
+
+  // MARK: - Bottom Bar
+
+  private var bottomBar: some View {
+    HStack(spacing: GainsSpacing.s) {
+      if currentStep != .welcome {
+        Button {
+          withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+            if let prev = OnboardingStep(rawValue: currentStep.rawValue - 1) {
+              currentStep = prev
+            }
+          }
+        } label: {
+          Image(systemName: "chevron.left")
+            .font(.system(size: 14, weight: .bold))
+            .foregroundStyle(GainsColor.ink)
+            .frame(width: 56, height: 56)
+            .gainsCardStyle(GainsColor.card)
+        }
+        .buttonStyle(.plain)
+      }
+
+      Button {
+        advance()
+      } label: {
+        HStack(spacing: GainsSpacing.xsPlus) {
+          Text(currentStep == .summary ? "Los geht's" : "Weiter")
+            .font(GainsFont.label(13))
+            .tracking(1.4)
+          Image(systemName: currentStep == .summary ? "sparkles" : "arrow.right")
+            .font(.system(size: 13, weight: .heavy))
+        }
+        .foregroundStyle(canAdvance ? GainsColor.onLime : GainsColor.ink.opacity(0.5))
+        .frame(maxWidth: .infinity)
+        .frame(height: 56)
+        .background(canAdvance ? GainsColor.lime : GainsColor.card)
+        .overlay(
+          RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous)
+            .stroke(canAdvance ? Color.clear : GainsColor.border.opacity(0.5), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+      }
+      .buttonStyle(.plain)
+      .disabled(!canAdvance)
+    }
+  }
+
+  /// Getrimmter Anzeige-Name. Wird sowohl von der Validierung als auch vom
+  /// `finish()`-Pfad genutzt, damit nichts mit führendem/abschließendem
+  /// Leerzeichen in den Store wandert.
+  private var trimmedName: String {
+    name.trimmingCharacters(in: .whitespacesAndNewlines)
+  }
+
+  /// True wenn der eingegebene Name lang genug ist um als Anzeige-Name (und
+  /// später als Community-Handle) zu funktionieren. „a" ist zu wenig.
+  private var isNameValid: Bool {
+    trimmedName.count >= 2
+  }
+
+  /// Border-Farbe des Name-Feldes. Komplett-Leer → neutrale Border. Etwas
+  /// eingetippt, aber unter 2 Zeichen → roter Akzent. Valid → grünlicher
+  /// Hinweis (über Lime).
+  private var nameValidationBorderColor: Color {
+    if name.isEmpty {
+      return GainsColor.border.opacity(0.5)
+    }
+    return isNameValid ? GainsColor.lime.opacity(0.5) : GainsColor.ember
+  }
+
+  private var canAdvance: Bool {
+    switch currentStep {
+    case .welcome:     return true
+    // 2026-05-16 (Release-Audit P1): Name-Validierung verschärft. Vorher
+    // reichte ein einzelnes Zeichen, jetzt mindestens 2 echte Zeichen
+    // (Whitespace-trim). Verhindert „x" als User-Name und absichert die
+    // späteren Community-Handle-Ableitungen aus `userName`.
+    case .profile:     return isNameValid
+    case .permissions: return true
+    case .training:    return true
+    case .summary:     return true
+    }
+  }
+
+  private func advance() {
+    // H5-Fix (2026-05-01): Wenn der Nutzer „Selbst erstellen" gewählt,
+    // aber den Builder nie gespeichert hat, fällt der Mode hier still auf
+    // „Auto-Plan" zurück. Sonst landet der User mit planMode=.manual und
+    // !isManualPlan in einem inkonsistenten Zustand: UI sagt manuell,
+    // App rendert aber Auto-Plan.
+    if currentStep == .training,
+       planMode == .manual,
+       !store.plannerSettings.isManualPlan {
+      planMode = .automatic
+    }
+
+    // Phase 1 Aha-Moment (2026-05-01): Wenn der User von .training nach
+    // .summary geht, müssen wir die Plan-Settings BEREITS partial committen,
+    // damit der Summary-Step die echte Wochen-Vorschau aus
+    // `store.weeklyWorkoutSchedule` rendern kann. Das volle saveAll()
+    // läuft erst im finish() — hier nur In-Memory-Update.
+    if currentStep == .training {
+      var settings = store.plannerSettings
+      settings.goal = goal
+      if !settings.isManualPlan {
+        settings.sessionsPerWeek = sessionsPerWeek
+      }
+      store.plannerSettings = settings
+    }
+
+    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+      if currentStep == .summary {
+        finish()
+      } else if let next = OnboardingStep(rawValue: currentStep.rawValue + 1) {
+        currentStep = next
+      }
+    }
+  }
+
+  private func finish() {
+    // Profil speichern
+    let profile = NutritionProfile(
+      sex: sex,
+      age: age,
+      heightCm: heightCm,
+      weightKg: weightKg,
+      bodyFatPercent: nil,
+      activityLevel: activityLevel,
+      goal: nutritionGoal,
+      surplusKcal: nutritionGoal == .muscleGain ? 250 : (nutritionGoal == .fatLoss ? -400 : 0)
+    )
+    store.setNutritionProfile(profile)
+
+    // Name speichern. 2026-05-16 (Release-Audit P1): `canAdvance` blockt den
+    // Sprung in den Summary-Step bereits, falls Name leer/zu kurz ist. Diese
+    // Defensive-Linie nutzt die geschärfte `isNameValid`-Validierung (≥ 2
+    // Zeichen) und ignoriert den Set, falls der State auf irgendeinem Pfad
+    // doch invalid sein sollte.
+    if isNameValid {
+      store.userName = trimmedName
+    }
+
+    // Trainings-Settings übernehmen.
+    // Wenn der Nutzer im Onboarding einen manuellen Plan gespeichert hat,
+    // hat `applyManualPlan(...)` `sessionsPerWeek` schon auf die tatsächliche
+    // Anzahl Trainingstage gesetzt und `isManualPlan = true` markiert. Wir
+    // wollen das hier NICHT mit der Onboarding-Frequenz überschreiben.
+    var settings = store.plannerSettings
+    settings.goal = goal
+    if !settings.isManualPlan {
+      settings.sessionsPerWeek = sessionsPerWeek
+    }
+    store.plannerSettings = settings
+
+    // 2026-05-01: P0-5-Fix. Vorher: `saveAll()` (async) + `hasCompletedOnboarding=true`
+    // (sync). Wenn der Tester die App im Sekundenbruchteil zwischen den beiden
+    // Zeilen killt, war die AppStorage-Flag persistiert aber Profil/Settings
+    // nicht — App startete dann mit leerem Profil und Default-Werten.
+    // Jetzt: Flag erst setzen, wenn Save garantiert durch ist.
+    //
+    // Phase 1 Aha-Moment (2026-05-01): Zusätzlich `onboardingCompletedAt`
+    // setzen, damit HomeView in den ersten 24h einen Welcome-Coach-Brief
+    // statt des generischen „Bereit?"-Defaults zeigen kann.
+    store.saveAll {
+      onboardingCompletedAt = Date().timeIntervalSince1970
+      hasCompletedOnboarding = true
+    }
+  }
+}

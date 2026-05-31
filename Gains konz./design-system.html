@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A0A0A">
+<title>gains. — design system</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { padding: 48px 32px; max-width: 1100px; margin: 0 auto; }
+  section { margin-bottom: 72px; }
+  .section-head {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-size: 11px; letter-spacing: 3px; color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  .section-line { flex: 1; height: 0.5px; background: var(--border-dark); }
+  .grid { display: grid; gap: 12px; }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-5 { grid-template-columns: repeat(5, 1fr); }
+
+  .swatch-card {
+    border-radius: var(--radius-md);
+    height: 120px;
+    display: flex; align-items: flex-end;
+    padding: 14px;
+    border: 0.5px solid var(--border-dark);
+  }
+  .swatch-meta {
+    margin-top: 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    font-weight: 500;
+  }
+  .swatch-hex {
+    font-size: 10px;
+    color: var(--text-tertiary);
+    font-weight: 400;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .type-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 32px;
+    padding: 20px 0;
+    border-bottom: 0.5px solid var(--border-dark);
+    align-items: baseline;
+  }
+  .type-row:last-child { border-bottom: none; }
+
+  .component-demo {
+    background: var(--surface);
+    border: 0.5px solid var(--border-dark);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    margin-bottom: 12px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== HEADER ============== -->
+<header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 64px; padding-bottom: 24px; border-bottom: 0.5px solid var(--border-dark);">
+  <span class="wordmark wordmark-md">gains<span class="dot">.</span></span>
+  <span class="t-label-sm">DESIGN SYSTEM <span class="slash">/</span> V1.0</span>
+</header>
+
+<h1 class="t-hero" style="margin-bottom: 16px;">design<span class="dot">.</span></h1>
+<p class="t-body" style="max-width: 520px; color: var(--text-secondary); margin-bottom: 64px;">
+  Das visuelle System für gains. Farben, Typografie, Komponenten. Alles was gebraucht wird, um neue Screens konsistent zu bauen.
+</p>
+
+<!-- ============== 01 FARBEN ============== -->
+<section>
+  <div class="section-head">
+    <span class="section-num">01 / FARBEN</span>
+    <span class="section-line"></span>
+  </div>
+
+  <div class="grid grid-5">
+    <div>
+      <div class="swatch-card" style="background: var(--ink);">
+        <span style="color: var(--text-primary); font-size: 11px; font-weight: 500;">Aa</span>
+      </div>
+      <div class="swatch-meta">INK<span class="swatch-hex">#0A0A0A</span></div>
+    </div>
+    <div>
+      <div class="swatch-card" style="background: var(--surface);">
+        <span style="color: var(--text-primary); font-size: 11px; font-weight: 500;">Aa</span>
+      </div>
+      <div class="swatch-meta">SURFACE<span class="swatch-hex">#1A1A1A</span></div>
+    </div>
+    <div>
+      <div class="swatch-card" style="background: var(--elevated);">
+        <span style="color: var(--text-primary); font-size: 11px; font-weight: 500;">Aa</span>
+      </div>
+      <div class="swatch-meta">ELEVATED<span class="swatch-hex">#242424</span></div>
+    </div>
+    <div>
+      <div class="swatch-card" style="background: var(--bone);">
+        <span style="color: var(--ink); font-size: 11px; font-weight: 500;">Aa</span>
+      </div>
+      <div class="swatch-meta">BONE<span class="swatch-hex">#F4F4F2</span></div>
+    </div>
+    <div>
+      <div class="swatch-card" style="background: var(--signal);">
+        <span style="color: var(--signal-darker); font-size: 11px; font-weight: 600;">Aa</span>
+      </div>
+      <div class="swatch-meta">SIGNAL<span class="swatch-hex">#B8E035</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 02 TYPOGRAFIE ============== -->
+<section>
+  <div class="section-head">
+    <span class="section-num">02 / TYPOGRAFIE</span>
+    <span class="section-line"></span>
+  </div>
+
+  <div class="type-row">
+    <span class="t-label-sm">HERO · 72</span>
+    <span class="t-hero">gains<span class="dot">.</span></span>
+  </div>
+  <div class="type-row">
+    <span class="t-label-sm">DISPLAY · 40</span>
+    <span class="t-display">Let's go, Julius<span class="dot">.</span></span>
+  </div>
+  <div class="type-row">
+    <span class="t-label-sm">TITLE · 28</span>
+    <span class="t-title">Heutige Session<span class="dot">.</span></span>
+  </div>
+  <div class="type-row">
+    <span class="t-label-sm">METRIC · 96</span>
+    <span class="t-metric">17</span>
+  </div>
+  <div class="type-row">
+    <span class="t-label-sm">METRIC MD · 56</span>
+    <span class="t-metric-md">12.4T</span>
+  </div>
+  <div class="type-row">
+    <span class="t-label-sm">BODY · 16</span>
+    <span class="t-body" style="max-width: 500px;">Fitness, Nutrition, Community und echte Health-Insights in einer modernen App.</span>
+  </div>
+  <div class="type-row">
+    <span class="t-label-sm">LABEL · 11</span>
+    <span class="t-label">STREAK <span class="slash">/</span> ACTIVE <span class="slash">/</span> PUSHING</span>
+  </div>
+</section>
+
+<!-- ============== 03 WORTMARKE ============== -->
+<section>
+  <div class="section-head">
+    <span class="section-num">03 / WORTMARKE</span>
+    <span class="section-line"></span>
+  </div>
+
+  <div class="grid grid-3">
+    <div style="background: var(--ink); border: 0.5px solid var(--border-dark); border-radius: var(--radius-lg); padding: 48px 24px; text-align: center;">
+      <span class="wordmark wordmark-lg">gains<span class="dot">.</span></span>
+      <div class="t-label-sm" style="margin-top: 24px;">SOLO · DARK</div>
+    </div>
+
+    <div style="background: var(--bone); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 48px 24px; text-align: center;">
+      <span class="wordmark wordmark-lg" style="color: var(--ink);">gains<span style="color: var(--signal-dark);">.</span></span>
+      <div class="t-label-sm" style="margin-top: 24px; color: var(--text-tertiary-light);">SOLO · LIGHT</div>
+    </div>
+
+    <div style="background: var(--ink); border: 0.5px solid var(--border-dark); border-radius: var(--radius-lg); padding: 32px 24px; text-align: center;">
+      <svg width="72" height="72" viewBox="0 0 72 72" style="margin: 0 auto 14px; display: block;">
+        <rect x="0" y="0" width="72" height="72" rx="16" fill="#1A1A1A"/>
+        <circle cx="36" cy="36" r="25" fill="none" stroke="#2A2A2A" stroke-width="3.5"/>
+        <path d="M 36 11 A 25 25 0 0 1 55 48" fill="none" stroke="#B8E035" stroke-width="3.5" stroke-linecap="round"/>
+        <text x="36" y="44" text-anchor="middle" font-family="Inter, sans-serif" font-size="28" font-weight="600" fill="#F4F4F2">G</text>
+      </svg>
+      <span class="wordmark wordmark-md">gains<span class="dot">.</span></span>
+      <div class="t-label-sm" style="margin-top: 14px;">LOCKUP · STACKED</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 04 KOMPONENTEN ============== -->
+<section>
+  <div class="section-head">
+    <span class="section-num">04 / KOMPONENTEN</span>
+    <span class="section-line"></span>
+  </div>
+
+  <!-- Buttons -->
+  <div class="component-demo">
+    <div class="t-label-sm" style="margin-bottom: 20px;">BUTTONS</div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn btn-primary">Workout starten</button>
+      <button class="btn btn-secondary">Später</button>
+      <button class="btn btn-primary" style="padding: 10px 18px; font-size: 13px;">Klein</button>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="component-demo">
+    <div class="t-label-sm" style="margin-bottom: 20px;">STAT-KARTEN</div>
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="t-label-sm">WOCHE</div>
+        <div class="t-metric-sm" style="margin: 8px 0 4px;">4/5</div>
+        <div class="t-body-sm">Sessions</div>
+      </div>
+      <div class="card">
+        <div class="t-label-sm">VOLUMEN</div>
+        <div class="t-metric-sm" style="margin: 8px 0 4px;">12.4T</div>
+        <div class="t-body-sm">Kilogramm</div>
+      </div>
+      <div class="card card-signal">
+        <div class="t-label-sm">PRs</div>
+        <div class="t-metric-sm" style="margin: 8px 0 4px;">+2</div>
+        <div class="t-body-sm">Neue Rekorde</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Streak Card -->
+  <div class="component-demo">
+    <div class="t-label-sm" style="margin-bottom: 20px;">STREAK-KARTE</div>
+    <div style="background: var(--ink); border-radius: var(--radius-xl); padding: 28px;">
+      <div class="t-label" style="margin-bottom: 24px;">STREAK <span class="slash">/</span> ACTIVE <span class="slash">/</span> PUSHING</div>
+      <div style="display: flex; align-items: center; gap: 32px; margin-bottom: 24px;">
+        <span class="t-metric">17</span>
+        <div>
+          <div class="t-body-sm" style="margin-bottom: 16px;">tage in folge</div>
+          <div class="t-label-sm" style="margin-bottom: 6px;">BIS REKORD</div>
+          <div class="t-metric-sm" style="color: var(--signal);">+6</div>
+        </div>
+      </div>
+      <div class="progress"><div class="progress-fill" style="width: 74%;"></div></div>
+      <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+        <span class="t-body-sm">17</span>
+        <span class="t-body-sm">23</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="component-demo">
+    <div class="t-label-sm" style="margin-bottom: 20px;">PROGRESS-BAR</div>
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="progress"><div class="progress-fill" style="width: 25%;"></div></div>
+      <div class="progress"><div class="progress-fill" style="width: 60%;"></div></div>
+      <div class="progress"><div class="progress-fill" style="width: 95%;"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== 05 PRINZIPIEN ============== -->
+<section>
+  <div class="section-head">
+    <span class="section-num">05 / PRINZIPIEN</span>
+    <span class="section-line"></span>
+  </div>
+
+  <div class="grid grid-3">
+    <div>
+      <div class="t-title" style="margin-bottom: 12px;">Dark First<span class="dot">.</span></div>
+      <div class="t-body-sm">Die Marke lebt in Dark Mode. Ink ist die Grundfläche, nicht das Beige.</div>
+    </div>
+    <div>
+      <div class="t-title" style="margin-bottom: 12px;">Ein Akzent<span class="dot">.</span></div>
+      <div class="t-body-sm">Signal Green ist die einzige Farbe neben Schwarz und Weiß. Keine Blautöne, keine Rottöne.</div>
+    </div>
+    <div>
+      <div class="t-title" style="margin-bottom: 12px;">Lowercase<span class="dot">.</span></div>
+      <div class="t-body-sm">Die Wortmarke ist immer klein geschrieben. Einzige Versalie: das G im App-Icon.</div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
