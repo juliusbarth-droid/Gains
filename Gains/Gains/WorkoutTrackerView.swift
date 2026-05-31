@@ -194,11 +194,13 @@ struct WorkoutTrackerView: View {
                 .tracking(GainsTracking.eyebrowTight)
                 .foregroundStyle(GainsColor.softInk)
                 .padding(.horizontal, GainsSpacing.l)
+                .frame(maxWidth: .infinity)
                 .frame(height: 36)
                 .overlay(
                   Capsule().stroke(GainsColor.border.opacity(0.6), lineWidth: 1)
                 )
                 .clipShape(Capsule())
+                .contentShape(Capsule())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Tracker schließen")
