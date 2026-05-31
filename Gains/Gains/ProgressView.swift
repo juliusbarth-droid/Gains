@@ -224,6 +224,10 @@ struct ProgressContentView: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
+    .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
+    .accessibilityLabel("Nächster Schritt")
+    .accessibilityValue("\(title), \(subtitle)")
+    .accessibilityHint(isPlanned ? "Schließt den Fortschritt und öffnet dein heutiges Krafttraining" : "Schließt den Fortschritt und öffnet deinen Wochenplan")
   }
 
   // MARK: - 1. Story-Hero (dynamisch)
