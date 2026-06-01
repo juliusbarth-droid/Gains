@@ -1755,6 +1755,7 @@ struct WorkoutTrackerView: View {
           .frame(width: 5, height: 5)
       }
     }
+    .accessibilityHidden(true)
   }
 
   private func chipButton(icon: String, title: String) -> some View {
