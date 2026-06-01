@@ -1854,6 +1854,7 @@ struct WorkoutTrackerView: View {
         .padding(.top, 2)
         .accessibilityHidden(true)
       }
+      .accessibilityHidden(true)
 
       Spacer()
     }
