@@ -404,30 +404,30 @@ extension GainsStore {
   /// als auch `activeStructuredWorkout`, damit der Tracker den Step-Status
   /// abfragen kann.
   func startStructuredWorkout(_ workout: StructuredRunWorkout) {
-    if activeRun == nil {
-      activeRun = ActiveRunSession(
-        id: UUID(),
-        title: workout.title,
-        routeName: "Workout",
-        startedAt: Date(),
-        targetDistanceKm: workout.estimatedDistanceKm,
-        targetDurationMinutes: workout.estimatedDurationMinutes,
-        targetPaceLabel: "",
-        targetMode: workout.estimatedDistanceKm > 0 ? .distance : .duration,
-        targetPaceSeconds: 0,
-        intensity: .interval,
-        distanceKm: 0,
-        durationMinutes: 0,
-        elevationGain: 0,
-        currentHeartRate: 0,
-        isPaused: false,
-        autoPauseEnabled: true,
-        audioCuesEnabled: true,
-        routeCoordinates: [],
-        splits: [],
-        hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
-      )
-    }
+    guard activeRun == nil else { return }
+
+    activeRun = ActiveRunSession(
+      id: UUID(),
+      title: workout.title,
+      routeName: "Workout",
+      startedAt: Date(),
+      targetDistanceKm: workout.estimatedDistanceKm,
+      targetDurationMinutes: workout.estimatedDurationMinutes,
+      targetPaceLabel: "",
+      targetMode: workout.estimatedDistanceKm > 0 ? .distance : .duration,
+      targetPaceSeconds: 0,
+      intensity: .interval,
+      distanceKm: 0,
+      durationMinutes: 0,
+      elevationGain: 0,
+      currentHeartRate: 0,
+      isPaused: false,
+      autoPauseEnabled: true,
+      audioCuesEnabled: true,
+      routeCoordinates: [],
+      splits: [],
+      hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
+    )
     activeStructuredWorkout = ActiveStructuredWorkout(workout: workout)
   }
 
