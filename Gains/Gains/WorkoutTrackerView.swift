@@ -1458,6 +1458,7 @@ struct WorkoutTrackerView: View {
         Text("\(completed)/\(total)")
           .font(TrackerType.metricSmall)
           .foregroundStyle(isAllDone ? GainsColor.moss : GainsColor.ink)
+          .accessibilityHidden(true)
 
         if !isActive {
           Button {
