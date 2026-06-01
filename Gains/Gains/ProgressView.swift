@@ -199,6 +199,7 @@ struct ProgressContentView: View {
             .font(.system(size: 16, weight: .bold))
             .foregroundStyle(GainsColor.onLime)
         }
+        .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: 2) {
           Text("NÄCHSTER SCHRITT")
             .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.4)
