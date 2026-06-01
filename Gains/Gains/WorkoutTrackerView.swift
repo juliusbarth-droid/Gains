@@ -1475,6 +1475,7 @@ struct WorkoutTrackerView: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel(isCollapsed ? "Übung ausklappen" : "Übung einklappen")
+          .accessibilityHint(isCollapsed ? "Zeigt wieder alle Sätze dieser Übung" : "Blendet die Satzliste dieser Übung aus")
         }
       }
 
