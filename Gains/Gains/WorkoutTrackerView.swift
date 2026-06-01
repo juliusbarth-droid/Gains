@@ -1823,6 +1823,7 @@ struct WorkoutTrackerView: View {
           .shadow(color: GainsColor.moss.opacity(0.55), radius: 4)
       }
       .frame(width: 40, height: 40)
+      .accessibilityHidden(true)
       .overlay(
         Circle().strokeBorder(GainsColor.moss.opacity(0.40), lineWidth: GainsBorder.hairline)
       )
@@ -1891,6 +1892,10 @@ struct WorkoutTrackerView: View {
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .compositingGroup()
     .shadow(color: GainsColor.moss.opacity(0.20), radius: 14, x: 0, y: 0)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel("Alle Sätze erledigt")
+    .accessibilityValue("\(s.completedSets) von \(s.totalSets) Sätzen, \(completedExercises) von \(workout.exercises.count) Übungen, \(Int(s.totalVolume)) Kilogramm Volumen")
+    .accessibilityHint("Zeigt deine Abschlusszusammenfassung vor dem Workout-Ende")
   }
 
   private func finishedMetric(label: String, value: String) -> some View {
