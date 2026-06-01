@@ -1473,6 +1473,7 @@ struct WorkoutTrackerView: View {
             Image(systemName: isCollapsed ? "chevron.down" : "chevron.up")
               .font(.system(size: 11, weight: .bold))
               .foregroundStyle(GainsColor.softInk)
+              .accessibilityHidden(true)
               .frame(width: 30, height: 30)
               .background(GainsColor.background.opacity(0.7))
               .clipShape(Circle())
