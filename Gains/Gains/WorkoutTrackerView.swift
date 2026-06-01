@@ -1206,6 +1206,7 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Bearbeiten beenden")
+    .accessibilityValue("Bearbeiten-Modus")
     .accessibilityHint("Schließt den Bearbeiten-Modus und kehrt zum Workout-Tracking zurück")
   }
 
