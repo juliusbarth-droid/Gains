@@ -742,6 +742,7 @@ struct ProgressContentView: View {
     }
     .frame(width: 44, height: 44)
     .shadow(color: accent.opacity(0.16), radius: 6)
+    .accessibilityHidden(true)
   }
 
   /// Tone-spezifischer Hintergrund-Wash: Lime = Momentum, Ember = Warnung,
