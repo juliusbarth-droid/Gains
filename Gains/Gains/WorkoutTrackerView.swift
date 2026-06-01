@@ -1673,6 +1673,9 @@ struct WorkoutTrackerView: View {
               )
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Übung überspringen")
+            .accessibilityValue(exercise.name)
+            .accessibilityHint("Öffnet die Bestätigung zum Überspringen dieser Übung")
           }
         }
       }
