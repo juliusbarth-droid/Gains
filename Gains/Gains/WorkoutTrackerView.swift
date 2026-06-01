@@ -1359,6 +1359,7 @@ struct WorkoutTrackerView: View {
               isAllDone ? GainsColor.onLime : (isActive ? GainsColor.onLime : GainsColor.ink)
             )
             .frame(width: 28, height: 28)
+            .accessibilityHidden(true)
             .background(
               ZStack {
                 Circle()
