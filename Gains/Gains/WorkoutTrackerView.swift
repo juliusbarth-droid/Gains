@@ -1159,6 +1159,7 @@ struct WorkoutTrackerView: View {
           .font(.system(size: 24, weight: .semibold))
           .foregroundStyle(GainsColor.moss)
       }
+      .accessibilityHidden(true)
       VStack(spacing: GainsSpacing.xxs) {
         Text("Noch keine Übung")
           .font(GainsFont.headline)
