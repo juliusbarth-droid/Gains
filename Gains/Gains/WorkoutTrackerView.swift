@@ -1404,6 +1404,7 @@ struct WorkoutTrackerView: View {
                   Circle()
                     .fill(GainsColor.onLime)
                     .frame(width: 4, height: 4)
+                    .accessibilityHidden(true)
                   Text("AKTIV")
                     .font(TrackerType.eyebrow)
                     .tracking(GainsTracking.eyebrowTight)
