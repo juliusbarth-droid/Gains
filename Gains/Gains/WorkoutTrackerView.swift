@@ -1608,6 +1608,9 @@ struct WorkoutTrackerView: View {
             chipButton(icon: "plus", title: "Satz")
           }
           .buttonStyle(.plain)
+          .accessibilityLabel("Satz hinzufügen")
+          .accessibilityValue(exercise.name)
+          .accessibilityHint("Fügt dieser Übung einen neuen Satz hinzu")
 
           Button {
             if let lastSet = exercise.sets.last, activeSetID == lastSet.id {
