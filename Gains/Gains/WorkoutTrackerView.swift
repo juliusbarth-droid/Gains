@@ -1225,6 +1225,7 @@ struct WorkoutTrackerView: View {
         .frame(width: 28, height: 28)
         .background(GainsColor.lime)
         .clipShape(Circle())
+        .accessibilityHidden(true)
 
       VStack(alignment: .leading, spacing: 2) {
         Text(exercise.name)
@@ -1242,6 +1243,7 @@ struct WorkoutTrackerView: View {
       Image(systemName: "line.3.horizontal")
         .font(.system(size: 14, weight: .heavy))
         .foregroundStyle(GainsColor.lime)
+        .accessibilityHidden(true)
     }
     .padding(.horizontal, GainsSpacing.m)
     .padding(.vertical, GainsSpacing.s)
