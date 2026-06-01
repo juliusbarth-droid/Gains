@@ -3124,7 +3124,9 @@ final class GainsStore: ObservableObject {
   }
 
   func toggleRunPause() {
+    guard activeRun != nil else { return }
     activeRun?.isPaused.toggle()
+    scheduleSave()
   }
 
   func addRunDistance(_ distance: Double) {
