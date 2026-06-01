@@ -1060,6 +1060,9 @@ struct WorkoutTrackerView: View {
     .padding(.horizontal, GainsSpacing.m)
     .padding(.vertical, GainsSpacing.s)
     .gainsCardStyle(GainsColor.card)
+    .accessibilityElement(children: .combine)
+    .accessibilityLabel(exercise.name)
+    .accessibilityValue("\(exercise.targetMuscle), \(completed) von \(exercise.sets.count) Sätzen erledigt")
   }
 
   /// Sortier-Pfeil-Button für die Edit-Zeile.
