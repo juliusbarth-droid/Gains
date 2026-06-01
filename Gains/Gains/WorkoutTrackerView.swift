@@ -2001,6 +2001,7 @@ struct WorkoutTrackerView: View {
           Text("\(wStats.completedSets)/\(wStats.totalSets)")
             .font(TrackerType.metricSmall)
             .foregroundStyle(GainsColor.lime.opacity(0.7))
+            .accessibilityHidden(true)
         }
       }
       .padding(.horizontal, GainsSpacing.xl)
