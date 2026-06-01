@@ -3027,6 +3027,7 @@ final class GainsStore: ObservableObject {
     // letzten „release: clear stop sheet state on run close"-Patches.
     activeStructuredWorkout = nil
     lastProgressEvent = "Lauf verworfen — keine Änderung in der History."
+    scheduleSave()
   }
 
   // MARK: – Pre-Run Setup
