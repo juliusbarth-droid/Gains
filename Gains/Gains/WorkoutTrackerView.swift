@@ -1198,6 +1198,7 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Bearbeiten beenden")
+    .accessibilityHint("Schließt den Bearbeiten-Modus und kehrt zum Workout-Tracking zurück")
   }
 
   // MARK: - Drag&Drop-Reorder (2026-05-14)
