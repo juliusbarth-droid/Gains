@@ -1771,6 +1771,7 @@ struct WorkoutTrackerView: View {
         .tracking(GainsTracking.eyebrow)
     }
     .foregroundStyle(GainsColor.ink)
+    .accessibilityHidden(true)
     .padding(.horizontal, GainsSpacing.tight)
     .frame(height: 28)
     .background(
