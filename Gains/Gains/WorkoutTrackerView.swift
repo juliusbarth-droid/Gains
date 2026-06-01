@@ -1055,6 +1055,7 @@ struct WorkoutTrackerView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(exercise.name) entfernen")
+      .accessibilityHint("Entfernt diese Übung aus dem aktuellen Workout")
     }
     .padding(.horizontal, GainsSpacing.m)
     .padding(.vertical, GainsSpacing.s)
