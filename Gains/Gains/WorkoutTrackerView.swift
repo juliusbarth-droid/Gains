@@ -1063,6 +1063,7 @@ struct WorkoutTrackerView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel(exercise.name)
     .accessibilityValue("\(exercise.targetMuscle), \(completed) von \(exercise.sets.count) Sätzen erledigt")
+    .accessibilityHint("Zeigt die Übung mit Sortieren- und Entfernen-Aktionen")
   }
 
   /// Sortier-Pfeil-Button für die Edit-Zeile.
