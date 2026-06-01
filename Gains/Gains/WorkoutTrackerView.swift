@@ -2039,6 +2039,7 @@ struct WorkoutTrackerView: View {
           )
       )
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
+      .contentShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
       .compositingGroup()
       .shadow(color: GainsColor.lime.opacity(0.16), radius: 18, x: 0, y: 0)
       .shadow(color: GainsColor.shadowCardKey, radius: 14, x: 0, y: 8)
