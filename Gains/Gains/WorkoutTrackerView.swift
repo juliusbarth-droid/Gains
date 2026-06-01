@@ -1649,9 +1649,11 @@ struct WorkoutTrackerView: View {
             chipButton(icon: "arrow.uturn.forward", title: "Wdh.")
           }
           .buttonStyle(.plain)
+          .accessibilityLabel("Letzten Satz wiederholen")
+          .accessibilityValue(exercise.name)
+          .accessibilityHint(exercise.sets.isEmpty ? "Es gibt noch keinen Satz zum Wiederholen" : "Fügt einen neuen Satz mit den Werten des letzten Satzes hinzu")
           .disabled(exercise.sets.isEmpty)
           .opacity(exercise.sets.isEmpty ? 0.4 : 1)
-          .accessibilityLabel("Letzten Satz wiederholen")
 
           Spacer()
 
