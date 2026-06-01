@@ -176,8 +176,8 @@ struct CaptureSheet: View {
         actionTitle: selectedKind.actionTitle
       ) {
         store.shareLatestWorkout()
-        navigation.openHome()
         dismiss()
+        navigation.openHome()
       }
     case .run:
       publishCard(
@@ -186,8 +186,8 @@ struct CaptureSheet: View {
         actionTitle: selectedKind.actionTitle
       ) {
         store.shareLatestRun()
-        navigation.openTraining(workspace: .laufen)
         dismiss()
+        navigation.openTraining(workspace: .laufen)
       }
     case .progress:
       publishCard(
@@ -202,8 +202,8 @@ struct CaptureSheet: View {
         store.shareProgressUpdate()
         // Fortschritt-Tab existiert nicht mehr — Home zeigt den
         // aufklappbaren Fortschritts-Bereich.
-        navigation.openHome()
         dismiss()
+        navigation.openHome()
       }
     case .meal:
       mealLogger
