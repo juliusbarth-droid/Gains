@@ -2948,6 +2948,7 @@ final class GainsStore: ObservableObject {
   func startRun(from template: RunTemplate) {
     guard activeRun == nil else { return }
     activeRun = ActiveRunSession.fromTemplate(template)
+    scheduleSave()
   }
 
   /// Quick-Run ohne Template — bewusst frei, damit der User im Pre-Run-Setup
@@ -2956,6 +2957,7 @@ final class GainsStore: ObservableObject {
   func startQuickRun(modality: CardioModality = .run) {
     guard activeRun == nil else { return }
     activeRun = ActiveRunSession.freshQuickRun(modality: modality)
+    scheduleSave()
   }
 
   /// Setzt die Cardio-Modalität (Lauf/Rad outdoor/Rad indoor) auf einem
