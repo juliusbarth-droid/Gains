@@ -1190,6 +1190,7 @@ struct WorkoutTrackerView: View {
       HStack(spacing: GainsSpacing.s) {
         Image(systemName: "checkmark")
           .font(.system(size: 13, weight: .heavy))
+          .accessibilityHidden(true)
         Text("FERTIG")
           .font(TrackerType.eyebrow)
           .tracking(GainsTracking.eyebrowWide)
