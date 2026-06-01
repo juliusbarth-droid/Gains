@@ -1511,6 +1511,7 @@ struct WorkoutTrackerView: View {
               HStack(spacing: GainsSpacing.xs) {
                 Image(systemName: "play.rectangle.fill")
                   .font(.system(size: 10, weight: .bold))
+                  .accessibilityHidden(true)
                 Text("AUSFÜHRUNG")
                   .font(TrackerType.eyebrow)
                   .tracking(GainsTracking.eyebrowTight)
