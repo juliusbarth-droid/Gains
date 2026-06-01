@@ -1119,6 +1119,7 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Übung zum Workout hinzufügen")
+    .accessibilityValue("Bearbeiten-Modus")
     .accessibilityHint("Öffnet die Übungsauswahl für das aktuelle Workout")
   }
 
