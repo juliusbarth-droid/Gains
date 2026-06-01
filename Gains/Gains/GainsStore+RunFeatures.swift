@@ -429,6 +429,7 @@ extension GainsStore {
       hrZoneSecondsBuckets: [0, 0, 0, 0, 0]
     )
     activeStructuredWorkout = ActiveStructuredWorkout(workout: workout)
+    scheduleSave()
   }
 
   /// Aktualisiert den aktuellen Step-State anhand der Live-Tracker-Daten.
