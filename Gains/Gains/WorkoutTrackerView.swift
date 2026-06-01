@@ -1520,6 +1520,9 @@ struct WorkoutTrackerView: View {
               .clipShape(Capsule())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Ausführung anzeigen")
+            .accessibilityValue(exercise.name)
+            .accessibilityHint("Öffnet die Ausführungshilfe für diese Übung")
           }
         }
 
