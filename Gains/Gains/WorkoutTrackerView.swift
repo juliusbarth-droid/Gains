@@ -1976,6 +1976,7 @@ struct WorkoutTrackerView: View {
         Image(systemName: icon)
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
+          .accessibilityHidden(true)
 
         VStack(alignment: .leading, spacing: 2) {
           Text(title)
