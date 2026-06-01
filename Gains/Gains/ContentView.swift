@@ -181,7 +181,7 @@ struct ContentView: View {
     // im Hintergrund terminiert bevor der Timer gefeuert hat.
     // `.inactive` deckt sowohl Background als auch App-Switcher ab.
     .onChange(of: scenePhase) { _, newPhase in
-      if newPhase == .background {
+      if newPhase == .background || newPhase == .inactive {
         store.scheduleSave(force: true)
       }
     }
