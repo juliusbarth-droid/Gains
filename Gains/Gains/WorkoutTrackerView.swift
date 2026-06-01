@@ -1996,6 +1996,7 @@ struct WorkoutTrackerView: View {
               .accessibilityHidden(true)
           }
         }
+        .accessibilityHidden(true)
 
         Spacer()
 
