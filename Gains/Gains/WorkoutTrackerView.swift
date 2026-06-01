@@ -1199,6 +1199,7 @@ struct WorkoutTrackerView: View {
           .strokeBorder(GainsColor.lime.opacity(0.55), lineWidth: GainsBorder.accent)
       )
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
+      .contentShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Bearbeiten beenden")
