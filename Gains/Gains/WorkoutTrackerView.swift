@@ -1852,6 +1852,7 @@ struct WorkoutTrackerView: View {
           finishedMetric(label: "DAUER", value: sessionTimeString(start: workout.startedAt, now: Date()))
         }
         .padding(.top, 2)
+        .accessibilityHidden(true)
       }
 
       Spacer()
