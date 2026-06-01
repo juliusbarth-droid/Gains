@@ -215,6 +215,7 @@ struct ProgressContentView: View {
         Image(systemName: "arrow.up.right")
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.softInk)
+          .accessibilityHidden(true)
       }
       .padding(GainsSpacing.m)
       .background(GainsColor.card)
