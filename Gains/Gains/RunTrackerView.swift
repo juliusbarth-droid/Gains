@@ -252,6 +252,7 @@ struct RunTrackerView: View {
     gpsTracker.cardioModality = run.modality
 
     guard !run.isPaused else {
+      suppressNextAutoPauseSync = false
       gpsTracker.restorePausedTracking(from: run)
       return
     }
