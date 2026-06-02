@@ -2116,6 +2116,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
 
   func pauseTracking() {
     guard isUsingGPS || isTrackingFallback || isIndoor else { return }
+    autoPaused = false
     pauseDate = Date()
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
