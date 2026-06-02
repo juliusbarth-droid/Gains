@@ -2092,6 +2092,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     splits = []
     routeCoordinates = []
     currentHeartRate = 0
+    objectWillChange.send()
     // Alle internen State-Variablen zurücksetzen, damit ein erneuter Start
     // (z.B. direkt nach Verwerfen → neues Setup) keine stale-Werte trägt.
     lastLocation = nil
