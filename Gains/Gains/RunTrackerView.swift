@@ -249,7 +249,7 @@ struct RunTrackerView: View {
     gpsTracker.cardioModality = run.modality
 
     guard !run.isPaused else {
-      gpsTracker.pauseTracking()
+      gpsTracker.restorePausedTracking(from: run)
       return
     }
 
@@ -2052,6 +2052,31 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let nextDistance = max(0, trackedDistanceKm + deltaKm)
     trackedDistanceKm = nextDistance
     generateAutomaticSplits(currentHeartRate: currentHeartRate > 0 ? currentHeartRate : 130)
+  }
+
+  func restorePausedTracking(from run: ActiveRunSession) {
+    prepareTrackingState(from: run)
+    cardioModality = run.modality
+    isUsingGPS = false
+    isTrackingFallback = false
+    isIndoor = false
+
+    if !run.modality.requiresGPS {
+      isIndoor = true
+      autoPauseEnabled = false
+    } else if canStartTracking {
+      isUsingGPS = true
+      autoPauseEnabled = run.autoPauseEnabled
+    } else {
+      isTrackingFallback = true
+      autoPauseEnabled = run.autoPauseEnabled
+    }
+
+    pauseDate = Date()
+    if isUsingGPS {
+      manager.stopUpdatingLocation()
+    }
+    stopTimer()
   }
 
   func pauseTracking() {
