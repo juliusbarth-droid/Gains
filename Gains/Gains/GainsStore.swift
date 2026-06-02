@@ -3078,7 +3078,9 @@ final class GainsStore: ObservableObject {
   }
 
   func setAutoPause(_ enabled: Bool) {
+    guard activeRun != nil else { return }
     activeRun?.autoPauseEnabled = enabled
+    scheduleSave()
   }
 
   func setAudioCues(_ enabled: Bool) {
