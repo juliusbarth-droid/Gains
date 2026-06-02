@@ -2080,6 +2080,14 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   }
 
   func restorePausedTracking(from run: ActiveRunSession) {
+    if isUsingGPS {
+      if Self.hasLocationBackgroundMode {
+        manager.allowsBackgroundLocationUpdates = false
+      }
+      manager.stopUpdatingLocation()
+    }
+    stopTimer()
+
     prepareTrackingState(from: run)
     cardioModality = run.modality
     isUsingGPS = false
@@ -2099,13 +2107,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     pauseDate = Date()
-    if isUsingGPS {
-      if Self.hasLocationBackgroundMode {
-        manager.allowsBackgroundLocationUpdates = false
-      }
-      manager.stopUpdatingLocation()
+    if isUsingGPS, Self.hasLocationBackgroundMode {
+      manager.allowsBackgroundLocationUpdates = false
     }
-    stopTimer()
   }
 
   func pauseTracking() {
