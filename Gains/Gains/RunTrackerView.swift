@@ -2110,6 +2110,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     if isUsingGPS, Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
     }
+    objectWillChange.send()
   }
 
   func pauseTracking() {
