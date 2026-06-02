@@ -2070,6 +2070,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     } else {
       isTrackingFallback = true
       autoPauseEnabled = run.autoPauseEnabled
+      fallbackPaceSeconds = max(run.averagePaceSeconds, 330)
     }
 
     pauseDate = Date()
