@@ -2085,6 +2085,13 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     isTrackingFallback = false
     isIndoor = false
     autoPaused = false
+    trackedDistanceKm = 0
+    elevationGain = 0
+    durationMinutes = 0
+    elapsedSeconds = 0
+    splits = []
+    routeCoordinates = []
+    currentHeartRate = 0
     // Alle internen State-Variablen zurücksetzen, damit ein erneuter Start
     // (z.B. direkt nach Verwerfen → neues Setup) keine stale-Werte trägt.
     lastLocation = nil
