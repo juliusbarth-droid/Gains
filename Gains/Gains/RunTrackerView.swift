@@ -248,7 +248,10 @@ struct RunTrackerView: View {
     // legitime Punkte oberhalb von 36 km/h verworfen.
     gpsTracker.cardioModality = run.modality
 
-    guard !run.isPaused else { return }
+    guard !run.isPaused else {
+      gpsTracker.pauseTracking()
+      return
+    }
 
     // 2026-05-03: Indoor-Bike (Heimtrainer/Spinning) bekommt einen eigenen
     // Tracking-Pfad ohne GPS — kein Authorize, kein Map-Updates, nur Timer.
