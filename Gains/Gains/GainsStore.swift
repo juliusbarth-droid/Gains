@@ -3074,6 +3074,7 @@ final class GainsStore: ObservableObject {
       run.targetPaceSeconds = max(paceSeconds, 0)
     }
     activeRun = run
+    scheduleSave()
   }
 
   func setAutoPause(_ enabled: Bool) {
