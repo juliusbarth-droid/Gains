@@ -2100,6 +2100,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     lastMovementDate = Date()
 
     if isUsingGPS {
+      if Self.hasLocationBackgroundMode {
+        manager.allowsBackgroundLocationUpdates = true
+      }
       manager.startUpdatingLocation()
     }
 
