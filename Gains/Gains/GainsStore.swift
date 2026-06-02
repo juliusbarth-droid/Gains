@@ -3160,6 +3160,7 @@ final class GainsStore: ObservableObject {
   func adjustRunHeartRate(by delta: Int) {
     guard activeRun != nil else { return }
     activeRun?.currentHeartRate = min(max((activeRun?.currentHeartRate ?? 140) + delta, 96), 198)
+    scheduleSave()
   }
 
   /// Setzt die aktuelle Herzfrequenz direkt aus einem HealthKit-Live-Wert.
