@@ -1988,13 +1988,12 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     guard canStartTracking else { return }
     guard !isUsingGPS else { return }
 
-    // Falls bereits ein Fallback-Tracking läuft (Berechtigung wurde während
-    // eines laufenden Laufs erteilt), fließend auf GPS umschalten — bestehende
-    // Distanz/Zeit bleiben über `prepareTrackingState(from: run)` erhalten,
-    // weil der Store via `syncStoreWithTracker` die Fallback-Werte schon
-    // mitführt.
-    if isTrackingFallback {
+    // Falls bereits ein Fallback- oder Indoor-Tracking läuft, fließend auf
+    // GPS umschalten. Dabei vorher den alten Modus sauber räumen, damit kein
+    // Timer/Mode-Flag aus dem vorherigen Pfad hängen bleibt.
+    if isTrackingFallback || isIndoor {
       isTrackingFallback = false
+      isIndoor = false
       stopTimer()
     }
 
@@ -2033,6 +2032,10 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       }
       manager.stopUpdatingLocation()
       isUsingGPS = false
+      stopTimer()
+    }
+    if isIndoor {
+      isIndoor = false
       stopTimer()
     }
     guard !isTrackingFallback else { return }
