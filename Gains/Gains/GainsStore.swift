@@ -3016,7 +3016,7 @@ final class GainsStore: ObservableObject {
   }
 
   func discardRun() {
-    activeRun = nil
+    discardActiveRun()
   }
 
   /// Verwirft einen aktiven Lauf ohne ihn in die History zu speichern (Stop-Flow).
