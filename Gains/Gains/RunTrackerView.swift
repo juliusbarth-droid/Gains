@@ -152,6 +152,8 @@ struct RunTrackerView: View {
       if store.activeRun != nil {
         phase = .live
         synchronizeTrackerState()
+      } else {
+        phase = .setup
       }
     }
     .onDisappear {
