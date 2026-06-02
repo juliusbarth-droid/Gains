@@ -3214,6 +3214,7 @@ final class GainsStore: ObservableObject {
     )
     run.splits.append(split)
     activeRun = run
+    scheduleSave()
   }
 
   /// Beendet den aktiven Lauf und speichert ihn als CompletedRunSummary.
