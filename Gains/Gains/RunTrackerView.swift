@@ -362,7 +362,7 @@ struct RunTrackerView: View {
     guard let run = store.activeRun, run.autoPauseEnabled else { return }
     if paused, !run.isPaused {
       store.toggleRunPause()
-      gpsTracker.pauseTracking()
+      gpsTracker.pauseTracking(clearAutoPause: false)
       audio.speak("Auto-Pause.")
     } else if !paused, run.isPaused {
       store.toggleRunPause()
@@ -2116,9 +2116,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     objectWillChange.send()
   }
 
-  func pauseTracking() {
+  func pauseTracking(clearAutoPause: Bool = true) {
     guard isUsingGPS || isTrackingFallback || isIndoor else { return }
-    autoPaused = false
+    if clearAutoPause {
+      autoPaused = false
+    }
     pauseDate = Date()
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
