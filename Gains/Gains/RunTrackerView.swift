@@ -2089,6 +2089,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     stopTimer()
 
     prepareTrackingState(from: run)
+    currentHeartRate = run.currentHeartRate
     cardioModality = run.modality
     isUsingGPS = false
     isTrackingFallback = false
