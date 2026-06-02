@@ -3142,6 +3142,7 @@ final class GainsStore: ObservableObject {
   func addRunDistance(_ distance: Double) {
     guard activeRun != nil else { return }
     activeRun?.distanceKm = rounded(max(0, (activeRun?.distanceKm ?? 0) + distance))
+    scheduleSave()
   }
 
   func addRunDuration(_ minutes: Int) {
