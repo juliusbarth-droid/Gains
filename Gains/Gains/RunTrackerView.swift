@@ -2242,7 +2242,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       let speed = max(location.speed, 0) // m/s
       if speed > 0.5 {
         lastMovementDate = location.timestamp
-        if autoPaused { autoPaused = false }
+        if autoPaused {
+          autoPaused = false
+          lastLocation = location
+          continue
+        }
       }
 
       if autoPaused {
