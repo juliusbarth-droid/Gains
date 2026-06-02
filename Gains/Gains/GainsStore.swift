@@ -3084,7 +3084,9 @@ final class GainsStore: ObservableObject {
   }
 
   func setAudioCues(_ enabled: Bool) {
+    guard activeRun != nil else { return }
     activeRun?.audioCuesEnabled = enabled
+    scheduleSave()
   }
 
   // MARK: – Manueller Lap
