@@ -1936,6 +1936,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     // CLLocationManager-Streaming, damit kein Akkuverbrauch übrig bleibt.
     timer?.invalidate()
     timer = nil
+    if Self.hasLocationBackgroundMode {
+      manager.allowsBackgroundLocationUpdates = false
+    }
     manager.stopUpdatingLocation()
     manager.delegate = nil
   }
