@@ -2080,10 +2080,10 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   }
 
   func restorePausedTracking(from run: ActiveRunSession) {
+    if Self.hasLocationBackgroundMode {
+      manager.allowsBackgroundLocationUpdates = false
+    }
     if isUsingGPS {
-      if Self.hasLocationBackgroundMode {
-        manager.allowsBackgroundLocationUpdates = false
-      }
       manager.stopUpdatingLocation()
     }
     stopTimer()
