@@ -155,6 +155,8 @@ struct RunTrackerView: View {
       }
     }
     .onDisappear {
+      showsStopSheet = false
+      isConfirmingCountdownAbort = false
       HealthKitManager.shared.stopHeartRateObserver()
       cancelCountdown()
     }
