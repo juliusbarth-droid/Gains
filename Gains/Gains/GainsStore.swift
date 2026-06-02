@@ -3107,6 +3107,7 @@ final class GainsStore: ObservableObject {
       isManualLap: true
     )
     activeRun?.splits.append(split)
+    scheduleSave()
   }
 
   // MARK: – HF-Zonen-Tracking
