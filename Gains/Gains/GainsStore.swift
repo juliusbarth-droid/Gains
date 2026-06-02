@@ -3148,6 +3148,7 @@ final class GainsStore: ObservableObject {
   func addRunDuration(_ minutes: Int) {
     guard activeRun != nil else { return }
     activeRun?.durationMinutes = max(0, (activeRun?.durationMinutes ?? 0) + minutes)
+    scheduleSave()
   }
 
   func addRunElevation(_ meters: Int) {
