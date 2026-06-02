@@ -2027,7 +2027,14 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   }()
 
   func beginFallbackTracking(from run: ActiveRunSession) {
-    guard !isUsingGPS else { return }
+    if isUsingGPS {
+      if Self.hasLocationBackgroundMode {
+        manager.allowsBackgroundLocationUpdates = false
+      }
+      manager.stopUpdatingLocation()
+      isUsingGPS = false
+      stopTimer()
+    }
     guard !isTrackingFallback else { return }
 
     prepareTrackingState(from: run)
