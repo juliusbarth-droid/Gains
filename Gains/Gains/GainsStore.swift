@@ -2969,6 +2969,7 @@ final class GainsStore: ObservableObject {
     // Auto-Pause für Indoor abschalten — Heimtrainer steht ohnehin still.
     if modality.isIndoor { run.autoPauseEnabled = false }
     activeRun = run
+    scheduleSave()
   }
 
   func startRunLike(_ run: CompletedRunSummary) {
