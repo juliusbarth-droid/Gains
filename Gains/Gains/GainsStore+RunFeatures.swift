@@ -461,6 +461,7 @@ extension GainsStore {
   /// kann frei weiterlaufen.
   func endStructuredWorkout() {
     activeStructuredWorkout = nil
+    scheduleSave()
   }
 
   // MARK: - Goal-Trainingsplan
