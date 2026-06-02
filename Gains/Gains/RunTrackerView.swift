@@ -272,6 +272,10 @@ struct RunTrackerView: View {
 
   private func syncStoreWithTracker() {
     guard gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback || gpsTracker.isIndoor else { return }
+    guard store.activeRun != nil else {
+      synchronizeTrackerState()
+      return
+    }
     store.syncActiveRunGPS(
       distanceKm: gpsTracker.trackedDistanceKm,
       durationMinutes: gpsTracker.durationMinutes,
