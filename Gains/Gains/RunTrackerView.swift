@@ -137,6 +137,10 @@ struct RunTrackerView: View {
       gpsTracker.requestAuthorization()
       HealthKitManager.shared.startHeartRateObserver()
 
+      if store.activeRun == nil, store.activeStructuredWorkout != nil {
+        store.endStructuredWorkout()
+      }
+
       // Wenn beim Öffnen schon ein Lauf aktiv ist (z.B. App im Hintergrund war),
       // direkt in den Live-Screen springen und State synchronisieren.
       if store.activeRun != nil {
