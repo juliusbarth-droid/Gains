@@ -3154,6 +3154,7 @@ final class GainsStore: ObservableObject {
   func addRunElevation(_ meters: Int) {
     guard activeRun != nil else { return }
     activeRun?.elevationGain = max(0, (activeRun?.elevationGain ?? 0) + meters)
+    scheduleSave()
   }
 
   func adjustRunHeartRate(by delta: Int) {
