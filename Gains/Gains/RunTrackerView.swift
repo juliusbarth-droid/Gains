@@ -23,6 +23,7 @@ struct RunTrackerView: View {
   @State private var lastSpokenKilometer: Int = 0
   /// Letzter vom Audio-Cue gesprochener Step-Index — vermeidet doppelte Sprachausgabe.
   @State private var lastSpokenStepIndex: Int = -1
+  @State private var suppressNextAutoPauseSync = false
   /// 2026-05-01 P1-4: Bestätigungs-Dialog wenn der User im Countdown auf
   /// „Schließen" tippt — vorher wurde der Lauf in der Vorbereitung sofort
   /// verworfen, was ärgerlich ist wenn man Ziel/Modus schon eingestellt hat.
@@ -350,6 +351,7 @@ struct RunTrackerView: View {
     // eine struct-Kopie mit dem PRE-toggle-Wert und würde die Logik umkehren).
     let nowPaused = store.activeRun?.isPaused ?? false
     if nowPaused {
+      suppressNextAutoPauseSync = gpsTracker.autoPaused
       gpsTracker.pauseTracking()
       audio.speak("Pausiert.")
     } else {
@@ -359,6 +361,10 @@ struct RunTrackerView: View {
   }
 
   private func handleAutoPause(_ paused: Bool) {
+    if suppressNextAutoPauseSync {
+      suppressNextAutoPauseSync = false
+      return
+    }
     guard let run = store.activeRun, run.autoPauseEnabled else { return }
     if paused, !run.isPaused {
       store.toggleRunPause()
