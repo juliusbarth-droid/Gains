@@ -2245,6 +2245,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
         if autoPaused { autoPaused = false }
       }
 
+      if autoPaused {
+        lastLocation = location
+        continue
+      }
+
       if let lastLocation {
         let delta = location.distance(from: lastLocation)
         // 2026-05-01 P1-7: GPS-Plausibilitätsprüfung speed-basiert statt fix
