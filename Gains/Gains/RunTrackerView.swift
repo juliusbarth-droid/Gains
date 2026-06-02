@@ -2075,6 +2075,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
 
     pauseDate = Date()
     if isUsingGPS {
+      if Self.hasLocationBackgroundMode {
+        manager.allowsBackgroundLocationUpdates = false
+      }
       manager.stopUpdatingLocation()
     }
     stopTimer()
@@ -2084,6 +2087,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     guard isUsingGPS || isTrackingFallback || isIndoor else { return }
     pauseDate = Date()
     if isUsingGPS {
+      if Self.hasLocationBackgroundMode {
+        manager.allowsBackgroundLocationUpdates = false
+      }
       manager.stopUpdatingLocation()
     }
     stopTimer()
