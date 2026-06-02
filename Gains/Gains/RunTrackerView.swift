@@ -2109,6 +2109,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       if Self.hasLocationBackgroundMode {
         manager.allowsBackgroundLocationUpdates = true
       }
+      if canRequestPermission {
+        manager.requestWhenInUseAuthorization()
+      }
       manager.startUpdatingLocation()
     }
 
