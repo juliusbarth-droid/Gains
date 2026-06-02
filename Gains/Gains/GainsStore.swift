@@ -3034,7 +3034,9 @@ final class GainsStore: ObservableObject {
   // MARK: – Pre-Run Setup
 
   func setRunIntensity(_ intensity: RunIntensity) {
+    guard activeRun != nil else { return }
     activeRun?.intensity = intensity
+    scheduleSave()
   }
 
   /// Setzt den Ziel-Modus (Distanz/Zeit/Pace/Frei) inkl. zugehöriger Werte.
