@@ -362,9 +362,11 @@ struct RunTrackerView: View {
     guard let run = store.activeRun, run.autoPauseEnabled else { return }
     if paused, !run.isPaused {
       store.toggleRunPause()
+      gpsTracker.pauseTracking()
       audio.speak("Auto-Pause.")
     } else if !paused, run.isPaused {
       store.toggleRunPause()
+      gpsTracker.resumeTracking()
       audio.speak("Lauf fortgesetzt.")
     }
   }
