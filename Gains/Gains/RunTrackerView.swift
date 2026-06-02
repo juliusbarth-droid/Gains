@@ -230,6 +230,8 @@ struct RunTrackerView: View {
     guard let run = store.activeRun else {
       showsStopSheet = false
       phase = .setup
+      lastSpokenKilometer = 0
+      lastSpokenStepIndex = -1
       stopTracking()
       return
     }
