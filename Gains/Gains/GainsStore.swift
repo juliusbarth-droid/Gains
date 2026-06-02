@@ -2997,6 +2997,7 @@ final class GainsStore: ObservableObject {
       hrZoneSecondsBuckets: [0, 0, 0, 0, 0],
       modality: run.modality
     )
+    scheduleSave()
   }
 
   /// Benennt einen abgeschlossenen Lauf um. Leere Namen werden ignoriert.
