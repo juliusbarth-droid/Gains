@@ -59,6 +59,12 @@ struct RunTrackerView: View {
               onLap: handleManualLap,
               onStop: { showsStopSheet = true }
             )
+          } else {
+            PreRunSetupView(
+              store: store,
+              gpsTracker: gpsTracker,
+              onStart: beginCountdown
+            )
           }
         }
       }
