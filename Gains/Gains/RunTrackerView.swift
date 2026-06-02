@@ -233,6 +233,7 @@ struct RunTrackerView: View {
   private func synchronizeTrackerState() {
     guard let run = store.activeRun else {
       showsStopSheet = false
+      cancelCountdown()
       phase = .setup
       lastSpokenKilometer = 0
       lastSpokenStepIndex = -1
