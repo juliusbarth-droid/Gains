@@ -175,7 +175,9 @@ struct RunTrackerView: View {
       if store.activeRun?.modality.requiresGPS == true {
         gpsTracker.requestAuthorization()
       }
-      HealthKitManager.shared.startHeartRateObserver()
+      if store.activeRun != nil {
+        HealthKitManager.shared.startHeartRateObserver()
+      }
 
       if store.activeRun == nil, store.activeStructuredWorkout != nil {
         store.endStructuredWorkout()
@@ -287,6 +289,7 @@ struct RunTrackerView: View {
     if store.activeRun == nil {
       store.startQuickRun()
     }
+    HealthKitManager.shared.startHeartRateObserver()
     let modality = store.activeRun?.modality ?? .run
     switch modality {
     case .run:         audio.speak("Lauf gestartet.")
