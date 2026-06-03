@@ -123,12 +123,14 @@ struct RunTrackerView: View {
           // GPS-Tracker durch.
           elapsedSeconds: gpsTracker.elapsedSeconds,
           onSave: { title, note, feel in
+            isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
             finishRun(title: title, note: note, feel: feel)
             showsStopSheet = false
             dismiss()
           },
           onDiscard: {
+            isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
             stopTracking()
             store.discardActiveRun()
@@ -136,6 +138,7 @@ struct RunTrackerView: View {
             dismiss()
           },
           onResume: {
+            isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
             showsStopSheet = false
           }
