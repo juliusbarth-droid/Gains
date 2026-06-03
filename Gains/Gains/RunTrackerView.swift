@@ -58,7 +58,10 @@ struct RunTrackerView: View {
               activeWorkout: store.activeStructuredWorkout,
               onTogglePause: { togglePause(run) },
               onLap: handleManualLap,
-              onStop: { showsStopSheet = true }
+              onStop: {
+                isConfirmingCountdownAbort = false
+                showsStopSheet = true
+              }
             )
           } else {
             PreRunSetupView(
@@ -75,6 +78,7 @@ struct RunTrackerView: View {
           Button(phase == .live ? "Beenden" : "Schließen") {
             switch phase {
             case .live:
+              isConfirmingCountdownAbort = false
               showsStopSheet = true
             case .countdown:
               // P1-4: Im Countdown-Phase Bestätigung verlangen, weil
