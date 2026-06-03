@@ -108,6 +108,7 @@ struct RunTrackerView: View {
         titleVisibility: .visible
       ) {
         Button("Setup verwerfen", role: .destructive) {
+          isConfirmingCountdownAbort = false
           suppressNextAutoPauseSync = false
           cancelCountdown()
           stopTracking()
