@@ -153,6 +153,7 @@ struct RunTrackerView: View {
           onResume: {
             isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
+            phase = store.activeRun == nil ? .setup : .live
             showsStopSheet = false
           }
         )
