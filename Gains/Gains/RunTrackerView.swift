@@ -363,6 +363,7 @@ struct RunTrackerView: View {
       gpsTracker.pauseTracking()
       audio.speak("Pausiert.")
     } else {
+      suppressNextAutoPauseSync = false
       gpsTracker.resumeTracking()
       audio.speak("Lauf fortgesetzt.")
     }
