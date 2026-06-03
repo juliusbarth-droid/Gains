@@ -204,6 +204,11 @@ struct RunTrackerView: View {
         store.updateRunHeartRateLive(bpm)
       }
     }
+    .onChange(of: store.activeRun?.id) { _, _ in
+      if phase == .live, store.activeRun == nil {
+        synchronizeTrackerState()
+      }
+    }
     .onChange(of: gpsTracker.authorizationStatus) { _, _ in
       guard store.activeRun != nil, phase == .live, !showsStopSheet else { return }
       synchronizeTrackerState()
