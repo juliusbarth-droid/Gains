@@ -139,6 +139,7 @@ struct RunTrackerView: View {
             isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
             finishRun(title: title, note: note, feel: feel)
+            phase = .setup
             showsStopSheet = false
             dismiss()
           },
