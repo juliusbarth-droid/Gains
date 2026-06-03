@@ -86,6 +86,8 @@ struct RunTrackerView: View {
               isConfirmingCountdownAbort = true
             case .setup:
               showsStopSheet = false
+              isConfirmingCountdownAbort = false
+              suppressNextAutoPauseSync = false
               stopTracking()
               if store.activeRun != nil {
                 store.discardActiveRun()
