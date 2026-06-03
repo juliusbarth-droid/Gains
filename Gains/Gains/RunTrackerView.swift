@@ -349,6 +349,7 @@ struct RunTrackerView: View {
   private func syncStoreWithTracker() {
     guard gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback || gpsTracker.isIndoor else { return }
     guard store.activeRun != nil else {
+      guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       synchronizeTrackerState()
       return
     }
