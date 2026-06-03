@@ -196,7 +196,7 @@ struct RunTrackerView: View {
       }
     }
     .onChange(of: gpsTracker.authorizationStatus) { _, _ in
-      guard store.activeRun != nil, !showsStopSheet else { return }
+      guard store.activeRun != nil, phase == .live, !showsStopSheet else { return }
       synchronizeTrackerState()
     }
   }
