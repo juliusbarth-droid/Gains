@@ -229,7 +229,13 @@ struct RunTrackerView: View {
       }
     }
     .onChange(of: gpsTracker.authorizationStatus) { _, _ in
-      guard store.activeRun != nil, phase == .live, !showsStopSheet, !isConfirmingCountdownAbort else { return }
+      guard
+        let activeRun = store.activeRun,
+        activeRun.modality.requiresGPS,
+        phase == .live,
+        !showsStopSheet,
+        !isConfirmingCountdownAbort
+      else { return }
       synchronizeTrackerState()
     }
   }
