@@ -439,6 +439,7 @@ struct RunTrackerView: View {
   }
 
   private func handleAutoPause(_ paused: Bool) {
+    guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
     if suppressNextAutoPauseSync {
       suppressNextAutoPauseSync = false
       return
