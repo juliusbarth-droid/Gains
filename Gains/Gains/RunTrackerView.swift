@@ -102,6 +102,7 @@ struct RunTrackerView: View {
         titleVisibility: .visible
       ) {
         Button("Setup verwerfen", role: .destructive) {
+          suppressNextAutoPauseSync = false
           cancelCountdown()
           stopTracking()
           if store.activeRun != nil {
@@ -122,11 +123,13 @@ struct RunTrackerView: View {
           // GPS-Tracker durch.
           elapsedSeconds: gpsTracker.elapsedSeconds,
           onSave: { title, note, feel in
+            suppressNextAutoPauseSync = false
             finishRun(title: title, note: note, feel: feel)
             showsStopSheet = false
             dismiss()
           },
           onDiscard: {
+            suppressNextAutoPauseSync = false
             stopTracking()
             store.discardActiveRun()
             showsStopSheet = false
