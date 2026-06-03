@@ -157,6 +157,7 @@ struct RunTrackerView: View {
             suppressNextAutoPauseSync = false
             showsStopSheet = false
             if store.activeRun != nil {
+              HealthKitManager.shared.startHeartRateObserver()
               phase = .live
               synchronizeTrackerState()
             } else {
