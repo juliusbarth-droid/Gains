@@ -310,6 +310,7 @@ struct RunTrackerView: View {
       phase = .setup
       lastSpokenKilometer = 0
       lastSpokenStepIndex = -1
+      HealthKitManager.shared.stopHeartRateObserver()
       stopTracking()
       return
     }
