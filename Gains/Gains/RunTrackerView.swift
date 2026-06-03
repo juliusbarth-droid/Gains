@@ -215,6 +215,7 @@ struct RunTrackerView: View {
     }
     .onReceive(gpsTracker.$autoPaused) { paused in handleAutoPause(paused) }
     .onReceive(healthKit.$liveHeartRate)    { bpm in
+      guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       guard let bpm else { return }
       gpsTracker.currentHeartRate = bpm
       if store.activeRun != nil {
