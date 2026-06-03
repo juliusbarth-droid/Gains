@@ -233,7 +233,7 @@ struct RunTrackerView: View {
         HealthKitManager.shared.startHeartRateObserver()
         phase = .live
         synchronizeTrackerState()
-      } else if phase != .setup {
+      } else {
         synchronizeTrackerState()
       }
     }
