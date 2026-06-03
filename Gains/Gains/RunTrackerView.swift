@@ -189,6 +189,9 @@ struct RunTrackerView: View {
       suppressNextAutoPauseSync = false
       HealthKitManager.shared.stopHeartRateObserver()
       cancelCountdown()
+      if store.activeRun == nil {
+        phase = .setup
+      }
     }
     // Stabilitäts-Fix: vorher feuerten 4 separate onReceive-Publisher alle
     // syncStoreWithTracker() — in der Praxis 3–4× pro GPS-Update (ca. 1 Hz),
