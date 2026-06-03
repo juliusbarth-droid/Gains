@@ -444,7 +444,7 @@ struct RunTrackerView: View {
       suppressNextAutoPauseSync = false
       return
     }
-    guard let run = store.activeRun, run.autoPauseEnabled else { return }
+    guard let run = store.activeRun, run.autoPauseEnabled, run.modality.requiresGPS else { return }
     if paused, !run.isPaused {
       store.toggleRunPause()
       gpsTracker.pauseTracking(clearAutoPause: false, stopLocationUpdates: false)
