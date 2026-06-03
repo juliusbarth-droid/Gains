@@ -214,6 +214,8 @@ struct RunTrackerView: View {
     showsStopSheet = false
     isConfirmingCountdownAbort = false
     suppressNextAutoPauseSync = false
+    lastSpokenKilometer = 0
+    lastSpokenStepIndex = -1
     countdownValue = 3
     phase = .countdown
     audio.speak("Drei.")
