@@ -2327,6 +2327,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     elevationGain = run.elevationGain
     durationMinutes = run.durationMinutes
     elapsedSeconds = run.durationMinutes * 60
+    currentHeartRate = run.currentHeartRate
     // Kapazität vorallozieren: bei 1h Lauf + distanceFilter=5m ≈ 720 Coords.
     // `reserveCapacity` verhindert mehrfache Array-Reallokationen und reduziert
     // Heap-Fragmentierung. 2000 slots decken ≈ 10km ab, wachsen aber weiter.
