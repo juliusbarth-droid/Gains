@@ -211,6 +211,9 @@ struct RunTrackerView: View {
   // MARK: – Phase-Übergänge
 
   private func beginCountdown() {
+    showsStopSheet = false
+    isConfirmingCountdownAbort = false
+    suppressNextAutoPauseSync = false
     countdownValue = 3
     phase = .countdown
     audio.speak("Drei.")
