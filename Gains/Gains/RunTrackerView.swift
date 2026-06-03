@@ -227,6 +227,7 @@ struct RunTrackerView: View {
     .onChange(of: store.activeRun?.id) { _, _ in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       if store.activeRun != nil {
+        HealthKitManager.shared.startHeartRateObserver()
         phase = .live
         synchronizeTrackerState()
       } else if phase != .setup {
