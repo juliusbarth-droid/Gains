@@ -238,6 +238,9 @@ struct RunTrackerView: View {
   }
 
   private func startRunNow() {
+    showsStopSheet = false
+    isConfirmingCountdownAbort = false
+    suppressNextAutoPauseSync = false
     phase = .live
     if store.activeRun == nil {
       store.startQuickRun()
