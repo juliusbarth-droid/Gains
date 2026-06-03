@@ -240,6 +240,7 @@ struct RunTrackerView: View {
   private func synchronizeTrackerState() {
     guard let run = store.activeRun else {
       showsStopSheet = false
+      isConfirmingCountdownAbort = false
       suppressNextAutoPauseSync = false
       cancelCountdown()
       phase = .setup
