@@ -231,6 +231,9 @@ struct RunTrackerView: View {
       }
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       if store.activeRun != nil {
+        if store.activeRun?.modality.requiresGPS == true {
+          gpsTracker.requestAuthorization()
+        }
         HealthKitManager.shared.startHeartRateObserver()
         phase = .live
         synchronizeTrackerState()
