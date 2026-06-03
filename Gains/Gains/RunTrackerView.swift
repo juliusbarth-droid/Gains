@@ -215,7 +215,10 @@ struct RunTrackerView: View {
       }
     }
     .onChange(of: store.activeRun?.id) { _, _ in
-      if phase != .setup, store.activeRun == nil {
+      if store.activeRun != nil {
+        phase = .live
+        synchronizeTrackerState()
+      } else if phase != .setup {
         synchronizeTrackerState()
       }
     }
