@@ -86,6 +86,8 @@ struct RunTrackerView: View {
               case .countdown:
                 // P1-4: Im Countdown-Phase Bestätigung verlangen, weil
                 // Setup (Ziel/Modus/Audio-Cues) sonst verloren ist.
+                showsStopSheet = false
+                suppressNextAutoPauseSync = false
                 isConfirmingCountdownAbort = true
               case .setup, .live:
                 showsStopSheet = false
