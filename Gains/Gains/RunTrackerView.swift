@@ -60,6 +60,7 @@ struct RunTrackerView: View {
               onLap: handleManualLap,
               onStop: {
                 isConfirmingCountdownAbort = false
+                suppressNextAutoPauseSync = false
                 showsStopSheet = true
               }
             )
@@ -78,6 +79,7 @@ struct RunTrackerView: View {
           Button(hasVisibleLiveRun ? "Beenden" : "Schließen") {
             if hasVisibleLiveRun {
               isConfirmingCountdownAbort = false
+              suppressNextAutoPauseSync = false
               showsStopSheet = true
             } else {
               switch phase {
