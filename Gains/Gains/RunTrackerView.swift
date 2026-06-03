@@ -148,6 +148,8 @@ struct RunTrackerView: View {
       }
     }
     .onAppear {
+      showsStopSheet = false
+      isConfirmingCountdownAbort = false
       suppressNextAutoPauseSync = false
       gpsTracker.requestAuthorization()
       HealthKitManager.shared.startHeartRateObserver()
