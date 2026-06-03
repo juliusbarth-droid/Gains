@@ -238,6 +238,7 @@ struct RunTrackerView: View {
   }
 
   private func startRunNow() {
+    cancelCountdown()
     showsStopSheet = false
     isConfirmingCountdownAbort = false
     suppressNextAutoPauseSync = false
