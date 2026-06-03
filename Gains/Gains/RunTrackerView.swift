@@ -147,6 +147,7 @@ struct RunTrackerView: View {
             suppressNextAutoPauseSync = false
             stopTracking()
             store.discardActiveRun()
+            phase = .setup
             showsStopSheet = false
             dismiss()
           },
