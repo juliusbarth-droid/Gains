@@ -136,6 +136,7 @@ struct RunTrackerView: View {
             dismiss()
           },
           onResume: {
+            suppressNextAutoPauseSync = false
             showsStopSheet = false
           }
         )
