@@ -215,6 +215,7 @@ struct RunTrackerView: View {
       }
     }
     .onChange(of: store.activeRun?.id) { _, _ in
+      guard !showsStopSheet else { return }
       if store.activeRun != nil {
         phase = .live
         synchronizeTrackerState()
