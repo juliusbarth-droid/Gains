@@ -75,24 +75,26 @@ struct RunTrackerView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button(phase == .live ? "Beenden" : "Schließen") {
-            switch phase {
-            case .live:
+          Button(hasVisibleLiveRun ? "Beenden" : "Schließen") {
+            if hasVisibleLiveRun {
               isConfirmingCountdownAbort = false
               showsStopSheet = true
-            case .countdown:
-              // P1-4: Im Countdown-Phase Bestätigung verlangen, weil
-              // Setup (Ziel/Modus/Audio-Cues) sonst verloren ist.
-              isConfirmingCountdownAbort = true
-            case .setup:
-              showsStopSheet = false
-              isConfirmingCountdownAbort = false
-              suppressNextAutoPauseSync = false
-              stopTracking()
-              if store.activeRun != nil {
-                store.discardActiveRun()
+            } else {
+              switch phase {
+              case .countdown:
+                // P1-4: Im Countdown-Phase Bestätigung verlangen, weil
+                // Setup (Ziel/Modus/Audio-Cues) sonst verloren ist.
+                isConfirmingCountdownAbort = true
+              case .setup, .live:
+                showsStopSheet = false
+                isConfirmingCountdownAbort = false
+                suppressNextAutoPauseSync = false
+                stopTracking()
+                if store.activeRun != nil {
+                  store.discardActiveRun()
+                }
+                dismiss()
               }
-              dismiss()
             }
           }
           .foregroundStyle(GainsColor.ink)
@@ -206,6 +208,10 @@ struct RunTrackerView: View {
       guard store.activeRun != nil, phase == .live, !showsStopSheet else { return }
       synchronizeTrackerState()
     }
+  }
+
+  private var hasVisibleLiveRun: Bool {
+    phase == .live && store.activeRun != nil
   }
 
   // MARK: – Phase-Übergänge
