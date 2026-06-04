@@ -236,6 +236,7 @@ struct HomeView: View {
         pendingAfterChooser = nil
         pendingAfterBuilder = nil
         pendingAfterArrange = nil
+        isShowingWorkoutTracker = false
         isShowingRunTracker = true
         isShowingProgress = false
         isShowingProfile = false
