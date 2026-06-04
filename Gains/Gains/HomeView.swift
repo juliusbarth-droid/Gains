@@ -3555,6 +3555,9 @@ struct HomeView: View {
     if isShowingProgress { isShowingProgress = false }
     if isShowingProfile { isShowingProfile = false }
     if arrangingPlan != nil { arrangingPlan = nil }
+    pendingAfterChooser = nil
+    pendingAfterBuilder = nil
+    pendingAfterArrange = nil
   }
 
   // MARK: - Workout Helpers (unverändert)
