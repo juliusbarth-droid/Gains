@@ -379,7 +379,12 @@ struct WorkoutTrackerView: View {
       }
       .onChange(of: store.activeWorkout?.id) { _, newID in
         if newID == nil {
+          activeSetID = nil
+          restTimerEndsAt = nil
           isFinishing = false
+          isEditMode = false
+          isShowingExercisePicker = false
+          skipConfirmExercise = nil
         }
       }
       // Mis-Tap-Schutz für Skip (Optimierungs-Sweep 2026-05-03)
