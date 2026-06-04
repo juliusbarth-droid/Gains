@@ -1000,13 +1000,25 @@ struct HomeView: View {
 
       VStack(alignment: .leading, spacing: GainsSpacing.s) {
         Button {
-          navigation.openWeekPlanFullscreen()
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
+            isShowingRunTracker = true
+          } else {
+            navigation.openWeekPlanFullscreen()
+          }
         } label: {
           plannedTodayLine
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Heutiger Plan — tippen für Wochenübersicht")
+        .accessibilityLabel(
+          store.activeWorkout != nil
+            ? "Aktives Workout, tippen zum Fortsetzen"
+            : store.activeRun != nil
+              ? "Aktiver Lauf, tippen zum Fortsetzen"
+              : "Heutiger Plan, tippen für Wochenübersicht"
+        )
 
         if let week = cachedHomeWeekPreview {
           plannedWeekPills(week.days)
