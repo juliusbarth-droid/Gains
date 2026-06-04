@@ -2945,7 +2945,7 @@ final class GainsStore: ObservableObject {
   }
 
   func startRun(from template: RunTemplate) {
-    guard activeRun == nil else { return }
+    guard activeRun == nil, activeWorkout == nil else { return }
     activeRun = ActiveRunSession.fromTemplate(template)
     scheduleSave()
   }
@@ -2954,7 +2954,7 @@ final class GainsStore: ObservableObject {
   /// Intensität / Ziel / Audio-Cues selbst wählt. Optional kann eine
   /// Cardio-Modalität mitgegeben werden (Lauf / Outdoor-Rad / Indoor-Rad).
   func startQuickRun(modality: CardioModality = .run) {
-    guard activeRun == nil else { return }
+    guard activeRun == nil, activeWorkout == nil else { return }
     activeRun = ActiveRunSession.freshQuickRun(modality: modality)
     scheduleSave()
   }
