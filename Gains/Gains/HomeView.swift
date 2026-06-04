@@ -316,6 +316,7 @@ struct HomeView: View {
       },
       onCancel: {
         pendingAfterArrange = nil
+        pendingActionLock = nil
         store.discardWorkout()
         arrangingPlan = nil
       }
