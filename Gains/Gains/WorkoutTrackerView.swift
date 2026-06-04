@@ -377,6 +377,11 @@ struct WorkoutTrackerView: View {
       } message: {
         Text("Speicher deinen Fortschritt oder verwirf das aktuelle Workout.")
       }
+      .onChange(of: store.activeWorkout?.id) { _, newID in
+        if newID == nil {
+          isFinishing = false
+        }
+      }
       // Mis-Tap-Schutz für Skip (Optimierungs-Sweep 2026-05-03)
       .confirmationDialog(
         skipConfirmExercise.map { "'\($0.name)' überspringen?" } ?? "Übung überspringen?",
