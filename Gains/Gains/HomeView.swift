@@ -4068,7 +4068,13 @@ struct HomeView: View {
     }()
 
     return Button {
-      navigation.openWeekPlanFullscreen()
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+      } else if store.activeRun != nil {
+        isShowingRunTracker = true
+      } else {
+        navigation.openWeekPlanFullscreen()
+      }
     } label: {
       VStack(spacing: GainsSpacing.xxs) {
         Text(day.weekday.shortLabel)
