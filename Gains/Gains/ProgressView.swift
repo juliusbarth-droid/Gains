@@ -175,16 +175,17 @@ struct ProgressContentView: View {
   private var progressFooterCTA: some View {
     let plan = store.todayPlannedDay
     let isPlanned = plan.status == .planned
+    let opensRun = plan.runTemplate != nil || plan.sessionKind?.isRun == true
     let title: String = isPlanned ? "Heute starten" : "Plan ansehen"
     let subtitle: String = isPlanned
-      ? plan.workoutPlan?.title ?? plan.title
+      ? plan.runTemplate?.title ?? plan.workoutPlan?.title ?? plan.title
       : "Wochenplan anpassen"
     let icon: String = isPlanned ? "play.fill" : "calendar"
 
     return Button {
       if isPlanned {
         dismiss()
-        navigation.openTraining(workspace: .kraft)
+        navigation.openTraining(workspace: opensRun ? .laufen : .kraft)
       } else {
         dismiss()
         navigation.openWeekPlanFullscreen()
