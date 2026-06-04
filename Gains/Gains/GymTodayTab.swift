@@ -416,6 +416,11 @@ struct GymTodayTab: View {
       return
     }
 
+    if store.activeRun != nil {
+      navigation.openTraining(workspace: .laufen)
+      return
+    }
+
     if let runTemplate = day.runTemplate {
       store.startRun(from: runTemplate)
       navigation.openTraining(workspace: .laufen)
