@@ -2108,6 +2108,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     prepareTrackingState(from: run)
+    cardioModality = run.modality
+    autoPauseEnabled = run.autoPauseEnabled
     isUsingGPS = true
     // Hintergrund-Location erst jetzt erlauben — sonst hält iOS die App
     // dauerhaft im Hintergrund am Leben. Beim Stop wird der Flag wieder
