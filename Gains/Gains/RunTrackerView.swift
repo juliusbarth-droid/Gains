@@ -2151,7 +2151,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     guard !isTrackingFallback else { return }
 
     prepareTrackingState(from: run)
+    cardioModality = run.modality
     isTrackingFallback = true
+    autoPauseEnabled = run.autoPauseEnabled
     fallbackPaceSeconds = max(run.averagePaceSeconds, 330)
     startTimer()
   }
