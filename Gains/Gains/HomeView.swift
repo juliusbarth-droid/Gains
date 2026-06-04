@@ -3901,7 +3901,13 @@ struct HomeView: View {
         .gainsEyebrow(GainsColor.lime, size: 10, tracking: 1.6)
       Spacer()
       Button {
-        navigation.openWeekPlanFullscreen()
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          navigation.openWeekPlanFullscreen()
+        }
       } label: {
         HStack(spacing: GainsSpacing.xxs) {
           // 2026-05-16 (Polish-Loop): tracking 1.0 → eyebrowTight (1.2) —
