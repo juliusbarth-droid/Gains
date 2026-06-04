@@ -230,6 +230,8 @@ struct HomeView: View {
       if newValue != nil {
         pendingActionLock = nil
         isShowingRunTracker = true
+        isShowingProgress = false
+        isShowingProfile = false
       }
     }
     // 2026-05-16 (Fertiger-Audit P0-6): zentrales Haptik-Feedback für die
