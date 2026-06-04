@@ -224,8 +224,9 @@ struct HomeView: View {
       }
     }
     .onChange(of: store.activeRun?.id) { _, newValue in
-      if newValue != nil, pendingActionLock == .startingRun {
+      if newValue != nil {
         pendingActionLock = nil
+        isShowingRunTracker = true
       }
     }
     // 2026-05-16 (Fertiger-Audit P0-6): zentrales Haptik-Feedback für die
