@@ -2629,11 +2629,12 @@ struct HomeView: View {
 
       // Headline-Ton skaliert mit daysSince — bewusst keine Schuldzuweisung,
       // sondern „komm rein, wir machen es leicht".
+      let isRunPlan = plan.runTemplate != nil || plan.sessionKind?.isRun == true
       let headline: String
       let subline: String
       if daysSince <= 2 {
         headline = "Erster Schritt steht aus\(warmName)."
-        subline = plan.runTemplate != nil
+        subline = isRunPlan
           ? "Heute steht dein erster Lauf im Plan. 15 Minuten reichen schon."
           : "Heute ist ein guter Tag für die erste Session — kurz und gut."
       } else if daysSince <= 7 {
@@ -2645,11 +2646,11 @@ struct HomeView: View {
       }
 
       let primaryAction: CoachActionDescriptor
-      if plan.runTemplate != nil {
+      if isRunPlan {
         primaryAction = CoachActionDescriptor(
           title: "Ersten Lauf starten",
           icon: "play.fill",
-          metric: String(format: "%.1f km", plan.runTemplate?.targetDistanceKm ?? 0),
+          metric: plan.runTemplate.map { String(format: "%.1f km", $0.targetDistanceKm) },
           action: .startQuickRun
         )
       } else if plan.status == .planned {
