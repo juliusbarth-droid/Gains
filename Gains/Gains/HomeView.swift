@@ -218,6 +218,7 @@ struct HomeView: View {
         isShowingWorkoutChooser = false
         isShowingWorkoutBuilder = false
         isShowingWorkoutTracker = true
+        isShowingRunTracker = false
         isShowingProgress = false
         isShowingProfile = false
         arrangingPlan = nil
