@@ -213,8 +213,14 @@ struct HomeView: View {
     // auch feuern, wenn der Workout aus dem Gym-Tab heraus abgeschlossen wird.
     // P0 B: Sobald die echte Session publiziert ist, ist der Lock unnötig.
     .onChange(of: store.activeWorkout?.id) { _, newValue in
-      if newValue != nil, pendingActionLock == .startingWorkout {
+      if newValue != nil {
         pendingActionLock = nil
+        isShowingWorkoutChooser = false
+        isShowingWorkoutBuilder = false
+        arrangingPlan = nil
+        pendingAfterChooser = nil
+        pendingAfterBuilder = nil
+        pendingAfterArrange = nil
       }
     }
     .onChange(of: store.activeRun?.id) { _, newValue in
