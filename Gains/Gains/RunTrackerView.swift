@@ -300,6 +300,9 @@ struct RunTrackerView: View {
     if store.activeRun == nil {
       store.startQuickRun()
     }
+    if store.activeRun?.modality.requiresGPS == true {
+      gpsTracker.requestAuthorization()
+    }
     HealthKitManager.shared.startHeartRateObserver()
     let modality = store.activeRun?.modality ?? .run
     switch modality {
