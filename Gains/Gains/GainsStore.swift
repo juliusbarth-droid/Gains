@@ -2930,7 +2930,7 @@ final class GainsStore: ObservableObject {
   /// Returns true wenn ein Workout gestartet wurde.
   @discardableResult
   func repeatLastWorkout() -> Bool {
-    guard activeWorkout == nil, let last = workoutHistory.first else { return false }
+    guard activeWorkout == nil, activeRun == nil, let last = workoutHistory.first else { return false }
     let plan = savedWorkoutPlans.first(where: { $0.title == last.title })
       ?? currentWorkoutPreview
     activeWorkout = WorkoutSession.fromPlan(plan)
