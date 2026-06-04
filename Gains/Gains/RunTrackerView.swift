@@ -485,6 +485,7 @@ struct RunTrackerView: View {
   }
 
   private func stopTracking() {
+    gpsTracker.currentHeartRate = 0
     HealthKitManager.shared.stopHeartRateObserver()
     gpsTracker.stopTracking()
   }
