@@ -386,6 +386,7 @@ struct WorkoutTrackerView: View {
           isEditMode = false
           isShowingExercisePicker = false
           skipConfirmExercise = nil
+          lastAutoCollapsedID = nil
           formGuideExercise = nil
           scrollToExerciseID = nil
           pendingUndo = nil
