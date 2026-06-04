@@ -338,6 +338,9 @@ struct RunTrackerView: View {
 
     guard !run.isPaused else {
       suppressNextAutoPauseSync = false
+      if run.modality.requiresGPS {
+        gpsTracker.requestAuthorization()
+      }
       gpsTracker.restorePausedTracking(from: run)
       return
     }
