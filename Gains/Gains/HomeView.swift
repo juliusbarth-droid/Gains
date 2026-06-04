@@ -3546,9 +3546,10 @@ struct HomeView: View {
     case .startQuickRun:
       startQuickRun()
     case .startPlannedWorkout:
-      if let plan = store.todayPlannedWorkout {
-        presentArrange(for: plan)
-      } else if store.todayPlannedDay.runTemplate != nil {
+      let plan = store.todayPlannedDay
+      if let workoutPlan = store.todayPlannedWorkout {
+        presentArrange(for: workoutPlan)
+      } else if plan.runTemplate != nil || plan.sessionKind?.isRun == true {
         startQuickRun()
       } else {
         startFreeWorkout()
