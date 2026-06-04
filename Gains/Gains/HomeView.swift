@@ -3016,15 +3016,16 @@ struct HomeView: View {
 
     // 11) Default — Plan-Status anzeigen.
     let plan = store.todayPlannedDay
-    let title = plan.workoutPlan?.title ?? plan.title
+    let isRunPlan = plan.runTemplate != nil || plan.sessionKind?.isRun == true
+    let title = plan.runTemplate?.title ?? plan.sessionKind?.title ?? plan.workoutPlan?.title ?? plan.title
     return CoachBrief(
       eyebrow: "BEREIT?",
-      glyph: "play.fill",
-      accent: GainsColor.lime,
+      glyph: isRunPlan ? "figure.run" : "play.fill",
+      accent: isRunPlan ? GainsColor.ember : GainsColor.lime,
       headline: title.isEmpty ? "Was passt gerade?" : "Heute: \(title).",
       subline: store.coachHeadline,
       primary: CoachActionDescriptor(
-        title: "Training starten",
+        title: isRunPlan ? "Lauf starten" : "Training starten",
         icon: "play.fill",
         metric: nil,
         action: plan.status == .planned ? .startPlannedWorkout : .startQuickWorkout
