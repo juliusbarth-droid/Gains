@@ -3418,7 +3418,7 @@ struct HomeView: View {
     // oben + Hero-Tile unten), weil Discovery vor Redundanz-Hygiene geht.
     if isInDayOneWindow {
       let primaryFirstAction: ActionTileSpec = {
-        if plan.runTemplate != nil {
+        if plan.runTemplate != nil || plan.sessionKind?.isRun == true {
           return ActionTileSpec(
             kind: .cardio,
             eyebrow: "ERSTER LAUF",
