@@ -2914,13 +2914,12 @@ final class GainsStore: ObservableObject {
   }
 
   func startWorkout(from plan: WorkoutPlan) {
-    if activeWorkout == nil {
-      activeWorkout = WorkoutSession.fromPlan(plan)
-    }
+    guard activeWorkout == nil, activeRun == nil else { return }
+    activeWorkout = WorkoutSession.fromPlan(plan)
   }
 
   func startQuickWorkout() {
-    guard activeWorkout == nil else { return }
+    guard activeWorkout == nil, activeRun == nil else { return }
     let plan = todayPlannedWorkout ?? savedWorkoutPlans.first ?? currentWorkoutPreview
     activeWorkout = WorkoutSession.fromPlan(plan)
   }
