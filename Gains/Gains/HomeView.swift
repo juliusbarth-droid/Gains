@@ -229,6 +229,12 @@ struct HomeView: View {
     .onChange(of: store.activeRun?.id) { _, newValue in
       if newValue != nil {
         pendingActionLock = nil
+        isShowingWorkoutChooser = false
+        isShowingWorkoutBuilder = false
+        arrangingPlan = nil
+        pendingAfterChooser = nil
+        pendingAfterBuilder = nil
+        pendingAfterArrange = nil
         isShowingRunTracker = true
         isShowingProgress = false
         isShowingProfile = false
