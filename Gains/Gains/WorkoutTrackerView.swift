@@ -389,6 +389,8 @@ struct WorkoutTrackerView: View {
           scrollToExerciseID = nil
           pendingUndo = nil
           collapsedExerciseIDs = []
+          draggingExerciseID = nil
+          dropHoverID = nil
         }
       }
       // Mis-Tap-Schutz für Skip (Optimierungs-Sweep 2026-05-03)
