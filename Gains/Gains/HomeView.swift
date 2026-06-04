@@ -3539,7 +3539,8 @@ struct HomeView: View {
     case .openNutritionCapture:
       navigation.presentCapture(kind: .meal)
     case .openTrainingTab:
-      navigation.openTraining(workspace: .kraft)
+      let plan = store.todayPlannedDay
+      navigation.openTraining(workspace: (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? .laufen : .kraft)
     case .startQuickWorkout:
       startFreeWorkout()
     case .startQuickRun:
