@@ -341,6 +341,7 @@ struct RunTrackerView: View {
       if run.modality.requiresGPS {
         gpsTracker.requestAuthorization()
       }
+      HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.restorePausedTracking(from: run)
       return
     }
