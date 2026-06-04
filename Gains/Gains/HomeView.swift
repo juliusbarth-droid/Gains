@@ -1027,7 +1027,13 @@ struct HomeView: View {
         // 2026-05-14 (Polish-Loop 110): Wochenplan-CTA-Pille jetzt mit
         // Glas-Composition + Radial-Glow.
         Button {
-          navigation.openWeekPlanFullscreen()
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
+            isShowingRunTracker = true
+          } else {
+            navigation.openWeekPlanFullscreen()
+          }
         } label: {
           HStack(spacing: GainsSpacing.xxs) {
             Text("WOCHENPLAN ÖFFNEN")
