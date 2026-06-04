@@ -2972,7 +2972,7 @@ final class GainsStore: ObservableObject {
   }
 
   func startRunLike(_ run: CompletedRunSummary) {
-    guard activeRun == nil else { return }
+    guard activeRun == nil, activeWorkout == nil else { return }
     activeRun = ActiveRunSession(
       id: UUID(),
       title: run.title,
