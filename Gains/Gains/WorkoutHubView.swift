@@ -993,7 +993,9 @@ struct WorkoutHubView: View {
     let isLocked = store.activeRun != nil
     return Button {
       store.startRun(from: template)
-      isShowingRunTracker = true
+      if store.activeRun != nil {
+        isShowingRunTracker = true
+      }
     } label: {
       HStack(spacing: GainsSpacing.s) {
         // Polish-Loop 140 (2026-05-14): Template-Icon mit Inner-Light +
