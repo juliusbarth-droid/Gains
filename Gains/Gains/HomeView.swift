@@ -317,7 +317,9 @@ struct HomeView: View {
       onStart: {
         isShowingWorkoutTracker = false
         pendingAfterArrange = {
-          isShowingWorkoutTracker = true
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          }
           pendingAfterArrange = nil
         }
         arrangingPlan = nil
