@@ -695,6 +695,7 @@ struct WeekPlanFullscreenView: View {
 
   private var activeRunResumeBanner: some View {
     Button {
+      guard store.activeRun != nil else { return }
       showsRunTracker = true
       UISelectionFeedbackGenerator().selectionChanged()
     } label: {
