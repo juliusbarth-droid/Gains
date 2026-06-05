@@ -3611,7 +3611,9 @@ struct HomeView: View {
       pendingActionLock = .startingRun
       store.startQuickRun()
     }
-    isShowingRunTracker = true
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+    }
   }
 
   /// Modality-spezifischer Quick-Start. Long-Press-Shortcuts der Cardio-
