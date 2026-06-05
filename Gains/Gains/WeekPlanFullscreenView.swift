@@ -642,7 +642,9 @@ struct WeekPlanFullscreenView: View {
     } else if session.isCardio {
       if let template = RunTemplate.template(for: session.kind) {
         store.startRun(from: template)
-        showsRunTracker = true
+        if store.activeRun != nil {
+          showsRunTracker = true
+        }
       }
     }
   }
