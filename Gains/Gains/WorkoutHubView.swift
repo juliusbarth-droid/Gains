@@ -1192,7 +1192,9 @@ struct WorkoutHubView: View {
       Button {
         guard store.activeWorkout == nil else { return }
         store.startRunLike(run)
-        isShowingRunTracker = true
+        if store.activeRun != nil {
+          isShowingRunTracker = true
+        }
       } label: {
         HStack(spacing: GainsSpacing.xs) {
           Image(systemName: "arrow.clockwise")
