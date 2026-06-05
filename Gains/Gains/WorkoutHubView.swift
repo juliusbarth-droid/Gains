@@ -597,6 +597,7 @@ struct WorkoutHubView: View {
           title: "Tracker & Karte öffnen",
           icon: "map.fill",
           action: {
+            guard store.activeRun != nil else { return }
             isShowingRunTracker = true
           }
         )
