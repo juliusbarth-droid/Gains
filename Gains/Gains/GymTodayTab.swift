@@ -417,6 +417,7 @@ struct GymTodayTab: View {
     // KEINE Wirkung (gleicher Tick → keine View-Diff → kein Re-Present).
     // Stattdessen einfach einmal auf `true` setzen.
     if isLive {
+      guard store.activeWorkout != nil else { return }
       isShowingWorkoutTracker = true
       return
     }
