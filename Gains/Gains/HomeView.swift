@@ -3543,6 +3543,7 @@ struct HomeView: View {
     closeAllSheets()
     switch action {
     case .openWorkoutTracker:
+      guard store.activeWorkout != nil else { return }
       isShowingWorkoutTracker = true
     case .openRunTracker:
       guard store.activeRun != nil else { return }
