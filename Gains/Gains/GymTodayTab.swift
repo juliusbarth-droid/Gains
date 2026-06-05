@@ -620,7 +620,10 @@ struct GymTodayTab: View {
           HeroPrimaryCTAButton(
             title: "Tracker öffnen & weitermachen",
             icon: "dumbbell.fill",
-            action: { isShowingWorkoutTracker = true }
+            action: {
+              guard store.activeWorkout != nil else { return }
+              isShowingWorkoutTracker = true
+            }
           )
         }
         // A13 (Cleaner-Pass): Hero-Resume-Card auf Standard-Card-Geometrie
