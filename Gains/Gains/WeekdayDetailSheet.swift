@@ -446,6 +446,7 @@ struct WeekdayDetailSheet: View {
 
   private var primaryActionTitle: String {
     if store.activeRun != nil { return "Run fortsetzen" }
+    if store.activeWorkout != nil { return "Workout fortsetzen" }
     if isBikeDay { return "Fahrt starten" }
     if isRunDay { return "Lauf starten" }
     if assignedPlan != nil { return "Workout starten" }
