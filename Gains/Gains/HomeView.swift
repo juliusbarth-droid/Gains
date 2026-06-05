@@ -3797,8 +3797,10 @@ struct HomeView: View {
       HStack(spacing: GainsSpacing.xs) {
         Button {
           store.restoreActiveWorkout(from: snapshot)
-          isShowingWorkoutTracker = true
-          UISelectionFeedbackGenerator().selectionChanged()
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+            UISelectionFeedbackGenerator().selectionChanged()
+          }
         } label: {
           Text("FORTSETZEN")
             .font(GainsFont.eyebrow)
