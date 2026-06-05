@@ -3622,7 +3622,9 @@ struct HomeView: View {
       pendingActionLock = .startingRun
       store.startQuickRun(modality: modality)
     }
-    isShowingRunTracker = true
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+    }
   }
 
   private func presentArrange(for plan: WorkoutPlan) {
