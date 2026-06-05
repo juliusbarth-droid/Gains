@@ -3545,6 +3545,7 @@ struct HomeView: View {
     case .openWorkoutTracker:
       isShowingWorkoutTracker = true
     case .openRunTracker:
+      guard store.activeRun != nil else { return }
       isShowingRunTracker = true
     case .openProgress:
       isShowingProgress = true
