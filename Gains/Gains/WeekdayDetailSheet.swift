@@ -479,8 +479,10 @@ struct WeekdayDetailSheet: View {
       store.startWorkout(from: plan)
       // 2026-05-14: Sheet-Race-Hardening — Parent triggert Tracker im
       // onDismiss-Callback (deterministisch nach Sheet-Tear-Down).
-      pendingPostDismiss = .startWorkoutTracker
-      dismiss()
+      if store.activeWorkout != nil {
+        pendingPostDismiss = .startWorkoutTracker
+        dismiss()
+      }
       return
     }
     if isRestDay || isFlexDay {
