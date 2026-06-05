@@ -469,8 +469,10 @@ struct WeekdayDetailSheet: View {
       store.startRun(from: runTemplate)
       // 2026-05-15 (P1 #6): Kein Tab-Switch mehr — RunTracker startet direkt
       // via pendingPostDismiss-Pattern (race-frei nach Sheet-Teardown).
-      pendingPostDismiss = .startRunTracker
-      dismiss()
+      if store.activeRun != nil {
+        pendingPostDismiss = .startRunTracker
+        dismiss()
+      }
       return
     }
     if let plan = assignedPlan {
