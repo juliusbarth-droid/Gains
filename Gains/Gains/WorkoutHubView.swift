@@ -844,7 +844,9 @@ struct WorkoutHubView: View {
           action: {
             guard store.activeWorkout == nil else { return }
             store.startQuickRun(modality: preferredModality)
-            isShowingRunTracker = true
+            if store.activeRun != nil {
+              isShowingRunTracker = true
+            }
           }
         )
       } else {
