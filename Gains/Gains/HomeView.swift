@@ -310,7 +310,10 @@ struct HomeView: View {
   @ViewBuilder
   private var workoutBuilderSheet: some View {
     WorkoutBuilderView { workout in
-      pendingAfterBuilder = { presentArrange(for: workout) }
+      pendingAfterBuilder = {
+        guard store.activeWorkout == nil, store.activeRun == nil else { return }
+        presentArrange(for: workout)
+      }
       isShowingWorkoutBuilder = false
     }
     .environmentObject(store)
