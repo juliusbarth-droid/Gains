@@ -94,7 +94,7 @@ struct GymView: View {
       WorkoutBuilderView { savedPlan in
         store.startWorkout(from: savedPlan)
         isShowingWorkoutBuilder = false
-        if store.activeWorkout != nil {
+        if store.activeWorkout?.title == savedPlan.title {
           isShowingWorkoutTracker = true
         }
       }
