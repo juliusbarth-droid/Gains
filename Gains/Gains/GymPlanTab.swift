@@ -72,7 +72,9 @@ struct GymPlanTab: View {
         weekdayPostDismiss = nil
         switch action {
         case .startWorkoutTracker:
-          isShowingWorkoutTracker = true
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          }
         case .startRunTracker:
           // GymPlanTab hat keinen eigenen RunTracker — Tab-Switch zum
           // Cardio-Hub als Fallback (WeekPlanFullscreenView startet direkt).
