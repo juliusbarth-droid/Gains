@@ -341,7 +341,7 @@ struct GymTodayTab: View {
   // sonst Fallback auf Builder.
   private func repeatLastWorkout(reference: CompletedWorkoutSummary) {
     UIImpactFeedbackGenerator(style: .light).impactOccurred()
-    if store.repeatLastWorkout() {
+    if store.repeatLastWorkout(), store.activeWorkout != nil {
       isShowingWorkoutTracker = true
     } else if let plan = store.savedWorkoutPlans.first(where: { $0.title == reference.title }) {
       store.startWorkout(from: plan)
