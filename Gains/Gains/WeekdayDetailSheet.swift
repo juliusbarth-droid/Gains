@@ -487,11 +487,11 @@ struct WeekdayDetailSheet: View {
     }
     if isRestDay || isFlexDay {
       let started: Bool
-      if store.repeatLastWorkout() {
+      if store.repeatLastWorkout(), store.activeWorkout != nil {
         started = true
       } else if let first = store.savedWorkoutPlans.first {
         store.startWorkout(from: first)
-        started = true
+        started = store.activeWorkout != nil
       } else {
         started = false
       }
