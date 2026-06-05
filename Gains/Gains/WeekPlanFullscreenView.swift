@@ -637,7 +637,9 @@ struct WeekPlanFullscreenView: View {
     if session.isGym {
       if let plan = store.workoutPlan(for: session) ?? store.savedWorkoutPlans.first {
         store.startWorkout(from: plan)
-        showsWorkoutTracker = true
+        if store.activeWorkout != nil {
+          showsWorkoutTracker = true
+        }
       }
     } else if session.isCardio {
       if let template = RunTemplate.template(for: session.kind) {
