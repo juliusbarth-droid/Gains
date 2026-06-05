@@ -289,7 +289,10 @@ struct HomeView: View {
     NavigationStack {
       WorkoutTrackerEntryView(
         onSelectWorkout: { plan in
-          pendingAfterChooser = { presentArrange(for: plan) }
+          pendingAfterChooser = {
+            guard store.activeWorkout == nil, store.activeRun == nil else { return }
+            presentArrange(for: plan)
+          }
           isShowingWorkoutChooser = false
         },
         onCreateWorkout: {
