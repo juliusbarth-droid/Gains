@@ -2055,9 +2055,7 @@ struct HomeView: View {
         Label("Spontan starten", systemImage: "play.fill")
       }
       Button {
-        if store.repeatLastWorkout() {
-          isShowingWorkoutTracker = true
-        }
+        repeatLastWorkoutFromHome()
       } label: {
         Label("Letzte Session wiederholen", systemImage: "arrow.uturn.backward")
       }
@@ -2228,9 +2226,7 @@ struct HomeView: View {
 
     case .training:
       Button {
-        if store.repeatLastWorkout() {
-          isShowingWorkoutTracker = true
-        }
+        repeatLastWorkoutFromHome()
       } label: {
         Label("Letzte Session wiederholen", systemImage: "arrow.uturn.backward")
       }
@@ -3608,6 +3604,11 @@ struct HomeView: View {
     if store.activeWorkout != nil {
       isShowingWorkoutTracker = true
     }
+  }
+
+  private func repeatLastWorkoutFromHome() {
+    guard store.repeatLastWorkout(), store.activeWorkout != nil else { return }
+    isShowingWorkoutTracker = true
   }
 
   private func startQuickRun() {
