@@ -779,7 +779,9 @@ struct WorkoutHubView: View {
         } else {
           store.startQuickRun(modality: .run)
         }
-        isShowingRunTracker = true
+        if store.activeRun != nil {
+          isShowingRunTracker = true
+        }
       } label: {
         Text("Starten")
           .font(GainsFont.label(11))
