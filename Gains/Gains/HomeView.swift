@@ -3605,7 +3605,9 @@ struct HomeView: View {
     // noch nil ist.
     pendingActionLock = .startingWorkout
     store.startQuickWorkout()
-    isShowingWorkoutTracker = true
+    if store.activeWorkout != nil {
+      isShowingWorkoutTracker = true
+    }
   }
 
   private func startQuickRun() {
