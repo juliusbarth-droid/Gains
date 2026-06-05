@@ -123,7 +123,7 @@ struct GymWorkoutsTab: View {
         if let plan = blockedPlanAttempt {
           store.discardWorkout()
           store.startWorkout(from: plan)
-          if store.activeWorkout != nil {
+          if store.activeWorkout?.title == plan.title {
             isShowingWorkoutTracker = true
           }
         }
