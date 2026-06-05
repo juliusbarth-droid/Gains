@@ -78,7 +78,9 @@ struct GymPlanTab: View {
         case .startRunTracker:
           // GymPlanTab hat keinen eigenen RunTracker — Tab-Switch zum
           // Cardio-Hub als Fallback (WeekPlanFullscreenView startet direkt).
-          navigation.openTraining(workspace: .laufen)
+          if store.activeRun != nil {
+            navigation.openTraining(workspace: .laufen)
+          }
         }
       }
     ) { selection in
