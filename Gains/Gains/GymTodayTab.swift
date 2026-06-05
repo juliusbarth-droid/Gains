@@ -434,15 +434,17 @@ struct GymTodayTab: View {
     }
 
     if day.status == .rest {
-      if !store.repeatLastWorkout() {
-        if let first = store.savedWorkoutPlans.first {
-          store.startWorkout(from: first)
-        } else {
-          isShowingWorkoutBuilder = true
-          return
-        }
+      let started: Bool
+      if store.repeatLastWorkout(), store.activeWorkout != nil {
+        started = true
+      } else if let first = store.savedWorkoutPlans.first {
+        store.startWorkout(from: first)
+        started = store.activeWorkout != nil
+      } else {
+        isShowingWorkoutBuilder = true
+        return
       }
-      if store.activeWorkout != nil {
+      if started {
         isShowingWorkoutTracker = true
       }
       return
