@@ -564,6 +564,7 @@ struct GymWorkoutsTab: View {
         //   isBlocked → andere Session läuft → Confirm-Alert statt no-op.
         //   sonst     → frisch starten.
         if isActive {
+          guard store.activeWorkout != nil else { return }
           isShowingWorkoutTracker = true
         } else if isBlocked {
           UINotificationFeedbackGenerator().notificationOccurred(.warning)
