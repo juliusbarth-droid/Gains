@@ -568,7 +568,9 @@ struct GymWorkoutsTab: View {
           blockedPlanAttempt = plan
         } else {
           store.startWorkout(from: plan)
-          isShowingWorkoutTracker = true
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          }
         }
       } label: {
         // Polish-Loop 144 (2026-05-14): Action-CTA als geprägtes Lime-Plättchen
