@@ -680,6 +680,7 @@ struct WeekPlanFullscreenView: View {
 
   private var activeWorkoutResumeBanner: some View {
     Button {
+      guard store.activeWorkout != nil else { return }
       showsWorkoutTracker = true
       UISelectionFeedbackGenerator().selectionChanged()
     } label: {
