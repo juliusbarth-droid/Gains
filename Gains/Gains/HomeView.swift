@@ -293,7 +293,10 @@ struct HomeView: View {
           isShowingWorkoutChooser = false
         },
         onCreateWorkout: {
-          pendingAfterChooser = { isShowingWorkoutBuilder = true }
+          pendingAfterChooser = {
+            guard store.activeWorkout == nil, store.activeRun == nil else { return }
+            isShowingWorkoutBuilder = true
+          }
           isShowingWorkoutChooser = false
         }
       )
