@@ -568,7 +568,13 @@ struct CaptureSheet: View {
       }
       return "Aktuell ist kein konkretes Workout verfügbar."
     case .run:
-      return "Distanz, Pace und Herzfrequenz kommen aus deinem letzten gespeicherten Lauf."
+      if store.latestCompletedRun != nil {
+        return "Distanz, Pace und Herzfrequenz kommen aus deinem letzten gespeicherten Lauf."
+      }
+      if store.todayPlannedDay.runTemplate != nil || store.todayPlannedDay.sessionKind?.isRun == true {
+        return "Nutzt deinen heutigen geplanten Run als Vorschlag."
+      }
+      return "Aktuell ist kein konkreter Run verfügbar."
     case .progress:
       return "Gewicht, Taille und Health-Fortschritt werden als Update vorbereitet."
     case .meal:
