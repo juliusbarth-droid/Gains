@@ -173,7 +173,8 @@ struct CaptureSheet: View {
       publishCard(
         title: autofillTitle,
         metrics: workoutMetrics,
-        actionTitle: selectedKind.actionTitle
+        actionTitle: selectedKind.actionTitle,
+        isActionEnabled: canShareWorkout
       ) {
         store.shareLatestWorkout()
         dismiss()
@@ -183,7 +184,8 @@ struct CaptureSheet: View {
       publishCard(
         title: autofillTitle,
         metrics: runMetrics,
-        actionTitle: selectedKind.actionTitle
+        actionTitle: selectedKind.actionTitle,
+        isActionEnabled: canShareRun
       ) {
         store.shareLatestRun()
         dismiss()
@@ -197,7 +199,8 @@ struct CaptureSheet: View {
           ("Taille", String(format: "%.1f cm", store.waistMeasurement)),
           ("Risiko", "-\(store.currentCardioRiskImprovement)%"),
         ],
-        actionTitle: selectedKind.actionTitle
+        actionTitle: selectedKind.actionTitle,
+        isActionEnabled: true
       ) {
         store.shareProgressUpdate()
         // Fortschritt-Tab existiert nicht mehr — Home zeigt den
@@ -445,10 +448,21 @@ struct CaptureSheet: View {
     .gainsCardStyle(GainsColor.elevated)
   }
 
+  private var canShareWorkout: Bool {
+    store.lastCompletedWorkout != nil || store.todayPlannedWorkout != nil
+  }
+
+  private var canShareRun: Bool {
+    store.latestCompletedRun != nil
+      || store.todayPlannedDay.runTemplate != nil
+      || store.todayPlannedDay.sessionKind?.isRun == true
+  }
+
   private func publishCard(
     title: String,
     metrics: [(String, String)],
     actionTitle: String,
+    isActionEnabled: Bool,
     action: @escaping () -> Void
   ) -> some View {
     VStack(alignment: .leading, spacing: GainsSpacing.m) {
@@ -488,6 +502,8 @@ struct CaptureSheet: View {
           .gainsGlassCTA()
       }
       .buttonStyle(.plain)
+      .disabled(!isActionEnabled)
+      .opacity(isActionEnabled ? 1 : 0.5)
     }
     .padding(GainsSpacing.l)
     .gainsCardStyle()
