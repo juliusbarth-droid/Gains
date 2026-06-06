@@ -626,16 +626,12 @@ struct WeekPlanFullscreenView: View {
 
   private func startSession(_ session: PlannedSession) {
     UISelectionFeedbackGenerator().selectionChanged()
-    if store.activeWorkout != nil {
-      showsWorkoutTracker = true
-      return
-    }
-    if store.activeRun != nil {
-      showsRunTracker = true
-      return
-    }
     if session.isGym {
       if let plan = store.workoutPlan(for: session) ?? store.savedWorkoutPlans.first {
+        if store.activeWorkout?.title == plan.title {
+          showsWorkoutTracker = true
+          return
+        }
         store.startWorkout(from: plan)
         if store.activeWorkout?.title == plan.title {
           showsWorkoutTracker = true
@@ -643,6 +639,10 @@ struct WeekPlanFullscreenView: View {
       }
     } else if session.isCardio {
       if let template = RunTemplate.template(for: session.kind) {
+        if store.activeRun?.title == template.title {
+          showsRunTracker = true
+          return
+        }
         store.startRun(from: template)
         if store.activeRun?.title == template.title {
           showsRunTracker = true
