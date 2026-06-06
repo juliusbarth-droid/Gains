@@ -560,7 +560,13 @@ struct CaptureSheet: View {
   private var autofillSubtitle: String {
     switch selectedKind {
     case .workout:
-      return "Nutzt dein letztes beendetes Workout oder die heutige Session als Vorschlag."
+      if store.lastCompletedWorkout != nil {
+        return "Nutzt dein letztes beendetes Workout als Vorschlag."
+      }
+      if store.todayPlannedWorkout != nil {
+        return "Nutzt dein heutiges geplantes Workout als Vorschlag."
+      }
+      return "Aktuell ist kein konkretes Workout verfügbar."
     case .run:
       return "Distanz, Pace und Herzfrequenz kommen aus deinem letzten gespeicherten Lauf."
     case .progress:
