@@ -4529,6 +4529,14 @@ final class GainsStore: ObservableObject {
   }
 
   func shareLatestRun() {
+    guard latestCompletedRun != nil
+            || todayPlannedDay.runTemplate != nil
+            || todayPlannedDay.sessionKind?.isRun == true
+    else {
+      lastProgressEvent = "Kein geplanter oder abgeschlossener Run zum Teilen."
+      return
+    }
+
     createCommunityPost(
       from: CommunityComposerAction(
         title: "Lauf teilen",
