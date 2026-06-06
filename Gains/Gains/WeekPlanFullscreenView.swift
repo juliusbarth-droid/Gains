@@ -627,7 +627,7 @@ struct WeekPlanFullscreenView: View {
   private func startSession(_ session: PlannedSession) {
     UISelectionFeedbackGenerator().selectionChanged()
     if session.isGym {
-      if let plan = store.workoutPlan(for: session) ?? store.savedWorkoutPlans.first {
+      if let plan = store.workoutPlan(for: session) {
         if store.activeWorkout?.title == plan.title {
           showsWorkoutTracker = true
           return
