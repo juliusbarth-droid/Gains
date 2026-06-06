@@ -3624,8 +3624,15 @@ struct HomeView: View {
   }
 
   private func repeatLastWorkoutFromHome() {
-    guard store.repeatLastWorkout(), store.activeWorkout?.title == store.lastCompletedWorkout?.title else { return }
-    isShowingWorkoutTracker = true
+    guard let last = store.lastCompletedWorkout else { return }
+    if let plan = store.savedWorkoutPlans.first(where: { $0.title == last.title }) {
+      store.startWorkout(from: plan)
+      if store.activeWorkout?.title == plan.title {
+        isShowingWorkoutTracker = true
+      }
+    } else {
+      isShowingWorkoutBuilder = true
+    }
   }
 
   private func startQuickRun() {
