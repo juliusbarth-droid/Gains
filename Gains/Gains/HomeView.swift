@@ -3612,7 +3612,11 @@ struct HomeView: View {
       isShowingWorkoutTracker = true
       return
     }
-    let expectedTitle = (store.todayPlannedWorkout ?? store.savedWorkoutPlans.first ?? store.currentWorkoutPreview).title
+    guard let plannedWorkout = store.todayPlannedWorkout else {
+      isShowingWorkoutBuilder = true
+      return
+    }
+    let expectedTitle = plannedWorkout.title
     // P0 B: Lock setzen, damit der Coach-Brief nicht zwischen Day-One /
     // Window-Brief und „Workout läuft" flackert, während store.activeWorkout
     // noch nil ist.
