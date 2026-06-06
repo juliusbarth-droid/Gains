@@ -4106,6 +4106,7 @@ final class GainsStore: ObservableObject {
   }
 
   func shareLatestWorkout() {
+    guard lastCompletedWorkout != nil || todayPlannedWorkout != nil else { return }
     createCommunityPost(
       from: CommunityComposerAction(
         title: "Workout teilen",
