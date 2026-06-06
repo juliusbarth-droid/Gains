@@ -454,11 +454,6 @@ struct GymTodayTab: View {
       if store.activeWorkout?.title == plan.title {
         isShowingWorkoutTracker = true
       }
-    } else if let fallback = store.savedWorkoutPlans.first {
-      store.startWorkout(from: fallback)
-      if store.activeWorkout?.title == fallback.title {
-        isShowingWorkoutTracker = true
-      }
     } else {
       isShowingWorkoutBuilder = true
     }
