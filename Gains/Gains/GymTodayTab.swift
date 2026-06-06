@@ -432,8 +432,10 @@ struct GymTodayTab: View {
 
     if day.status == .rest {
       let started: Bool
-      if store.repeatLastWorkout(), store.activeWorkout?.title == store.lastCompletedWorkout?.title {
-        started = true
+      if let last = store.lastCompletedWorkout,
+         let plan = store.savedWorkoutPlans.first(where: { $0.title == last.title }) {
+        store.startWorkout(from: plan)
+        started = store.activeWorkout?.title == plan.title
       } else if let first = store.savedWorkoutPlans.first {
         store.startWorkout(from: first)
         started = store.activeWorkout?.title == first.title
