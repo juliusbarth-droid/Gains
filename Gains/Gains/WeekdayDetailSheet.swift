@@ -6,7 +6,7 @@ import SwiftUI
 // den Parent. Statt `dismiss()` + `asyncAfter` schreibt das Sheet hier rein
 // und der Parent reagiert im `onDismiss`-Callback seines `.sheet(item:)`.
 enum WeekdayPostDismissAction {
-  case startWorkoutTracker
+  case startWorkoutTracker(String)
   /// 2026-05-15 (P1 #6): RunTracker direkt starten statt Tab-Switch zum
   /// Cardio-Hub. Der Parent öffnet RunTrackerView nach Sheet-Teardown.
   case startRunTracker
@@ -479,8 +479,8 @@ struct WeekdayDetailSheet: View {
       store.startWorkout(from: plan)
       // 2026-05-14: Sheet-Race-Hardening — Parent triggert Tracker im
       // onDismiss-Callback (deterministisch nach Sheet-Tear-Down).
-      if store.activeWorkout != nil {
-        pendingPostDismiss = .startWorkoutTracker
+      if let activeTitle = store.activeWorkout?.title {
+        pendingPostDismiss = .startWorkoutTracker(activeTitle)
         dismiss()
       }
       return
@@ -495,8 +495,8 @@ struct WeekdayDetailSheet: View {
       } else {
         started = false
       }
-      if started {
-        pendingPostDismiss = .startWorkoutTracker
+      if let activeTitle = started ? store.activeWorkout?.title : nil {
+        pendingPostDismiss = .startWorkoutTracker(activeTitle)
         dismiss()
       }
       return

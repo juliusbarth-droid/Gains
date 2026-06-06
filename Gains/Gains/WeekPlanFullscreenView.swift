@@ -111,8 +111,8 @@ struct WeekPlanFullscreenView: View {
           guard let action = weekdayPostDismiss else { return }
           weekdayPostDismiss = nil
           switch action {
-          case .startWorkoutTracker:
-            if store.activeWorkout != nil {
+          case .startWorkoutTracker(let title):
+            if store.activeWorkout?.title == title {
               showsWorkoutTracker = true
             }
           case .startRunTracker:
