@@ -3618,7 +3618,7 @@ struct HomeView: View {
   }
 
   private func repeatLastWorkoutFromHome() {
-    guard store.repeatLastWorkout(), store.activeWorkout != nil else { return }
+    guard store.repeatLastWorkout(), store.activeWorkout?.title == store.lastCompletedWorkout?.title else { return }
     isShowingWorkoutTracker = true
   }
 
