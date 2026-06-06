@@ -9,7 +9,7 @@ enum WeekdayPostDismissAction {
   case startWorkoutTracker(String)
   /// 2026-05-15 (P1 #6): RunTracker direkt starten statt Tab-Switch zum
   /// Cardio-Hub. Der Parent öffnet RunTrackerView nach Sheet-Teardown.
-  case startRunTracker
+  case startRunTracker(String)
 }
 
 // MARK: - WeekdayDetailSheet
@@ -460,8 +460,8 @@ struct WeekdayDetailSheet: View {
   }
 
   private func handlePrimaryAction() {
-    if store.activeRun != nil {
-      pendingPostDismiss = .startRunTracker
+    if let activeTitle = store.activeRun?.title {
+      pendingPostDismiss = .startRunTracker(activeTitle)
       dismiss()
       return
     }
@@ -469,8 +469,8 @@ struct WeekdayDetailSheet: View {
       store.startRun(from: runTemplate)
       // 2026-05-15 (P1 #6): Kein Tab-Switch mehr — RunTracker startet direkt
       // via pendingPostDismiss-Pattern (race-frei nach Sheet-Teardown).
-      if store.activeRun != nil {
-        pendingPostDismiss = .startRunTracker
+      if let activeTitle = store.activeRun?.title {
+        pendingPostDismiss = .startRunTracker(activeTitle)
         dismiss()
       }
       return

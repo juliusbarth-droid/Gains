@@ -75,10 +75,10 @@ struct GymPlanTab: View {
           if store.activeWorkout?.title == title {
             isShowingWorkoutTracker = true
           }
-        case .startRunTracker:
+        case .startRunTracker(let title):
           // GymPlanTab hat keinen eigenen RunTracker — Tab-Switch zum
           // Cardio-Hub als Fallback (WeekPlanFullscreenView startet direkt).
-          if store.activeRun != nil {
+          if store.activeRun?.title == title {
             navigation.openTraining(workspace: .laufen)
           }
         }

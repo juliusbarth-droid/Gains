@@ -115,8 +115,8 @@ struct WeekPlanFullscreenView: View {
             if store.activeWorkout?.title == title {
               showsWorkoutTracker = true
             }
-          case .startRunTracker:
-            if store.activeRun != nil {
+          case .startRunTracker(let title):
+            if store.activeRun?.title == title {
               showsRunTracker = true
             }
           }
