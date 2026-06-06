@@ -4015,27 +4015,30 @@ final class GainsStore: ObservableObject {
     switch action.type {
     case .workout:
       let workout = lastCompletedWorkout
-      let plan = currentWorkoutPreview
-      let volumeLabel =
-        workout.map { "\(Int($0.volume / 1000)) t" }
-        ?? String(format: "%.1f t", Double(plan.exercises.count) * 2.1)
+      let plannedWorkout = todayPlannedWorkout
+      let volumeLabel = workout.map { "\(Int($0.volume / 1000)) t" }
+        ?? plannedWorkout.map { String(format: "%.1f t", Double($0.exercises.count) * 2.1) }
+        ?? "Offen"
+      let setsLabel = workout.map { "\($0.completedSets)" }
+        ?? plannedWorkout.map { "\($0.exercises.reduce(0) { $0 + $1.sets.count })" }
+        ?? "0"
 
       newPost = CommunityPost(
         id: UUID(),
         author: userName,
         handle: userHandle,
         type: .workout,
-        title: workout?.title ?? "\(plan.title) eingeplant",
-        detail: workout == nil
-          ? "Heute mein Workout in Gains geplant und direkt sauber strukturiert."
-          : "Session fertig geloggt. Alle Sätze sind drin und das Volumen passt zum Wochenziel.",
+        title: workout?.title ?? plannedWorkout?.title ?? "Workout geteilt",
+        detail: workout != nil
+          ? "Session fertig geloggt. Alle Sätze sind drin und das Volumen passt zum Wochenziel."
+          : plannedWorkout != nil
+            ? "Heute mein Workout in Gains geplant und direkt sauber strukturiert."
+            : "Gerade keinen konkreten Workout-Abschluss oder Tagesplan, aber mein Training ist in Gains vorbereitet.",
         timeAgo: "gerade eben",
         placeholderSymbol: "dumbbell.fill",
         highlightMetrics: [
           CommunityMetric(label: "Volumen", value: volumeLabel),
-          CommunityMetric(
-            label: "Sätze",
-            value: "\(workout?.completedSets ?? plan.exercises.reduce(0) { $0 + $1.sets.count })"),
+          CommunityMetric(label: "Sätze", value: setsLabel),
           CommunityMetric(label: "Dauer", value: "\(plannerSettings.preferredSessionLength) Min"),
         ],
         reactions: 0,
