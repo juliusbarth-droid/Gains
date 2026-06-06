@@ -171,7 +171,7 @@ struct CaptureSheet: View {
     switch selectedKind {
     case .workout:
       publishCard(
-        title: store.lastCompletedWorkout?.title ?? store.todayPlannedWorkout?.title ?? "Workout teilen",
+        title: autofillTitle,
         metrics: workoutMetrics,
         actionTitle: selectedKind.actionTitle
       ) {
