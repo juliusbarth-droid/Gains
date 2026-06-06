@@ -350,7 +350,7 @@ struct GymTodayTab: View {
       }
     } else if let any = store.savedWorkoutPlans.first {
       store.startWorkout(from: any)
-      if store.activeWorkout != nil {
+      if store.activeWorkout?.title == any.title {
         isShowingWorkoutTracker = true
       }
     } else {
