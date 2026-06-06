@@ -601,14 +601,26 @@ struct CaptureSheet: View {
   }
 
   private var runMetrics: [(String, String)] {
-    guard let run = store.latestCompletedRun else {
-      return [("Distanz", "5.0 km"), ("Pace", "5:35"), ("HF", "152")]
+    if let run = store.latestCompletedRun {
+      return [
+        ("Distanz", String(format: "%.1f km", run.distanceKm)),
+        ("Pace", paceLabel(run.averagePaceSeconds)),
+        ("HF", "\(run.averageHeartRate)"),
+      ]
+    }
+
+    if let plannedRun = store.todayPlannedDay.runTemplate {
+      return [
+        ("Distanz", String(format: "%.1f km", plannedRun.targetDistanceKm)),
+        ("Dauer", "\(plannedRun.targetDurationMinutes) Min"),
+        ("Pace", plannedRun.targetPaceLabel),
+      ]
     }
 
     return [
-      ("Distanz", String(format: "%.1f km", run.distanceKm)),
-      ("Pace", paceLabel(run.averagePaceSeconds)),
-      ("HF", "\(run.averageHeartRate)"),
+      ("Status", "Kein Run"),
+      ("Heute", "Nicht geplant"),
+      ("Aktion", "Run wählen"),
     ]
   }
 
