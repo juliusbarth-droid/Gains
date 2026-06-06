@@ -3656,6 +3656,7 @@ struct HomeView: View {
       pendingActionLock = .startingWorkout
       store.startWorkout(from: plan)
     }
+    guard store.activeWorkout?.title == plan.title else { return }
     arrangingPlan = plan
   }
 
