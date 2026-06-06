@@ -436,9 +436,6 @@ struct GymTodayTab: View {
          let plan = store.savedWorkoutPlans.first(where: { $0.title == last.title }) {
         store.startWorkout(from: plan)
         started = store.activeWorkout?.title == plan.title
-      } else if let first = store.savedWorkoutPlans.first {
-        store.startWorkout(from: first)
-        started = store.activeWorkout?.title == first.title
       } else {
         isShowingWorkoutBuilder = true
         return
