@@ -549,7 +549,16 @@ struct CaptureSheet: View {
     case .workout:
       return store.lastCompletedWorkout?.title ?? store.todayPlannedWorkout?.title ?? "Workout vorbereiten"
     case .run:
-      return store.latestCompletedRun?.title ?? "Letzten Lauf vorbereiten"
+      if let latestRun = store.latestCompletedRun {
+        return latestRun.title
+      }
+      if let plannedRun = store.todayPlannedDay.runTemplate {
+        return plannedRun.title
+      }
+      if store.todayPlannedDay.sessionKind?.isRun == true {
+        return "Run vorbereiten"
+      }
+      return "Kein Run verfügbar"
     case .progress:
       return String(format: "%.1f kg / %.1f cm", store.currentWeight, store.waistMeasurement)
     case .meal:
