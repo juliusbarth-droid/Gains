@@ -2925,14 +2925,17 @@ final class GainsStore: ObservableObject {
   }
 
   /// Wiederholt das zuletzt absolvierte Workout — sucht im savedWorkoutPlans
-  /// nach demselben Titel, fällt sonst auf das letzte gespeicherte Plan-Match
-  /// zurück. Kein-op, wenn schon ein Workout aktiv oder noch keine Historie da.
+  /// nach demselben Titel. Kein-op, wenn schon ein Workout aktiv ist,
+  /// keine Historie da ist oder kein exakter gespeicherter Plan-Match
+  /// gefunden wird.
   /// Returns true wenn ein Workout gestartet wurde.
   @discardableResult
   func repeatLastWorkout() -> Bool {
-    guard activeWorkout == nil, activeRun == nil, let last = workoutHistory.first else { return false }
-    let plan = savedWorkoutPlans.first(where: { $0.title == last.title })
-      ?? currentWorkoutPreview
+    guard activeWorkout == nil,
+          activeRun == nil,
+          let last = workoutHistory.first,
+          let plan = savedWorkoutPlans.first(where: { $0.title == last.title })
+    else { return false }
     activeWorkout = WorkoutSession.fromPlan(plan)
     return true
   }
