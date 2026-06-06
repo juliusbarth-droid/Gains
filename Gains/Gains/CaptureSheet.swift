@@ -181,7 +181,7 @@ struct CaptureSheet: View {
       }
     case .run:
       publishCard(
-        title: store.latestCompletedRun?.title ?? "Cardio-Check-in",
+        title: autofillTitle,
         metrics: runMetrics,
         actionTitle: selectedKind.actionTitle
       ) {
