@@ -491,7 +491,7 @@ struct WeekdayDetailSheet: View {
         started = true
       } else if let first = store.savedWorkoutPlans.first {
         store.startWorkout(from: first)
-        started = store.activeWorkout != nil
+        started = store.activeWorkout?.title == first.title
       } else {
         started = false
       }
