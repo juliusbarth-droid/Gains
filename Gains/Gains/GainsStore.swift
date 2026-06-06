@@ -4047,32 +4047,36 @@ final class GainsStore: ObservableObject {
       )
     case .run:
       let latestRun = latestCompletedRun
+      let plannedRun = todayPlannedDay.runTemplate
       newPost = CommunityPost(
         id: UUID(),
         author: userName,
         handle: userHandle,
         type: .run,
-        title: latestRun?.title ?? "Cardio-Check-in geloggt",
-        detail: latestRun == nil
-          ? (connectedTrackerIDs.isEmpty
-            ? "Noch ohne verbundenen Tracker, aber die Cardio-Session ist für heute eingeplant."
-            : "Tracker ist verbunden und die Cardio-Daten fließen direkt in meinen Progress.")
-          : "Lauf in Gains gespeichert und direkt mit Pace, Höhenmetern und Herzfrequenz in die Community geteilt.",
+        title: latestRun?.title ?? plannedRun?.title ?? "Run geteilt",
+        detail: latestRun != nil
+          ? "Lauf in Gains gespeichert und direkt mit Pace, Höhenmetern und Herzfrequenz in die Community geteilt."
+          : plannedRun != nil
+            ? "Heute meinen geplanten Run in Gains vorbereitet und direkt mit dem Tagesziel geteilt."
+            : "Gerade keinen konkreten Run-Abschluss oder Cardio-Plan zum Teilen.",
         timeAgo: "gerade eben",
         placeholderSymbol: "figure.run",
         highlightMetrics: [
           CommunityMetric(
             label: "Distanz",
             value: latestRun.map { String(format: "%.1f km", $0.distanceKm) }
-              ?? (connectedTrackerIDs.isEmpty ? "5.0 km" : "6.4 km")),
+              ?? plannedRun.map { String(format: "%.1f km", $0.targetDistanceKm) }
+              ?? "Offen"),
           CommunityMetric(
-            label: "Pace",
+            label: latestRun != nil ? "Pace" : plannedRun != nil ? "Ziel" : "Heute",
             value: latestRun.map { formattedPace(secondsPerKilometer: $0.averagePaceSeconds) }
-              ?? (connectedTrackerIDs.isEmpty ? "5:35 /km" : "5:12 /km")),
+              ?? plannedRun?.targetPaceLabel
+              ?? "Nicht geplant"),
           CommunityMetric(
-            label: "HF",
+            label: latestRun != nil ? "HF" : plannedRun != nil ? "Dauer" : "Status",
             value: latestRun.map { "\($0.averageHeartRate) bpm" }
-              ?? (connectedTrackerIDs.isEmpty ? "152 bpm" : "146 bpm")),
+              ?? plannedRun.map { "\($0.targetDurationMinutes) Min" }
+              ?? "Kein Run"),
         ],
         reactions: 0,
         comments: 0,
