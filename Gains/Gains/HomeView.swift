@@ -3809,7 +3809,7 @@ struct HomeView: View {
       HStack(spacing: GainsSpacing.xs) {
         Button {
           store.restoreActiveWorkout(from: snapshot)
-          if store.activeWorkout != nil {
+          if store.activeWorkout?.title == snapshot.title {
             isShowingWorkoutTracker = true
             UISelectionFeedbackGenerator().selectionChanged()
           }
