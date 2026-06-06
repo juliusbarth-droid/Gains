@@ -171,7 +171,7 @@ struct CaptureSheet: View {
     switch selectedKind {
     case .workout:
       publishCard(
-        title: store.lastCompletedWorkout?.title ?? store.currentWorkoutPreview.title,
+        title: store.lastCompletedWorkout?.title ?? store.todayPlannedWorkout?.title ?? "Workout teilen",
         metrics: workoutMetrics,
         actionTitle: selectedKind.actionTitle
       ) {
@@ -547,7 +547,7 @@ struct CaptureSheet: View {
   private var autofillTitle: String {
     switch selectedKind {
     case .workout:
-      return store.lastCompletedWorkout?.title ?? "\(store.currentWorkoutPreview.title) geplant"
+      return store.lastCompletedWorkout?.title ?? store.todayPlannedWorkout?.title ?? "Workout vorbereiten"
     case .run:
       return store.latestCompletedRun?.title ?? "Letzten Lauf vorbereiten"
     case .progress:
@@ -579,11 +579,18 @@ struct CaptureSheet: View {
       ]
     }
 
-    let plan = store.currentWorkoutPreview
+    if let plan = store.todayPlannedWorkout {
+      return [
+        ("Übungen", "\(plan.exercises.count)"),
+        ("Dauer", "\(store.plannerSettings.preferredSessionLength) Min"),
+        ("Fokus", plan.focus),
+      ]
+    }
+
     return [
-      ("Übungen", "\(plan.exercises.count)"),
-      ("Dauer", "\(store.plannerSettings.preferredSessionLength) Min"),
-      ("Fokus", plan.focus),
+      ("Status", "Kein Workout"),
+      ("Heute", "Nicht geplant"),
+      ("Aktion", "Workout wählen"),
     ]
   }
 
