@@ -3627,7 +3627,7 @@ struct HomeView: View {
       pendingActionLock = .startingRun
       store.startQuickRun()
     }
-    if store.activeRun != nil {
+    if store.activeRun?.modality == .run {
       isShowingRunTracker = true
     }
   }
