@@ -173,7 +173,7 @@ struct CaptureSheet: View {
       publishCard(
         title: autofillTitle,
         metrics: workoutMetrics,
-        actionTitle: selectedKind.actionTitle,
+        actionTitle: workoutActionTitle,
         isActionEnabled: canShareWorkout
       ) {
         store.shareLatestWorkout()
@@ -184,7 +184,7 @@ struct CaptureSheet: View {
       publishCard(
         title: autofillTitle,
         metrics: runMetrics,
-        actionTitle: selectedKind.actionTitle,
+        actionTitle: runActionTitle,
         isActionEnabled: canShareRun
       ) {
         store.shareLatestRun()
@@ -456,6 +456,26 @@ struct CaptureSheet: View {
     store.latestCompletedRun != nil
       || store.todayPlannedDay.runTemplate != nil
       || store.todayPlannedDay.sessionKind?.isRun == true
+  }
+
+  private var workoutActionTitle: String {
+    if store.lastCompletedWorkout != nil {
+      return "Workout posten"
+    }
+    if store.todayPlannedWorkout != nil {
+      return "Workout vorbereiten"
+    }
+    return "Workout nicht verfügbar"
+  }
+
+  private var runActionTitle: String {
+    if store.latestCompletedRun != nil {
+      return "Lauf posten"
+    }
+    if store.todayPlannedDay.runTemplate != nil || store.todayPlannedDay.sessionKind?.isRun == true {
+      return "Run vorbereiten"
+    }
+    return "Run nicht verfügbar"
   }
 
   private func publishCard(
