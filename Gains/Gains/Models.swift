@@ -3081,7 +3081,7 @@ extension CommunityViewModel {
         title: "Workout teilen", type: .workout, systemImage: "dumbbell.fill"),
       CommunityComposerAction(title: "Lauf teilen", type: .run, systemImage: "figure.run"),
       CommunityComposerAction(
-        title: "Progress Update", type: .progress, systemImage: "chart.line.uptrend.xyaxis"),
+        title: "Progress teilen", type: .progress, systemImage: "chart.line.uptrend.xyaxis"),
     ],
     posts: [
       CommunityPost(

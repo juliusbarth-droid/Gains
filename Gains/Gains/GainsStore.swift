@@ -4576,7 +4576,7 @@ final class GainsStore: ObservableObject {
   func shareProgressUpdate() {
     createCommunityPost(
       from: CommunityComposerAction(
-        title: "Progress Update",
+        title: "Progress teilen",
         type: .progress,
         systemImage: "chart.line.uptrend.xyaxis"
       )
