@@ -460,7 +460,7 @@ struct CaptureSheet: View {
 
   private var workoutActionTitle: String {
     if store.lastCompletedWorkout != nil {
-      return "Workout posten"
+      return "Workout teilen"
     }
     if store.todayPlannedWorkout != nil {
       return "Workout vorbereiten"
@@ -470,7 +470,7 @@ struct CaptureSheet: View {
 
   private var runActionTitle: String {
     if store.latestCompletedRun != nil {
-      return "Lauf posten"
+      return "Lauf teilen"
     }
     if store.todayPlannedDay.runTemplate != nil || store.todayPlannedDay.sessionKind?.isRun == true {
       return "Run vorbereiten"
