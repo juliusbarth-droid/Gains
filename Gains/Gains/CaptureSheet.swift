@@ -647,7 +647,7 @@ struct CaptureSheet: View {
     return [
       ("Status", "Kein Workout"),
       ("Heute", "Nicht geplant"),
-      ("Aktion", "Workout wählen"),
+      ("Aktion", "Nicht verfügbar"),
     ]
   }
 
@@ -671,7 +671,7 @@ struct CaptureSheet: View {
     return [
       ("Status", "Kein Run"),
       ("Heute", "Nicht geplant"),
-      ("Aktion", "Run wählen"),
+      ("Aktion", "Nicht verfügbar"),
     ]
   }
 
