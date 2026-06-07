@@ -632,7 +632,7 @@ struct CaptureSheet: View {
       return [
         ("Volumen", "\(Int(workout.volume / 1000)) t"),
         ("Sätze", "\(workout.completedSets)"),
-        ("Dauer", "\(store.plannerSettings.preferredSessionLength) Min"),
+        ("Übungen", "\(workout.exercises.count)"),
       ]
     }
 
