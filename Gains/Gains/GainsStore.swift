@@ -4135,7 +4135,7 @@ final class GainsStore: ObservableObject {
     )
     lastProgressEvent =
       lastCompletedWorkout == nil
-      ? "Workout-Plan geteilt. Starte die Session, um echte Satz- und Volumenwerte mitzuteilen."
+      ? "Geplantes Workout geteilt. Starte die Session, um echte Satz- und Volumenwerte mitzuteilen."
       : "Dein letztes Workout wurde im Community-Feed geteilt."
   }
 
