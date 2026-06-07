@@ -193,7 +193,7 @@ struct CaptureSheet: View {
       }
     case .progress:
       publishCard(
-        title: "Progress Update",
+        title: autofillTitle,
         metrics: [
           ("Gewicht", String(format: "%.1f kg", store.currentWeight)),
           ("Taille", String(format: "%.1f cm", store.waistMeasurement)),
