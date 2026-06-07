@@ -4122,7 +4122,7 @@ final class GainsStore: ObservableObject {
 
   func shareLatestWorkout() {
     guard lastCompletedWorkout != nil || todayPlannedWorkout != nil else {
-      lastProgressEvent = "Kein geplantes oder abgeschlossenes Workout zum Teilen."
+      lastProgressEvent = "Aktuell ist kein konkretes Workout zum Teilen verfügbar."
       return
     }
 
