@@ -4121,7 +4121,11 @@ final class GainsStore: ObservableObject {
   }
 
   func shareLatestWorkout() {
-    guard lastCompletedWorkout != nil || todayPlannedWorkout != nil else { return }
+    guard lastCompletedWorkout != nil || todayPlannedWorkout != nil else {
+      lastProgressEvent = "Kein geplantes oder abgeschlossenes Workout zum Teilen."
+      return
+    }
+
     createCommunityPost(
       from: CommunityComposerAction(
         title: "Workout teilen",
@@ -4129,6 +4133,10 @@ final class GainsStore: ObservableObject {
         systemImage: "dumbbell.fill"
       )
     )
+    lastProgressEvent =
+      lastCompletedWorkout == nil
+      ? "Workout-Plan geteilt. Starte die Session, um echte Satz- und Volumenwerte mitzuteilen."
+      : "Dein letztes Workout wurde im Community-Feed geteilt."
   }
 
   func toggleFavoriteRecipe(_ recipeID: UUID) {
