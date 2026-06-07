@@ -4101,7 +4101,7 @@ final class GainsStore: ObservableObject {
         type: .progress,
         title: String(format: "%.1f kg / %.1f cm", currentWeight, waistMeasurement),
         detail:
-          "Mein aktueller Check-in zeigt, wie Gewicht, Taille und Risiko-Score sich gemeinsam verbessern.",
+          "Aktueller Check-in geteilt, mit Gewicht, Taille und Risiko-Score auf einen Blick.",
         timeAgo: "gerade eben",
         placeholderSymbol: "chart.line.uptrend.xyaxis",
         highlightMetrics: [
