@@ -4084,10 +4084,10 @@ final class GainsStore: ObservableObject {
               ?? plannedRun?.targetPaceLabel
               ?? "Nicht geplant"),
           CommunityMetric(
-            label: latestRun != nil ? "HF" : plannedRun != nil ? "Dauer" : "Status",
+            label: latestRun != nil ? "HF" : plannedRun != nil ? "Dauer" : "Aktion",
             value: latestRun.map { "\($0.averageHeartRate) bpm" }
               ?? plannedRun.map { "\($0.targetDurationMinutes) Min" }
-              ?? "Kein Run"),
+              ?? "Nicht verfügbar"),
         ],
         reactions: 0,
         comments: 0,
