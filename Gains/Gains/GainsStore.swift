@@ -4136,7 +4136,7 @@ final class GainsStore: ObservableObject {
     lastProgressEvent =
       lastCompletedWorkout == nil
       ? "Geplantes Workout geteilt. Starte die Session, um echte Satz- und Volumenwerte mitzuteilen."
-      : "Dein letztes Workout wurde im Community-Feed geteilt."
+      : "Dein abgeschlossenes Workout wurde im Community-Feed geteilt."
   }
 
   func toggleFavoriteRecipe(_ recipeID: UUID) {
