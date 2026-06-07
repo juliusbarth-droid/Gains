@@ -4556,7 +4556,7 @@ final class GainsStore: ObservableObject {
             || todayPlannedDay.runTemplate != nil
             || todayPlannedDay.sessionKind?.isRun == true
     else {
-      lastProgressEvent = "Kein geplanter oder abgeschlossener Run zum Teilen."
+      lastProgressEvent = "Aktuell ist kein konkreter Run zum Teilen verfügbar."
       return
     }
 
