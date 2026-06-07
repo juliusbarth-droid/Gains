@@ -4045,7 +4045,7 @@ final class GainsStore: ObservableObject {
         type: .workout,
         title: workout?.title ?? plannedWorkout?.title ?? "Workout geteilt",
         detail: workout != nil
-          ? "Session fertig geloggt. Alle Sätze sind drin und das Volumen passt zum Wochenziel."
+          ? "Workout abgeschlossen. Alle Sätze sind drin und das Volumen passt zum Wochenziel."
           : plannedWorkout != nil
             ? "Heute mein Workout in Gains geplant und direkt sauber strukturiert."
             : "Gerade keinen konkreten Workout-Abschluss oder Tagesplan, aber mein Training ist in Gains vorbereitet.",
