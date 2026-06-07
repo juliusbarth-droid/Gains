@@ -4581,7 +4581,11 @@ final class GainsStore: ObservableObject {
         systemImage: "chart.line.uptrend.xyaxis"
       )
     )
-    lastProgressEvent = "Dein Progress-Update wurde im Community-Feed geteilt."
+    lastProgressEvent = String(
+      format: "Dein aktueller Check-in (%.1f kg / %.1f cm) wurde im Community-Feed geteilt.",
+      currentWeight,
+      waistMeasurement
+    )
   }
 
   func isTrackerConnected(_ trackerID: UUID) -> Bool {
