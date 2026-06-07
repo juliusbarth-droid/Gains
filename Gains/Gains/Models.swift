@@ -51,9 +51,9 @@ enum CaptureKind: String, CaseIterable, Identifiable {
   var actionTitle: String {
     switch self {
     case .workout:
-      return "Workout posten"
+      return "Workout teilen"
     case .run:
-      return "Lauf posten"
+      return "Lauf teilen"
     case .progress:
       return "Progress teilen"
     case .meal:
