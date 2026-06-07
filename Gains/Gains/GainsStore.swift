@@ -4066,7 +4066,7 @@ final class GainsStore: ObservableObject {
         type: .run,
         title: latestRun?.title ?? plannedRun?.title ?? "Kein Run verfügbar",
         detail: latestRun != nil
-          ? "Run abgeschlossen. Pace, Höhenmeter und Herzfrequenz sind direkt im Share enthalten."
+          ? "Run abgeschlossen. Pace, Höhenmeter und Herzfrequenz sind vollständig erfasst."
           : plannedRun != nil
             ? "Geplanter Run steht bereit und ist direkt sauber auf dein Tagesziel ausgerichtet."
             : "Aktuell ist kein konkreter Run zum Teilen verfügbar.",
