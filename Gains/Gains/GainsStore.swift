@@ -4099,7 +4099,7 @@ final class GainsStore: ObservableObject {
         author: userName,
         handle: userHandle,
         type: .progress,
-        title: "Neues Progress-Update",
+        title: String(format: "%.1f kg / %.1f cm", currentWeight, waistMeasurement),
         detail:
           "Mein aktueller Check-in zeigt, wie Gewicht, Taille und Risiko-Score sich gemeinsam verbessern.",
         timeAgo: "gerade eben",
