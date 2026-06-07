@@ -4034,7 +4034,7 @@ final class GainsStore: ObservableObject {
         workoutMetrics = [
           CommunityMetric(label: "Status", value: "Kein Workout"),
           CommunityMetric(label: "Heute", value: "Nicht geplant"),
-          CommunityMetric(label: "Aktion", value: "Workout wählen"),
+          CommunityMetric(label: "Aktion", value: "Nicht verfügbar"),
         ]
       }
 
