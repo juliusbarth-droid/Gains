@@ -4045,7 +4045,7 @@ final class GainsStore: ObservableObject {
         type: .workout,
         title: workout?.title ?? plannedWorkout?.title ?? "Kein Workout verfügbar",
         detail: workout != nil
-          ? "Workout abgeschlossen. Alle Sätze sind drin und das Volumen passt zum Wochenziel."
+          ? "Workout abgeschlossen. Alle Sätze und das Volumen sind vollständig erfasst."
           : plannedWorkout != nil
             ? "Geplantes Workout steht bereit und ist direkt sauber für heute strukturiert."
             : "Aktuell ist kein konkretes Workout zum Teilen verfügbar.",
