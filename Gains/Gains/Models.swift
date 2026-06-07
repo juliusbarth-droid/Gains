@@ -3078,7 +3078,7 @@ extension CommunityViewModel {
     ],
     composerPrompts: [
       CommunityComposerAction(
-        title: "Workout posten", type: .workout, systemImage: "dumbbell.fill"),
+        title: "Workout teilen", type: .workout, systemImage: "dumbbell.fill"),
       CommunityComposerAction(title: "Lauf teilen", type: .run, systemImage: "figure.run"),
       CommunityComposerAction(
         title: "Progress Update", type: .progress, systemImage: "chart.line.uptrend.xyaxis"),
