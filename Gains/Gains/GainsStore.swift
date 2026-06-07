@@ -4068,7 +4068,7 @@ final class GainsStore: ObservableObject {
         detail: latestRun != nil
           ? "Run abgeschlossen. Pace, Höhenmeter und Herzfrequenz sind direkt im Community-Post drin."
           : plannedRun != nil
-            ? "Heute meinen geplanten Run in Gains vorbereitet und direkt mit dem Tagesziel geteilt."
+            ? "Geplanter Run steht bereit und ist direkt sauber auf dein Tagesziel ausgerichtet."
             : "Gerade keinen konkreten Run-Abschluss oder Cardio-Plan zum Teilen.",
         timeAgo: "gerade eben",
         placeholderSymbol: "figure.run",
