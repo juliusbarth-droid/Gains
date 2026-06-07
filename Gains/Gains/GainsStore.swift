@@ -4570,7 +4570,7 @@ final class GainsStore: ObservableObject {
     lastProgressEvent =
       latestCompletedRun == nil
       ? "Geplanter Run geteilt. Speichere einen echten Lauf, um Distanz und Pace mitzuteilen."
-      : "Dein letzter Lauf wurde im Community-Feed geteilt."
+      : "Dein abgeschlossener Run wurde im Community-Feed geteilt."
   }
 
   func shareProgressUpdate() {
