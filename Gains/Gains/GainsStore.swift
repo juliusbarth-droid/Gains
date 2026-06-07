@@ -4016,12 +4016,27 @@ final class GainsStore: ObservableObject {
     case .workout:
       let workout = lastCompletedWorkout
       let plannedWorkout = todayPlannedWorkout
-      let volumeLabel = workout.map { "\(Int($0.volume / 1000)) t" }
-        ?? plannedWorkout.map { String(format: "%.1f t", Double($0.exercises.count) * 2.1) }
-        ?? "Offen"
-      let setsLabel = workout.map { "\($0.completedSets)" }
-        ?? plannedWorkout.map { "\($0.exercises.reduce(0) { $0 + $1.sets.count })" }
-        ?? "0"
+
+      let workoutMetrics: [CommunityMetric]
+      if let workout {
+        workoutMetrics = [
+          CommunityMetric(label: "Volumen", value: "\(Int(workout.volume / 1000)) t"),
+          CommunityMetric(label: "Sätze", value: "\(workout.completedSets)"),
+          CommunityMetric(label: "Dauer", value: "\(plannerSettings.preferredSessionLength) Min"),
+        ]
+      } else if let plannedWorkout {
+        workoutMetrics = [
+          CommunityMetric(label: "Übungen", value: "\(plannedWorkout.exercises.count)"),
+          CommunityMetric(label: "Sätze", value: "\(plannedWorkout.exercises.reduce(0) { $0 + $1.sets.count })"),
+          CommunityMetric(label: "Fokus", value: plannedWorkout.focus),
+        ]
+      } else {
+        workoutMetrics = [
+          CommunityMetric(label: "Status", value: "Kein Workout"),
+          CommunityMetric(label: "Heute", value: "Nicht geplant"),
+          CommunityMetric(label: "Aktion", value: "Workout wählen"),
+        ]
+      }
 
       newPost = CommunityPost(
         id: UUID(),
@@ -4036,11 +4051,7 @@ final class GainsStore: ObservableObject {
             : "Gerade keinen konkreten Workout-Abschluss oder Tagesplan, aber mein Training ist in Gains vorbereitet.",
         timeAgo: "gerade eben",
         placeholderSymbol: "dumbbell.fill",
-        highlightMetrics: [
-          CommunityMetric(label: "Volumen", value: volumeLabel),
-          CommunityMetric(label: "Sätze", value: setsLabel),
-          CommunityMetric(label: "Dauer", value: "\(plannerSettings.preferredSessionLength) Min"),
-        ],
+        highlightMetrics: workoutMetrics,
         reactions: 0,
         comments: 0,
         shares: 0
