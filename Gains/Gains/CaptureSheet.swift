@@ -639,7 +639,7 @@ struct CaptureSheet: View {
     if let plan = store.todayPlannedWorkout {
       return [
         ("Übungen", "\(plan.exercises.count)"),
-        ("Dauer", "\(store.plannerSettings.preferredSessionLength) Min"),
+        ("Dauer", "\(plan.estimatedDurationMinutes) Min"),
         ("Fokus", plan.focus),
       ]
     }
