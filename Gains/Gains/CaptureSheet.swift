@@ -594,7 +594,7 @@ struct CaptureSheet: View {
       if store.todayPlannedDay.sessionKind?.isRun == true {
         return "Run vorbereiten"
       }
-      return "Kein Run verfügbar"
+      return "Run nicht verfügbar"
     case .progress:
       return String(format: "%.1f kg / %.1f cm", store.currentWeight, store.waistMeasurement)
     case .meal:
