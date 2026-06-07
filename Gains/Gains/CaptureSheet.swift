@@ -583,7 +583,7 @@ struct CaptureSheet: View {
   private var autofillTitle: String {
     switch selectedKind {
     case .workout:
-      return store.lastCompletedWorkout?.title ?? store.todayPlannedWorkout?.title ?? "Workout vorbereiten"
+      return store.lastCompletedWorkout?.title ?? store.todayPlannedWorkout?.title ?? "Workout nicht verfügbar"
     case .run:
       if let latestRun = store.latestCompletedRun {
         return latestRun.title
