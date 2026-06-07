@@ -4569,7 +4569,7 @@ final class GainsStore: ObservableObject {
     )
     lastProgressEvent =
       latestCompletedRun == nil
-      ? "Run-Template geteilt. Speichere einen echten Lauf, um Distanz und Pace mitzuteilen."
+      ? "Geplanter Run geteilt. Speichere einen echten Lauf, um Distanz und Pace mitzuteilen."
       : "Dein letzter Lauf wurde im Community-Feed geteilt."
   }
 
