@@ -4047,7 +4047,7 @@ final class GainsStore: ObservableObject {
         detail: workout != nil
           ? "Workout abgeschlossen. Alle Sätze sind drin und das Volumen passt zum Wochenziel."
           : plannedWorkout != nil
-            ? "Heute mein Workout in Gains geplant und direkt sauber strukturiert."
+            ? "Geplantes Workout steht bereit und ist direkt sauber für heute strukturiert."
             : "Gerade keinen konkreten Workout-Abschluss oder Tagesplan, aber mein Training ist in Gains vorbereitet.",
         timeAgo: "gerade eben",
         placeholderSymbol: "dumbbell.fill",
