@@ -1163,7 +1163,7 @@ final class GainsStore: ObservableObject {
     }
 
     return
-      "Letzter Lauf: \(latestCompletedRun.routeName) mit \(formattedPace(secondsPerKilometer: latestCompletedRun.averagePaceSeconds))."
+      "Letzter Lauf: \(latestCompletedRun.routeName) mit \(formattedPace(secondsPerKilometer: latestCompletedRun.averagePaceSeconds))/km."
   }
 
   var runPersonalBests: [RunPersonalBest] {
