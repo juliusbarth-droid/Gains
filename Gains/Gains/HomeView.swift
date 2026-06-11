@@ -1925,8 +1925,11 @@ struct HomeView: View {
       let dur = h > 0 ? String(format: "%d:%02d h", h, m) : "\(m) min"
       return String(format: "%.1f km · %@", ar.distanceKm, dur)
     }
-    if store.todayPlannedDay.runTemplate != nil || store.todayPlannedDay.sessionKind?.isRun == true {
-      return "Heute geplant · GPS"
+    if let plannedRun = store.todayPlannedDay.runTemplate {
+      return String(format: "%.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
+    }
+    if store.todayPlannedDay.sessionKind?.isRun == true {
+      return "Heute geplant · Run"
     }
     return "Lauf · Rad outdoor · Indoor"
   }
