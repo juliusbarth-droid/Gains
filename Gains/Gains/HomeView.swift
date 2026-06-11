@@ -2880,8 +2880,9 @@ struct HomeView: View {
           accent: GainsColor.ember,
           headline: "Heute läuft \(runTemplate.title.lowercased()).",
           subline: String(
-            format: "%.1f km im Plan. Empfohlene Slots: 07–09 Uhr oder 17–19 Uhr.",
-            runTemplate.targetDistanceKm
+            format: "%.1f km · %d Min im Plan. Empfohlene Slots: 07–09 Uhr oder 17–19 Uhr.",
+            runTemplate.targetDistanceKm,
+            runTemplate.targetDurationMinutes
           ),
           primary: CoachActionDescriptor(
             title: "Lauf starten",
