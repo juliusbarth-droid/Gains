@@ -1923,7 +1923,10 @@ struct HomeView: View {
       let h = ar.durationMinutes / 60
       let m = ar.durationMinutes % 60
       let dur = h > 0 ? String(format: "%d:%02d h", h, m) : "\(m) min"
-      return String(format: "%.1f km · %@", ar.distanceKm, dur)
+      let pace = ar.averagePaceSeconds > 0
+        ? String(format: "%d:%02d/km", ar.averagePaceSeconds / 60, ar.averagePaceSeconds % 60)
+        : "--:--/km"
+      return String(format: "%.1f km · %@ · %@", ar.distanceKm, dur, pace)
     }
     if let plannedRun = store.todayPlannedDay.runTemplate {
       return String(format: "%.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
