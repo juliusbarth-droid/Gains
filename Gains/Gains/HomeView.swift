@@ -2658,12 +2658,16 @@ struct HomeView: View {
       // Headline-Ton skaliert mit daysSince — bewusst keine Schuldzuweisung,
       // sondern „komm rein, wir machen es leicht".
       let isRunPlan = plan.runTemplate != nil || plan.sessionKind?.isRun == true
+      let plannedRunSummary = plan.runTemplate.map {
+        String(format: "%.1f km · %d Min", $0.targetDistanceKm, $0.targetDurationMinutes)
+      }
       let headline: String
       let subline: String
       if daysSince <= 2 {
         headline = "Erster Schritt steht aus\(warmName)."
         subline = isRunPlan
-          ? "Heute steht dein erster Lauf im Plan. 15 Minuten reichen schon."
+          ? plannedRunSummary.map { "Heute steht dein erster Lauf im Plan, \($0)." }
+            ?? "Heute steht dein erster Lauf im Plan. 15 Minuten reichen schon."
           : "Heute ist ein guter Tag für die erste Session — kurz und gut."
       } else if daysSince <= 7 {
         headline = "Lass uns klein anfangen."
