@@ -743,7 +743,7 @@ struct WorkoutHubView: View {
     let template = plan.runTemplate ?? RunTemplate.template(for: kind)
     let detail: String = {
       if let t = template {
-        return "\(kind.title) · \(String(format: "%.1f km", t.targetDistanceKm)) · \(t.targetPaceLabel)"
+        return "\(kind.title) · \(String(format: "%.1f km", t.targetDistanceKm)) · \(t.targetDurationMinutes) Min · \(t.targetPaceLabel)"
       }
       return kind.title
     }()
