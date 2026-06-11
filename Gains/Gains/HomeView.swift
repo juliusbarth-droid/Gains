@@ -1929,7 +1929,7 @@ struct HomeView: View {
       return String(format: "%.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
     }
     if store.todayPlannedDay.sessionKind?.isRun == true {
-      return "Heute geplant · Run"
+      return "Heute geplant · \(store.todayPlannedDay.title)"
     }
     return "Lauf · Rad outdoor · Indoor"
   }
