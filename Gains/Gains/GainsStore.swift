@@ -4027,7 +4027,7 @@ final class GainsStore: ObservableObject {
       } else if let plannedWorkout {
         workoutMetrics = [
           CommunityMetric(label: "Übungen", value: "\(plannedWorkout.exercises.count)"),
-          CommunityMetric(label: "Sätze", value: "\(plannedWorkout.exercises.reduce(0) { $0 + $1.sets.count })"),
+          CommunityMetric(label: "Dauer", value: "\(plannedWorkout.estimatedDurationMinutes) Min"),
           CommunityMetric(label: "Fokus", value: plannedWorkout.focus),
         ]
       } else {
