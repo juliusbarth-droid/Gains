@@ -4079,7 +4079,7 @@ final class GainsStore: ObservableObject {
               ?? plannedRun.map { String(format: "%.1f km", $0.targetDistanceKm) }
               ?? "Nicht geplant"),
           CommunityMetric(
-            label: latestRun != nil ? "Pace" : plannedRun != nil ? "Ziel" : "Heute",
+            label: latestRun != nil ? "Pace" : plannedRun != nil ? "Pace" : "Heute",
             value: latestRun.map { "\(formattedPace(secondsPerKilometer: $0.averagePaceSeconds))/km" }
               ?? plannedRun?.targetPaceLabel
               ?? "Nicht geplant"),
