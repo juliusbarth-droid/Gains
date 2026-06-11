@@ -1145,7 +1145,7 @@ final class GainsStore: ObservableObject {
     }
 
     return
-      "Zielzeit \(activeRun.targetDurationMinutes) Min, Ziel-Pace \(activeRun.targetPaceLabel), aktuell \(formattedPace(secondsPerKilometer: activeRun.averagePaceSeconds))."
+      "Zielzeit \(activeRun.targetDurationMinutes) Min, Ziel-Pace \(activeRun.targetPaceLabel), aktuell \(formattedPace(secondsPerKilometer: activeRun.averagePaceSeconds))/km."
   }
 
   var latestRunAchievement: String {
