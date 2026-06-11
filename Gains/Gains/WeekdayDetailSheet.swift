@@ -199,7 +199,7 @@ struct WeekdayDetailSheet: View {
   private var headerSubtitle: String {
     if let run = runTemplate {
       let pace = run.targetPaceLabel
-      return "\(Int(run.targetDistanceKm)) km · \(run.targetDurationMinutes) Min · \(pace)"
+      return "\(String(format: "%.1f km", run.targetDistanceKm)) · \(run.targetDurationMinutes) Min · \(pace)"
     }
     if let plan = assignedPlan {
       return plan.focus
