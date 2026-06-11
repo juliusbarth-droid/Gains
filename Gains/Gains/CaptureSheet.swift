@@ -656,7 +656,7 @@ struct CaptureSheet: View {
       return [
         ("Distanz", String(format: "%.1f km", run.distanceKm)),
         ("Pace", paceLabel(run.averagePaceSeconds)),
-        ("HF", "\(run.averageHeartRate)"),
+        ("HF", "\(run.averageHeartRate) bpm"),
       ]
     }
 
