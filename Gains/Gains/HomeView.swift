@@ -1183,7 +1183,16 @@ struct HomeView: View {
           .font(.system(size: 10, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
           .shadow(color: GainsColor.lime.opacity(0.225), radius: 3)
-        Text((next.isToday ? "HEUTE · " : "\(next.weekday.shortLabel.uppercased()) · ") + next.title.uppercased())
+        let prefix = next.isToday ? "HEUTE" : next.weekday.shortLabel.uppercased()
+        let summary: String
+        if let workout = next.workoutPlan {
+          summary = "\(workout.estimatedDurationMinutes) MIN · \(workout.exercises.count) ÜB"
+        } else if let run = next.runTemplate {
+          summary = String(format: "%.1f KM · %d MIN", run.targetDistanceKm, run.targetDurationMinutes)
+        } else {
+          summary = next.title.uppercased()
+        }
+        Text("\(prefix) · \(summary)")
           .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.2)
           .lineLimit(1)
       }
