@@ -857,7 +857,7 @@ final class GainsStore: ObservableObject {
           let title = template?.title ?? kind.title
           let focus: String = {
             guard let template else { return kind.title }
-            return "\(Int(template.targetDistanceKm)) km · \(template.targetPaceLabel)"
+            return "\(String(format: "%.1f km", template.targetDistanceKm)) · \(template.targetPaceLabel)"
           }()
 
           return WorkoutDayPlan(
