@@ -4043,7 +4043,7 @@ final class GainsStore: ObservableObject {
         author: userName,
         handle: userHandle,
         type: .workout,
-        title: workout?.title ?? plannedWorkout?.title ?? "Kein Workout verfügbar",
+        title: workout?.title ?? plannedWorkout?.title ?? "Workout nicht verfügbar",
         detail: workout != nil
           ? "Workout abgeschlossen. Alle Sätze und das Volumen sind vollständig erfasst."
           : plannedWorkout != nil
