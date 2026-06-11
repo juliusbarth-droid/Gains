@@ -2553,8 +2553,8 @@ struct HomeView: View {
             accent: GainsColor.ember,
             headline: "Willkommen\(warmName).",
             subline: String(
-              format: "Heute steht dein erster Lauf an: %@ · %.1f km. Du musst nichts vorbereiten — Tracker startet das GPS für dich.",
-              runTemplate.title, runTemplate.targetDistanceKm
+              format: "Heute steht dein erster Lauf an: %@ · %.1f km · %d Min. Du musst nichts vorbereiten — Tracker startet das GPS für dich.",
+              runTemplate.title, runTemplate.targetDistanceKm, runTemplate.targetDurationMinutes
             ),
             primary: CoachActionDescriptor(
               title: "Ersten Lauf starten",
