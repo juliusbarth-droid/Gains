@@ -4020,7 +4020,7 @@ final class GainsStore: ObservableObject {
       let workoutMetrics: [CommunityMetric]
       if let workout {
         workoutMetrics = [
-          CommunityMetric(label: "Volumen", value: "\(Int(workout.volume / 1000)) t"),
+          CommunityMetric(label: "Volumen", value: String(format: "%.1f t", workout.volume / 1000)),
           CommunityMetric(label: "Sätze", value: "\(workout.completedSets)"),
           CommunityMetric(label: "Übungen", value: "\(workout.exercises.count)"),
         ]
