@@ -4064,7 +4064,7 @@ final class GainsStore: ObservableObject {
         author: userName,
         handle: userHandle,
         type: .run,
-        title: latestRun?.title ?? plannedRun?.title ?? "Kein Run verfügbar",
+        title: latestRun?.title ?? plannedRun?.title ?? "Run nicht verfügbar",
         detail: latestRun != nil
           ? "Run abgeschlossen. Pace, Höhenmeter und Herzfrequenz sind vollständig erfasst."
           : plannedRun != nil
