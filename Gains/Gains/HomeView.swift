@@ -1911,7 +1911,7 @@ struct HomeView: View {
       return "Heute · \(plan.estimatedDurationMinutes) Min · \(plan.exercises.count) Übungen"
     }
     if let last = store.lastCompletedWorkout {
-      return "Zuletzt · \(last.completedSets) Sätze · \(last.title)"
+      return String(format: "Zuletzt · %d Sätze · %.1f t", last.completedSets, last.volume / 1000)
     }
     return "Plan wählen oder spontan"
   }
