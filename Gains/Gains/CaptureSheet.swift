@@ -630,7 +630,7 @@ struct CaptureSheet: View {
   private var workoutMetrics: [(String, String)] {
     if let workout = store.lastCompletedWorkout {
       return [
-        ("Volumen", "\(Int(workout.volume / 1000)) t"),
+        ("Volumen", "\(String(format: "%.1f t", workout.volume / 1000))"),
         ("Sätze", "\(workout.completedSets)"),
         ("Übungen", "\(workout.exercises.count)"),
       ]
