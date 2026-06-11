@@ -3393,18 +3393,28 @@ struct HomeView: View {
       kind: .cardio,
       eyebrow: "CARDIO",
       title: runningRun ? "Run live" : "Lauf",
-      subtitle: runningRun
-        ? {
-            let dm = store.activeRun?.durationMinutes ?? 0
-            let h = dm / 60; let m = dm % 60
-            let dur = h > 0 ? String(format: "%d:%02d h", h, m) : "\(m) min"
-            let paceSeconds = store.activeRun?.averagePaceSeconds ?? 0
-            let pace = paceSeconds > 0
-              ? String(format: "%d:%02d/km", paceSeconds / 60, paceSeconds % 60)
-              : "--:--/km"
-            return String(format: "%.1f km · %@ · %@", store.activeRun?.distanceKm ?? 0, dur, pace)
-          }()
-        : "GPS · Outdoor",
+      subtitle: {
+        if runningRun {
+          let dm = store.activeRun?.durationMinutes ?? 0
+          let h = dm / 60; let m = dm % 60
+          let dur = h > 0 ? String(format: "%d:%02d h", h, m) : "\(m) min"
+          let paceSeconds = store.activeRun?.averagePaceSeconds ?? 0
+          let pace = paceSeconds > 0
+            ? String(format: "%d:%02d/km", paceSeconds / 60, paceSeconds % 60)
+            : "--:--/km"
+          return String(format: "%.1f km · %@ · %@", store.activeRun?.distanceKm ?? 0, dur, pace)
+        }
+        if let plannedRun = store.todayPlannedDay.runTemplate {
+          return String(format: "%.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
+        }
+        if let last = store.latestCompletedRun {
+          let pace = last.averagePaceSeconds > 0
+            ? String(format: "%d:%02d/km", last.averagePaceSeconds / 60, last.averagePaceSeconds % 60)
+            : "--:--/km"
+          return String(format: "%.1f km · %@", last.distanceKm, pace)
+        }
+        return "GPS · Outdoor"
+      }(),
       icon: "figure.run",
       accent: GainsColor.ember,
       isLive: runningRun,
