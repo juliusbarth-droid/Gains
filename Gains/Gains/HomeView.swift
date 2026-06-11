@@ -3414,7 +3414,11 @@ struct HomeView: View {
       kind: .progress,
       eyebrow: "INSIGHTS",
       title: "Fortschritt",
-      subtitle: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten",
+      subtitle: {
+        let goal = max(store.weeklyGoalCount, 1)
+        let progress = min(Int((Double(store.weeklySessionsCompleted) / Double(goal)) * 100), 100)
+        return "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten · \(progress)%"
+      }(),
       icon: "chart.line.uptrend.xyaxis",
       accent: GainsColor.accentCool,
       isLive: false,
