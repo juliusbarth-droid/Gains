@@ -1931,6 +1931,12 @@ struct HomeView: View {
     if store.todayPlannedDay.sessionKind?.isRun == true {
       return "Heute geplant · \(store.todayPlannedDay.title)"
     }
+    if let last = store.latestCompletedRun {
+      let pace = last.averagePaceSeconds > 0
+        ? String(format: "%d:%02d", last.averagePaceSeconds / 60, last.averagePaceSeconds % 60)
+        : "--:--"
+      return String(format: "Zuletzt · %.1f km · %@/km", last.distanceKm, pace)
+    }
     return "Lauf · Rad outdoor · Indoor"
   }
 
