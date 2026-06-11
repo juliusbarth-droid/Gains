@@ -3431,7 +3431,16 @@ struct HomeView: View {
       kind: .planner,
       eyebrow: "WOCHE",
       title: "Plan",
-      subtitle: nextPlannedSchedule.map { "\($0.weekday.shortLabel.uppercased()) · \($0.title)" } ?? "Wochenplan anpassen",
+      subtitle: nextPlannedSchedule.map { day in
+        let weekday = day.weekday.shortLabel.uppercased()
+        if let workout = day.workoutPlan {
+          return "\(weekday) · \(workout.estimatedDurationMinutes) Min · \(workout.exercises.count) Übungen"
+        }
+        if let run = day.runTemplate {
+          return String(format: "%@ · %.1f km · %d Min", weekday, run.targetDistanceKm, run.targetDurationMinutes)
+        }
+        return "\(weekday) · \(day.title)"
+      } ?? "Wochenplan anpassen",
       icon: "calendar",
       accent: GainsColor.lime,
       isLive: false,
