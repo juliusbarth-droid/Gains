@@ -3411,7 +3411,7 @@ struct HomeView: View {
           let pace = last.averagePaceSeconds > 0
             ? String(format: "%d:%02d/km", last.averagePaceSeconds / 60, last.averagePaceSeconds % 60)
             : "--:--/km"
-          return String(format: "%.1f km · %@", last.distanceKm, pace)
+          return String(format: "Zuletzt · %.1f km · %@", last.distanceKm, pace)
         }
         return "GPS · Outdoor"
       }(),
