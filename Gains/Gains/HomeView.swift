@@ -1908,7 +1908,7 @@ struct HomeView: View {
       return "\(s.completedSets)/\(s.totalSets) Sätze · \(aw.title)"
     }
     if let plan = store.todayPlannedWorkout {
-      return "Heute · \(plan.title)"
+      return "Heute · \(plan.estimatedDurationMinutes) Min · \(plan.exercises.count) Übungen"
     }
     if let last = store.lastCompletedWorkout {
       return "Zuletzt · \(last.title)"
