@@ -3398,7 +3398,11 @@ struct HomeView: View {
             let dm = store.activeRun?.durationMinutes ?? 0
             let h = dm / 60; let m = dm % 60
             let dur = h > 0 ? String(format: "%d:%02d h", h, m) : "\(m) min"
-            return String(format: "%.1f km · %@", store.activeRun?.distanceKm ?? 0, dur)
+            let paceSeconds = store.activeRun?.averagePaceSeconds ?? 0
+            let pace = paceSeconds > 0
+              ? String(format: "%d:%02d/km", paceSeconds / 60, paceSeconds % 60)
+              : "--:--/km"
+            return String(format: "%.1f km · %@ · %@", store.activeRun?.distanceKm ?? 0, dur, pace)
           }()
         : "GPS · Outdoor",
       icon: "figure.run",
