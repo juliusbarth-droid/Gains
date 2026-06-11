@@ -1905,7 +1905,7 @@ struct HomeView: View {
   private var quickStartTrainingSubtitle: String {
     if let aw = store.activeWorkout {
       let s = aw.stats
-      return "\(s.completedSets)/\(s.totalSets) Sätze · \(aw.title)"
+      return String(format: "%d/%d Sätze · %.1f t", s.completedSets, s.totalSets, s.totalVolume / 1000)
     }
     if let plan = store.todayPlannedWorkout {
       return "Heute · \(plan.estimatedDurationMinutes) Min · \(plan.exercises.count) Übungen"
