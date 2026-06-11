@@ -672,7 +672,7 @@ struct WeekPlanFullscreenView: View {
     }
     // Kardio
     let template = RunTemplate.template(for: session.kind)
-    let subtitle = template.map { "\(String(format: "%.1f km", $0.targetDistanceKm)) · \($0.targetPaceLabel)" } ?? "Lauf"
+    let subtitle = template.map { "\(String(format: "%.1f km", $0.targetDistanceKm)) · \($0.targetDurationMinutes) Min · \($0.targetPaceLabel)" } ?? "Lauf"
     return SessionDisplay(
       icon: "figure.run",
       title: session.kind.title,
