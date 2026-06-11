@@ -3405,7 +3405,7 @@ struct HomeView: View {
           return String(format: "%.1f km · %@ · %@", store.activeRun?.distanceKm ?? 0, dur, pace)
         }
         if let plannedRun = store.todayPlannedDay.runTemplate {
-          return String(format: "%.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
+          return String(format: "Heute · %.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
         }
         if let last = store.latestCompletedRun {
           let pace = last.averagePaceSeconds > 0
