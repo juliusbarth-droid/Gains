@@ -655,7 +655,7 @@ struct CaptureSheet: View {
     if let run = store.latestCompletedRun {
       return [
         ("Distanz", String(format: "%.1f km", run.distanceKm)),
-        ("Pace", paceLabel(run.averagePaceSeconds)),
+        ("Pace", "\(paceLabel(run.averagePaceSeconds))/km"),
         ("HF", "\(run.averageHeartRate) bpm"),
       ]
     }
