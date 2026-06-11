@@ -3481,7 +3481,7 @@ struct HomeView: View {
           kind: .training,
           eyebrow: "ERSTE SESSION",
           title: "Training starten",
-          subtitle: plan.workoutPlan?.title ?? "Heute geplant",
+          subtitle: plan.workoutPlan.map { "\($0.estimatedDurationMinutes) Min · \($0.exercises.count) Übungen" } ?? plan.title,
           icon: "play.fill",
           accent: GainsColor.lime,
           isLive: false,
