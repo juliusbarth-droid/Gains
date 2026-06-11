@@ -3383,7 +3383,7 @@ struct HomeView: View {
       kind: .training,
       eyebrow: "PLAN",
       title: "Training",
-      subtitle: store.coachHeadline,
+      subtitle: quickStartTrainingSubtitle,
       icon: "dumbbell.fill",
       accent: GainsColor.lime,
       isLive: store.activeWorkout != nil,
