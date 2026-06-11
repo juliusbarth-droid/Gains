@@ -3448,7 +3448,7 @@ struct HomeView: View {
       kind: .water,
       eyebrow: "HYDRATION",
       title: "Wasser",
-      subtitle: "+250 ml · Tracking",
+      subtitle: "Heute · +250 ml",
       icon: "drop.fill",
       accent: GainsColor.accentCool,
       isLive: false,
