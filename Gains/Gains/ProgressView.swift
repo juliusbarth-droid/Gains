@@ -1415,7 +1415,11 @@ struct ProgressContentView: View {
         ? "\(String(format: "%.1f Kilogramm", latest)), \(deltaLabel(delta))"
         : "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
     )
-    .accessibilityHint("Öffnet den Check-in für dein Gewicht")
+    .accessibilityHint(
+      store.weightTrend.count >= 2
+        ? "Öffnet den Check-in für dein Gewicht"
+        : "Öffnet den Check-in, damit du deinen Gewichtstrend aufbauen kannst"
+    )
   }
 
   private var weightSparkline: some View {
