@@ -1744,7 +1744,7 @@ struct ProgressContentView: View {
               .buttonStyle(.plain)
               .accessibilityLabel(filter == .strength ? "Verlaufsfilter Krafttraining" : filter == .cardio ? "Verlaufsfilter Laufen" : "Verlaufsfilter alle Aktivitäten")
               .accessibilityValue(historyFilter == filter ? "Ausgewählt" : "Nicht ausgewählt")
-              .accessibilityHint(historyFilter == filter ? "Dieser Filter ist bereits aktiv" : "Filtert den sichtbaren Verlauf")
+              .accessibilityHint(historyFilter == filter ? "Dieser Filter ist bereits aktiv" : historyFilterAccessibilityHint(filter))
               .accessibilityAddTraits(historyFilter == filter ? .isSelected : [])
               .disabled(historyFilter == filter)
             }
@@ -1836,6 +1836,17 @@ struct ProgressContentView: View {
     switch entry {
     case .workout: return GainsColor.lime
     case .run:     return GainsColor.accentCool
+    }
+  }
+
+  private func historyFilterAccessibilityHint(_ filter: HistoryFilter) -> String {
+    switch filter {
+    case .all:
+      return "Filtert den Verlauf auf alle Aktivitäten"
+    case .strength:
+      return "Filtert den Verlauf auf Krafttraining"
+    case .cardio:
+      return "Filtert den Verlauf auf Lauftraining"
     }
   }
 
