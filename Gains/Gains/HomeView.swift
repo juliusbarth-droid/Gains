@@ -2443,7 +2443,10 @@ struct HomeView: View {
     if store.weeklySessionsCompleted >= store.weeklyGoalCount && store.weeklyGoalCount > 0 {
       return "Ziel erreicht"
     }
-    if ratio >= 0.66 { return "Auf Kurs" }
+    if ratio >= 0.66 {
+      let remaining = max(store.weeklyGoalCount - store.weeklySessionsCompleted, 0)
+      return remaining == 1 ? "Noch 1 Einheit bis Ziel" : "Noch \(remaining) Einheiten bis Ziel"
+    }
     if ratio >= 0.34 { return "In Bewegung" }
     if store.weeklySessionsCompleted == 0 { return "Woche starten" }
     let sessions = store.weeklySessionsCompleted
