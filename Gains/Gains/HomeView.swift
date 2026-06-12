@@ -2450,7 +2450,7 @@ struct HomeView: View {
     if ratio >= 0.34 {
       return "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten diese Woche"
     }
-    if store.weeklySessionsCompleted == 0 { return "Woche starten" }
+    if store.weeklySessionsCompleted == 0 { return "Diese Woche starten" }
     let sessions = store.weeklySessionsCompleted
     return sessions == 1 ? "1 Einheit geschafft" : "\(sessions) Einheiten geschafft"
   }
