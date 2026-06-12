@@ -1616,7 +1616,7 @@ struct HomeView: View {
     let goal = store.nutritionTargetCalories
     let now = store.nutritionCaloriesToday
     if goal == 0 { return "Kalorienziel festlegen" }
-    if now >= goal { return "\(now - goal) kcal über Ziel" }
+    if now >= goal { return "\(now - goal) kcal über Kalorienziel" }
     let remaining = goal - now
     return "Noch \(remaining) kcal bis Kalorienziel"
   }
