@@ -9,7 +9,7 @@ private enum HistoryFilter: String, CaseIterable, Identifiable {
   var label: String {
     switch self {
     case .all:      return "Alle"
-    case .strength: return "Kraft"
+    case .strength: return "Krafttraining"
     case .cardio:   return "Laufen"
     }
   }
