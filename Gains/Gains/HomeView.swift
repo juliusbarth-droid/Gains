@@ -2445,7 +2445,7 @@ struct HomeView: View {
     }
     if ratio >= 0.66 { return "Auf Kurs" }
     if ratio >= 0.34 { return "In Bewegung" }
-    if store.weeklySessionsCompleted == 0 { return "Startbereit" }
+    if store.weeklySessionsCompleted == 0 { return "Woche starten" }
     return "Erste Einheit läuft"
   }
 
