@@ -2447,7 +2447,9 @@ struct HomeView: View {
       let remaining = max(store.weeklyGoalCount - store.weeklySessionsCompleted, 0)
       return remaining == 1 ? "Noch 1 Einheit bis Ziel" : "Noch \(remaining) Einheiten bis Ziel"
     }
-    if ratio >= 0.34 { return "In Bewegung" }
+    if ratio >= 0.34 {
+      return "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten diese Woche"
+    }
     if store.weeklySessionsCompleted == 0 { return "Woche starten" }
     let sessions = store.weeklySessionsCompleted
     return sessions == 1 ? "1 Einheit geschafft" : "\(sessions) Einheiten geschafft"
