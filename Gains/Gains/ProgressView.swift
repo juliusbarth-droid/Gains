@@ -1410,7 +1410,11 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel("Gewicht")
-    .accessibilityValue("\(String(format: "%.1f Kilogramm", latest)), \(deltaLabel(delta))")
+    .accessibilityValue(
+      store.weightTrend.count >= 2
+        ? "\(String(format: "%.1f Kilogramm", latest)), \(deltaLabel(delta))"
+        : "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
+    )
     .accessibilityHint("Öffnet den Check-in für dein Gewicht")
   }
 
