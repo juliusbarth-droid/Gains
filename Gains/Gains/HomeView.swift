@@ -1941,7 +1941,7 @@ struct HomeView: View {
       return String(format: "Heute · %.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
     }
     if store.todayPlannedDay.sessionKind?.isRun == true {
-      return "Heute geplant · \(store.todayPlannedDay.title)"
+      return "Heute · \(store.todayPlannedDay.title)"
     }
     if let last = store.latestCompletedRun {
       let pace = last.averagePaceSeconds > 0
