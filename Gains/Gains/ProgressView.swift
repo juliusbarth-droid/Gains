@@ -1742,7 +1742,7 @@ struct ProgressContentView: View {
                   .clipShape(Capsule())
               }
               .buttonStyle(.plain)
-              .accessibilityLabel(filter == .strength ? "Verlaufsfilter Kraft" : filter == .cardio ? "Verlaufsfilter Laufen" : "Verlaufsfilter Alle")
+              .accessibilityLabel(filter == .strength ? "Verlaufsfilter Krafttraining" : filter == .cardio ? "Verlaufsfilter Laufen" : "Verlaufsfilter Alle")
               .accessibilityValue(historyFilter == filter ? "Ausgewählt" : "Nicht ausgewählt")
               .accessibilityHint(historyFilter == filter ? "Dieser Filter ist bereits aktiv" : "Filtert den sichtbaren Verlauf")
               .accessibilityAddTraits(historyFilter == filter ? .isSelected : [])
