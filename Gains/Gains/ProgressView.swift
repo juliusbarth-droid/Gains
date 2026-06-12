@@ -1493,7 +1493,7 @@ struct ProgressContentView: View {
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel(latest?.title ?? "Cardio")
     .accessibilityValue(latest.map { String(format: "%.1f Kilometer, %d Minuten, %d bpm", $0.distanceKm, $0.durationMinutes, $0.averageHeartRate) } ?? "Noch keine Cardio-Session")
-    .accessibilityHint("Schließt den Fortschritt und öffnet dein Cardio-Training")
+    .accessibilityHint("Schließt den Fortschritt und öffnet dein Lauftraining")
   }
 
   private func cardioDistanceSparkline(values: [Double]) -> some View {
@@ -1852,7 +1852,7 @@ struct ProgressContentView: View {
     case .workout:
       return "Schließt den Fortschritt und öffnet dein Krafttraining"
     case .run:
-      return "Schließt den Fortschritt und öffnet dein Cardio-Training"
+      return "Schließt den Fortschritt und öffnet dein Lauftraining"
     }
   }
 
