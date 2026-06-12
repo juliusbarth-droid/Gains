@@ -2441,7 +2441,7 @@ struct HomeView: View {
   private var progressDisplayTitle: String {
     let ratio = weeklyProgressRatio
     if store.weeklySessionsCompleted >= store.weeklyGoalCount && store.weeklyGoalCount > 0 {
-      return "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten geschafft"
+      return "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten diese Woche geschafft"
     }
     if ratio >= 0.66 {
       let remaining = max(store.weeklyGoalCount - store.weeklySessionsCompleted, 0)
