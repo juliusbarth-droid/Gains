@@ -1618,7 +1618,7 @@ struct HomeView: View {
     if goal == 0 { return "Kalorienziel festlegen" }
     if now >= goal { return "\(now - goal) kcal über Ziel" }
     let remaining = goal - now
-    return "Noch \(remaining) kcal bis zum Ziel"
+    return "Noch \(remaining) kcal bis Kalorienziel"
   }
 
   // MARK: - Compact Nutrition Row (Footer-Variante)
