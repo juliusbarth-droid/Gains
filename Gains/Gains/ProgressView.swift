@@ -1412,7 +1412,7 @@ struct ProgressContentView: View {
     .accessibilityLabel("Gewicht")
     .accessibilityValue(
       store.weightTrend.count >= 2
-        ? "\(String(format: "%.1f Kilogramm", latest)), \(deltaLabel(delta))"
+        ? "\(String(format: "%.1f Kilogramm", latest)), \(spokenWeightDeltaLabel(delta))"
         : "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
     )
     .accessibilityHint(
@@ -1971,6 +1971,13 @@ struct ProgressContentView: View {
     return delta < 0
       ? String(format: "%.1f kg", delta)
       : String(format: "+%.1f kg", delta)
+  }
+
+  private func spokenWeightDeltaLabel(_ delta: Double) -> String {
+    if abs(delta) < 0.05 { return "Gewicht stabil" }
+    return delta < 0
+      ? String(format: "%.1f Kilogramm unter Start", abs(delta))
+      : String(format: "%.1f Kilogramm über Start", delta)
   }
 
   private var waistDeltaText: String {
