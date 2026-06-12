@@ -1821,7 +1821,7 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     .accessibilityLabel(historyAccessibilityLabel(entry))
-    .accessibilityValue("\(historySubtitle(entry)), \(entry.date.formatted(.dateTime.day().month()))")
+    .accessibilityValue(historyAccessibilityValue(entry))
     .accessibilityHint(entryHistoryAccessibilityHint(entry))
   }
 
@@ -1878,6 +1878,16 @@ struct ProgressContentView: View {
       return "Krafttraining, \(w.title)"
     case .run(let r):
       return "Lauftraining, \(r.title)"
+    }
+  }
+
+  private func historyAccessibilityValue(_ entry: HistoryEntry) -> String {
+    let date = entry.date.formatted(.dateTime.day().month())
+    switch entry {
+    case .workout(let w):
+      return String(format: "%.1f Tonnen, %d Sätze, %@", w.volume / 1000, w.completedSets, date)
+    case .run(let r):
+      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(paceLabel(r.averagePaceSeconds)), \(date)"
     }
   }
 
