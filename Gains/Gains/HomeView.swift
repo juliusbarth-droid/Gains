@@ -1922,7 +1922,7 @@ struct HomeView: View {
     if let last = store.lastCompletedWorkout {
       return String(format: "Zuletzt · %d Sätze · %.1f t", last.completedSets, last.volume / 1000)
     }
-    return "Plan wählen oder spontan"
+    return "Heute · Plan wählen oder spontan"
   }
 
   /// Statuszeile für die Lauf-Schnellstart-Kachel — analog zur Training-
