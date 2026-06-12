@@ -1887,7 +1887,7 @@ struct ProgressContentView: View {
     case .workout(let w):
       return String(format: "%.1f Tonnen, %d Sätze, am %@", w.volume / 1000, w.completedSets, date)
     case .run(let r):
-      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(paceLabel(r.averagePaceSeconds)), am \(date)"
+      return "\(String(format: "%.1f Kilometer", r.distanceKm)), Pace \(spokenPaceLabel(r.averagePaceSeconds)), am \(date)"
     }
   }
 
@@ -2036,6 +2036,11 @@ struct ProgressContentView: View {
   private func paceLabel(_ seconds: Int) -> String {
     guard seconds > 0 else { return "--:-- /km" }
     return String(format: "%d:%02d /km", seconds / 60, seconds % 60)
+  }
+
+  private func spokenPaceLabel(_ seconds: Int) -> String {
+    guard seconds > 0 else { return "unbekannt pro Kilometer" }
+    return String(format: "%d:%02d pro Kilometer", seconds / 60, seconds % 60)
   }
 }
 
