@@ -1038,7 +1038,7 @@ struct ProgressContentView: View {
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     .accessibilityLabel("Readiness-Wert \(vital.title)")
     .accessibilityValue(vital.value)
-    .accessibilityHint("Aktualisiert deine aktuellen Health-Daten")
+    .accessibilityHint("Aktualisiert deinen Readiness-Wert für \(vital.title)")
   }
 
   // MARK: - 4. Pulse-Strip (Wochen-Snapshot in 4 Zellen)
