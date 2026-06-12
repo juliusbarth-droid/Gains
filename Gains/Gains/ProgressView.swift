@@ -1885,9 +1885,9 @@ struct ProgressContentView: View {
     let date = entry.date.formatted(.dateTime.day().month())
     switch entry {
     case .workout(let w):
-      return String(format: "%.1f Tonnen, %d Sätze, %@", w.volume / 1000, w.completedSets, date)
+      return String(format: "%.1f Tonnen, %d Sätze, am %@", w.volume / 1000, w.completedSets, date)
     case .run(let r):
-      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(paceLabel(r.averagePaceSeconds)), \(date)"
+      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(paceLabel(r.averagePaceSeconds)), am \(date)"
     }
   }
 
