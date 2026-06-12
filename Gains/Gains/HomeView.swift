@@ -2428,7 +2428,7 @@ struct HomeView: View {
       return "Kalorien- und Proteinziel erreicht."
     }
     if remainingProtein == 0 {
-      return "Noch \(remainingKcal) kcal · Protein-Ziel erreicht."
+      return "Noch \(remainingKcal) kcal bis Kalorienziel · Proteinziel erreicht."
     }
     return "Noch \(remainingKcal) kcal · \(remainingProtein) g Protein offen."
   }
