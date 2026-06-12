@@ -1755,7 +1755,7 @@ struct ProgressContentView: View {
           EmptyStateView(
             style: .inline,
             title: "Noch keine Aktivitäten",
-            message: "Sobald du Trainings oder Cardio-Sessions abschließt, sammeln sich hier deine letzten Aktivitäten.",
+            message: "Sobald du Kraft- oder Lauftrainings abschließt, sammeln sich hier deine letzten Aktivitäten.",
             icon: "clock.arrow.circlepath"
           )
         } else {
