@@ -1938,7 +1938,7 @@ struct HomeView: View {
       return String(format: "%.1f km · %@ · %@", ar.distanceKm, dur, pace)
     }
     if let plannedRun = store.todayPlannedDay.runTemplate {
-      return String(format: "%.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
+      return String(format: "Heute · %.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
     }
     if store.todayPlannedDay.sessionKind?.isRun == true {
       return "Heute geplant · \(store.todayPlannedDay.title)"
