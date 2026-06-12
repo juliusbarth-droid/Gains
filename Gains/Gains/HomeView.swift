@@ -3413,7 +3413,7 @@ struct HomeView: View {
             : "--:--/km"
           return String(format: "Zuletzt · %.1f km · %@", last.distanceKm, pace)
         }
-        return "GPS · Outdoor"
+        return "Heute · GPS oder Indoor starten"
       }(),
       icon: "figure.run",
       accent: GainsColor.ember,
