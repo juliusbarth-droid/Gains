@@ -2425,7 +2425,7 @@ struct HomeView: View {
     let remainingKcal = max(store.nutritionTargetCalories - store.nutritionCaloriesToday, 0)
     let remainingProtein = max(store.nutritionTargetProtein - store.nutritionProteinToday, 0)
     if remainingKcal == 0 && remainingProtein == 0 {
-      return "Tagesziele sind drin. Sauberer Tag."
+      return "Kalorien- und Proteinziel erreicht."
     }
     if remainingProtein == 0 {
       return "Noch \(remainingKcal) kcal · Protein-Ziel erreicht."
