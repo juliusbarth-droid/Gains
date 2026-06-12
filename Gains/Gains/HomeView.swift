@@ -2446,7 +2446,8 @@ struct HomeView: View {
     if ratio >= 0.66 { return "Auf Kurs" }
     if ratio >= 0.34 { return "In Bewegung" }
     if store.weeklySessionsCompleted == 0 { return "Woche starten" }
-    return "Erste Einheit läuft"
+    let sessions = store.weeklySessionsCompleted
+    return sessions == 1 ? "1 Einheit geschafft" : "\(sessions) Einheiten geschafft"
   }
 
   // MARK: - Coach Brief Engine (Variant-Picker + Render-Spec)
