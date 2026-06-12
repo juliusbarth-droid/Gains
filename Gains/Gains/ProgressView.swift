@@ -1334,7 +1334,7 @@ struct ProgressContentView: View {
     .gainsCardStyle()
     .accessibilityElement(children: .combine)
     .accessibilityLabel(topExercise?.exerciseName ?? "Krafttraining")
-    .accessibilityValue(topExercise.map { "\($0.currentValue), \($0.deltaLabel)" } ?? "Noch keine Kraftdaten")
+    .accessibilityValue(topExercise.map { "\($0.currentValue), \($0.deltaLabel)" } ?? "Noch keine Krafttraining-Daten")
     .accessibilityHint("Zeigt deinen aktuellen Kraftfortschritt")
   }
 
