@@ -1949,7 +1949,7 @@ struct HomeView: View {
         : "--:--"
       return String(format: "Zuletzt · %.1f km · %@/km", last.distanceKm, pace)
     }
-    return "Lauf · Rad outdoor · Indoor"
+    return "Heute · Lauf, Rad oder Indoor"
   }
 
   private func quickStartTile(
