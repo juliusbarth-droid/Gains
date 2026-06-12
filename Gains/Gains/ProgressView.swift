@@ -1491,8 +1491,8 @@ struct ProgressContentView: View {
     }
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
-    .accessibilityLabel(latest?.title ?? "Cardio")
-    .accessibilityValue(latest.map { String(format: "%.1f Kilometer, %d Minuten, %d bpm", $0.distanceKm, $0.durationMinutes, $0.averageHeartRate) } ?? "Noch keine Cardio-Session")
+    .accessibilityLabel(latest?.title ?? "Lauftraining")
+    .accessibilityValue(latest.map { String(format: "%.1f Kilometer, %d Minuten, %d bpm", $0.distanceKm, $0.durationMinutes, $0.averageHeartRate) } ?? "Noch keine Lauf-Session")
     .accessibilityHint("Schließt den Fortschritt und öffnet dein Lauftraining")
   }
 
