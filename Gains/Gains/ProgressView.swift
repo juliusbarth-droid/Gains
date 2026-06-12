@@ -1754,8 +1754,8 @@ struct ProgressContentView: View {
         if merged.isEmpty {
           EmptyStateView(
             style: .inline,
-            title: "Noch keine Aktivitäten",
-            message: "Sobald du Kraft- oder Lauftrainings abschließt, sammeln sich hier deine letzten Aktivitäten.",
+            title: emptyHistoryTitle,
+            message: emptyHistoryMessage,
             icon: "clock.arrow.circlepath"
           )
         } else {
@@ -1836,6 +1836,28 @@ struct ProgressContentView: View {
     switch entry {
     case .workout: return GainsColor.lime
     case .run:     return GainsColor.accentCool
+    }
+  }
+
+  private var emptyHistoryTitle: String {
+    switch historyFilter {
+    case .all:
+      return "Noch keine Aktivitäten"
+    case .strength:
+      return "Noch kein Krafttraining"
+    case .cardio:
+      return "Noch kein Lauftraining"
+    }
+  }
+
+  private var emptyHistoryMessage: String {
+    switch historyFilter {
+    case .all:
+      return "Sobald du Kraft- oder Lauftrainings abschließt, sammeln sich hier deine letzten Aktivitäten."
+    case .strength:
+      return "Sobald du ein Krafttraining abschließt, erscheint es hier in deinem Verlauf."
+    case .cardio:
+      return "Sobald du ein Lauftraining abschließt, erscheint es hier in deinem Verlauf."
     }
   }
 
