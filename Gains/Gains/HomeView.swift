@@ -3467,7 +3467,7 @@ struct HomeView: View {
           return String(format: "%@ · %.1f km · %d Min", weekday, run.targetDistanceKm, run.targetDurationMinutes)
         }
         return "\(weekday) · \(day.title)"
-      } ?? "Wochenplan anpassen",
+      } ?? "Diese Woche · Plan anpassen",
       icon: "calendar",
       accent: GainsColor.lime,
       isLive: false,
