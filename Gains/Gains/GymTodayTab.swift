@@ -365,7 +365,7 @@ struct GymTodayTab: View {
       if let run = day.runTemplate { return run.title.uppercased() }
       return plan?.title.uppercased() ?? "TRAINING HEUTE"
     case .rest:     return "FREIER TAG"
-    case .flexible: return "FLEX DAY"
+    case .flexible: return "FLEXIBLER TAG"
     }
   }
 
