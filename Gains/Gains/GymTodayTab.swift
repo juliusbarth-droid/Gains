@@ -250,7 +250,7 @@ struct GymTodayTab: View {
       if isLive { return ("LIVE", .live) }
       switch status {
       case .rest:     return ("REST", .rest)
-      case .flexible: return ("FLEX", .flex)
+      case .flexible: return ("FREI", .flex)
       case .planned:  return ("PLAN", .plan)
       }
     }()
