@@ -872,7 +872,7 @@ struct ProgressContentView: View {
       if daysAgo >= 7 {
         list.append(CoachInsight(
           icon: "figure.run",
-          text: "Dein letzter Lauf liegt \(daysAgo) Tage zurück. Eine 30-min Easy-Session diese Woche reicht, um Aerobic Base nicht zu verlieren.",
+          text: "Dein letzter Lauf liegt \(daysAgo) Tage zurück. Eine lockere 30-Minuten-Einheit diese Woche reicht, um deine aerobe Basis nicht zu verlieren.",
           accent: GainsColor.accentCool
         ))
       }
