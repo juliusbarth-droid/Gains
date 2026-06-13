@@ -1057,7 +1057,9 @@ struct ProgressContentView: View {
         accessibilityValue: store.weeklyGoalCount > 0
           ? "\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft"
           : "Noch kein Wochenziel gesetzt",
-        accessibilityHint: "Zeigt deinen Fortschritt im Wochenplan"
+        accessibilityHint: store.weeklyGoalCount > 0
+          ? "Zeigt deinen Fortschritt im Wochenplan"
+          : "Zeigt, dass noch kein Wochenziel gesetzt ist"
       )
       pulseCell(
         icon: store.streakDays >= 7 ? "flame.fill" : "flame",
