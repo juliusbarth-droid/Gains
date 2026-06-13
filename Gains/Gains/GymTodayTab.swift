@@ -219,7 +219,7 @@ struct GymTodayTab: View {
   @ViewBuilder
   private var todayHeroCard: some View {
     let day = store.todayPlannedDay
-    let plan = day.workoutPlan ?? store.todayPlannedWorkout ?? store.currentWorkoutPreview
+    let plan = day.workoutPlan ?? store.todayPlannedWorkout
     let isRunDay = day.runTemplate != nil
     let isLive = store.activeWorkout != nil
 
@@ -257,7 +257,7 @@ struct GymTodayTab: View {
     return GainsHeroStatusBadge(label: label, tone: tone)
   }
 
-  private func heroMetricsList(day: WorkoutDayPlan, plan: WorkoutPlan) -> [GainsHeroMetric] {
+  private func heroMetricsList(day: WorkoutDayPlan, plan: WorkoutPlan?) -> [GainsHeroMetric] {
     switch day.status {
     case .planned:
       if let run = day.runTemplate {
@@ -268,9 +268,9 @@ struct GymTodayTab: View {
         ]
       }
       return [
-        .init("ÜBUNGEN", "\(plan.exercises.count)"),
-        .init("DAUER",   "\(plan.estimatedDurationMinutes) Min"),
-        .init("SPLIT",   plan.split),
+        .init("ÜBUNGEN", plan.map { "\($0.exercises.count)" } ?? "—"),
+        .init("DAUER",   plan.map { "\($0.estimatedDurationMinutes) Min" } ?? "—"),
+        .init("SPLIT",   plan?.split ?? "Nicht geplant"),
       ]
     case .rest:
       // P1-1: 3. Slot war früher „STREAK" mit demselben Wert wie „WOCHE" —
@@ -285,7 +285,7 @@ struct GymTodayTab: View {
       return [
         .init("SESSIONS", "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"),
         .init("VOLUMEN",  String(format: "%.1f t", store.weeklyVolumeTons)),
-        .init("OPTION",   plan.split),
+        .init("OPTION",   plan?.split ?? "Frei"),
       ]
     }
   }
@@ -359,11 +359,11 @@ struct GymTodayTab: View {
   // weil GainsHeroCard die Pattern intern abdeckt. Die Builder oben
   // (heroMetricsList, heroStatusBadge) füttern die Komponente.
 
-  private func heroTitle(day: WorkoutDayPlan, plan: WorkoutPlan) -> String {
+  private func heroTitle(day: WorkoutDayPlan, plan: WorkoutPlan?) -> String {
     switch day.status {
     case .planned:
       if let run = day.runTemplate { return run.title.uppercased() }
-      return plan.title.uppercased()
+      return plan?.title.uppercased() ?? "TRAINING HEUTE"
     case .rest:     return "FREIER TAG"
     case .flexible: return "FLEX DAY"
     }
