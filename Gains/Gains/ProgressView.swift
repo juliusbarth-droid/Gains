@@ -1093,9 +1093,11 @@ struct ProgressContentView: View {
         value: "\(store.personalRecordCount)",
         accent: store.personalRecordCount > 0 ? GainsColor.lime : GainsColor.softInk,
         accessibilityLabel: "Persönliche Rekorde",
-        accessibilityValue: store.personalRecordCount > 0
+        accessibilityValue: store.personalRecordCount > 1
           ? "\(store.personalRecordCount) persönliche Rekorde"
-          : "Noch kein persönlicher Rekord diese Woche",
+          : store.personalRecordCount == 1
+            ? "1 persönlicher Rekord"
+            : "Noch kein persönlicher Rekord diese Woche",
         accessibilityHint: store.personalRecordCount > 0
           ? "Zeigt deine persönlichen Rekorde dieser Woche"
           : "Zeigt, dass diese Woche noch kein persönlicher Rekord gesetzt wurde"
