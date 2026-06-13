@@ -1066,7 +1066,7 @@ struct ProgressContentView: View {
         title: "STREAK",
         value: "\(store.streakDays) T",
         accent: store.streakDays >= 3 ? GainsColor.lime : GainsColor.softInk,
-        accessibilityLabel: "Streak",
+        accessibilityLabel: "Aktivitätsserie",
         accessibilityValue: store.streakDays > 0
           ? "\(store.streakDays) Tage in Folge aktiv"
           : "Noch keine aktive Serie",
