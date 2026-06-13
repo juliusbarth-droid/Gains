@@ -1083,7 +1083,9 @@ struct ProgressContentView: View {
         accessibilityValue: store.weeklyVolumeTons > 0
           ? String(format: "%.1f Tonnen diese Woche", store.weeklyVolumeTons)
           : "Noch kein Trainingsvolumen diese Woche",
-        accessibilityHint: "Zeigt dein gesamtes Trainingsvolumen dieser Woche"
+        accessibilityHint: store.weeklyVolumeTons > 0
+          ? "Zeigt dein gesamtes Trainingsvolumen dieser Woche"
+          : "Zeigt, dass diese Woche noch kein Trainingsvolumen erfasst wurde"
       )
       pulseCell(
         icon: "bolt.fill",
