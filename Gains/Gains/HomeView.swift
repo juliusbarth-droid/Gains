@@ -1150,7 +1150,7 @@ struct HomeView: View {
             Text("\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)")
               .font(.system(size: 16, weight: .semibold, design: .monospaced))
               .foregroundStyle(GainsColor.ink)
-            Text("Sessions")
+            Text("Einheiten")
               .gainsCaption()
             Text("·")
               .gainsCaption()
