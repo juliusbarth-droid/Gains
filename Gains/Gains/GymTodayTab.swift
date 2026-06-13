@@ -283,7 +283,7 @@ struct GymTodayTab: View {
       ]
     case .flexible:
       return [
-        .init("SESSIONS", "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"),
+        .init("EINHEITEN", "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"),
         .init("VOLUMEN",  String(format: "%.1f t", store.weeklyVolumeTons)),
         .init("OPTION",   plan?.split ?? "Frei"),
       ]
