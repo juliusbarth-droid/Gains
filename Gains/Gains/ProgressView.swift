@@ -1954,10 +1954,10 @@ struct ProgressContentView: View {
 
   private func entryHistoryAccessibilityHint(_ entry: HistoryEntry) -> String {
     switch entry {
-    case .workout(let w):
-      return "Schließt den Fortschritt und öffnet das Krafttraining \(w.title)"
-    case .run(let r):
-      return "Schließt den Fortschritt und öffnet das Lauftraining \(r.title)"
+    case .workout:
+      return "Schließt den Fortschritt und öffnet den Krafttraining-Bereich"
+    case .run:
+      return "Schließt den Fortschritt und öffnet den Lauftraining-Bereich"
     }
   }
 
