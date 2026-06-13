@@ -2317,7 +2317,7 @@ struct HomeView: View {
             coreSize: 6,
             haloSize: 18
           )
-          Text("LIVE HF")
+          Text("AKTIVE HF")
             .gainsEyebrow(GainsColor.accentCool, size: 11, tracking: 1.5)
 
           if let bpm = ble.liveHeartRate {
