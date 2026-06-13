@@ -838,7 +838,7 @@ struct ProgressContentView: View {
       if isLateWeek && remaining >= 2 {
         list.append(CoachInsight(
           icon: "exclamationmark.triangle.fill",
-          text: "Späte Wochenhälfte und noch \(remaining) Sessions offen. Realistisch: heute 1 Session retten, morgen die zweite — Rest plan-mäßig in nächste Woche schieben.",
+          text: "Späte Wochenhälfte und noch \(remaining) Einheiten offen. Realistisch: heute 1 Einheit retten, morgen die zweite — Rest plan-mäßig in nächste Woche schieben.",
           accent: GainsColor.ember
         ))
       }
