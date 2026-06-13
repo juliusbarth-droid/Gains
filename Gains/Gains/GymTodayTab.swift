@@ -247,9 +247,9 @@ struct GymTodayTab: View {
 
   private func heroStatusBadge(for status: WorkoutDayStatus, isLive: Bool) -> some View {
     let (label, tone): (String, GainsHeroStatusBadge.Tone) = {
-      if isLive { return ("LIVE", .live) }
+      if isLive { return ("AKTIV", .live) }
       switch status {
-      case .rest:     return ("REST", .rest)
+      case .rest:     return ("PAUSE", .rest)
       case .flexible: return ("FREI", .flex)
       case .planned:  return ("PLAN", .plan)
       }
