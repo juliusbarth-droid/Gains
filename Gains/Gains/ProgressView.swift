@@ -808,7 +808,7 @@ struct ProgressContentView: View {
   private var coachFallback: CoachInsight {
     CoachInsight(
       icon: "sparkles",
-      text: "Sobald deine ersten Sessions oder Check-ins drin sind, wird hier eine echte Beobachtung stehen.",
+      text: "Sobald deine ersten Einheiten oder Check-ins drin sind, wird hier eine echte Beobachtung stehen.",
       accent: GainsColor.lime
     )
   }
