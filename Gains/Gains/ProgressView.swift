@@ -1543,7 +1543,10 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel(latest.map { "Lauftraining, \($0.title)" } ?? "Lauftraining")
-    .accessibilityValue(latest.map { String(format: "%.1f Kilometer, %d Minuten, %d bpm", $0.distanceKm, $0.durationMinutes, $0.averageHeartRate) } ?? "Noch kein Lauftraining geloggt")
+    .accessibilityValue(latest.map {
+      let minutesLabel = $0.durationMinutes == 1 ? "1 Minute" : "\($0.durationMinutes) Minuten"
+      return String(format: "%.1f Kilometer, %@, %d bpm", $0.distanceKm, minutesLabel, $0.averageHeartRate)
+    } ?? "Noch kein Lauftraining geloggt")
     .accessibilityHint("Schließt den Fortschritt und öffnet den Lauftraining-Bereich")
   }
 
