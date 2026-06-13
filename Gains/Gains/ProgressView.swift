@@ -729,7 +729,7 @@ struct ProgressContentView: View {
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel("Coach Hinweis")
     .accessibilityValue(current.text)
-    .accessibilityHint(canCycle ? "Doppeltippen, um zum nächsten Hinweis zu wechseln" : "Zeigt deinen aktuellen Coaching-Hinweis")
+    .accessibilityHint(canCycle ? "Doppeltippen, um zum nächsten Coaching-Hinweis zu wechseln" : "Zeigt deinen aktuellen Coaching-Hinweis")
   }
 
   /// Größere Icon-Plate (44pt) mit Halo + leichtem Akzent-Glow — Insights
