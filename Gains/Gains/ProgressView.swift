@@ -1376,7 +1376,7 @@ struct ProgressContentView: View {
     .padding(GainsSpacing.m)
     .gainsCardStyle()
     .accessibilityElement(children: .combine)
-    .accessibilityLabel(topExercise?.exerciseName ?? "Krafttraining")
+    .accessibilityLabel(topExercise.map { "Krafttraining, \($0.exerciseName)" } ?? "Krafttraining")
     .accessibilityValue(topExercise.map { "\($0.currentValue), \($0.deltaLabel)" } ?? "Noch keine Krafttraining-Daten")
     .accessibilityHint(topExercise == nil ? "Zeigt deine Krafttraining-Daten, sobald du erste Sessions loggst" : "Zeigt deinen aktuellen Kraftfortschritt")
   }
