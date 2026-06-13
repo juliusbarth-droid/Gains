@@ -882,7 +882,7 @@ struct ProgressContentView: View {
       if hrvNumber < 55 {
         list.append(CoachInsight(
           icon: "waveform.path.ecg",
-          text: "HRV \(hrvNumber) ms — unter Baseline. Heute eher mobilisieren, Zone-2 oder regenerative Session statt schwerer Belastung.",
+          text: "HRV \(hrvNumber) ms — unter Baseline. Heute eher mobilisieren, Zone 2 oder regenerative Einheit statt schwerer Belastung.",
           accent: GainsColor.ember
         ))
       } else if hrvNumber >= 70 {
