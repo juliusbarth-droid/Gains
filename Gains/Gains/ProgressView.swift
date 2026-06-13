@@ -405,7 +405,7 @@ struct ProgressContentView: View {
       let line: String
       if remaining == 0       { line = "Alle Sessions sitzen. Nächste Woche: gleiche Frequenz, mehr Volumen." }
       else if remaining == 1  { line = "Eine Session noch. Du brauchst 45 Minuten — die hast du." }
-      else                    { line = "\(remaining) Sessions offen. Plan check, dann eintakten." }
+      else                    { line = "\(remaining) Einheiten offen. Plan check, dann eintakten." }
       return (
         headline: "\(done) von \(goal) — \(percent) %",
         subline: line,
