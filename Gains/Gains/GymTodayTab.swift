@@ -533,7 +533,7 @@ struct GymTodayTab: View {
             Circle()
               .fill(GainsColor.lime)
               .frame(width: 8, height: 8)
-            Text("LIVE SESSION")
+            Text("LIVE EINHEIT")
               .font(GainsFont.label(10))
               .tracking(2.0)
               .foregroundStyle(GainsColor.lime)
