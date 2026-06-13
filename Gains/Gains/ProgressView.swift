@@ -1055,7 +1055,7 @@ struct ProgressContentView: View {
         accent: store.weeklyGoalCount > 0 ? GainsColor.lime : GainsColor.softInk,
         accessibilityLabel: "Wochenplan",
         accessibilityValue: store.weeklyGoalCount > 0
-          ? "\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft"
+          ? "\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) \(store.weeklyGoalCount == 1 ? "Einheit" : "Einheiten") geschafft"
           : "Noch kein Wochenziel gesetzt",
         accessibilityHint: store.weeklyGoalCount > 0
           ? "Zeigt deinen Fortschritt im Wochenplan"
