@@ -1175,7 +1175,7 @@ struct ProgressContentView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel("365 Tage Aktivität")
     .accessibilityValue("\(yearActivityDays.totalActiveDays) Tage aktiv")
-    .accessibilityHint("Zeigt deine Aktivität über die letzten 365 Tage")
+    .accessibilityHint("Fasst deine aktiven Tage der letzten 365 Tage zusammen")
   }
 
   private var yearActivityGridBody: some View {
