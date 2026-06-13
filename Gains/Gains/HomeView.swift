@@ -20,9 +20,9 @@ private enum HomeFormatters {
     return f
   }()
 
-  static let dayMonthEN: DateFormatter = {
+  static let dayMonthDE: DateFormatter = {
     let f = DateFormatter()
-    f.locale = Locale(identifier: "en_US_POSIX")
+    f.locale = Locale(identifier: "de_DE")
     f.dateFormat = "dd MMM"
     return f
   }()
@@ -3754,7 +3754,7 @@ struct HomeView: View {
     let week = Calendar.current.component(.weekOfYear, from: now)
     return (
       HomeFormatters.weekdayShortDE.string(from: now).uppercased(),
-      HomeFormatters.dayMonthEN.string(from: now).uppercased(),
+      HomeFormatters.dayMonthDE.string(from: now).uppercased(),
       "WK \(week)"
     )
   }
