@@ -1452,7 +1452,7 @@ struct ProgressContentView: View {
     }
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
-    .accessibilityLabel("Gewicht")
+    .accessibilityLabel("Körper, Gewicht")
     .accessibilityValue(
       store.weightTrend.count >= 2
         ? "\(String(format: "%.1f Kilogramm", latest)), \(spokenWeightDeltaLabel(delta))"
