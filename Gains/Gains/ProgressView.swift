@@ -234,8 +234,8 @@ struct ProgressContentView: View {
     .accessibilityHint(
       isPlanned
         ? (opensRun
-            ? "Schließt den Fortschritt und öffnet dein heutiges Lauftraining"
-            : "Schließt den Fortschritt und öffnet dein heutiges Krafttraining")
+            ? "Schließt den Fortschritt und öffnet den Lauftraining-Bereich"
+            : "Schließt den Fortschritt und öffnet den Krafttraining-Bereich")
         : "Schließt den Fortschritt und öffnet deinen Wochenplan"
     )
   }
