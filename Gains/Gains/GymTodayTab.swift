@@ -884,7 +884,7 @@ struct GymTodayTab: View {
           secondaryColor: GainsColor.softInk
         )
         Spacer()
-        Text("\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions")
+        Text("\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten")
           .font(GainsFont.label(9))
           .tracking(GainsTracking.eyebrowTight)
           .foregroundStyle(GainsColor.softInk)
