@@ -1056,7 +1056,8 @@ struct ProgressContentView: View {
         accessibilityLabel: "Wochenplan",
         accessibilityValue: store.weeklyGoalCount > 0
           ? "\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft"
-          : "Noch kein Wochenziel gesetzt"
+          : "Noch kein Wochenziel gesetzt",
+        accessibilityHint: "Zeigt deinen Fortschritt im Wochenplan"
       )
       pulseCell(
         icon: store.streakDays >= 7 ? "flame.fill" : "flame",
@@ -1064,7 +1065,8 @@ struct ProgressContentView: View {
         value: "\(store.streakDays) T",
         accent: store.streakDays >= 3 ? GainsColor.lime : GainsColor.softInk,
         accessibilityLabel: "Streak",
-        accessibilityValue: "\(store.streakDays) Tage in Folge aktiv"
+        accessibilityValue: "\(store.streakDays) Tage in Folge aktiv",
+        accessibilityHint: "Zeigt deine aktuelle Aktivitätsserie"
       )
       pulseCell(
         icon: "chart.bar.fill",
@@ -1072,7 +1074,8 @@ struct ProgressContentView: View {
         value: String(format: "%.1f t", store.weeklyVolumeTons),
         accent: GainsColor.lime,
         accessibilityLabel: "Wochenvolumen",
-        accessibilityValue: String(format: "%.1f Tonnen diese Woche", store.weeklyVolumeTons)
+        accessibilityValue: String(format: "%.1f Tonnen diese Woche", store.weeklyVolumeTons),
+        accessibilityHint: "Zeigt dein gesamtes Trainingsvolumen dieser Woche"
       )
       pulseCell(
         icon: "bolt.fill",
@@ -1080,7 +1083,8 @@ struct ProgressContentView: View {
         value: "\(store.personalRecordCount)",
         accent: store.personalRecordCount > 0 ? GainsColor.lime : GainsColor.softInk,
         accessibilityLabel: "Persönliche Rekorde",
-        accessibilityValue: "\(store.personalRecordCount) persönliche Rekorde"
+        accessibilityValue: "\(store.personalRecordCount) persönliche Rekorde",
+        accessibilityHint: "Zeigt deine persönlichen Rekorde dieser Woche"
       )
     }
   }
@@ -1092,7 +1096,8 @@ struct ProgressContentView: View {
     value: String,
     accent: Color,
     accessibilityLabel: String,
-    accessibilityValue: String
+    accessibilityValue: String,
+    accessibilityHint: String
   ) -> some View {
     VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack {
@@ -1138,7 +1143,7 @@ struct ProgressContentView: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(accessibilityLabel)
     .accessibilityValue(accessibilityValue)
-    .accessibilityHint("Zeigt deinen aktuellen Wochenstatus")
+    .accessibilityHint(accessibilityHint)
   }
 
   // MARK: - 4b. 365-Tage-Aktivitäts-Grid (Brand-Loop 7, 2026-05-14)
