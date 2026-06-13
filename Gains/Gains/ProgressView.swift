@@ -1188,7 +1188,7 @@ struct ProgressContentView: View {
           secondaryColor: GainsColor.softInk
         )
         Spacer()
-        Text("\(yearActivityDays.totalActiveDays) Tage aktiv")
+        Text(yearActivityDays.totalActiveDays == 1 ? "1 Tag aktiv" : "\(yearActivityDays.totalActiveDays) Tage aktiv")
           .font(GainsFont.label(10))
           .tracking(GainsTracking.eyebrowTight)
           .foregroundStyle(GainsColor.softInk)
