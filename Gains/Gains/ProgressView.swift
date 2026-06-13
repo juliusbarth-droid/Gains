@@ -1070,7 +1070,9 @@ struct ProgressContentView: View {
         accessibilityValue: store.streakDays > 0
           ? "\(store.streakDays) Tage in Folge aktiv"
           : "Noch keine aktive Serie",
-        accessibilityHint: "Zeigt deine aktuelle Aktivitätsserie"
+        accessibilityHint: store.streakDays > 0
+          ? "Zeigt deine aktuelle Aktivitätsserie"
+          : "Zeigt, dass aktuell noch keine Aktivitätsserie läuft"
       )
       pulseCell(
         icon: "chart.bar.fill",
