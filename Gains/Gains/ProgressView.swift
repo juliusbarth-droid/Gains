@@ -379,9 +379,10 @@ struct ProgressContentView: View {
         cta: "Eintrag loggen"
       )
     case let .weekComplete(sessions):
+      let sessionLabel = sessions == 1 ? "1 Session" : "\(sessions) Sessions"
       return (
         headline: "Wochenziel durchgezogen",
-        subline: "\(sessions) Sessions im Kasten. Bonus-Session ist jetzt Ass im Ärmel, nicht Pflicht.",
+        subline: "\(sessionLabel) im Kasten. Bonus-Session ist jetzt Ass im Ärmel, nicht Pflicht.",
         badge: "\(sessions)/\(store.weeklyGoalCount) ✓",
         cta: "Bonus starten"
       )
