@@ -888,7 +888,7 @@ struct ProgressContentView: View {
       } else if hrvNumber >= 70 {
         list.append(CoachInsight(
           icon: "waveform.path.ecg",
-          text: "HRV \(hrvNumber) ms — Recovery offen. Heute kannst du beim Hauptlift anziehen, ohne ins Risiko zu gehen.",
+          text: "HRV \(hrvNumber) ms — Erholung offen. Heute kannst du beim Hauptlift anziehen, ohne ins Risiko zu gehen.",
           accent: GainsColor.lime
         ))
       }
