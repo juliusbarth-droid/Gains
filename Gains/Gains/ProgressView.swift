@@ -1945,7 +1945,8 @@ struct ProgressContentView: View {
   private func historySubtitle(_ entry: HistoryEntry) -> String {
     switch entry {
     case .workout(let w):
-      return String(format: "%.1f t · %d Sätze", w.volume / 1000, w.completedSets)
+      let setLabel = w.completedSets == 1 ? "1 Satz" : "\(w.completedSets) Sätze"
+      return String(format: "%.1f t · %@", w.volume / 1000, setLabel)
     case .run(let r):
       return "\(String(format: "%.1f km", r.distanceKm)) · \(paceLabel(r.averagePaceSeconds))"
     }
