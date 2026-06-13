@@ -1052,25 +1052,35 @@ struct ProgressContentView: View {
         value: store.weeklyGoalCount > 0
           ? "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"
           : "—",
-        accent: store.weeklyGoalCount > 0 ? GainsColor.lime : GainsColor.softInk
+        accent: store.weeklyGoalCount > 0 ? GainsColor.lime : GainsColor.softInk,
+        accessibilityLabel: "Wochenplan",
+        accessibilityValue: store.weeklyGoalCount > 0
+          ? "\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft"
+          : "Noch kein Wochenziel gesetzt"
       )
       pulseCell(
         icon: store.streakDays >= 7 ? "flame.fill" : "flame",
         title: "STREAK",
         value: "\(store.streakDays) T",
-        accent: store.streakDays >= 3 ? GainsColor.lime : GainsColor.softInk
+        accent: store.streakDays >= 3 ? GainsColor.lime : GainsColor.softInk,
+        accessibilityLabel: "Streak",
+        accessibilityValue: "\(store.streakDays) Tage in Folge aktiv"
       )
       pulseCell(
         icon: "chart.bar.fill",
         title: "VOL/W",
         value: String(format: "%.1f t", store.weeklyVolumeTons),
-        accent: GainsColor.lime
+        accent: GainsColor.lime,
+        accessibilityLabel: "Wochenvolumen",
+        accessibilityValue: String(format: "%.1f Tonnen diese Woche", store.weeklyVolumeTons)
       )
       pulseCell(
         icon: "bolt.fill",
         title: "PR",
         value: "\(store.personalRecordCount)",
-        accent: store.personalRecordCount > 0 ? GainsColor.lime : GainsColor.softInk
+        accent: store.personalRecordCount > 0 ? GainsColor.lime : GainsColor.softInk,
+        accessibilityLabel: "Persönliche Rekorde",
+        accessibilityValue: "\(store.personalRecordCount) persönliche Rekorde"
       )
     }
   }
@@ -1080,7 +1090,9 @@ struct ProgressContentView: View {
     icon: String? = nil,
     title: String,
     value: String,
-    accent: Color
+    accent: Color,
+    accessibilityLabel: String,
+    accessibilityValue: String
   ) -> some View {
     VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack {
@@ -1123,6 +1135,10 @@ struct ProgressContentView: View {
         .stroke(GainsColor.border.opacity(0.5), lineWidth: 1)
     )
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(accessibilityLabel)
+    .accessibilityValue(accessibilityValue)
+    .accessibilityHint("Zeigt deinen aktuellen Wochenstatus")
   }
 
   // MARK: - 4b. 365-Tage-Aktivitäts-Grid (Brand-Loop 7, 2026-05-14)
