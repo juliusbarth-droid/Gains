@@ -1098,9 +1098,11 @@ struct ProgressContentView: View {
           : store.personalRecordCount == 1
             ? "1 persönlicher Rekord"
             : "Noch kein persönlicher Rekord diese Woche",
-        accessibilityHint: store.personalRecordCount > 0
+        accessibilityHint: store.personalRecordCount > 1
           ? "Zeigt deine persönlichen Rekorde dieser Woche"
-          : "Zeigt, dass diese Woche noch kein persönlicher Rekord gesetzt wurde"
+          : store.personalRecordCount == 1
+            ? "Zeigt deinen persönlichen Rekord dieser Woche"
+            : "Zeigt, dass diese Woche noch kein persönlicher Rekord gesetzt wurde"
       )
     }
   }
