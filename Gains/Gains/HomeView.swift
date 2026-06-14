@@ -1888,7 +1888,7 @@ struct HomeView: View {
       )
       quickStartTile(
         kind: .cardio,
-        title: store.activeRun != nil ? "Fortsetzen" : "Cardio",
+        title: store.activeRun != nil ? "Fortsetzen" : "Laufen",
         eyebrow: "CARDIO",
         subtitle: quickStartCardioSubtitle,
         // Tap = Lauf (häufigster Modus). Long-Press öffnet Modi-Auswahl
