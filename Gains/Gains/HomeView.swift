@@ -2603,7 +2603,7 @@ struct HomeView: View {
           headline: "Willkommen\(warmName).",
           subline: exerciseCount > 0
             ? "Heute startest du mit \(workoutTitle) — \(exerciseCount) Übungen, wir führen dich Satz für Satz."
-            : "Heute startest du mit \(workoutTitle). Wir führen dich Schritt für Schritt durch deine erste Session.",
+            : "Heute startest du mit \(workoutTitle). Wir führen dich Schritt für Schritt durch dein erstes Training.",
           primary: CoachActionDescriptor(
             title: "Erstes Training",
             icon: "play.fill",
