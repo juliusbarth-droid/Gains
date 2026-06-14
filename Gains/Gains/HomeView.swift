@@ -2982,7 +2982,7 @@ struct HomeView: View {
         return "Erholungsmodus"
       }()
       return CoachBrief(
-        eyebrow: "RECOVERY-TAG",
+        eyebrow: "ERHOLUNGSTAG",
         glyph: "leaf.fill",
         accent: GainsColor.accentCool,
         headline: "Heute füllt sich der Tank.",
