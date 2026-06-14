@@ -2774,7 +2774,7 @@ struct HomeView: View {
       }
       if minutesSince <= 90 && proteinGap >= 20 {
         return CoachBrief(
-          eyebrow: "POST-WORKOUT",
+          eyebrow: "NACH DEM TRAINING",
           glyph: "fork.knife",
           accent: GainsColor.ember,
           headline: "Solide Session — jetzt nachladen.",
