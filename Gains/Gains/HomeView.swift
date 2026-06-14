@@ -3111,7 +3111,7 @@ struct HomeView: View {
           label: "SÄTZE",
           value: "\(aws.completedSets)",
           unit: "/\(aws.totalSets)",
-          detail: "Live-Session",
+          detail: "Aktive Einheit",
           accent: GainsColor.lime,
           action: .openWorkoutTracker
         ),
