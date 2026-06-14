@@ -2986,7 +2986,7 @@ struct HomeView: View {
         glyph: "leaf.fill",
         accent: GainsColor.accentCool,
         headline: "Heute füllt sich der Tank.",
-        subline: "\(hrvDetail). Spaziergang, Mobility oder ein lockerer Rad-Schwung passen.",
+        subline: "\(hrvDetail). Spaziergang, Mobilität oder ein lockerer Rad-Schwung passen.",
         primary: CoachActionDescriptor(
           title: "Mahlzeit loggen",
           icon: "fork.knife",
