@@ -2478,7 +2478,7 @@ struct HomeView: View {
           headline: "Trainer wird geöffnet …",
           subline: "Setup läuft im Hintergrund — Trainer ist gleich da.",
           primary: CoachActionDescriptor(
-            title: "Trainer öffnen",
+            title: "Training öffnen",
             icon: "play.fill",
             metric: nil,
             action: .openWorkoutTracker
@@ -2523,7 +2523,7 @@ struct HomeView: View {
           ? "Alle \(s.totalSets) Sätze fast durch — \(aw.title) wartet auf den Schlusspunkt."
           : "\(s.completedSets)/\(s.totalSets) Sätze · \(progress) % von \(aw.title) durch.",
         primary: CoachActionDescriptor(
-          title: "Trainer öffnen",
+          title: "Training öffnen",
           icon: "play.fill",
           metric: "\(s.completedSets)/\(s.totalSets)",
           action: .openWorkoutTracker
