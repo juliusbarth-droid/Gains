@@ -2822,7 +2822,7 @@ struct HomeView: View {
        !hasAnyActivityToday {
       let hoursLeft = max(24 - hour, 1)
       return CoachBrief(
-        eyebrow: "STREAK SCHÜTZEN",
+        eyebrow: "SERIE SCHÜTZEN",
         glyph: "flame.fill",
         accent: GainsColor.ember,
         headline: "Noch \(hoursLeft) h für deine \(store.streakDays)-Tage-Aktivserie.",
