@@ -1028,7 +1028,7 @@ struct HomeView: View {
             ? "Aktives Training, tippen zum Fortsetzen"
             : store.activeRun != nil
               ? "Aktiver Lauf, tippen zum Fortsetzen"
-              : "Heutiger Plan, tippen für Wochenübersicht"
+              : "Heutiger Plan, tippen für Wochenplan"
         )
 
         if let week = cachedHomeWeekPreview {
