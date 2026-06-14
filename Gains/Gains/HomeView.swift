@@ -2538,7 +2538,7 @@ struct HomeView: View {
       let hours = ar.durationMinutes / 60
       let remainingMins = ar.durationMinutes % 60
       return CoachBrief(
-        eyebrow: ar.isPaused ? "RUN PAUSIERT" : "RUN LIVE",
+        eyebrow: ar.isPaused ? "RUN PAUSIERT" : "LAUF AKTIV",
         glyph: "figure.run",
         accent: GainsColor.ember,
         headline: ar.isPaused
