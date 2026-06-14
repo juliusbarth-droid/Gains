@@ -1872,7 +1872,7 @@ struct HomeView: View {
     HStack(spacing: GainsSpacing.s) {
       quickStartTile(
         kind: .training,
-        title: store.activeWorkout != nil ? "Fortsetzen" : "Workout",
+        title: store.activeWorkout != nil ? "Fortsetzen" : "Training",
         eyebrow: "TRAINING",
         subtitle: quickStartTrainingSubtitle,
         icon: store.activeWorkout != nil ? "dumbbell.fill" : "play.fill",
