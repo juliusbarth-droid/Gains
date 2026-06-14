@@ -4053,7 +4053,7 @@ struct HomeView: View {
       if let runTemplate { return runTemplate.title }
       if let assigned { return assigned.title }
       switch pref {
-      case .training: return "Trainingstag · noch kein Workout"
+      case .training: return "Trainingstag · noch kein Training"
       case .flexible: return "Flexibel · spontan trainieren"
       case .rest:     return "Ruhetag"
       }
