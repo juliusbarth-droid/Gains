@@ -1889,7 +1889,7 @@ struct HomeView: View {
       quickStartTile(
         kind: .cardio,
         title: store.activeRun != nil ? "Fortsetzen" : "Laufen",
-        eyebrow: "CARDIO",
+        eyebrow: "LAUFEN",
         subtitle: quickStartCardioSubtitle,
         // Tap = Lauf (häufigster Modus). Long-Press öffnet Modi-Auswahl
         // (Rad outdoor, Rad indoor) — siehe quickStartContextMenu(.cardio).
