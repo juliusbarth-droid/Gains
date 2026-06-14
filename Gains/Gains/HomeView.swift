@@ -3037,7 +3037,7 @@ struct HomeView: View {
         glyph: "moon.fill",
         accent: GainsColor.accentCool,
         headline: "Tagesziele drin — Zeit zum Runterfahren.",
-        subline: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Sessions, \(store.nutritionCaloriesToday) kcal. Schlaf wird heute belohnt.",
+        subline: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten, \(store.nutritionCaloriesToday) kcal. Schlaf wird heute belohnt.",
         primary: CoachActionDescriptor(
           title: "Wochenstand",
           icon: "chart.line.uptrend.xyaxis",
