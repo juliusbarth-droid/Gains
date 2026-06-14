@@ -2828,7 +2828,7 @@ struct HomeView: View {
         headline: "Noch \(hoursLeft) h für die \(store.streakDays)-Tage-Streak.",
         subline: "Eine Mahlzeit oder ein 20-min-Walk reichen, um den Tag als aktiv zu markieren.",
         primary: CoachActionDescriptor(
-          title: "Schnell-Workout",
+          title: "Schnelltraining",
           icon: "play.fill",
           metric: "20 min",
           action: .startQuickWorkout
