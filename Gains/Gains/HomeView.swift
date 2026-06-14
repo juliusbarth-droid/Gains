@@ -2491,7 +2491,7 @@ struct HomeView: View {
           glyph: "figure.run",
           accent: GainsColor.ember,
           headline: "GPS wird gesucht …",
-          subline: "Setup läuft im Hintergrund — Tracker ist gleich da.",
+          subline: "Setup läuft im Hintergrund — dein Lauf ist gleich bereit.",
           primary: CoachActionDescriptor(
             title: "Lauf öffnen",
             icon: "figure.run",
