@@ -3348,7 +3348,7 @@ struct HomeView: View {
       label: "PROTEIN",
       value: "\(store.nutritionProteinToday)",
       unit: "/\(store.nutritionTargetProtein) g",
-      detail: gap == 0 ? "Im Ziel" : "Noch \(gap) g",
+      detail: gap == 0 ? "Proteinziel erreicht" : "Noch \(gap) g",
       accent: GainsColor.ember,
       action: .openNutrition
     )
