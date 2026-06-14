@@ -989,7 +989,7 @@ struct HomeView: View {
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Fortschritt öffnen")
+      .accessibilityLabel("Fortschritt heute und diese Woche öffnen")
 
       // Refined Hairline-Gradient-Divider statt hartem 1pt-Rectangle —
       // bridged optisch zwischen den zwei Tap-Zonen, statt sie hart
