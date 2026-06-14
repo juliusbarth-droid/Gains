@@ -2825,7 +2825,7 @@ struct HomeView: View {
         eyebrow: "STREAK SCHÜTZEN",
         glyph: "flame.fill",
         accent: GainsColor.ember,
-        headline: "Noch \(hoursLeft) h für die \(store.streakDays)-Tage-Streak.",
+        headline: "Noch \(hoursLeft) h für deine \(store.streakDays)-Tage-Aktivserie.",
         subline: "Eine Mahlzeit oder ein 20-Minuten-Spaziergang reichen, um den Tag als aktiv zu markieren.",
         primary: CoachActionDescriptor(
           title: "Schnelltraining",
