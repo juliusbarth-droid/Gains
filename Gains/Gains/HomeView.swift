@@ -4398,7 +4398,7 @@ private struct WorkoutArrangeView: View {
         } else {
           VStack(spacing: GainsSpacing.s) {
             SwiftUI.ProgressView()
-            Text("Workout wird vorbereitet ...")
+            Text("Training wird vorbereitet ...")
               .gainsBody(secondary: true)
           }
         }
