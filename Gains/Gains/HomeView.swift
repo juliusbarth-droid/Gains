@@ -2624,7 +2624,7 @@ struct HomeView: View {
           glyph: "sparkles",
           accent: GainsColor.accentCool,
           headline: "Willkommen\(warmName).",
-          subline: "Heute ist Recovery-Tag in deinem Plan. Log deine erste Mahlzeit, dann hast du den ersten Win schon eingefahren.",
+          subline: "Heute ist Erholungstag in deinem Plan. Logge deine erste Mahlzeit, dann hast du den ersten kleinen Erfolg schon eingefahren.",
           primary: CoachActionDescriptor(
             title: "Mahlzeit loggen",
             icon: "fork.knife",
