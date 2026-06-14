@@ -2695,7 +2695,7 @@ struct HomeView: View {
           : "Heute ist ein guter Tag für dein erstes Training — kurz und gut."
       } else if daysSince <= 7 {
         headline = "Lass uns klein anfangen."
-        subline = "Du hast den Plan da, jetzt fehlt nur die erste Session. Dauert keine 30 Minuten."
+        subline = "Du hast den Plan da, jetzt fehlt nur dein erstes Training. Dauert keine 30 Minuten."
       } else {
         headline = "Frischer Start gefällig?"
         subline = "Plan steht noch. Wir gehen es langsam an — du wählst die Intensität."
