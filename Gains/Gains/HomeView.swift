@@ -2647,7 +2647,7 @@ struct HomeView: View {
           headline: "Willkommen\(warmName).",
           subline: "Heute ist flexibel — du wählst. Erstes Workout, kurzer Lauf oder einfach eine Mahlzeit loggen. Jeder erste Schritt zählt.",
           primary: CoachActionDescriptor(
-            title: "Workout starten",
+            title: "Training starten",
             icon: "play.fill",
             metric: nil,
             action: .startQuickWorkout
