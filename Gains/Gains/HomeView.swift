@@ -2777,7 +2777,7 @@ struct HomeView: View {
           eyebrow: "NACH DEM TRAINING",
           glyph: "fork.knife",
           accent: GainsColor.ember,
-          headline: "Solide Session — jetzt nachladen.",
+          headline: "Solides Training — jetzt nachladen.",
           subline: "\(last.title) abgeschlossen vor \(minutesSince) min. Noch \(proteinGap) g Protein offen.",
           primary: CoachActionDescriptor(
             title: "Mahlzeit loggen",
