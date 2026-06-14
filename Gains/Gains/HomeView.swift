@@ -2089,7 +2089,7 @@ struct HomeView: View {
       Button {
         repeatLastWorkoutFromHome()
       } label: {
-        Label("Letzte Session wiederholen", systemImage: "arrow.uturn.backward")
+        Label("Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
       }
       .disabled(store.lastCompletedWorkout == nil)
       Button {
@@ -2260,7 +2260,7 @@ struct HomeView: View {
       Button {
         repeatLastWorkoutFromHome()
       } label: {
-        Label("Letzte Session wiederholen", systemImage: "arrow.uturn.backward")
+        Label("Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
       }
       .disabled(store.lastCompletedWorkout == nil)
 
