@@ -1295,7 +1295,7 @@ struct HomeView: View {
           .font(.system(size: 11, weight: .medium, design: .monospaced))
           .foregroundStyle(GainsColor.softInk)
           .padding(.top, -2)
-        Text("SESSIONS")
+        Text("EINHEITEN")
           .font(GainsFont.eyebrow)
           .tracking(GainsTracking.eyebrowTight)
           .foregroundStyle(GainsColor.mutedInk)
