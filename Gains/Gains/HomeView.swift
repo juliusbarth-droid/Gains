@@ -1170,7 +1170,7 @@ struct HomeView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Wochenfortschritt — \(store.weeklySessionsCompleted) von \(store.weeklyGoalCount)")
+    .accessibilityLabel("Wochenfortschritt — \(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft")
   }
 
   /// Mini-Pill mit „NÄCHSTES: Push" oder „HEUTE: Push" — als Quick-Hint
