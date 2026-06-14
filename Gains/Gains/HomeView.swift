@@ -3397,8 +3397,8 @@ struct HomeView: View {
     )
     let cardioTile = ActionTileSpec(
       kind: .cardio,
-      eyebrow: "CARDIO",
-      title: runningRun ? "Run live" : "Lauf",
+      eyebrow: "LAUFEN",
+      title: runningRun ? "Lauf aktiv" : "Lauf",
       subtitle: {
         if runningRun {
           let dm = store.activeRun?.durationMinutes ?? 0
