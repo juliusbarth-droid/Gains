@@ -2826,7 +2826,7 @@ struct HomeView: View {
         glyph: "flame.fill",
         accent: GainsColor.ember,
         headline: "Noch \(hoursLeft) h für die \(store.streakDays)-Tage-Streak.",
-        subline: "Eine Mahlzeit oder ein 20-min-Walk reichen, um den Tag als aktiv zu markieren.",
+        subline: "Eine Mahlzeit oder ein 20-Minuten-Spaziergang reichen, um den Tag als aktiv zu markieren.",
         primary: CoachActionDescriptor(
           title: "Schnelltraining",
           icon: "play.fill",
