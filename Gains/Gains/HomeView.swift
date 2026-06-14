@@ -3055,7 +3055,7 @@ struct HomeView: View {
         glyph: "infinity",
         accent: GainsColor.accentCool,
         headline: "Heute bleibt offen — was passt?",
-        subline: "Kein fester Plan. Spontanes Workout, Lauf oder Mobility sind alle gleich richtig.",
+        subline: "Kein fester Plan. Spontanes Workout, Lauf oder Mobilität sind alle gleich richtig.",
         primary: CoachActionDescriptor(
           title: "Spontan trainieren",
           icon: "play.fill",
