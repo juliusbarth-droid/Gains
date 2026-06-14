@@ -3051,7 +3051,7 @@ struct HomeView: View {
     // 10) Flex-Tag — heute offen.
     if store.todayPlannedDay.status == .flexible {
       return CoachBrief(
-        eyebrow: "FLEX-TAG",
+        eyebrow: "FLEXIBLER TAG",
         glyph: "infinity",
         accent: GainsColor.accentCool,
         headline: "Heute bleibt offen — was passt?",
