@@ -2122,7 +2122,7 @@ struct HomeView: View {
       Button {
         navigation.openTraining(workspace: .laufen)
       } label: {
-        Label("Cardio-Hub öffnen", systemImage: "rectangle.stack.fill")
+        Label("Laufbereich öffnen", systemImage: "rectangle.stack.fill")
       }
 
     case .progress, .meal, .water, .planner:
@@ -2295,7 +2295,7 @@ struct HomeView: View {
       Button {
         navigation.openTraining(workspace: .laufen)
       } label: {
-        Label("Cardio-Hub öffnen", systemImage: "rectangle.stack.fill")
+        Label("Laufbereich öffnen", systemImage: "rectangle.stack.fill")
       }
 
     case .progress, .water, .planner:
