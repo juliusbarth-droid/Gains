@@ -2645,7 +2645,7 @@ struct HomeView: View {
           glyph: "sparkles",
           accent: GainsColor.accentCool,
           headline: "Willkommen\(warmName).",
-          subline: "Heute ist flexibel — du wählst. Erstes Workout, kurzer Lauf oder einfach eine Mahlzeit loggen. Jeder erste Schritt zählt.",
+          subline: "Heute ist flexibel — du wählst. Erstes Training, kurzer Lauf oder einfach eine Mahlzeit loggen. Jeder erste Schritt zählt.",
           primary: CoachActionDescriptor(
             title: "Training starten",
             icon: "play.fill",
