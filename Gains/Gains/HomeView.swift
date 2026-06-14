@@ -2475,8 +2475,8 @@ struct HomeView: View {
           eyebrow: "WORKOUT STARTET",
           glyph: "dumbbell.fill",
           accent: GainsColor.lime,
-          headline: "Trainer wird geöffnet …",
-          subline: "Setup läuft im Hintergrund — Trainer ist gleich da.",
+          headline: "Training wird geöffnet …",
+          subline: "Setup läuft im Hintergrund — dein Training ist gleich bereit.",
           primary: CoachActionDescriptor(
             title: "Training öffnen",
             icon: "play.fill",
