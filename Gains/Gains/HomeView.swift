@@ -2605,7 +2605,7 @@ struct HomeView: View {
             ? "Heute startest du mit \(workoutTitle) — \(exerciseCount) Übungen, wir führen dich Satz für Satz."
             : "Heute startest du mit \(workoutTitle). Wir führen dich Schritt für Schritt durch deine erste Session.",
           primary: CoachActionDescriptor(
-            title: "Erste Session",
+            title: "Erstes Training",
             icon: "play.fill",
             metric: exerciseCount > 0 ? "\(exerciseCount) Übungen" : nil,
             action: .startPlannedWorkout
@@ -2711,7 +2711,7 @@ struct HomeView: View {
         )
       } else if plan.status == .planned {
         primaryAction = CoachActionDescriptor(
-          title: "Erste Session",
+          title: "Erstes Training",
           icon: "play.fill",
           metric: plan.workoutPlan.map { "\($0.exercises.count) Übungen" },
           action: .startPlannedWorkout
