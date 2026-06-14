@@ -2493,7 +2493,7 @@ struct HomeView: View {
           headline: "GPS wird gesucht …",
           subline: "Setup läuft im Hintergrund — Tracker ist gleich da.",
           primary: CoachActionDescriptor(
-            title: "Run öffnen",
+            title: "Lauf öffnen",
             icon: "figure.run",
             metric: nil,
             action: .openRunTracker
@@ -2549,7 +2549,7 @@ struct HomeView: View {
           ar.distanceKm, hours, remainingMins, ar.currentHeartRate
         ),
         primary: CoachActionDescriptor(
-          title: "Run öffnen",
+          title: "Lauf öffnen",
           icon: "figure.run",
           metric: String(format: "%.2f km", ar.distanceKm),
           action: .openRunTracker
