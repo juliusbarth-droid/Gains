@@ -2692,7 +2692,7 @@ struct HomeView: View {
         subline = isRunPlan
           ? plannedRunSummary.map { "Heute steht dein erster Lauf im Plan, \($0)." }
             ?? "Heute steht dein erster Lauf im Plan. 15 Minuten reichen schon."
-          : "Heute ist ein guter Tag für die erste Session — kurz und gut."
+          : "Heute ist ein guter Tag für dein erstes Training — kurz und gut."
       } else if daysSince <= 7 {
         headline = "Lass uns klein anfangen."
         subline = "Du hast den Plan da, jetzt fehlt nur die erste Session. Dauert keine 30 Minuten."
