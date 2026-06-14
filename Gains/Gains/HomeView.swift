@@ -3319,7 +3319,7 @@ struct HomeView: View {
   private var weeklyStat: PulseStat {
     PulseStat(
       icon: "target",
-      label: "WOCHE",
+      label: "EINHEITEN",
       value: "\(store.weeklySessionsCompleted)",
       unit: "/\(store.weeklyGoalCount)",
       detail: progressDisplayTitle,
