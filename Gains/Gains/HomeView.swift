@@ -2979,7 +2979,7 @@ struct HomeView: View {
         if let sleep = store.healthSnapshot?.sleepHoursLastNight {
           return String(format: "Schlaf %.1f h", sleep)
         }
-        return "Recovery-Modus"
+        return "Erholungsmodus"
       }()
       return CoachBrief(
         eyebrow: "RECOVERY-TAG",
