@@ -3237,7 +3237,7 @@ struct HomeView: View {
           label: "KALORIEN",
           value: "\(store.nutritionCaloriesToday)",
           unit: "/\(store.nutritionTargetCalories)",
-          detail: "Heute",
+          detail: "Heutige Kalorien",
           accent: GainsColor.lime,
           action: .openNutrition
         ),
