@@ -2415,7 +2415,7 @@ struct HomeView: View {
     }
     if kcalProgressRatio >= 0.66 { return "Auf Kurs" }
     if kcalProgressRatio >= 0.34 { return "In Bewegung" }
-    return "Warmup"
+    return "Startet gerade"
   }
 
   private var nutritionCaptionLine: String {
