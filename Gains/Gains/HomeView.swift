@@ -3332,7 +3332,7 @@ struct HomeView: View {
     let pct = Int(kcalProgressRatio * 100)
     return PulseStat(
       icon: "flame.fill",
-      label: "KCAL",
+      label: "KALORIEN",
       value: "\(store.nutritionCaloriesToday)",
       unit: "kcal",
       detail: pct >= 100 ? "Kalorienziel erreicht" : "\(pct) % vom Ziel",
