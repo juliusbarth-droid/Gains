@@ -1482,7 +1482,7 @@ struct HomeView: View {
         // Macro-Strip — drei kompakte Säulen mit Progress
         HStack(alignment: .top, spacing: GainsSpacing.tight) {
           macroColumn(
-            label: "PROTEIN",
+            label: "EIWEISS",
             value: store.nutritionProteinToday,
             target: store.nutritionTargetProtein,
             unit: "g",
