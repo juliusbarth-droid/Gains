@@ -1712,7 +1712,7 @@ struct HomeView: View {
         Image(systemName: "checkmark")
           .font(.system(size: 10, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
-        Text("PROTEIN ✓")
+        Text("EIWEISS ✓")
           .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.2)
       }
       .padding(.horizontal, GainsSpacing.xsPlus)
