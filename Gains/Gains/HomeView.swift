@@ -2778,7 +2778,7 @@ struct HomeView: View {
           glyph: "fork.knife",
           accent: GainsColor.ember,
           headline: "Solides Training — jetzt nachladen.",
-          subline: "\(last.title) abgeschlossen vor \(minutesSince) min. Noch \(proteinGap) g Eiweiß offen.",
+          subline: "\(last.title) abgeschlossen vor \(minutesSince) Minuten. Noch \(proteinGap) g Eiweiß offen.",
           primary: CoachActionDescriptor(
             title: "Mahlzeit loggen",
             icon: "camera.fill",
