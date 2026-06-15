@@ -3348,7 +3348,7 @@ struct HomeView: View {
       label: "EIWEISS",
       value: "\(store.nutritionProteinToday)",
       unit: "/\(store.nutritionTargetProtein) g",
-      detail: gap == 0 ? "Proteinziel erreicht" : "Noch \(gap) g",
+      detail: gap == 0 ? "Proteinziel erreicht" : "Noch \(gap) g bis Ziel",
       accent: GainsColor.ember,
       action: .openNutrition
     )
