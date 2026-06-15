@@ -3345,7 +3345,7 @@ struct HomeView: View {
     let gap = max(store.nutritionTargetProtein - store.nutritionProteinToday, 0)
     return PulseStat(
       icon: "fork.knife",
-      label: "PROTEIN",
+      label: "EIWEISS",
       value: "\(store.nutritionProteinToday)",
       unit: "/\(store.nutritionTargetProtein) g",
       detail: gap == 0 ? "Proteinziel erreicht" : "Noch \(gap) g",
