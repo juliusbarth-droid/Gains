@@ -1658,7 +1658,7 @@ struct HomeView: View {
               .foregroundStyle(GainsColor.softInk)
             Text("·")
               .gainsCaption()
-            Text("\(store.nutritionProteinToday)g P")
+            Text("\(store.nutritionProteinToday) g Eiweiß")
               .font(.system(size: 11, weight: .medium, design: .monospaced))
               .foregroundStyle(GainsColor.ember)
           }
