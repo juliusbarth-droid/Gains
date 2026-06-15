@@ -3335,7 +3335,7 @@ struct HomeView: View {
       label: "KCAL",
       value: "\(store.nutritionCaloriesToday)",
       unit: "kcal",
-      detail: "\(pct) % vom Ziel",
+      detail: pct >= 100 ? "Kalorienziel erreicht" : "\(pct) % vom Ziel",
       accent: GainsColor.ember,
       action: .openNutrition
     )
