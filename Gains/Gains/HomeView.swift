@@ -3225,10 +3225,10 @@ struct HomeView: View {
       return [
         PulseStat(
           icon: "fork.knife",
-          label: "PROTEIN",
+          label: "EIWEISS",
           value: proteinGap == 0 ? "✓" : "\(proteinGap)",
           unit: proteinGap == 0 ? "" : "g",
-          detail: proteinGap == 0 ? "Im Ziel" : "Offen",
+          detail: proteinGap == 0 ? "Proteinziel erreicht" : "Noch offen",
           accent: GainsColor.ember,
           action: .openNutritionCapture
         ),
