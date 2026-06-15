@@ -2430,7 +2430,7 @@ struct HomeView: View {
     if remainingProtein == 0 {
       return "Noch \(remainingKcal) kcal bis Kalorienziel · Proteinziel erreicht."
     }
-    return "Noch \(remainingKcal) kcal bis Kalorienziel · \(remainingProtein) g Protein bis Ziel."
+    return "Noch \(remainingKcal) kcal bis Kalorienziel · \(remainingProtein) g Eiweiß bis Ziel."
   }
 
   private var weeklyProgressRatio: Double {
