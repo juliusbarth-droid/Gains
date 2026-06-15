@@ -1455,7 +1455,7 @@ struct HomeView: View {
             .frame(width: 104, height: 104)
 
           VStack(alignment: .leading, spacing: 2) {
-            Text("KCAL")
+            Text("KALORIEN")
               .font(GainsFont.eyebrow)
               .tracking(GainsTracking.eyebrow)
               .foregroundStyle(GainsColor.mutedInk)
