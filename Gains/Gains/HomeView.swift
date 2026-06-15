@@ -3444,7 +3444,7 @@ struct HomeView: View {
       kind: .meal,
       eyebrow: "MAHLZEIT",
       title: "Schnell loggen",
-      subtitle: "Heute · \(store.nutritionCaloriesToday)/\(store.nutritionTargetCalories) kcal · \(store.nutritionProteinToday)g P",
+      subtitle: "Heute · \(store.nutritionCaloriesToday)/\(store.nutritionTargetCalories) kcal · \(store.nutritionProteinToday) g Eiweiß",
       icon: "fork.knife",
       accent: GainsColor.ember,
       isLive: false,
