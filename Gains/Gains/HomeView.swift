@@ -3281,7 +3281,7 @@ struct HomeView: View {
             label: "RUHEPULS",
             value: "\(Int(resting))",
             unit: "bpm",
-            detail: "Heute",
+            detail: "Heutiger Wert",
             accent: GainsColor.ember,
             action: .openProgress
           )
