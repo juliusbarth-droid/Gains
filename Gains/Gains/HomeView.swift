@@ -965,7 +965,7 @@ struct HomeView: View {
                 icon: "flame.fill",
                 value: "\(store.streakDays)",
                 unit: "T",
-                label: "STREAK",
+                label: "SERIE",
                 accent: GainsColor.lime
               )
               cockpitMiniTile(
