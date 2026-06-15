@@ -3012,7 +3012,7 @@ struct HomeView: View {
         accent: GainsColor.ember,
         headline: "Noch \(remainingKcal) kcal offen heute.",
         subline: remainingProtein > 0
-          ? "Davon \(remainingProtein) g Protein. Eine warme Mahlzeit schließt das sauber."
+          ? "Davon \(remainingProtein) g Eiweiß. Eine warme Mahlzeit schließt das sauber."
           : "Protein steht — du brauchst noch Energie. Carb-Fokus passt.",
         primary: CoachActionDescriptor(
           title: "Mahlzeit loggen",
