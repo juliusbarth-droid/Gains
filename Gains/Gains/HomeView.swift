@@ -2854,7 +2854,7 @@ struct HomeView: View {
           accent: GainsColor.ember,
           headline: "Heute steht \(runTemplate.title.lowercased()) an.",
           subline: String(
-            format: "%.1f km · ~%d min. Bestes Timing: jetzt — Wetter & Energie passen.",
+            format: "%.1f km · ca. %d Minuten. Bestes Timing: jetzt — Wetter & Energie passen.",
             runTemplate.targetDistanceKm,
             runTemplate.targetDurationMinutes
           ),
