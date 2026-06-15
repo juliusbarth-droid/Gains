@@ -3117,7 +3117,7 @@ struct HomeView: View {
         ),
         PulseStat(
           icon: "scalemass.fill",
-          label: "VOL",
+          label: "VOLUMEN",
           value: String(format: "%.1f", aws.totalVolume / 1000),
           unit: "t",
           detail: "Heute",
