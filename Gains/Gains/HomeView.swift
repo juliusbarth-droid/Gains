@@ -3163,7 +3163,7 @@ struct HomeView: View {
           label: "ZEIT",
           value: String(format: "%d:%02d", durationHours, durationRemMins),
           unit: "",
-          detail: "h:min",
+          detail: "Seit Start",
           accent: GainsColor.accentCool,
           action: .openRunTracker
         ),
