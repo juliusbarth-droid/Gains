@@ -3132,7 +3132,7 @@ struct HomeView: View {
             label: "HF",
             value: "\(bpm)",
             unit: "bpm",
-            detail: "Live",
+            detail: "Aktuell",
             accent: GainsColor.ember,
             action: .openProfile
           )
@@ -3172,7 +3172,7 @@ struct HomeView: View {
           label: "HF",
           value: "\(ar.currentHeartRate)",
           unit: "bpm",
-          detail: "Live",
+          detail: "Aktuell",
           accent: GainsColor.lime,
           action: .openRunTracker
         )
