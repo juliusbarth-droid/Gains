@@ -3120,7 +3120,7 @@ struct HomeView: View {
           label: "VOLUMEN",
           value: String(format: "%.1f", aws.totalVolume / 1000),
           unit: "t",
-          detail: "Heute",
+          detail: "Heutiges Volumen",
           accent: GainsColor.accentCool,
           action: .openWorkoutTracker
         )
