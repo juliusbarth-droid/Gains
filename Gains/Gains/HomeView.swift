@@ -2543,7 +2543,7 @@ struct HomeView: View {
         accent: GainsColor.ember,
         headline: ar.isPaused
           ? "Lauf pausiert — bereit für Re-Start?"
-          : "Lauf läuft seit \(ar.durationMinutes) min.",
+          : "Lauf läuft seit \(ar.durationMinutes) Minuten.",
         subline: String(
           format: "%.2f km · %02d:%02d · HF %d bpm",
           ar.distanceKm, hours, remainingMins, ar.currentHeartRate
