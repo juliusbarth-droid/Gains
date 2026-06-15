@@ -2411,7 +2411,7 @@ struct HomeView: View {
       return "Ernährungsziel erreicht"
     }
     if store.nutritionProteinToday >= store.nutritionTargetProtein {
-      return "Protein im Ziel"
+      return "Proteinziel erreicht"
     }
     if kcalProgressRatio >= 0.66 { return "Auf Kurs" }
     if kcalProgressRatio >= 0.34 { return "In Bewegung" }
