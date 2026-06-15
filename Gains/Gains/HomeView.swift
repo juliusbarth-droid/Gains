@@ -3234,7 +3234,7 @@ struct HomeView: View {
         ),
         PulseStat(
           icon: "flame.fill",
-          label: "KCAL",
+          label: "KALORIEN",
           value: "\(store.nutritionCaloriesToday)",
           unit: "/\(store.nutritionTargetCalories)",
           detail: "Heute",
