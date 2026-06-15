@@ -2408,7 +2408,7 @@ struct HomeView: View {
     if store.nutritionProteinToday >= store.nutritionTargetProtein
       && store.nutritionCaloriesToday >= store.nutritionTargetCalories
     {
-      return "Ziel erreicht"
+      return "Ernährungsziel erreicht"
     }
     if store.nutritionProteinToday >= store.nutritionTargetProtein {
       return "Protein im Ziel"
