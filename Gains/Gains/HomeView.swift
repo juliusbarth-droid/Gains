@@ -1725,7 +1725,7 @@ struct HomeView: View {
         Image(systemName: "fork.knife")
           .font(.system(size: 10, weight: .heavy))
           .foregroundStyle(GainsColor.ember)
-        Text("\(remainingProtein)g OFFEN")
+        Text("\(remainingProtein) g OFFEN")
           .gainsEyebrow(GainsColor.ember, size: 9, tracking: 1.2)
       }
       .padding(.horizontal, GainsSpacing.xsPlus)
