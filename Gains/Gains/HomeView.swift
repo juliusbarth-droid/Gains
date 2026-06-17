@@ -3307,7 +3307,7 @@ struct HomeView: View {
   private var streakStat: PulseStat {
     PulseStat(
       icon: "flame.fill",
-      label: "STREAK",
+      label: "SERIE",
       value: "\(store.streakDays)",
       unit: "T",
       detail: store.streakDays >= 7 ? "Stark dran" : "Aufbauen",
