@@ -978,7 +978,7 @@ struct HomeView: View {
               cockpitMiniTile(
                 icon: sessionsRemaining == 0 ? "checkmark.seal.fill" : "calendar",
                 value: "\(sessionsRemaining)",
-                unit: "Sess.",
+                unit: "Einh.",
                 label: sessionsRemaining == 0 ? "ZIEL VOLL" : "NOCH FREI",
                 accent: sessionsRemaining == 0 ? GainsColor.moss : GainsColor.ember
               )
