@@ -849,7 +849,7 @@ struct HomeView: View {
           .font(GainsFont.label(9))
           .tracking(GainsTracking.eyebrowTight)
           .foregroundStyle(GainsColor.onCtaSurfaceMuted)
-          .lineLimit(1)
+          .lineLimit(2)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, GainsSpacing.s)
