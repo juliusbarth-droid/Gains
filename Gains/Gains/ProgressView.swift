@@ -1358,7 +1358,7 @@ struct ProgressContentView: View {
               Text(ex.exerciseName)
                 .font(GainsFont.body(13))
                 .foregroundStyle(GainsColor.softInk)
-                .lineLimit(1)
+                .lineLimit(2)
               Spacer()
               Text(ex.currentValue)
                 .font(GainsFont.label(11))
