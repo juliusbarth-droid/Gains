@@ -4468,7 +4468,7 @@ private struct WorkoutArrangeView: View {
         .foregroundStyle(GainsColor.softInk)
     }
     .padding(.horizontal, GainsSpacing.tight)
-    .frame(height: 28)
+    .frame(minHeight: 28)
     .background(GainsColor.lime.opacity(0.18))
     .clipShape(Capsule())
   }
