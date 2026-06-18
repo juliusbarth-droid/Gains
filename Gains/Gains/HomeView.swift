@@ -835,7 +835,7 @@ struct HomeView: View {
             .shadow(color: stat.accent.opacity(0.55), radius: 4)
           Text(stat.label)
             .gainsEyebrow(GainsColor.onCtaSurfaceMuted, size: 9, tracking: 1.2)
-            .lineLimit(1)
+            .lineLimit(2)
         }
         HStack(alignment: .firstTextBaseline, spacing: 2) {
           Text(stat.value)
