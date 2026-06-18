@@ -3908,7 +3908,7 @@ struct HomeView: View {
             .tracking(GainsTracking.eyebrowTight)
             .foregroundStyle(GainsColor.onLime)
             .frame(maxWidth: .infinity)
-            .frame(height: 36)
+            .frame(minHeight: 36)
             .background(
               // 2026-05-14 (Polish-Loop 26): Inner-Light + Bottom-Dim
               // wie bei GainsPrimaryButton — passt zur App-weiten
@@ -3948,7 +3948,7 @@ struct HomeView: View {
             .tracking(GainsTracking.eyebrowTight)
             .foregroundStyle(GainsColor.softInk)
             .frame(maxWidth: .infinity)
-            .frame(height: 36)
+            .frame(minHeight: 36)
             .background(Color.clear)
             .overlay(
               Capsule().stroke(GainsColor.border.opacity(0.6), lineWidth: GainsBorder.bold)
