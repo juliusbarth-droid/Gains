@@ -1600,7 +1600,7 @@ struct ProgressContentView: View {
           Text(goal.title)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
           Spacer()
           Text(String(format: "%.0f / %.0f %@", goal.current, goal.target, goal.unit))
             .font(GainsFont.label(10))
