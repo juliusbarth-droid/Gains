@@ -1716,7 +1716,7 @@ struct HomeView: View {
           .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.2)
       }
       .padding(.horizontal, GainsSpacing.xsPlus)
-      .frame(height: 22)
+      .frame(minHeight: 22)
       .background(GainsColor.lime.opacity(0.10))
       .overlay(Capsule().strokeBorder(GainsColor.lime.opacity(0.4), lineWidth: GainsBorder.hairline))
       .clipShape(Capsule())
@@ -1729,7 +1729,7 @@ struct HomeView: View {
           .gainsEyebrow(GainsColor.ember, size: 9, tracking: 1.2)
       }
       .padding(.horizontal, GainsSpacing.xsPlus)
-      .frame(height: 22)
+      .frame(minHeight: 22)
       .background(GainsColor.ember.opacity(0.10))
       .overlay(Capsule().strokeBorder(GainsColor.ember.opacity(0.4), lineWidth: GainsBorder.hairline))
       .clipShape(Capsule())
