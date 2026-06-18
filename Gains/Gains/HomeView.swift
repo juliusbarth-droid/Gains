@@ -4727,7 +4727,7 @@ struct ExercisePickerSheet: View {
           .font(GainsFont.label(10))
           .tracking(1.4)
           .foregroundStyle(GainsColor.softInk)
-          .lineLimit(1)
+          .lineLimit(2)
       }
 
       Spacer()
