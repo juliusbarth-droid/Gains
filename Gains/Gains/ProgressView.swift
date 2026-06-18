@@ -1845,7 +1845,7 @@ struct ProgressContentView: View {
           Text(historyTitle(entry))
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
           Text(historySubtitle(entry))
             .font(GainsFont.label(9))
             .tracking(0.6)
