@@ -4118,7 +4118,7 @@ struct HomeView: View {
         Text(title)
           .font(GainsFont.title(15))
           .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
+          .lineLimit(2)
       }
       Spacer(minLength: 0)
 
