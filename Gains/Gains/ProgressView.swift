@@ -1736,7 +1736,7 @@ struct ProgressContentView: View {
           Text(h.title)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
           Spacer()
           Text(h.dateLabel)
             .font(GainsFont.label(9))
