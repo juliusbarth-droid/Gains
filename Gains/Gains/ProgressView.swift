@@ -1146,7 +1146,7 @@ struct ProgressContentView: View {
       Text(value)
         .font(GainsFont.metricSmall)
         .foregroundStyle(GainsColor.ink)
-        .lineLimit(1)
+        .lineLimit(2)
         .minimumScaleFactor(0.7)
 
       Text(title)
