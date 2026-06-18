@@ -2026,7 +2026,7 @@ struct HomeView: View {
             .minimumScaleFactor(0.78)
           Text(subtitle)
             .gainsCaption()
-            .lineLimit(1)
+            .lineLimit(2)
             .truncationMode(.tail)
         }
       }
