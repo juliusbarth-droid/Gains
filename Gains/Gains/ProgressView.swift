@@ -1792,7 +1792,7 @@ struct ProgressContentView: View {
                   .tracking(1.0)
                   .foregroundStyle(historyFilter == filter ? GainsColor.onLime : GainsColor.softInk)
                   .padding(.horizontal, GainsSpacing.tight)
-                  .frame(height: 24)
+                  .frame(minHeight: 24)
                   .background(historyFilter == filter ? GainsColor.lime : GainsColor.card)
                   .clipShape(Capsule())
               }
