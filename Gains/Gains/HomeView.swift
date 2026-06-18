@@ -634,7 +634,7 @@ struct HomeView: View {
       // PulsingDot links + das Glyph-Badge rechts — der Eyebrow bleibt lesbar.
       Text(brief.eyebrow)
         .gainsEyebrow(GainsColor.softInk, size: 11, tracking: 1.6)
-        .lineLimit(1)
+        .lineLimit(2)
       Spacer(minLength: 8)
       // Glyph-Badge: größerer Kreis mit echtem Radial-Glow + Gradient-
       // Border — korrespondiert mit dem Icon-Halo-Pattern der Tiles.
