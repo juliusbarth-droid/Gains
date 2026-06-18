@@ -1474,7 +1474,7 @@ struct HomeView: View {
             Text(kcalRemainingLine)
               .font(GainsFont.caption)
               .foregroundStyle(GainsColor.softInk)
-              .lineLimit(1)
+              .lineLimit(2)
           }
           .frame(maxWidth: .infinity, alignment: .leading)
         }
