@@ -1194,7 +1194,7 @@ struct HomeView: View {
         }
         Text("\(prefix) · \(summary)")
           .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.2)
-          .lineLimit(1)
+          .lineLimit(2)
       }
       .padding(.horizontal, GainsSpacing.xsPlus)
       .frame(minHeight: 22)
