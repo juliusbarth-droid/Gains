@@ -4699,7 +4699,7 @@ struct ExercisePickerSheet: View {
       }
     }
     .padding(.horizontal, GainsSpacing.m)
-    .frame(height: 46)
+    .frame(minHeight: 46)
     .background(GainsColor.card)
     .overlay(
       RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
