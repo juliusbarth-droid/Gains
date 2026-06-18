@@ -1441,7 +1441,7 @@ struct HomeView: View {
           HStack(spacing: GainsSpacing.xxs) {
             Text(nutritionStatusLabel.uppercased())
               .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.4)
-              .lineLimit(1)
+              .lineLimit(2)
             Image(systemName: "arrow.up.right")
               .font(.system(size: 11, weight: .heavy))
               .foregroundStyle(GainsColor.ember)
