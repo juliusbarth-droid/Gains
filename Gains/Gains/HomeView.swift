@@ -1581,7 +1581,7 @@ struct HomeView: View {
         .font(GainsFont.eyebrow)
         .tracking(GainsTracking.eyebrowTight)
         .foregroundStyle(accent.opacity(0.85))
-        .lineLimit(1)
+        .lineLimit(2)
         .minimumScaleFactor(0.7)
 
       (valueText + targetText + unitText)
