@@ -733,7 +733,7 @@ struct HomeView: View {
           .foregroundStyle(GainsColor.onCtaSurface)
       }
       .padding(.horizontal, GainsSpacing.l)
-      .frame(height: 54)
+      .frame(minHeight: 54)
       .background(
         // 2026-05-15 (Polish-Loop): Top-Highlight & Glow stark zurückgedreht.
         // Vorher: plusLighter-Weiß bei 22% wusch das Lime oben aus und killte
