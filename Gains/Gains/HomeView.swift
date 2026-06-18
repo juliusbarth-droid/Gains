@@ -4504,7 +4504,7 @@ private struct WorkoutArrangeView: View {
         Text(exercise.name)
           .font(GainsFont.title(17))
           .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
+          .lineLimit(2)
 
         Text(
           "\(exercise.targetMuscle.uppercased()) · \(exercise.sets.count) Sätze"
