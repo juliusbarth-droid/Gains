@@ -2022,7 +2022,7 @@ struct HomeView: View {
           Text(title)
             .font(GainsFont.title(22))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
             .minimumScaleFactor(0.78)
           Text(subtitle)
             .gainsCaption()
