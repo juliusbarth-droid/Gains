@@ -2339,7 +2339,7 @@ struct HomeView: View {
           if let device = ble.connectedDevice {
             Text(device.name.uppercased())
               .gainsEyebrow(GainsColor.softInk, size: 10, tracking: 1.2)
-              .lineLimit(1)
+              .lineLimit(2)
               .truncationMode(.tail)
           }
 
