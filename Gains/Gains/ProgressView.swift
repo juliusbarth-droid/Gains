@@ -1850,7 +1850,7 @@ struct ProgressContentView: View {
             .font(GainsFont.label(9))
             .tracking(0.6)
             .foregroundStyle(GainsColor.softInk)
-            .lineLimit(1)
+            .lineLimit(2)
         }
 
         Spacer()
