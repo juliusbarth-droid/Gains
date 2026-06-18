@@ -693,7 +693,7 @@ struct ProgressContentView: View {
                 .tracking(GainsTracking.eyebrowTight)
                 .foregroundStyle(GainsColor.softInk.opacity(0.85))
                 .padding(.horizontal, GainsSpacing.xs)
-                .frame(height: 16)
+                .frame(minHeight: 16)
                 .background(GainsColor.surfaceDeep.opacity(0.7))
                 .clipShape(Capsule())
             }
