@@ -970,7 +970,7 @@ struct ProgressContentView: View {
                 .font(GainsFont.label(11))
                 .tracking(0.6)
                 .foregroundStyle(GainsColor.softInk)
-                .lineLimit(1)
+                .lineLimit(2)
               Spacer()
               Image(systemName: "chevron.right")
                 .font(.system(size: 10, weight: .semibold))
