@@ -334,7 +334,7 @@ struct ProgressContentView: View {
             }
             .foregroundStyle(variant.accent)
             .padding(.horizontal, GainsSpacing.s)
-            .frame(height: 32)
+            .frame(minHeight: 32)
             .background(variant.accent.opacity(0.12))
             .clipShape(Capsule())
           }
