@@ -528,7 +528,7 @@ struct HomeView: View {
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.lime)
       }
-      .lineLimit(1)
+      .lineLimit(2)
       .minimumScaleFactor(0.7)
     } else {
       Text("\(salutation).")
