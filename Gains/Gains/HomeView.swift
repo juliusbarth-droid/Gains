@@ -4737,7 +4737,7 @@ struct ExercisePickerSheet: View {
         .tracking(GainsTracking.eyebrowTight)
         .foregroundStyle(GainsColor.moss)
         .padding(.horizontal, GainsSpacing.tight)
-        .frame(height: 26)
+        .frame(minHeight: 26)
         .background(GainsColor.lime.opacity(0.22))
         .clipShape(Capsule())
 
