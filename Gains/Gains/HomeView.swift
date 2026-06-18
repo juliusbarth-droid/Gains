@@ -3310,7 +3310,7 @@ struct HomeView: View {
       label: "SERIE",
       value: "\(store.streakDays)",
       unit: "T",
-      detail: store.streakDays >= 7 ? "Stark dran" : "Aufbauen",
+      detail: store.streakDays >= 7 ? "Stark dran" : "Dranbleiben",
       accent: GainsColor.lime,
       action: .openProgress
     )
