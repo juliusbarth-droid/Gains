@@ -3888,7 +3888,7 @@ struct HomeView: View {
           Text(snapshot.title)
             .font(GainsFont.title(15))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
           Text("\(completed)/\(total) Sätze · gespeichert \(savedAgoText)")
             .font(GainsFont.caption)
             .foregroundStyle(GainsColor.softInk)
