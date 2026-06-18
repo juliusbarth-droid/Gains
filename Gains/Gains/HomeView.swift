@@ -4721,7 +4721,7 @@ struct ExercisePickerSheet: View {
         Text(item.name)
           .font(GainsFont.title(16))
           .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
+          .lineLimit(2)
 
         Text("\(item.primaryMuscle.uppercased()) · \(item.equipment)")
           .font(GainsFont.label(10))
