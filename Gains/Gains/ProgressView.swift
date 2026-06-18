@@ -1399,36 +1399,53 @@ struct ProgressContentView: View {
     let first  = store.weightTrend.first?.value ?? latest
     let delta  = latest - first
 
-    return Button { store.logWeightCheckIn() } label: {
-      VStack(alignment: .leading, spacing: GainsSpacing.m) {
-        HStack(alignment: .firstTextBaseline) {
-          VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-            Text("KÖRPER")
-              .font(GainsFont.label(9))
-              .tracking(GainsTracking.eyebrowWide)
-              .foregroundStyle(GainsColor.accentCool)
-            Text("Gewicht")
-              .font(GainsFont.title(20))
-              .foregroundStyle(GainsColor.ink)
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
+      Button { store.logWeightCheckIn() } label: {
+        VStack(alignment: .leading, spacing: GainsSpacing.m) {
+          HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
+              Text("KÖRPER")
+                .font(GainsFont.label(9))
+                .tracking(GainsTracking.eyebrowWide)
+                .foregroundStyle(GainsColor.accentCool)
+              Text("Gewicht")
+                .font(GainsFont.title(20))
+                .foregroundStyle(GainsColor.ink)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+              Text(String(format: "%.1f kg", latest))
+                .font(GainsFont.metric)
+                .foregroundStyle(GainsColor.ink)
+              Text(deltaLabel(delta))
+                .font(GainsFont.label(9))
+                .tracking(GainsTracking.eyebrowTight)
+                .foregroundStyle(delta <= 0 ? GainsColor.accentCool : GainsColor.ember)
+            }
           }
-          Spacer()
-          VStack(alignment: .trailing, spacing: 2) {
-            Text(String(format: "%.1f kg", latest))
-              .font(GainsFont.metric)
-              .foregroundStyle(GainsColor.ink)
-            Text(deltaLabel(delta))
-              .font(GainsFont.label(9))
-              .tracking(GainsTracking.eyebrowTight)
-              .foregroundStyle(delta <= 0 ? GainsColor.accentCool : GainsColor.ember)
+
+          if store.weightTrend.count >= 2 {
+            weightSparkline
+          } else {
+            emptyHint("Logge dein Gewicht regelmäßig — die Linie braucht mindestens zwei Punkte.")
           }
         }
+        .contentShape(Rectangle())
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel("Körper, Gewicht")
+      .accessibilityValue(
+        store.weightTrend.count >= 2
+          ? "\(String(format: "%.1f Kilogramm", latest)), \(spokenWeightDeltaLabel(delta))"
+          : "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
+      )
+      .accessibilityHint(
+        store.weightTrend.count >= 2
+          ? "Öffnet den Check-in für dein Gewicht"
+          : "Öffnet den Check-in, damit du deinen Gewichtstrend aufbauen kannst"
+      )
 
-        if store.weightTrend.count >= 2 {
-          weightSparkline
-        } else {
-          emptyHint("Logge dein Gewicht regelmäßig — die Linie braucht mindestens zwei Punkte.")
-        }
-
+      Button { store.logWaistCheckIn() } label: {
         HStack(spacing: GainsSpacing.tight) {
           Image(systemName: "ruler.fill")
             .font(.system(size: 11, weight: .semibold))
@@ -1446,24 +1463,15 @@ struct ProgressContentView: View {
             .foregroundStyle(GainsColor.border)
         }
         .contentShape(Rectangle())
-        .onTapGesture { store.logWaistCheckIn() }
       }
-      .padding(GainsSpacing.m)
-      .gainsCardStyle()
+      .buttonStyle(.plain)
+      .accessibilityLabel("Körper, Taille")
+      .accessibilityValue("\(String(format: "%.1f Zentimeter", store.waistMeasurement)), \(waistDeltaText)")
+      .accessibilityHint("Öffnet den Check-in für deine Taille")
     }
-    .buttonStyle(.plain)
+    .padding(GainsSpacing.m)
+    .gainsCardStyle()
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
-    .accessibilityLabel("Körper, Gewicht")
-    .accessibilityValue(
-      store.weightTrend.count >= 2
-        ? "\(String(format: "%.1f Kilogramm", latest)), \(spokenWeightDeltaLabel(delta))"
-        : "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
-    )
-    .accessibilityHint(
-      store.weightTrend.count >= 2
-        ? "Öffnet den Check-in für dein Gewicht"
-        : "Öffnet den Check-in, damit du deinen Gewichtstrend aufbauen kannst"
-    )
   }
 
   private var weightSparkline: some View {
