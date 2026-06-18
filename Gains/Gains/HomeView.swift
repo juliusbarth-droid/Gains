@@ -1197,7 +1197,7 @@ struct HomeView: View {
           .lineLimit(1)
       }
       .padding(.horizontal, GainsSpacing.xsPlus)
-      .frame(height: 22)
+      .frame(minHeight: 22)
       .background(
         // 2026-05-14 (Polish-Loop 104): Plan-Pille mit Radial-Glow +
         // Inner-Light.
