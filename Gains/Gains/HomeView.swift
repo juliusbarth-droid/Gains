@@ -4579,7 +4579,7 @@ private struct WorkoutArrangeView: View {
           .foregroundStyle(GainsColor.lime.opacity(0.7))
       }
       .padding(.horizontal, GainsSpacing.xl)
-      .frame(height: 64)
+      .frame(minHeight: 64)
       .background(GainsColor.ctaSurface)
       .overlay(
         RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous)
