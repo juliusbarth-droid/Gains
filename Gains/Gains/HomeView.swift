@@ -453,7 +453,7 @@ struct HomeView: View {
         .foregroundStyle(GainsColor.lime.opacity(0.85))
         .shadow(color: GainsColor.lime.opacity(0.175), radius: 2)
     }
-    .lineLimit(1)
+    .lineLimit(2)
   }
 
   /// Profil-Avatar mit dezentem Lime-Halo. Halo läuft nur, wenn ein
