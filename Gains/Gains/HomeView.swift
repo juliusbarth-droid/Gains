@@ -2188,7 +2188,7 @@ struct HomeView: View {
           Text(spec.title)
             .font(GainsFont.title(18))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
             .minimumScaleFactor(0.78)
           Text(spec.subtitle)
             .gainsCaption()
