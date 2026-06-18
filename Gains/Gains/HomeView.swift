@@ -979,7 +979,7 @@ struct HomeView: View {
                 icon: sessionsRemaining == 0 ? "checkmark.seal.fill" : "calendar",
                 value: "\(sessionsRemaining)",
                 unit: "Einh.",
-                label: sessionsRemaining == 0 ? "ZIEL ERREICHT" : "NOCH FREI",
+                label: sessionsRemaining == 0 ? "ZIEL ERREICHT" : "NOCH OFFEN",
                 accent: sessionsRemaining == 0 ? GainsColor.moss : GainsColor.ember
               )
             }
