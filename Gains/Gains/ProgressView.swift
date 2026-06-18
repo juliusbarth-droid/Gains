@@ -1509,7 +1509,7 @@ struct ProgressContentView: View {
             Text(latest?.title ?? "Letzte Session")
               .font(GainsFont.title(20))
               .foregroundStyle(GainsColor.ink)
-              .lineLimit(1)
+              .lineLimit(2)
           }
           Spacer()
           if let r = latest {
