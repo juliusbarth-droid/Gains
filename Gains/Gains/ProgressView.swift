@@ -977,7 +977,7 @@ struct ProgressContentView: View {
                 .foregroundStyle(GainsColor.border)
             }
             .padding(.horizontal, GainsSpacing.s)
-            .frame(height: 36)
+            .frame(minHeight: 36)
             .background(GainsColor.card)
             .overlay(
               RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous)
