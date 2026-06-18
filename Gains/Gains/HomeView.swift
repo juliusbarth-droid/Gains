@@ -1350,7 +1350,7 @@ struct HomeView: View {
       VStack(alignment: .leading, spacing: 1) {
         Text(label)
           .gainsEyebrow(GainsColor.mutedInk, size: 9, tracking: 1.3)
-          .lineLimit(1)
+          .lineLimit(2)
         HStack(alignment: .firstTextBaseline, spacing: 2) {
           Text(value)
             .font(.system(size: 19, weight: .semibold, design: .monospaced))
