@@ -3994,6 +3994,8 @@ struct HomeView: View {
             .shadow(color: GainsColor.lime.opacity(0.15), radius: 10)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(store.activeWorkout != nil ? "Aktives Workout fortsetzen" : store.activeRun != nil ? "Aktiven Lauf fortsetzen" : "Gespeichertes Workout fortsetzen")
+        .accessibilityHint(store.activeWorkout != nil ? "Öffnet den bereits laufenden Workout-Tracker" : store.activeRun != nil ? "Öffnet den bereits laufenden Run-Tracker" : "Stellt das gespeicherte Workout wieder her und öffnet den Tracker")
 
         Button {
           store.discardRecoverableWorkout()
