@@ -184,7 +184,7 @@ struct WorkoutTrackerEntryView: View {
         Text(workout.title.uppercased())
           .font(GainsFont.headline)
           .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
+          .lineLimit(2)
         Spacer()
         Text(workout.finishedAt.formatted(date: .abbreviated, time: .omitted))
           .font(GainsFont.eyebrow)
