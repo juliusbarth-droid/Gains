@@ -1355,7 +1355,7 @@ struct HomeView: View {
           Text(value)
             .font(.system(size: 19, weight: .semibold, design: .monospaced))
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
             .minimumScaleFactor(0.7)
           Text(unit)
             .font(.system(size: 11, weight: .medium, design: .monospaced))
