@@ -4013,6 +4013,8 @@ struct HomeView: View {
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Gespeichertes Workout verwerfen")
+        .accessibilityHint("Entfernt den gespeicherten Workout-Stand und blendet diesen Wiederherstellungshinweis aus")
       }
     }
     .padding(GainsSpacing.m)
