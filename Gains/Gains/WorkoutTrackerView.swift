@@ -471,7 +471,7 @@ struct WorkoutTrackerView: View {
         Text(workout.title)
           .font(GainsFont.title)
           .foregroundStyle(GainsColor.onCtaSurface)
-          .lineLimit(1)
+          .lineLimit(2)
           .minimumScaleFactor(0.78)
           .layoutPriority(2)
 
