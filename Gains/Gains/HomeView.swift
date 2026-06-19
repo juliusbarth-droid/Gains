@@ -1585,7 +1585,7 @@ struct HomeView: View {
         .minimumScaleFactor(0.7)
 
       (valueText + targetText + unitText)
-        .lineLimit(1)
+        .lineLimit(2)
         .minimumScaleFactor(0.7)
         .fixedSize(horizontal: false, vertical: true)
 
