@@ -434,9 +434,13 @@ struct GymTodayTab: View {
     }
 
     if let runTemplate = day.runTemplate {
-      store.startRun(from: runTemplate)
-      if store.activeRun?.title == runTemplate.title {
-        navigation.openTraining(workspace: .laufen)
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+      } else {
+        store.startRun(from: runTemplate)
+        if store.activeRun?.title == runTemplate.title {
+          navigation.openTraining(workspace: .laufen)
+        }
       }
       return
     }
