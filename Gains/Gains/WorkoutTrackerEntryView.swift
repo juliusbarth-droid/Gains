@@ -70,6 +70,8 @@ struct WorkoutTrackerEntryView: View {
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(GainsColor.ink)
         }
+        .accessibilityLabel("Übungsbibliothek öffnen")
+        .accessibilityHint("Öffnet die Bibliothek mit Übungen und Details")
       }
     }
     .sheet(isPresented: $showsExerciseLibrary) {
