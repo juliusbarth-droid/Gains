@@ -1249,7 +1249,7 @@ struct WorkoutTrackerView: View {
         Text(exercise.name)
           .font(GainsFont.headline)
           .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
+          .lineLimit(2)
         Text(exercise.targetMuscle.uppercased())
           .font(TrackerType.eyebrow)
           .tracking(GainsTracking.eyebrow)
