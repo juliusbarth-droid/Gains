@@ -1635,6 +1635,9 @@ struct ProgressContentView: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("Ziel, \(goal.title)")
+    .accessibilityValue(String(format: "%.0f von %.0f %@", goal.current, goal.target, goal.unit))
+    .accessibilityHint(goal.title == "Körpergewicht" ? "Öffnet den Check-in für dein Gewicht" : goal.title == "Taillenumfang" ? "Öffnet den Check-in für deine Taille" : "Öffnet den Check-in für dein Protein-Ziel")
   }
 
   // MARK: - 7. Highlights (PRs + Milestones merged, kompakte Timeline)
