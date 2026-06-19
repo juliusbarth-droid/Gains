@@ -99,7 +99,7 @@ struct WorkoutTrackerEntryView: View {
               .tracking(GainsTracking.eyebrow)
               .foregroundStyle(selectedSegment == segment ? GainsColor.ink : GainsColor.softInk.opacity(0.7))
               .multilineTextAlignment(.center)
-              .lineLimit(1)
+              .lineLimit(2)
               .minimumScaleFactor(0.8)
 
             Capsule()
