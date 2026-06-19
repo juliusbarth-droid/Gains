@@ -1467,7 +1467,7 @@ struct ProgressContentView: View {
       .buttonStyle(.plain)
       .accessibilityLabel("Körper, Taille")
       .accessibilityValue("\(String(format: "%.1f Zentimeter", store.waistMeasurement)), \(waistDeltaText)")
-      .accessibilityHint("Öffnet den Check-in für deine Taille")
+      .accessibilityHint(abs(store.startingWaist - store.waistMeasurement) < 0.05 ? "Öffnet den Check-in, damit du deinen Taillenverlauf aufbauen kannst" : "Öffnet den Check-in für deine Taille")
     }
     .padding(GainsSpacing.m)
     .gainsCardStyle()
