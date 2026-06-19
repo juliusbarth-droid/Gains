@@ -1413,7 +1413,7 @@ struct WorkoutTrackerView: View {
               Text(exercise.name)
                 .font(GainsFont.headline)
                 .foregroundStyle(GainsColor.ink)
-                .lineLimit(1)
+                .lineLimit(2)
                 .minimumScaleFactor(0.85)
               if isActive {
                 // 2026-05-29 (Polish-Pass): AKTIV-Badge auf eine flache
