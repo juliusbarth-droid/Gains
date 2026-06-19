@@ -3683,6 +3683,10 @@ struct HomeView: View {
       isShowingWorkoutTracker = true
       return
     }
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+      return
+    }
     guard let plannedWorkout = store.todayPlannedWorkout else {
       isShowingWorkoutBuilder = true
       return
