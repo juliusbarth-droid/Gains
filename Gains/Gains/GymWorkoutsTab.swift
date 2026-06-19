@@ -620,8 +620,8 @@ struct GymWorkoutsTab: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel(isActive ? "Workout fortsetzen" : "Workout starten")
-      .accessibilityValue(isBlocked ? "Nicht verfügbar, andere Session aktiv" : isActive ? "Aktiv" : "Bereit")
-      .accessibilityHint(isBlocked ? "Öffnet einen Hinweis, dass zuerst das laufende Workout beendet oder verworfen werden muss" : isActive ? "Öffnet den aktiven Workout-Tracker für diesen Plan" : "Startet dieses Workout und öffnet den Tracker")
+      .accessibilityValue(isBlocked ? (store.activeRun != nil ? "Nicht verfügbar, aktiver Lauf blockiert" : "Nicht verfügbar, anderes Workout aktiv") : isActive ? "Aktiv" : "Bereit")
+      .accessibilityHint(isBlocked ? (store.activeRun != nil ? "Öffnet einen Hinweis, dass zuerst der laufende Run beendet oder verworfen werden muss" : "Öffnet einen Hinweis, dass zuerst das laufende Workout beendet oder verworfen werden muss") : isActive ? "Öffnet den aktiven Workout-Tracker für diesen Plan" : "Startet dieses Workout und öffnet den Tracker")
       // .disabled(isBlocked) bewusst raus: ein Tap darf jetzt einen Dialog
       // öffnen statt schweigend ins Leere zu laufen.
     }
