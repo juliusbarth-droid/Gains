@@ -1556,7 +1556,7 @@ struct ProgressContentView: View {
       let minutesLabel = $0.durationMinutes == 1 ? "1 Minute" : "\($0.durationMinutes) Minuten"
       return String(format: "%.1f Kilometer, %@, %d bpm", $0.distanceKm, minutesLabel, $0.averageHeartRate)
     } ?? "Noch kein Lauftraining geloggt")
-    .accessibilityHint("Schließt den Fortschritt und öffnet den Lauftraining-Bereich")
+    .accessibilityHint(latest == nil ? "Schließt den Fortschritt und öffnet den Laufbereich für dein erstes Cardio-Training" : "Schließt den Fortschritt und öffnet den Lauftraining-Bereich")
   }
 
   private func cardioDistanceSparkline(values: [Double]) -> some View {
