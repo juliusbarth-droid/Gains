@@ -2262,7 +2262,7 @@ struct HomeView: View {
     case .water:
       return "Öffnet die Ernährung zum Wasser-Loggen"
     case .planner:
-      return "Öffnet deinen Plan für heute und die Woche"
+      return "Öffnet deinen Wochenplan mit den geplanten Einheiten"
     }
   }
 
