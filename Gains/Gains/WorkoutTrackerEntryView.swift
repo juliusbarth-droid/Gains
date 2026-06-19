@@ -600,7 +600,7 @@ struct ExerciseLibraryBrowser: View {
         Text(exercise.name)
           .font(GainsFont.title(15))
           .foregroundStyle(GainsColor.ink)
-          .lineLimit(1)
+          .lineLimit(2)
         HStack(spacing: GainsSpacing.xs) {
           Text(exercise.primaryMuscle)
             .font(GainsFont.body(12))
