@@ -55,6 +55,7 @@ struct WorkoutTrackerEntryView: View {
             .foregroundStyle(GainsColor.ink)
         }
         .accessibilityLabel("Schließen")
+        .accessibilityHint("Schließt den Workout-Einstieg und kehrt zum vorherigen Bildschirm zurück")
       }
       ToolbarItem(placement: .principal) {
         Text("KRAFT-TRAINER")
