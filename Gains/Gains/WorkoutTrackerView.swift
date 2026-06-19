@@ -283,7 +283,7 @@ struct WorkoutTrackerView: View {
             .font(TrackerType.eyebrow)
             .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.ink)
-            .lineLimit(1)
+            .lineLimit(2)
             .minimumScaleFactor(0.8)
         }
         ToolbarItem(placement: .topBarTrailing) {
