@@ -1039,7 +1039,7 @@ struct ProgressContentView: View {
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     .accessibilityLabel("Readiness-Wert \(vital.title)")
     .accessibilityValue(vital.value)
-    .accessibilityHint("Aktualisiert deinen Readiness-Wert für \(vital.title)")
+    .accessibilityHint(store.hasConnectedAppleHealth ? "Aktualisiert deinen Readiness-Wert für \(vital.title)" : "Verbindet Apple Health und lädt \(vital.title) für deine Readiness")
   }
 
   // MARK: - 4. Pulse-Strip (Wochen-Snapshot in 4 Zellen)
