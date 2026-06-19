@@ -3749,10 +3749,19 @@ struct HomeView: View {
   }
 
   private func presentArrange(for plan: WorkoutPlan) {
-    if store.activeWorkout == nil {
-      pendingActionLock = .startingWorkout
-      store.startWorkout(from: plan)
+    if store.activeWorkout != nil {
+      guard store.activeWorkout?.title == plan.title else { return }
+      arrangingPlan = plan
+      return
     }
+
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+      return
+    }
+
+    pendingActionLock = .startingWorkout
+    store.startWorkout(from: plan)
     guard store.activeWorkout?.title == plan.title else { return }
     arrangingPlan = plan
   }
