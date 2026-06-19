@@ -1048,7 +1048,7 @@ struct WorkoutTrackerView: View {
           .font(TrackerType.eyebrow)
           .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.softInk)
-          .lineLimit(1)
+          .lineLimit(2)
       }
 
       Spacer(minLength: GainsSpacing.xs)
