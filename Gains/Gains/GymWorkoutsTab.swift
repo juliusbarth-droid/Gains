@@ -121,7 +121,11 @@ struct GymWorkoutsTab: View {
       Button("Abbrechen", role: .cancel) { blockedPlanAttempt = nil }
       Button("Beenden & wechseln", role: .destructive) {
         if let plan = blockedPlanAttempt {
-          store.discardWorkout()
+          if store.activeRun != nil {
+            store.discardRun()
+          } else {
+            store.discardWorkout()
+          }
           store.startWorkout(from: plan)
           if store.activeWorkout?.title == plan.title {
             isShowingWorkoutTracker = true
@@ -132,6 +136,8 @@ struct GymWorkoutsTab: View {
     } message: {
       if let plan = blockedPlanAttempt, let active = store.activeWorkout {
         Text("'\(active.title)' läuft gerade. Diese Session beenden und '\(plan.title)' starten?")
+      } else if let plan = blockedPlanAttempt, store.activeRun != nil {
+        Text("Gerade läuft noch ein Lauf. Diese Session beenden und '\(plan.title)' starten?")
       } else {
         Text("Eine andere Session läuft gerade.")
       }
@@ -469,7 +475,7 @@ struct GymWorkoutsTab: View {
 
   private func workoutRow(_ plan: WorkoutPlan) -> some View {
     let isActive = store.activeWorkout?.title == plan.title
-    let isBlocked = store.activeWorkout != nil && !isActive
+    let isBlocked = store.activeRun != nil || (store.activeWorkout != nil && !isActive)
     let isMatchingToday = store.todayPlannedWorkout?.id == plan.id
     let lastDate = lastPerformedDate(for: plan)
 
@@ -614,7 +620,7 @@ struct GymWorkoutsTab: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel(isActive ? "Workout fortsetzen" : "Workout starten")
-      .accessibilityValue(isBlocked ? "Nicht verfügbar, anderes Workout aktiv" : isActive ? "Aktiv" : "Bereit")
+      .accessibilityValue(isBlocked ? "Nicht verfügbar, andere Session aktiv" : isActive ? "Aktiv" : "Bereit")
       .accessibilityHint(isBlocked ? "Öffnet einen Hinweis, dass zuerst das laufende Workout beendet oder verworfen werden muss" : isActive ? "Öffnet den aktiven Workout-Tracker für diesen Plan" : "Startet dieses Workout und öffnet den Tracker")
       // .disabled(isBlocked) bewusst raus: ein Tap darf jetzt einen Dialog
       // öffnen statt schweigend ins Leere zu laufen.
