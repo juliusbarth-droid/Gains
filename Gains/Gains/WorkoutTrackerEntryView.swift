@@ -354,7 +354,7 @@ struct WorkoutTrackerEntryView: View {
           Text("\(workout.exercises.count) Übungen · \(workout.estimatedDurationMinutes) min")
             .font(GainsFont.caption)
             .foregroundStyle(GainsColor.softInk)
-            .lineLimit(1)
+            .lineLimit(2)
         }
 
         Spacer()
