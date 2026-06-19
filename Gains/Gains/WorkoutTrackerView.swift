@@ -2016,7 +2016,7 @@ struct WorkoutTrackerView: View {
             Text(detail)
               .font(GainsFont.label(10))
               .foregroundStyle(GainsColor.lime.opacity(0.72))
-              .lineLimit(1)
+              .lineLimit(2)
               .accessibilityHidden(true)
           }
         }
