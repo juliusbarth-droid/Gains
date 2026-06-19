@@ -3700,6 +3700,17 @@ struct HomeView: View {
 
   private func repeatLastWorkoutFromHome() {
     guard let last = store.lastCompletedWorkout else { return }
+
+    if store.activeWorkout != nil {
+      isShowingWorkoutTracker = true
+      return
+    }
+
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+      return
+    }
+
     if let plan = store.savedWorkoutPlans.first(where: { $0.title == last.title }) {
       store.startWorkout(from: plan)
       if store.activeWorkout?.title == plan.title {
