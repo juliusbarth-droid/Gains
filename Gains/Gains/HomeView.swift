@@ -3772,8 +3772,11 @@ struct HomeView: View {
 
   private func presentArrange(for plan: WorkoutPlan) {
     if store.activeWorkout != nil {
-      guard store.activeWorkout?.title == plan.title else { return }
-      arrangingPlan = plan
+      if store.activeWorkout?.title == plan.title {
+        arrangingPlan = plan
+      } else {
+        isShowingWorkoutTracker = true
+      }
       return
     }
 
