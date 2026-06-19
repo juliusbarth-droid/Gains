@@ -3650,9 +3650,15 @@ struct HomeView: View {
       if let workoutPlan = store.todayPlannedWorkout {
         presentArrange(for: workoutPlan)
       } else if let runTemplate = plan.runTemplate {
-        store.startRun(from: runTemplate)
-        if store.activeRun?.title == runTemplate.title {
+        if store.activeRun != nil {
           isShowingRunTracker = true
+        } else if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else {
+          store.startRun(from: runTemplate)
+          if store.activeRun?.title == runTemplate.title {
+            isShowingRunTracker = true
+          }
         }
       } else if plan.sessionKind?.isRun == true {
         startQuickRun()
