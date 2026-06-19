@@ -307,7 +307,9 @@ struct GymTodayTab: View {
       if let last = store.lastCompletedWorkout {
         secondaryActionButton(
           icon: "arrow.uturn.backward.circle",
-          title: "Wdh."
+          title: "Wdh.",
+          accessibilityLabel: "Letztes Workout wiederholen",
+          accessibilityHint: store.activeWorkout != nil ? "Öffnet das bereits laufende Workout" : store.activeRun != nil ? "Öffnet den bereits laufenden Run" : "Startet dein letztes Workout erneut oder öffnet dessen Wiederaufnahme"
         ) {
           repeatLastWorkout(reference: last)
         }
@@ -474,6 +476,8 @@ struct GymTodayTab: View {
   private func secondaryActionButton(
     icon: String,
     title: String,
+    accessibilityLabel: String? = nil,
+    accessibilityHint: String? = nil,
     action: @escaping () -> Void
   ) -> some View {
     // Polish-Loop 151 (2026-05-14): Secondary-Action-Buttons mit Glas-
@@ -531,6 +535,8 @@ struct GymTodayTab: View {
       .shadow(color: GainsColor.shadowRest, radius: 5, y: 2)
     }
     .buttonStyle(.plain)
+    .accessibilityLabel(accessibilityLabel ?? title)
+    .accessibilityHint(accessibilityHint ?? "")
   }
 
   // MARK: - Live Session Card
