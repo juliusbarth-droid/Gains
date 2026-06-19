@@ -1703,6 +1703,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Ernährung — \(store.nutritionCaloriesToday) von \(store.nutritionTargetCalories) Kalorien")
+    .accessibilityHint(store.nutritionTargetCalories == 0 ? "Öffnet die Ernährung, damit du zuerst dein Kalorienziel festlegen kannst" : "Öffnet deine heutige Ernährung mit Kalorien und Eiweiß")
   }
 
   @ViewBuilder
