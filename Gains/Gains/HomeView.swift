@@ -3726,10 +3726,18 @@ struct HomeView: View {
   }
 
   private func startQuickRun() {
-    if store.activeRun == nil {
-      pendingActionLock = .startingRun
-      store.startQuickRun()
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+      return
     }
+
+    if store.activeWorkout != nil {
+      isShowingWorkoutTracker = true
+      return
+    }
+
+    pendingActionLock = .startingRun
+    store.startQuickRun()
     if store.activeRun?.modality == .run {
       isShowingRunTracker = true
     }
@@ -3739,10 +3747,18 @@ struct HomeView: View {
   /// Kachel rufen das hier mit `.bikeOutdoor` bzw. `.bikeIndoor`, damit der
   /// User die Modus-Auswahl im Setup-Sheet überspringen kann.
   private func startQuickRun(modality: CardioModality) {
-    if store.activeRun == nil {
-      pendingActionLock = .startingRun
-      store.startQuickRun(modality: modality)
+    if store.activeRun != nil {
+      isShowingRunTracker = true
+      return
     }
+
+    if store.activeWorkout != nil {
+      isShowingWorkoutTracker = true
+      return
+    }
+
+    pendingActionLock = .startingRun
+    store.startQuickRun(modality: modality)
     if store.activeRun?.modality == modality {
       isShowingRunTracker = true
     }
