@@ -613,6 +613,9 @@ struct GymWorkoutsTab: View {
         .shadow(color: isBlocked ? .clear : GainsColor.lime.opacity(0.30), radius: 7, y: 2)
       }
       .buttonStyle(.plain)
+      .accessibilityLabel(isActive ? "Workout fortsetzen" : "Workout starten")
+      .accessibilityValue(isBlocked ? "Nicht verfügbar, anderes Workout aktiv" : isActive ? "Aktiv" : "Bereit")
+      .accessibilityHint(isBlocked ? "Öffnet einen Hinweis, dass zuerst das laufende Workout beendet oder verworfen werden muss" : isActive ? "Öffnet den aktiven Workout-Tracker für diesen Plan" : "Startet dieses Workout und öffnet den Tracker")
       // .disabled(isBlocked) bewusst raus: ein Tap darf jetzt einen Dialog
       // öffnen statt schweigend ins Leere zu laufen.
     }
