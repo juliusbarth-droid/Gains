@@ -2233,6 +2233,7 @@ struct HomeView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("\(spec.eyebrow) — \(spec.title)")
     .accessibilityValue(spec.subtitle)
+    .accessibilityHint(actionTileAccessibilityHint(for: spec))
     .accessibilityAddTraits(spec.isLive ? .isSelected : [])
     // Welle 2 (W2-4): Power-User-Long-Press. Tap macht den Default-Pfad
     // (für Anfänger das Erwartete), Long-Press liefert 1-3 Quick-Actions
@@ -2240,6 +2241,27 @@ struct HomeView: View {
     // Pille. Tiles ohne sinnvolle Shortcuts (progress, water, planner)
     // bleiben ohne Menu — das ist OK, leere ContextMenus rendern nichts.
     .contextMenu { tileContextMenu(for: spec) }
+  }
+
+  private func actionTileAccessibilityHint(for spec: ActionTileSpec) -> String {
+    if spec.isLive {
+      return "Öffnet die bereits laufende Ansicht zu diesem Bereich"
+    }
+
+    switch spec.kind {
+    case .training:
+      return "Öffnet den Workout-Einstieg für ein neues Training"
+    case .cardio:
+      return "Öffnet den Lauf-Einstieg oder führt in weitere Cardio-Aktionen"
+    case .progress:
+      return "Öffnet deinen Fortschritt und Verlauf"
+    case .meal:
+      return "Öffnet den Ernährungseinstieg oder das Meal-Logging"
+    case .water:
+      return "Öffnet dein Wasser-Tracking"
+    case .planner:
+      return "Öffnet deinen Plan für heute und die Woche"
+    }
   }
 
   @ViewBuilder
