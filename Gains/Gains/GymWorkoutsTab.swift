@@ -557,6 +557,7 @@ struct GymWorkoutsTab: View {
           .contentShape(Rectangle())
       }
       .accessibilityLabel("Mehr Optionen")
+      .accessibilityHint("Öffnet Aktionen wie Tag zuweisen, Bearbeiten, Duplizieren oder Löschen")
 
       Button {
         // P0-2: drei Pfade.
