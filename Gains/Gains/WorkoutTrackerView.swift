@@ -888,7 +888,7 @@ struct WorkoutTrackerView: View {
         Text(value)
           .font(TrackerType.metricSmall)
           .foregroundStyle(GainsColor.onCtaSurface)
-          .lineLimit(1)
+          .lineLimit(2)
           .minimumScaleFactor(0.8)
       }
     }
