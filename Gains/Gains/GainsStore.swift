@@ -432,6 +432,7 @@ final class GainsStore: ObservableObject {
   /// Restore-Pfad: bekommt einen Snapshot und stellt activeWorkout +
   /// Pause-Timer wieder her. Cleart `recoverableWorkout`.
   func restoreActiveWorkout(from snapshot: PersistedWorkoutSession) {
+    guard activeWorkout == nil, activeRun == nil else { return }
     activeWorkout = snapshot.toSession()
     activeRestTimerEndsAt = snapshot.restTimerEndsAt
     activeRestDuration = snapshot.restDuration

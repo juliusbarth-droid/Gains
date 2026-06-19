@@ -3946,10 +3946,16 @@ struct HomeView: View {
       }
       HStack(spacing: GainsSpacing.xs) {
         Button {
-          store.restoreActiveWorkout(from: snapshot)
-          if store.activeWorkout?.title == snapshot.title {
+          if store.activeWorkout != nil {
             isShowingWorkoutTracker = true
-            UISelectionFeedbackGenerator().selectionChanged()
+          } else if store.activeRun != nil {
+            isShowingRunTracker = true
+          } else {
+            store.restoreActiveWorkout(from: snapshot)
+            if store.activeWorkout?.title == snapshot.title {
+              isShowingWorkoutTracker = true
+              UISelectionFeedbackGenerator().selectionChanged()
+            }
           }
         } label: {
           Text("FORTSETZEN")
