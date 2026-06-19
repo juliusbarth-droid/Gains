@@ -2260,7 +2260,7 @@ struct HomeView: View {
     case .meal:
       return "Öffnet den Ernährungseinstieg oder das Meal-Logging"
     case .water:
-      return "Öffnet dein Wasser-Tracking"
+      return "Öffnet die Ernährung zum Wasser-Loggen"
     case .planner:
       return "Öffnet deinen Plan für heute und die Woche"
     }
