@@ -1071,5 +1071,8 @@ struct GymTodayTab: View {
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("Letztes Training")
+    .accessibilityValue("\(last.title), \(when), \(last.completedSets) von \(last.totalSets) Sätzen, \(Int(last.volume)) Kilogramm, \(completion) Prozent abgeschlossen")
+    .accessibilityHint("Öffnet deine Trainingsstatistiken mit weiteren Details zu dieser letzten Einheit")
   }
 }
