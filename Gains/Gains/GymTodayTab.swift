@@ -538,8 +538,21 @@ struct GymTodayTab: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(accessibilityLabel ?? title)
-    .accessibilityValue(accessibilityValue ?? "")
+    .accessibilityValue(accessibilityValue ?? secondaryActionAccessibilityValue(for: title))
     .accessibilityHint(accessibilityHint ?? "")
+  }
+
+  private func secondaryActionAccessibilityValue(for title: String) -> String {
+    switch title {
+    case "Plan":
+      return "Wochenplan"
+    case "Bibliothek":
+      return "Workout-Bibliothek"
+    case "Stats":
+      return "Trainingsstatistiken"
+    default:
+      return "Schnellzugriff"
+    }
   }
 
   // MARK: - Live Session Card
