@@ -1379,7 +1379,7 @@ struct ProgressContentView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel(topExercise.map { "Krafttraining, \($0.exerciseName)" } ?? "Krafttraining")
     .accessibilityValue(topExercise.map { "Führende Übung, \($0.currentValue), \($0.deltaLabel)" } ?? "Noch keine Krafttraining-Daten")
-    .accessibilityHint(topExercise == nil ? "Zeigt, dass noch keine Krafttraining-Daten vorliegen und nach deinen ersten Sessions hier Fortschritt erscheint" : "Zeigt deinen aktuellen Kraftfortschritt")
+    .accessibilityHint(topExercise == nil ? "Zeigt, dass noch keine Krafttraining-Daten vorliegen und nach deinen ersten Sessions hier Fortschritt erscheint" : "Öffnet deinen Kraftfortschritt mit weiteren Details zu dieser führenden Übung")
   }
 
   private func volumeSparkline(values: [Double]) -> some View {
