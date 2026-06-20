@@ -2105,7 +2105,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(eyebrow) — \(title)")
-    .accessibilityValue(subtitle)
+    .accessibilityValue(isLive ? "Bereits aktiv. \(subtitle)" : subtitle)
     .accessibilityHint(isLive ? "Öffnet die bereits laufende Einheit" : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Workout-Einstieg für ein neues Training")
     .accessibilityAddTraits(isLive ? .isSelected : [])
     .contextMenu { quickStartContextMenu(for: kind) }
