@@ -1882,6 +1882,9 @@ struct HomeView: View {
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
+    .accessibilityLabel("Community öffnen")
+    .accessibilityValue("Feed, Forum und Treffs")
+    .accessibilityHint("Öffnet den Community-Bereich, um Beiträge und Aktivitäten der Crew zu sehen")
   }
 
   // MARK: - Schnellstart-Bar (Workout + Laufen — immer sichtbar)
