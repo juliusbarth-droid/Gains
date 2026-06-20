@@ -1437,7 +1437,9 @@ struct ProgressContentView: View {
       .accessibilityValue(
         store.weightTrend.count >= 2
           ? "\(String(format: "%.1f Kilogramm", latest)), \(spokenWeightDeltaLabel(delta))"
-          : "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
+          : latest > 0
+            ? "\(String(format: "%.1f Kilogramm", latest)), noch kein Gewichtstrend"
+            : "Noch kein Gewichtseintrag"
       )
       .accessibilityHint(
         store.weightTrend.count >= 2
