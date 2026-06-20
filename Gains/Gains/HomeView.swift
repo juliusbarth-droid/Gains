@@ -990,6 +990,8 @@ struct HomeView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Fortschritt heute und diese Woche öffnen")
+      .accessibilityValue("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(String(format: "%.1f", store.weeklyVolumeTons)) Tonnen Volumen")
+      .accessibilityHint("Öffnet deinen Fortschritt mit Wochenübersicht, Serie und Volumen")
 
       // Refined Hairline-Gradient-Divider statt hartem 1pt-Rectangle —
       // bridged optisch zwischen den zwei Tap-Zonen, statt sie hart
