@@ -1100,6 +1100,20 @@ struct HomeView: View {
           .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(
+          store.activeWorkout != nil
+            ? "Aktives Training fortsetzen"
+            : store.activeRun != nil
+              ? "Aktiven Lauf fortsetzen"
+              : "Wochenplan öffnen"
+        )
+        .accessibilityHint(
+          store.activeWorkout != nil
+            ? "Öffnet den bereits laufenden Workout-Tracker"
+            : store.activeRun != nil
+              ? "Öffnet den bereits laufenden Run-Tracker"
+              : "Öffnet deinen Wochenplan mit den geplanten Einheiten"
+        )
         .padding(.top, GainsSpacing.xs)
       }
       .padding(.top, GainsSpacing.m)
