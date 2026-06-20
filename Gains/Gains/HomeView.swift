@@ -767,7 +767,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(brief.primary.title)
-    .accessibilityValue(brief.primary.metric ?? "")
+    .accessibilityValue(brief.primary.metric ?? "Empfohlene nächste Aktion. \(brief.subline)")
     .accessibilityHint("Öffnet diese empfohlene nächste Aktion")
   }
 
