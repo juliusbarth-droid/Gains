@@ -502,6 +502,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Profil öffnen")
+    .accessibilityHint("Öffnet dein Profil mit deinen Daten und Einstellungen")
   }
 
   /// „Moin, Julius." — Anrede + Name in Lime + Punkt. Wenn kein Name
