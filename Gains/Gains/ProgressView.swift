@@ -1218,7 +1218,7 @@ struct ProgressContentView: View {
     .gainsCardStyle(GainsColor.card)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("365 Tage Aktivität")
-    .accessibilityValue(yearActivityDays.totalActiveDays == 1 ? "1 Tag aktiv in den letzten 365 Tagen" : "\(yearActivityDays.totalActiveDays) Tage aktiv in den letzten 365 Tagen")
+    .accessibilityValue(yearActivityDays.totalActiveDays == 0 ? "Noch keine Aktivität in den letzten 365 Tagen" : yearActivityDays.totalActiveDays == 1 ? "1 Tag aktiv in den letzten 365 Tagen" : "\(yearActivityDays.totalActiveDays) Tage aktiv in den letzten 365 Tagen")
     .accessibilityHint("Zeigt eine Aktivitätsübersicht der letzten 365 Tage, von weniger bis mehr Aktivität")
   }
 
