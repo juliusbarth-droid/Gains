@@ -1571,7 +1571,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Ernährung öffnen")
-    .accessibilityValue("\(kcalNow) von \(kcalGoal) Kalorien")
+    .accessibilityValue(kcalGoal == 0 ? "Kalorienziel noch nicht festgelegt" : "\(kcalNow) von \(kcalGoal) Kalorien")
     .accessibilityHint(kcalGoal == 0 ? "Öffnet die Ernährung, damit du zuerst dein Kalorienziel festlegen kannst" : "Öffnet deine heutige Ernährung und dein Kalorienziel")
   }
 
