@@ -1645,7 +1645,13 @@ struct ProgressContentView: View {
         isDone ? "erreicht" : "\(Int(progress * 100)) Prozent"
       )
     )
-    .accessibilityHint(goal.title == "Körpergewicht" ? "Öffnet den Check-in für dein Gewicht" : goal.title == "Taillenumfang" ? "Öffnet den Check-in für deine Taille" : "Öffnet den Check-in für dein Protein-Ziel")
+    .accessibilityHint(
+      goal.title == "Körpergewicht"
+        ? (isDone ? "Öffnet den Gewichts-Check-in, um dein erreichtes Ziel weiter zu pflegen" : "Öffnet den Check-in für dein Gewicht")
+        : goal.title == "Taillenumfang"
+          ? (isDone ? "Öffnet den Taillen-Check-in, um dein erreichtes Ziel weiter zu pflegen" : "Öffnet den Check-in für deine Taille")
+          : (isDone ? "Öffnet den Protein-Check-in, um dein erreichtes Ziel weiter zu pflegen" : "Öffnet den Check-in für dein Protein-Ziel")
+    )
   }
 
   // MARK: - 7. Highlights (PRs + Milestones merged, kompakte Timeline)
