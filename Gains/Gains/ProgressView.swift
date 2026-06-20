@@ -1954,7 +1954,8 @@ struct ProgressContentView: View {
       let setLabel = w.completedSets == 1 ? "1 Satz" : "\(w.completedSets) Sätze"
       return String(format: "Volumen %.1f Tonnen, %@, am %@", w.volume / 1000, setLabel, date)
     case .run(let r):
-      return "\(String(format: "%.1f Kilometer", r.distanceKm)), Pace \(spokenPaceLabel(r.averagePaceSeconds)), am \(date)"
+      let minutesLabel = r.durationMinutes == 1 ? "1 Minute" : "\(r.durationMinutes) Minuten"
+      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(minutesLabel), Pace \(spokenPaceLabel(r.averagePaceSeconds)), am \(date)"
     }
   }
 
