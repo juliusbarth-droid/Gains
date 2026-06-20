@@ -230,7 +230,7 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel(isPlanned ? (opensRun ? "Nächster Schritt, Lauftraining öffnen" : "Nächster Schritt, Krafttraining öffnen") : "Nächster Schritt, Wochenplan öffnen")
-    .accessibilityValue("\(title), \(subtitle)")
+    .accessibilityValue(isPlanned ? "\(title). \(subtitle)" : "\(title). \(subtitle). Nächster offener Planungsschritt")
     .accessibilityHint(
       isPlanned
         ? (opensRun
