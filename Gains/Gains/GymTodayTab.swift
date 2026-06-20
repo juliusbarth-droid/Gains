@@ -951,6 +951,8 @@ struct GymTodayTab: View {
           .foregroundStyle(GainsColor.moss)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Trainingsstatistiken öffnen")
+        .accessibilityHint("Öffnet den Stats-Bereich mit Volumen, Trends und weiteren Trainingsdaten")
       }
     }
     .padding(GainsSpacing.m)
