@@ -3925,6 +3925,8 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(insight.headline)
+    .accessibilityValue(insight.detail ?? "")
+    .accessibilityHint("Öffnet deinen Fortschritt mit weiteren Details zu diesem Hinweis")
   }
 
   // MARK: - Workout-Recovery-Banner (Audit-Loop 3, 2026-05-14)
