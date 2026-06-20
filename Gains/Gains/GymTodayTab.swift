@@ -539,7 +539,7 @@ struct GymTodayTab: View {
     .buttonStyle(.plain)
     .accessibilityLabel(accessibilityLabel ?? title)
     .accessibilityValue(accessibilityValue ?? secondaryActionAccessibilityValue(for: title))
-    .accessibilityHint(accessibilityHint ?? "")
+    .accessibilityHint(accessibilityHint ?? secondaryActionAccessibilityHint(for: title))
   }
 
   private func secondaryActionAccessibilityValue(for title: String) -> String {
@@ -552,6 +552,19 @@ struct GymTodayTab: View {
       return "Trainingsstatistiken"
     default:
       return "Schnellzugriff"
+    }
+  }
+
+  private func secondaryActionAccessibilityHint(for title: String) -> String {
+    switch title {
+    case "Plan":
+      return "Öffnet deinen Wochenplan"
+    case "Bibliothek":
+      return "Öffnet deine Workout-Bibliothek"
+    case "Stats":
+      return "Öffnet deine Trainingsstatistiken"
+    default:
+      return "Öffnet diesen Schnellzugriff"
     }
   }
 
