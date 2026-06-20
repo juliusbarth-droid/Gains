@@ -862,7 +862,15 @@ struct HomeView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(stat.label): \(stat.value) \(stat.unit). \(stat.detail).")
+    .accessibilityLabel(
+      stat.detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        ? (stat.unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? "\(stat.label): \(stat.value)"
+            : "\(stat.label): \(stat.value) \(stat.unit)")
+        : (stat.unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? "\(stat.label): \(stat.value). \(stat.detail)."
+            : "\(stat.label): \(stat.value) \(stat.unit). \(stat.detail).")
+    )
     .accessibilityHint("Öffnet den passenden Detailbereich zu diesem Wert")
   }
 
