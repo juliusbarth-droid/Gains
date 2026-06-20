@@ -309,6 +309,7 @@ struct GymTodayTab: View {
           icon: "arrow.uturn.backward.circle",
           title: "Wdh.",
           accessibilityLabel: "Letztes Workout wiederholen",
+          accessibilityValue: store.activeWorkout != nil ? "Bereits aktiv, \(store.activeWorkout?.title ?? last.title)" : store.activeRun != nil ? "Aktiver Lauf, öffnet den laufenden Run" : "\(last.title), \(last.completedSets) von \(last.totalSets) Sätzen zuletzt abgeschlossen",
           accessibilityHint: store.activeWorkout != nil ? "Öffnet das bereits laufende Workout" : store.activeRun != nil ? "Öffnet den bereits laufenden Run" : "Startet dein letztes Workout erneut oder öffnet dessen Wiederaufnahme"
         ) {
           repeatLastWorkout(reference: last)
@@ -477,6 +478,7 @@ struct GymTodayTab: View {
     icon: String,
     title: String,
     accessibilityLabel: String? = nil,
+    accessibilityValue: String? = nil,
     accessibilityHint: String? = nil,
     action: @escaping () -> Void
   ) -> some View {
@@ -536,6 +538,7 @@ struct GymTodayTab: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(accessibilityLabel ?? title)
+    .accessibilityValue(accessibilityValue ?? "")
     .accessibilityHint(accessibilityHint ?? "")
   }
 
