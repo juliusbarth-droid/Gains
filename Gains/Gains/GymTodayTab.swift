@@ -952,6 +952,7 @@ struct GymTodayTab: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Trainingsstatistiken öffnen")
+        .accessibilityValue("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(String(format: "%.1f", currentVolume / 1000)) Tonnen Volumen, \(trendInfo.label)")
         .accessibilityHint("Öffnet den Stats-Bereich mit Volumen, Trends und weiteren Trainingsdaten")
       }
     }
