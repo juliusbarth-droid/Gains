@@ -2268,7 +2268,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(spec.eyebrow) — \(spec.title)")
-    .accessibilityValue(spec.subtitle)
+    .accessibilityValue(spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (spec.isLive ? "Bereits aktiv" : "Schnellzugriff") : spec.subtitle)
     .accessibilityHint(actionTileAccessibilityHint(for: spec))
     .accessibilityAddTraits(spec.isLive ? .isSelected : [])
     // Welle 2 (W2-4): Power-User-Long-Press. Tap macht den Default-Pfad
