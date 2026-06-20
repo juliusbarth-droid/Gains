@@ -861,6 +861,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("\(stat.label): \(stat.value) \(stat.unit). \(stat.detail).")
+    .accessibilityHint("Öffnet den passenden Detailbereich zu diesem Wert")
   }
 
   // MARK: - Spotlight Stack (eine Card laut, die andere kompakt)
