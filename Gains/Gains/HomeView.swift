@@ -765,6 +765,8 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(brief.primary.title)
+    .accessibilityValue(brief.primary.metric ?? "")
+    .accessibilityHint("Öffnet diese empfohlene nächste Aktion")
   }
 
   private func coachSecondaryLink(_ action: CoachActionDescriptor, accent: Color) -> some View {
