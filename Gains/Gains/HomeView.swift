@@ -4344,6 +4344,23 @@ struct HomeView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .accessibilityLabel(day.isToday ? "Heute, \(day.weekday.label)" : day.weekday.label)
+    .accessibilityValue(
+      day.isCompleted
+        ? "Abgeschlossen"
+        : isPlanned
+          ? (isRun ? "Geplanter Lauf" : "Geplantes Workout")
+          : day.status == .rest
+            ? "Ruhetag"
+            : "Kein Plan"
+    )
+    .accessibilityHint(
+      store.activeWorkout != nil
+        ? "Öffnet den bereits laufenden Workout-Tracker"
+        : store.activeRun != nil
+          ? "Öffnet den bereits laufenden Run-Tracker"
+          : "Öffnet deinen Wochenplan mit diesem Tag"
+    )
   }
 }
 
