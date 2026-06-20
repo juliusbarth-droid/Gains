@@ -995,7 +995,7 @@ struct HomeView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Fortschritt heute und diese Woche öffnen")
-      .accessibilityValue("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(String(format: "%.1f", store.weeklyVolumeTons)) Tonnen Volumen")
+      .accessibilityValue("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(store.weeklyVolumeTons > 0 ? "\(String(format: "%.1f", store.weeklyVolumeTons)) Tonnen Volumen" : "noch kein Wochenvolumen")")
       .accessibilityHint("Öffnet deinen Fortschritt mit Wochenübersicht, Serie und Volumen")
 
       // Refined Hairline-Gradient-Divider statt hartem 1pt-Rectangle —
@@ -1199,7 +1199,7 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Wochenfortschritt — \(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft")
-    .accessibilityValue(String(format: "%.1f Tonnen Volumen diese Woche", store.weeklyVolumeTons))
+    .accessibilityValue(store.weeklyVolumeTons > 0 ? String(format: "%.1f Tonnen Volumen diese Woche", store.weeklyVolumeTons) : "Noch kein Wochenvolumen")
     .accessibilityHint("Öffnet deinen Fortschritt und die Wochenübersicht")
   }
 
