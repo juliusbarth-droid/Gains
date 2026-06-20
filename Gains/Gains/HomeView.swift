@@ -1035,6 +1035,13 @@ struct HomeView: View {
               ? "Aktiver Lauf, tippen zum Fortsetzen"
               : "Heutiger Plan, tippen für Wochenplan"
         )
+        .accessibilityHint(
+          store.activeWorkout != nil
+            ? "Öffnet den bereits laufenden Workout-Tracker"
+            : store.activeRun != nil
+              ? "Öffnet den bereits laufenden Run-Tracker"
+              : "Öffnet deinen Wochenplan mit den geplanten Einheiten"
+        )
 
         if let week = cachedHomeWeekPreview {
           plannedWeekPills(week.days)
