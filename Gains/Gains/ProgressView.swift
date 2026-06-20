@@ -1038,7 +1038,7 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     .accessibilityLabel("Readiness-Wert \(vital.title)")
-    .accessibilityValue(vital.value)
+    .accessibilityValue(vital.value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || vital.value == "—" ? "Noch keine Daten" : vital.value)
     .accessibilityHint(store.hasConnectedAppleHealth ? "Doppeltippen, um \(vital.title) für deine Readiness zu aktualisieren" : "Doppeltippen, um Apple Health zu verbinden und \(vital.title) für deine Readiness zu laden")
   }
 
