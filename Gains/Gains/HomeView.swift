@@ -2117,7 +2117,16 @@ struct HomeView: View {
       .shadow(color: isLive ? accent.opacity(0.16) : .clear, radius: 14, x: 0, y: 0)
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(eyebrow) — \(title)")
+    .accessibilityLabel(
+      {
+        let spokenEyebrow = eyebrow.trimmingCharacters(in: .whitespacesAndNewlines)
+        let spokenTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !spokenEyebrow.isEmpty && !spokenTitle.isEmpty {
+          return "\(spokenEyebrow) — \(spokenTitle)"
+        }
+        return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Schnellstart" : spokenEyebrow) : spokenTitle
+      }()
+    )
     .accessibilityValue(
       subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         ? (isLive ? "Bereits aktiv" : "Schnellzugriff")
