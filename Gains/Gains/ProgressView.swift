@@ -1579,9 +1579,8 @@ struct ProgressContentView: View {
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel(
       latest.map {
-        $0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          ? "Lauftraining"
-          : "Lauftraining, \($0.title)"
+        let title = $0.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return title.isEmpty ? "Lauftraining" : "Lauftraining, \(title)"
       } ?? "Lauftraining"
     )
     .accessibilityValue(latest.map {
