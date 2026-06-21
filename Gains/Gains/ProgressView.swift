@@ -1553,7 +1553,13 @@ struct ProgressContentView: View {
     }
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
-    .accessibilityLabel(latest.map { "Lauftraining, \($0.title)" } ?? "Lauftraining")
+    .accessibilityLabel(
+      latest.map {
+        $0.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+          ? "Lauftraining"
+          : "Lauftraining, \($0.title)"
+      } ?? "Lauftraining"
+    )
     .accessibilityValue(latest.map {
       let minutesLabel = $0.durationMinutes == 1 ? "1 Minute" : "\($0.durationMinutes) Minuten"
       let heartRateLabel = $0.averageHeartRate > 0 ? "\($0.averageHeartRate) bpm" : "ohne Herzfrequenzdaten"
