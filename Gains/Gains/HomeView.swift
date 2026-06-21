@@ -3266,9 +3266,9 @@ struct HomeView: View {
         PulseStat(
           icon: "heart.fill",
           label: "HF",
-          value: "\(ar.currentHeartRate)",
-          unit: "bpm",
-          detail: "Aktuell",
+          value: ar.currentHeartRate > 0 ? "\(ar.currentHeartRate)" : "—",
+          unit: ar.currentHeartRate > 0 ? "bpm" : "",
+          detail: ar.currentHeartRate > 0 ? "Aktuell" : "Ohne Live-Daten",
           accent: GainsColor.lime,
           action: .openRunTracker
         )
