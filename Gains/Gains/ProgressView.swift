@@ -230,7 +230,16 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel(isPlanned ? (opensRun ? "Nächster Schritt, Lauftraining öffnen" : "Nächster Schritt, Krafttraining öffnen") : "Nächster Schritt, Wochenplan öffnen")
-    .accessibilityValue(isPlanned ? "\(title). \(subtitle)" : "\(title). \(subtitle). Nächster offener Planungsschritt")
+    .accessibilityValue(
+      {
+        let spokenTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Nächster Schritt" : title
+        let spokenSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if isPlanned {
+          return spokenSubtitle.isEmpty ? spokenTitle : "\(spokenTitle). \(spokenSubtitle)"
+        }
+        return spokenSubtitle.isEmpty ? "\(spokenTitle). Nächster offener Planungsschritt" : "\(spokenTitle). \(spokenSubtitle). Nächster offener Planungsschritt"
+      }()
+    )
     .accessibilityHint(
       isPlanned
         ? (opensRun
