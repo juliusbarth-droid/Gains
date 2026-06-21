@@ -2292,7 +2292,16 @@ struct HomeView: View {
       .compositingGroup()
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("\(spec.eyebrow) — \(spec.title)")
+    .accessibilityLabel(
+      {
+        let spokenEyebrow = spec.eyebrow.trimmingCharacters(in: .whitespacesAndNewlines)
+        let spokenTitle = spec.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !spokenEyebrow.isEmpty && !spokenTitle.isEmpty {
+          return "\(spokenEyebrow) — \(spokenTitle)"
+        }
+        return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Schnellzugriff" : spokenEyebrow) : spokenTitle
+      }()
+    )
     .accessibilityValue(spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (spec.isLive ? "Bereits aktiv" : "Schnellzugriff") : spec.subtitle)
     .accessibilityHint(actionTileAccessibilityHint(for: spec))
     .accessibilityAddTraits(spec.isLive ? .isSelected : [])
