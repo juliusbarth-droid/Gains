@@ -2170,7 +2170,7 @@ struct ProgressContentView: View {
   }
 
   private func paceLabel(_ seconds: Int) -> String {
-    guard seconds > 0 else { return "--:-- /km" }
+    guard seconds > 0 else { return "ohne Paceangabe" }
     return String(format: "%d:%02d /km", seconds / 60, seconds % 60)
   }
 
