@@ -729,7 +729,11 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     .accessibilityLabel("Coach Hinweis")
-    .accessibilityValue(canCycle ? "Hinweis \(safeIndex + 1) von \(insights.count). \(current.text)" : current.text)
+    .accessibilityValue(
+      canCycle
+        ? "Hinweis \(safeIndex + 1) von \(insights.count). \((current.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Kein Hinweistext" : current.text))"
+        : (current.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Kein Hinweistext" : current.text)
+    )
     .accessibilityHint(canCycle ? "Doppeltippen, um zum nächsten Coaching-Hinweis zu wechseln" : "Zeigt deinen aktuellen Coaching-Hinweis")
   }
 
