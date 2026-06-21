@@ -4072,7 +4072,13 @@ struct HomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(store.activeWorkout != nil ? "Aktives Workout fortsetzen" : store.activeRun != nil ? "Aktiven Lauf fortsetzen" : "Gespeichertes Workout fortsetzen")
-        .accessibilityValue(store.activeWorkout != nil || store.activeRun != nil ? snapshot.title : "\(snapshot.title), \(completed) von \(total) Sätzen")
+        .accessibilityValue(
+          store.activeWorkout != nil || store.activeRun != nil
+            ? (snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Workout aktiv" : snapshot.title)
+            : (snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? "Gespeichertes Workout, \(completed) von \(total) Sätzen"
+                : "\(snapshot.title), \(completed) von \(total) Sätzen")
+        )
         .accessibilityHint(store.activeWorkout != nil ? "Öffnet den bereits laufenden Workout-Tracker" : store.activeRun != nil ? "Öffnet den bereits laufenden Run-Tracker" : "Stellt das gespeicherte Workout wieder her und öffnet den Tracker")
 
         Button {
