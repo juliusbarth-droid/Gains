@@ -1987,9 +1987,11 @@ struct ProgressContentView: View {
   private func historyAccessibilityLabel(_ entry: HistoryEntry) -> String {
     switch entry {
     case .workout(let w):
-      return "Krafttraining, \(w.title)"
+      let title = w.title.trimmingCharacters(in: .whitespacesAndNewlines)
+      return "Krafttraining, \(title.isEmpty ? "Training" : title)"
     case .run(let r):
-      return "Lauftraining, \(r.title)"
+      let title = r.title.trimmingCharacters(in: .whitespacesAndNewlines)
+      return "Lauftraining, \(title.isEmpty ? "Lauftraining" : title)"
     }
   }
 
