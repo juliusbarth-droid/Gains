@@ -670,7 +670,7 @@ struct GymTodayTab: View {
             }
           )
           .accessibilityLabel("Aktives Workout fortsetzen")
-          .accessibilityValue("\(session.title), \(session.focus), \(s.completedSets) von \(s.totalSets) Sätzen abgeschlossen")
+          .accessibilityValue("\(session.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Training" : session.title), \(session.focus.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "ohne Fokusangabe" : session.focus), \(s.completedSets) von \(s.totalSets) Sätzen abgeschlossen")
           .accessibilityHint("Öffnet den laufenden Workout-Tracker und führt zur aktuellen Einheit zurück")
         }
         // A13 (Cleaner-Pass): Hero-Resume-Card auf Standard-Card-Geometrie
