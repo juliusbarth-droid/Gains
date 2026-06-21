@@ -2462,9 +2462,9 @@ struct HomeView: View {
         .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel(
-        "Heart-Rate-Sensor verbunden\(ble.liveHeartRate.map { ", \($0) BPM" } ?? "")"
-      )
+      .accessibilityLabel("Heart-Rate-Sensor verbunden")
+      .accessibilityValue(ble.liveHeartRate.map { "\($0) BPM" } ?? "Keine Live-Herzfrequenz")
+      .accessibilityHint("Öffnet den verbundenen Heart-Rate-Sensor")
     }
   }
 
