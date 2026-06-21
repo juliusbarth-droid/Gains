@@ -1646,13 +1646,20 @@ struct ProgressContentView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Ziel, \(goal.title)")
     .accessibilityValue(
-      String(
-        format: "%.0f von %.0f %@, %@",
-        goal.current,
-        goal.target,
-        goal.unit,
-        isDone ? "erreicht" : "\(Int(progress * 100)) Prozent"
-      )
+      goal.unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        ? String(
+            format: "%.0f von %.0f, %@",
+            goal.current,
+            goal.target,
+            isDone ? "erreicht" : "\(Int(progress * 100)) Prozent"
+          )
+        : String(
+            format: "%.0f von %.0f %@, %@",
+            goal.current,
+            goal.target,
+            goal.unit,
+            isDone ? "erreicht" : "\(Int(progress * 100)) Prozent"
+          )
     )
     .accessibilityHint(
       goal.title == "Körpergewicht"
