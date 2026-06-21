@@ -537,7 +537,9 @@ struct GymTodayTab: View {
       .shadow(color: GainsColor.shadowRest, radius: 5, y: 2)
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(accessibilityLabel ?? title)
+    .accessibilityLabel(
+      accessibilityLabel ?? (title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Schnellzugriff" : title)
+    )
     .accessibilityValue(accessibilityValue ?? secondaryActionAccessibilityValue(for: title))
     .accessibilityHint(accessibilityHint ?? secondaryActionAccessibilityHint(for: title))
   }
