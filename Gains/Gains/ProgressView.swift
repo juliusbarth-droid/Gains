@@ -1382,7 +1382,16 @@ struct ProgressContentView: View {
     .gainsCardStyle()
     .accessibilityElement(children: .combine)
     .accessibilityLabel(topExercise.map { "Krafttraining, \($0.exerciseName)" } ?? "Krafttraining")
-    .accessibilityValue(topExercise.map { "Führende Übung, \($0.currentValue), \($0.deltaLabel)" } ?? "Noch keine Krafttraining-Daten")
+    .accessibilityValue(
+      topExercise.map {
+        let currentValue = $0.currentValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let deltaLabel = $0.deltaLabel.trimmingCharacters(in: .whitespacesAndNewlines)
+        if currentValue.isEmpty {
+          return deltaLabel.isEmpty ? "Führende Übung" : "Führende Übung, \(deltaLabel)"
+        }
+        return deltaLabel.isEmpty ? "Führende Übung, \(currentValue)" : "Führende Übung, \(currentValue), \(deltaLabel)"
+      } ?? "Noch keine Krafttraining-Daten"
+    )
     .accessibilityHint(topExercise == nil ? "Zeigt, dass noch keine Krafttraining-Daten vorliegen und nach deinen ersten Sessions hier Fortschritt erscheint" : "Öffnet deinen Kraftfortschritt mit weiteren Details zu dieser führenden Übung")
   }
 
