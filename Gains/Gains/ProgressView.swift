@@ -2005,7 +2005,8 @@ struct ProgressContentView: View {
       return "\(volumeLabel), \(setLabel), \(completion) Prozent abgeschlossen, am \(date)"
     case .run(let r):
       let minutesLabel = r.durationMinutes == 1 ? "1 Minute" : "\(r.durationMinutes) Minuten"
-      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(minutesLabel), Pace \(spokenPaceLabel(r.averagePaceSeconds)), am \(date)"
+      let paceLabel = r.averagePaceSeconds > 0 ? "Pace \(spokenPaceLabel(r.averagePaceSeconds))" : "ohne Paceangabe"
+      return "\(String(format: "%.1f Kilometer", r.distanceKm)), \(minutesLabel), \(paceLabel), am \(date)"
     }
   }
 
