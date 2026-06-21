@@ -545,7 +545,7 @@ struct GymTodayTab: View {
   }
 
   private func secondaryActionAccessibilityValue(for title: String) -> String {
-    switch title {
+    switch title.trimmingCharacters(in: .whitespacesAndNewlines) {
     case "Plan":
       return "Wochenplan"
     case "Bibliothek":
@@ -558,7 +558,7 @@ struct GymTodayTab: View {
   }
 
   private func secondaryActionAccessibilityHint(for title: String) -> String {
-    switch title {
+    switch title.trimmingCharacters(in: .whitespacesAndNewlines) {
     case "Plan":
       return "Öffnet deinen Wochenplan"
     case "Bibliothek":
