@@ -1543,7 +1543,7 @@ struct ProgressContentView: View {
               Text(String(format: "%.1f km", r.distanceKm))
                 .font(GainsFont.metric)
                 .foregroundStyle(GainsColor.ink)
-              Text(paceLabel(r.averagePaceSeconds))
+              Text(r.averagePaceSeconds > 0 ? paceLabel(r.averagePaceSeconds) : "ohne Paceangabe")
                 .font(GainsFont.label(9))
                 .tracking(GainsTracking.eyebrowTight)
                 .foregroundStyle(GainsColor.ember)
@@ -1587,7 +1587,8 @@ struct ProgressContentView: View {
     .accessibilityValue(latest.map {
       let minutesLabel = $0.durationMinutes == 1 ? "1 Minute" : "\($0.durationMinutes) Minuten"
       let heartRateLabel = $0.averageHeartRate > 0 ? "\($0.averageHeartRate) bpm" : "ohne Herzfrequenzdaten"
-      return String(format: "%.1f Kilometer, %@, %@ pro Kilometer, %@", $0.distanceKm, minutesLabel, paceLabel($0.averagePaceSeconds), heartRateLabel)
+      let paceLabel = $0.averagePaceSeconds > 0 ? spokenPaceLabel($0.averagePaceSeconds) : "ohne Paceangabe"
+      return String(format: "%.1f Kilometer, %@, %@, %@", $0.distanceKm, minutesLabel, paceLabel, heartRateLabel)
     } ?? "Noch kein Lauftraining geloggt")
     .accessibilityHint(latest == nil ? "Schließt den Fortschritt und öffnet den Laufbereich für dein erstes Cardio-Training" : "Schließt den Fortschritt und öffnet den Lauftraining-Bereich für weitere Details zu dieser letzten Cardio-Einheit")
   }
