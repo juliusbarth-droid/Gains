@@ -1732,10 +1732,12 @@ struct ProgressContentView: View {
     }
 
     if let longest = store.runHistory.max(by: { $0.distanceKm < $1.distanceKm }) {
+      let longestPaceDetail = longest.averagePaceSeconds > 0 ? paceLabel(longest.averagePaceSeconds) : "ohne Paceangabe"
+      let longestHeartRateDetail = longest.averageHeartRate > 0 ? "\(longest.averageHeartRate) bpm" : "ohne Herzfrequenzdaten"
       entries.append(HighlightEntry(
         kind: .run,
         title: String(format: "%.1f km längster Lauf", longest.distanceKm),
-        detail: "\(paceLabel(longest.averagePaceSeconds)) · \(longest.averageHeartRate) bpm",
+        detail: "\(longestPaceDetail) · \(longestHeartRateDetail)",
         date: longest.finishedAt,
         dateLabel: longest.finishedAt.formatted(.dateTime.day().month())
       ))
