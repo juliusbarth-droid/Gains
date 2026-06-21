@@ -2028,7 +2028,8 @@ struct ProgressContentView: View {
         ? String(format: "%.1f t · %@", w.volume / 1000, setLabel)
         : "ohne Volumenangabe · \(setLabel)"
     case .run(let r):
-      return "\(String(format: "%.1f km", r.distanceKm)) · \(paceLabel(r.averagePaceSeconds))"
+      let pace = r.averagePaceSeconds > 0 ? paceLabel(r.averagePaceSeconds) : "ohne Paceangabe"
+      return "\(String(format: "%.1f km", r.distanceKm)) · \(pace)"
     }
   }
 
