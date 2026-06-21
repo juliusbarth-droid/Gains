@@ -1105,7 +1105,7 @@ struct GymTodayTab: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Letztes Training")
-    .accessibilityValue("\(last.title), \(when), \(last.completedSets) von \(last.totalSets) Sätzen, \(last.volume > 0 ? "\(Int(last.volume)) Kilogramm" : "ohne Volumenangabe"), \(completion) Prozent abgeschlossen")
+    .accessibilityValue("\(last.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Training" : last.title), \(when), \(last.completedSets) von \(last.totalSets) Sätzen, \(last.volume > 0 ? "\(Int(last.volume)) Kilogramm" : "ohne Volumenangabe"), \(completion) Prozent abgeschlossen")
     .accessibilityHint("Öffnet deine Trainingsstatistiken mit weiteren Details zu dieser letzten Einheit")
   }
 }
