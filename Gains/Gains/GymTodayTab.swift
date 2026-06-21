@@ -982,7 +982,7 @@ struct GymTodayTab: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Trainingsstatistiken öffnen")
-        .accessibilityValue("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(currentVolume > 0 ? "\(String(format: "%.1f", currentVolume / 1000)) Tonnen Volumen" : "noch keine Volumendaten"), \(trendInfo.label)")
+        .accessibilityValue("\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(currentVolume > 0 ? "\(String(format: "%.1f", currentVolume / 1000)) Tonnen Volumen" : "noch keine Volumendaten")\(trendInfo.label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "" : ", \(trendInfo.label)")")
         .accessibilityHint("Öffnet den Stats-Bereich mit Volumen, Trends und weiteren Trainingsdaten")
       }
     }
