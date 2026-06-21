@@ -1559,7 +1559,7 @@ struct ProgressContentView: View {
 
         if let r = latest {
           HStack(spacing: GainsSpacing.s) {
-            Label("\(r.averageHeartRate) bpm", systemImage: "heart.fill")
+            Label(r.averageHeartRate > 0 ? "\(r.averageHeartRate) bpm" : "ohne Herzfrequenzdaten", systemImage: "heart.fill")
               .font(GainsFont.body(12))
               .foregroundStyle(GainsColor.softInk)
             Label("\(r.durationMinutes) min", systemImage: "clock")
