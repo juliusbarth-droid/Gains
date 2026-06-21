@@ -2637,10 +2637,13 @@ struct HomeView: View {
         headline: ar.isPaused
           ? "Lauf pausiert — bereit für Re-Start?"
           : "Lauf läuft seit \(ar.durationMinutes) Minuten.",
-        subline: String(
-          format: "%.2f km · %02d:%02d · HF %d bpm",
-          ar.distanceKm, hours, remainingMins, ar.currentHeartRate
-        ),
+        subline: {
+          let heartRate = ar.currentHeartRate > 0 ? "HF \(ar.currentHeartRate) bpm" : "ohne Herzfrequenzdaten"
+          return String(
+            format: "%.2f km · %02d:%02d · %@",
+            ar.distanceKm, hours, remainingMins, heartRate
+          )
+        }(),
         primary: CoachActionDescriptor(
           title: "Lauf öffnen",
           icon: "figure.run",
