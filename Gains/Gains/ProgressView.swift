@@ -1466,7 +1466,9 @@ struct ProgressContentView: View {
       .accessibilityHint(
         store.weightTrend.count >= 2
           ? "Öffnet den Check-in für dein Gewicht"
-          : "Öffnet den Check-in, damit du deinen Startwert bestätigen und deinen Gewichtstrend aufbauen kannst"
+          : latest > 0
+            ? "Öffnet den Check-in, damit du deinen Gewichtstrend weiter aufbauen kannst"
+            : "Öffnet den Check-in, damit du deinen Startwert bestätigen und deinen Gewichtstrend aufbauen kannst"
       )
 
       Button { store.logWaistCheckIn() } label: {
