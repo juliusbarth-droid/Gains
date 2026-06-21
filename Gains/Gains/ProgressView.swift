@@ -2010,8 +2010,12 @@ struct ProgressContentView: View {
 
   private func historyTitle(_ entry: HistoryEntry) -> String {
     switch entry {
-    case .workout(let w): return w.title
-    case .run(let r):     return r.title
+    case .workout(let w):
+      let title = w.title.trimmingCharacters(in: .whitespacesAndNewlines)
+      return title.isEmpty ? "Training" : title
+    case .run(let r):
+      let title = r.title.trimmingCharacters(in: .whitespacesAndNewlines)
+      return title.isEmpty ? "Lauftraining" : title
     }
   }
 
