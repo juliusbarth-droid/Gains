@@ -3500,7 +3500,7 @@ struct HomeView: View {
           let paceSeconds = store.activeRun?.averagePaceSeconds ?? 0
           let pace = paceSeconds > 0
             ? String(format: "%d:%02d/km", paceSeconds / 60, paceSeconds % 60)
-            : "--:--/km"
+            : "ohne Paceangabe"
           return String(format: "%.1f km · %@ · %@", store.activeRun?.distanceKm ?? 0, dur, pace)
         }
         if let plannedRun = store.todayPlannedDay.runTemplate {
@@ -3509,7 +3509,7 @@ struct HomeView: View {
         if let last = store.latestCompletedRun {
           let pace = last.averagePaceSeconds > 0
             ? String(format: "%d:%02d/km", last.averagePaceSeconds / 60, last.averagePaceSeconds % 60)
-            : "--:--/km"
+            : "ohne Paceangabe"
           return String(format: "Zuletzt · %.1f km · %@", last.distanceKm, pace)
         }
         return "Heute · Lauf oder Indoor-Training starten"
