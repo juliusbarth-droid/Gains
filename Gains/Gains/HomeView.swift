@@ -3988,7 +3988,7 @@ struct HomeView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(insight.headline)
+    .accessibilityLabel(insight.headline.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Fortschrittshinweis" : insight.headline)
     .accessibilityValue((insight.detail?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false) ? insight.detail! : "Fortschrittshinweis")
     .accessibilityHint("Öffnet deinen Fortschritt mit weiteren Details zu diesem Hinweis")
   }
