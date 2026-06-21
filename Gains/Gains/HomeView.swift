@@ -3693,9 +3693,9 @@ struct HomeView: View {
   }
 
   private var liveAnyHeartRate: Int? {
-    if let bpm = ble.liveHeartRate { return bpm }
-    if let bpm = HealthKitManager.shared.liveHeartRate { return bpm }
-    if let bpm = store.liveWorkoutHeartRate { return bpm }
+    if let bpm = ble.liveHeartRate, bpm > 0 { return bpm }
+    if let bpm = HealthKitManager.shared.liveHeartRate, bpm > 0 { return bpm }
+    if let bpm = store.liveWorkoutHeartRate, bpm > 0 { return bpm }
     return nil
   }
 
