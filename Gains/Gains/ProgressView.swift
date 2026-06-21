@@ -1169,7 +1169,7 @@ struct ProgressContentView: View {
     .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(accessibilityLabel)
-    .accessibilityValue(accessibilityValue)
+    .accessibilityValue(accessibilityValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Noch keine Daten" : accessibilityValue)
     .accessibilityHint(accessibilityHint)
   }
 
