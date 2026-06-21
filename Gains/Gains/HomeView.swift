@@ -2310,7 +2310,10 @@ struct HomeView: View {
         return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Schnellzugriff" : spokenEyebrow) : spokenTitle
       }()
     )
-    .accessibilityValue(spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? (spec.isLive ? "Bereits aktiv" : "Schnellzugriff") : spec.subtitle)
+    .accessibilityValue({
+      let trimmedSubtitle = spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+      return trimmedSubtitle.isEmpty ? (spec.isLive ? "Bereits aktiv" : "Schnellzugriff") : trimmedSubtitle
+    }())
     .accessibilityHint(actionTileAccessibilityHint(for: spec))
     .accessibilityAddTraits(spec.isLive ? .isSelected : [])
     // Welle 2 (W2-4): Power-User-Long-Press. Tap macht den Default-Pfad
