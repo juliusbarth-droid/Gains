@@ -766,11 +766,11 @@ struct HomeView: View {
       .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(brief.primary.title)
+    .accessibilityLabel(brief.primary.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Empfohlene nächste Aktion" : brief.primary.title)
     .accessibilityValue(
       (brief.primary.metric?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
         ? brief.primary.metric!
-        : "Empfohlene nächste Aktion. \(brief.subline)"
+        : (brief.subline.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Empfohlene nächste Aktion" : "Empfohlene nächste Aktion. \(brief.subline)")
     )
     .accessibilityHint("Öffnet diese empfohlene nächste Aktion")
   }
