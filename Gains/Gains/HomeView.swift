@@ -502,7 +502,10 @@ struct HomeView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Profil öffnen")
-    .accessibilityValue(store.userName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Dein Profil" : store.userName)
+    .accessibilityValue({
+      let trimmedUserName = store.userName.trimmingCharacters(in: .whitespacesAndNewlines)
+      return trimmedUserName.isEmpty ? "Dein Profil" : trimmedUserName
+    }())
     .accessibilityHint("Öffnet dein Profil mit deinen Daten und Einstellungen")
   }
 
