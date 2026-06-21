@@ -2023,7 +2023,9 @@ struct ProgressContentView: View {
     switch entry {
     case .workout(let w):
       let setLabel = w.completedSets == 1 ? "1 Satz" : "\(w.completedSets) Sätze"
-      return String(format: "%.1f t · %@", w.volume / 1000, setLabel)
+      return w.volume > 0
+        ? String(format: "%.1f t · %@", w.volume / 1000, setLabel)
+        : "ohne Volumenangabe · \(setLabel)"
     case .run(let r):
       return "\(String(format: "%.1f km", r.distanceKm)) · \(paceLabel(r.averagePaceSeconds))"
     }
