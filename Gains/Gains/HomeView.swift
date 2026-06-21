@@ -4092,7 +4092,9 @@ struct HomeView: View {
         .accessibilityLabel(store.activeWorkout != nil ? "Aktives Workout fortsetzen" : store.activeRun != nil ? "Aktiven Lauf fortsetzen" : "Gespeichertes Workout fortsetzen")
         .accessibilityValue(
           store.activeWorkout != nil || store.activeRun != nil
-            ? (snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Workout aktiv" : snapshot.title)
+            ? (snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                ? (store.activeRun != nil ? "Lauf aktiv" : "Workout aktiv")
+                : snapshot.title)
             : (snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 ? "Gespeichertes Workout, \(completed) von \(total) Sätzen"
                 : "\(snapshot.title), \(completed) von \(total) Sätzen")
