@@ -1089,7 +1089,10 @@ struct GymTodayTab: View {
             .font(GainsFont.label(10))
             .tracking(1.4)
             .foregroundStyle(GainsColor.softInk)
-          Text(last.title)
+          Text({
+            let trimmedTitle = last.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmedTitle.isEmpty ? "Training" : trimmedTitle
+          }())
             .font(GainsFont.title(15))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(1)
