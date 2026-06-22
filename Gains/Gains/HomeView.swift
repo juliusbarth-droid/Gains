@@ -3227,9 +3227,9 @@ struct HomeView: View {
         PulseStat(
           icon: "scalemass.fill",
           label: "VOLUMEN",
-          value: String(format: "%.1f", aws.totalVolume / 1000),
-          unit: "t",
-          detail: "Heutiges Volumen",
+          value: aws.totalVolume > 0 ? String(format: "%.1f", aws.totalVolume / 1000) : "—",
+          unit: aws.totalVolume > 0 ? "t" : "",
+          detail: aws.totalVolume > 0 ? "Heutiges Volumen" : "Ohne Volumenangabe",
           accent: GainsColor.accentCool,
           action: .openWorkoutTracker
         )
