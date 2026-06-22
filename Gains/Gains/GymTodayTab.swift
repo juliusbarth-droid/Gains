@@ -953,7 +953,7 @@ struct GymTodayTab: View {
         Image(systemName: "scalemass.fill")
           .font(.system(size: 11, weight: .semibold))
           .foregroundStyle(GainsColor.moss)
-        Text(String(format: "%.1f t Volumen", currentVolume / 1000))
+        Text(currentVolume > 0 ? String(format: "%.1f t Volumen", currentVolume / 1000) : "ohne Volumenangabe")
           .font(GainsFont.label(10))
           .tracking(1.0)
           .foregroundStyle(GainsColor.ink)
