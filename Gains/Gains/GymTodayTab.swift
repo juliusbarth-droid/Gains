@@ -604,7 +604,10 @@ struct GymTodayTab: View {
               .foregroundStyle(GainsColor.ink)
               .lineLimit(1)
               .minimumScaleFactor(0.78)
-            Text(session.focus.uppercased())
+            Text({
+              let trimmedFocus = session.focus.trimmingCharacters(in: .whitespacesAndNewlines)
+              return trimmedFocus.isEmpty ? "OHNE FOKUSANGABE" : trimmedFocus.uppercased()
+            }())
               .font(GainsFont.label(9))
               .tracking(1.5)
               .foregroundStyle(GainsColor.softInk)
