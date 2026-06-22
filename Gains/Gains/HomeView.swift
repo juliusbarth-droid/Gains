@@ -490,7 +490,10 @@ struct HomeView: View {
                 lineWidth: GainsBorder.bold
               )
               .frame(width: 36, height: 36)
-            Text(store.userName.isEmpty ? "·" : String(store.userName.prefix(1)).uppercased())
+            Text({
+              let trimmedUserName = store.userName.trimmingCharacters(in: .whitespacesAndNewlines)
+              return trimmedUserName.isEmpty ? "·" : String(trimmedUserName.prefix(1)).uppercased()
+            }())
               .font(GainsFont.label(13))
               .foregroundStyle(GainsColor.ink)
           }
