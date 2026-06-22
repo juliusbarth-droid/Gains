@@ -599,7 +599,10 @@ struct GymTodayTab: View {
 
           // Titel + Fokus prominent
           VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-            Text(session.title)
+            Text({
+              let trimmedTitle = session.title.trimmingCharacters(in: .whitespacesAndNewlines)
+              return trimmedTitle.isEmpty ? "Training" : trimmedTitle
+            }())
               .font(GainsFont.title(22))
               .foregroundStyle(GainsColor.ink)
               .lineLimit(1)
