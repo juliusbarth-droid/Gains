@@ -514,7 +514,8 @@ struct HomeView: View {
   @ViewBuilder
   private var greetingLine: some View {
     let salutation = currentSalutation
-    let hasName = !store.userName.isEmpty
+    let trimmedUserName = store.userName.trimmingCharacters(in: .whitespacesAndNewlines)
+    let hasName = !trimmedUserName.isEmpty
 
     // 2026-05-14 (Polish-Loop 2): Salutation auf 26pt .heavy mit
     // tightem Tracking (−0.5). Der Name leuchtet weiterhin im Lime.
@@ -529,7 +530,7 @@ struct HomeView: View {
         Text("\(salutation), ")
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.ink)
-        Text("\(store.userName).")
+        Text("\(trimmedUserName).")
           .font(GainsFont.title(22))
           .foregroundStyle(GainsColor.lime)
       }
