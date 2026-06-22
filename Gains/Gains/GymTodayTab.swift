@@ -278,13 +278,13 @@ struct GymTodayTab: View {
       // Hinweis: heute kein Trainingsreiz, also rückt Protein nach vorn.
       return [
         .init("WOCHE",   "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"),
-        .init("VOLUMEN", String(format: "%.1f t", store.weeklyVolumeTons)),
+        .init("VOLUMEN", store.weeklyVolumeTons > 0 ? String(format: "%.1f t", store.weeklyVolumeTons) : "ohne Volumenangabe"),
         .init("PROTEIN", "\(store.nutritionProteinToday) / \(store.nutritionTargetProtein) g"),
       ]
     case .flexible:
       return [
         .init("EINHEITEN", "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount)"),
-        .init("VOLUMEN",  String(format: "%.1f t", store.weeklyVolumeTons)),
+        .init("VOLUMEN",  store.weeklyVolumeTons > 0 ? String(format: "%.1f t", store.weeklyVolumeTons) : "ohne Volumenangabe"),
         .init("OPTION",   plan?.split ?? "Frei"),
       ]
     }
