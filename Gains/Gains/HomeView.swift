@@ -1970,13 +1970,15 @@ struct HomeView: View {
   private var quickStartTrainingSubtitle: String {
     if let aw = store.activeWorkout {
       let s = aw.stats
-      return String(format: "%d/%d Sätze · %.1f t", s.completedSets, s.totalSets, s.totalVolume / 1000)
+      let volume = s.totalVolume > 0 ? String(format: "%.1f t", s.totalVolume / 1000) : "ohne Volumenangabe"
+      return "\(s.completedSets)/\(s.totalSets) Sätze · \(volume)"
     }
     if let plan = store.todayPlannedWorkout {
       return "Heute · \(plan.estimatedDurationMinutes) Min · \(plan.exercises.count) Übungen"
     }
     if let last = store.lastCompletedWorkout {
-      return String(format: "Zuletzt · %d Sätze · %.1f t", last.completedSets, last.volume / 1000)
+      let volume = last.volume > 0 ? String(format: "%.1f t", last.volume / 1000) : "ohne Volumenangabe"
+      return "Zuletzt · \(last.completedSets) Sätze · \(volume)"
     }
     return "Heute · Plan wählen oder Training starten"
   }
