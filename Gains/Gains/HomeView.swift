@@ -1202,7 +1202,7 @@ struct HomeView: View {
               .gainsCaption()
             Text("·")
               .gainsCaption()
-            Text(String(format: "%.1f t", store.weeklyVolumeTons))
+            Text(store.weeklyVolumeTons > 0 ? String(format: "%.1f t", store.weeklyVolumeTons) : "ohne Volumenangabe")
               .font(.system(size: 12, weight: .medium, design: .monospaced))
               .foregroundStyle(GainsColor.softInk)
           }
