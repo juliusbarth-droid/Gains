@@ -1090,7 +1090,7 @@ struct GymTodayTab: View {
             .font(GainsFont.title(15))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(1)
-          Text("\(last.completedSets)/\(last.totalSets) Sätze · \(Int(last.volume)) kg · \(completion) %")
+          Text("\(last.completedSets)/\(last.totalSets) Sätze · \(last.volume > 0 ? "\(Int(last.volume)) kg" : "ohne Volumenangabe") · \(completion) %")
             .font(GainsFont.body(11))
             .foregroundStyle(GainsColor.softInk)
             .lineLimit(1)
