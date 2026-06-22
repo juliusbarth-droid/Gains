@@ -2864,7 +2864,7 @@ struct HomeView: View {
           glyph: "trophy.fill",
           accent: GainsColor.lime,
           headline: "Heute war ein Tag fürs Buch.",
-          subline: "\(last.title) · \(Int(last.volume)) kg Volumen — neuer Bestwert. Sieh dir die Story an.",
+          subline: "\(last.title) · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe") — neuer Bestwert. Sieh dir die Story an.",
           primary: CoachActionDescriptor(
             title: "Story ansehen",
             icon: "chart.line.uptrend.xyaxis",
@@ -2908,7 +2908,7 @@ struct HomeView: View {
           glyph: "checkmark.circle.fill",
           accent: GainsColor.lime,
           headline: "Sauber abgeliefert.",
-          subline: "\(last.title) · \(last.completedSets) Sätze · \(Int(last.volume)) kg Volumen. Trink was, dann weiter.",
+          subline: "\(last.title) · \(last.completedSets) Sätze · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe"). Trink was, dann weiter.",
           primary: CoachActionDescriptor(
             title: "Wochenstand ansehen",
             icon: "chart.line.uptrend.xyaxis",
