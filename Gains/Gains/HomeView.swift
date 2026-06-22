@@ -995,8 +995,8 @@ struct HomeView: View {
               )
               cockpitMiniTile(
                 icon: "scalemass.fill",
-                value: String(format: "%.1f", store.weeklyVolumeTons),
-                unit: "t",
+                value: store.weeklyVolumeTons > 0 ? String(format: "%.1f", store.weeklyVolumeTons) : "—",
+                unit: store.weeklyVolumeTons > 0 ? "t" : "",
                 label: "VOLUMEN",
                 accent: GainsColor.accentCool
               )
