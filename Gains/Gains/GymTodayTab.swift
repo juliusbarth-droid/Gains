@@ -653,7 +653,7 @@ struct GymTodayTab: View {
           HStack(spacing: 0) {
             liveStat("SÄTZE", "\(s.completedSets)/\(s.totalSets)")
             liveStatDivider()
-            liveStat("VOLUMEN", s.totalVolume > 0 ? "\(Int(s.totalVolume)) kg" : "ohne Angabe")
+            liveStat("VOLUMEN", s.totalVolume > 0 ? "\(Int(s.totalVolume)) kg" : "ohne Volumenangabe")
             liveStatDivider()
             liveStat("ÜBUNGEN", "\(session.exercises.count)")
           }
