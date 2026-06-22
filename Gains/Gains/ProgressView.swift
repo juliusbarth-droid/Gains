@@ -1102,7 +1102,7 @@ struct ProgressContentView: View {
       pulseCell(
         icon: "chart.bar.fill",
         title: "VOL/W",
-        value: String(format: "%.1f t", store.weeklyVolumeTons),
+        value: store.weeklyVolumeTons > 0 ? String(format: "%.1f t", store.weeklyVolumeTons) : "ohne Volumenangabe",
         accent: GainsColor.lime,
         accessibilityLabel: "Wochenvolumen",
         accessibilityValue: store.weeklyVolumeTons > 0
