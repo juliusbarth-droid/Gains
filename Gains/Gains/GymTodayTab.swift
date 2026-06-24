@@ -966,7 +966,10 @@ struct GymTodayTab: View {
         Text("·")
           .font(GainsFont.label(10))
           .foregroundStyle(GainsColor.softInk)
-        Text(trendInfo.label)
+        Text({
+          let trimmedTrendLabel = trendInfo.label.trimmingCharacters(in: .whitespacesAndNewlines)
+          return trimmedTrendLabel.isEmpty ? "keine Trendangabe" : trimmedTrendLabel
+        }())
           .font(GainsFont.label(10))
           .tracking(1.0)
           .foregroundStyle(trendInfo.color)
