@@ -695,19 +695,27 @@ struct HomeView: View {
   }
 
   private func coachBriefSub(_ brief: CoachBrief) -> some View {
+    let trimmedSubline = brief.subline.trimmingCharacters(in: .whitespacesAndNewlines)
+
     // 2026-05-14 (Polish-Loop 107): Subline mit etwas mehr Atem zur
     // Headline, lineSpacing 4 für Lesbarkeit.
     // 2026-05-15 (Polish-Loop 202): Color von softInk → ink.opacity(0.82) —
     // gegen das dunkle Glas-Background brauchte die Subline mehr Kontrast.
     // 2026-05-29 (A18): zurück auf adaptives `softInk` — die Card ist jetzt
     // adaptives Frosted-Glass, kanonische sekundäre Schrift = softInk.
-    Text(brief.subline)
-      .font(GainsFont.body(15))
-      .foregroundStyle(GainsColor.softInk)
-      .lineSpacing(4)
-      .lineLimit(3)
-      .fixedSize(horizontal: false, vertical: true)
-      .padding(.top, 2)
+    Group {
+      if trimmedSubline.isEmpty {
+        EmptyView()
+      } else {
+        Text(trimmedSubline)
+          .font(GainsFont.body(15))
+          .foregroundStyle(GainsColor.softInk)
+          .lineSpacing(4)
+          .lineLimit(3)
+          .fixedSize(horizontal: false, vertical: true)
+          .padding(.top, 2)
+      }
+    }
   }
 
   private func coachPrimaryCTA(_ brief: CoachBrief) -> some View {
