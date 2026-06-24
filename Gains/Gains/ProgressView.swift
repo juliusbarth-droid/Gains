@@ -1634,15 +1634,18 @@ struct ProgressContentView: View {
     let progress = goalProgressLocal(goal)
     let isDone = progress >= 1.0
 
+    let trimmedTitle = goal.title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedUnit = goal.unit.trimmingCharacters(in: .whitespacesAndNewlines)
+
     return Button { goalAction(for: goal)() } label: {
       VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.tight) {
-          Text(goal.title)
+          Text(trimmedTitle.isEmpty ? "Ziel" : trimmedTitle)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
           Spacer()
-          Text(String(format: "%.0f / %.0f %@", goal.current, goal.target, goal.unit))
+          Text(trimmedUnit.isEmpty ? String(format: "%.0f / %.0f", goal.current, goal.target) : String(format: "%.0f / %.0f %@", goal.current, goal.target, trimmedUnit))
             .font(GainsFont.label(10))
             .tracking(0.6)
             .foregroundStyle(GainsColor.softInk)
