@@ -1871,10 +1871,11 @@ struct ProgressContentView: View {
           Spacer()
           HStack(spacing: GainsSpacing.xs) {
             ForEach(HistoryFilter.allCases) { filter in
+              let trimmedFilterLabel = filter.label.trimmingCharacters(in: .whitespacesAndNewlines)
               Button {
                 withAnimation(.easeInOut(duration: 0.15)) { historyFilter = filter }
               } label: {
-                Text(filter.label)
+                Text(trimmedFilterLabel.isEmpty ? "Filter" : trimmedFilterLabel)
                   .font(GainsFont.label(9))
                   .tracking(1.0)
                   .foregroundStyle(historyFilter == filter ? GainsColor.onLime : GainsColor.softInk)
