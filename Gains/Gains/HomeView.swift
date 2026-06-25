@@ -1644,15 +1644,16 @@ struct HomeView: View {
     let trimmedUnit = unit.trimmingCharacters(in: .whitespacesAndNewlines)
     let safeTarget = max(target, 1)
     let ratio = min(Double(value) / Double(safeTarget), 1.0)
+    let hasMeaningfulMacroValue = value > 0 || target > 0
     // 2026-05-15 (Polish-Loop): Wert/Target/Unit in einer einzelnen Text-
     // Komponente (verkettet, kein HStack) — vorher brach SwiftUI bei
     // schmaler Spalte zwischen den drei Texten um, was die Zahlen auf
     // zwei Reihen verteilte. Eine einzige Text-Komposition mit
     // lineLimit(1) + minimumScaleFactor skaliert sauber runter.
-    let valueText = Text("\(value)")
+    let valueText = Text(hasMeaningfulMacroValue ? "\(value)" : "—")
       .font(.system(size: 16, weight: .semibold, design: .monospaced))
       .foregroundColor(GainsColor.ink)
-    let targetText = target > 0
+    let targetText = hasMeaningfulMacroValue && target > 0
       ? Text("/\(target)")
           .font(.system(size: 11, weight: .medium, design: .monospaced))
           .foregroundColor(GainsColor.softInk)
