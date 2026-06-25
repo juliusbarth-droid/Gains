@@ -210,13 +210,11 @@ struct ProgressContentView: View {
           Text(trimmedTitle.isEmpty ? "Nächster Schritt" : trimmedTitle)
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
-          if !trimmedSubtitle.isEmpty {
-            Text(trimmedSubtitle)
-              .font(GainsFont.body(11))
-              .foregroundStyle(GainsColor.softInk)
-              .lineLimit(2)
-              .fixedSize(horizontal: false, vertical: true)
-          }
+          Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
+            .font(GainsFont.body(11))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 0)
         Image(systemName: "arrow.up.right")
