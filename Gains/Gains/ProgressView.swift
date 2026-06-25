@@ -1927,12 +1927,14 @@ struct ProgressContentView: View {
           .background(historyAccent(entry).opacity(0.14))
           .clipShape(Circle())
 
+        let trimmedSubtitle = historySubtitle(entry).trimmingCharacters(in: .whitespacesAndNewlines)
+
         VStack(alignment: .leading, spacing: 1) {
           Text(historyTitle(entry))
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
-          Text(historySubtitle(entry))
+          Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
             .font(GainsFont.label(9))
             .tracking(0.6)
             .foregroundStyle(GainsColor.softInk)
