@@ -4281,6 +4281,7 @@ struct HomeView: View {
       if pref == .rest { return GainsColor.softInk }
       return GainsColor.lime
     }()
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
 
     return HStack(spacing: GainsSpacing.s) {
       // 2026-05-14 (Polish-Loop 102): Icon-Plate mit echtem Radial-Glow
@@ -4324,7 +4325,7 @@ struct HomeView: View {
             .frame(width: 3, height: 3)
             .shadow(color: tint.opacity(0.55), radius: 2)
         }
-        Text(title)
+        Text(trimmedTitle.isEmpty ? "Heute ohne Planangabe" : trimmedTitle)
           .font(GainsFont.title(15))
           .foregroundStyle(GainsColor.ink)
           .lineLimit(2)
