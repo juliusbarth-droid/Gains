@@ -1814,11 +1814,12 @@ struct ProgressContentView: View {
       }
       .frame(width: 28)
 
+      let trimmedTitle = h.title.trimmingCharacters(in: .whitespacesAndNewlines)
       let trimmedDetail = h.detail.trimmingCharacters(in: .whitespacesAndNewlines)
 
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         HStack {
-          Text(h.title)
+          Text(trimmedTitle.isEmpty ? "Highlight" : trimmedTitle)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
