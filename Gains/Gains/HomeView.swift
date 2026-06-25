@@ -1922,7 +1922,7 @@ struct HomeView: View {
         .frame(width: 44, height: 44)
 
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text("Community-Feed")
+          Text("Community")
             .font(GainsFont.headline)
             .foregroundStyle(GainsColor.ink)
           Text("Beiträge, Forum und Treffs, sieh was die Crew heute trainiert.")
