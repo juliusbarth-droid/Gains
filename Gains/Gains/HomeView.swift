@@ -4075,11 +4075,13 @@ struct HomeView: View {
             .foregroundStyle(GainsColor.ember)
         }
         VStack(alignment: .leading, spacing: 2) {
+          let trimmedSnapshotTitle = snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
           Text("WORKOUT GEFUNDEN")
             .font(GainsFont.eyebrow)
             .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.ember)
-          Text(snapshot.title)
+          Text(trimmedSnapshotTitle.isEmpty ? "Gespeichertes Workout" : trimmedSnapshotTitle)
             .font(GainsFont.title(15))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
