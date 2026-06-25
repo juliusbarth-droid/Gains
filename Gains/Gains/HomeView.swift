@@ -1635,6 +1635,7 @@ struct HomeView: View {
     accent: Color
   ) -> some View {
     let trimmedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedUnit = unit.trimmingCharacters(in: .whitespacesAndNewlines)
     let safeTarget = max(target, 1)
     let ratio = min(Double(value) / Double(safeTarget), 1.0)
     // 2026-05-15 (Polish-Loop): Wert/Target/Unit in einer einzelnen Text-
@@ -1650,9 +1651,11 @@ struct HomeView: View {
           .font(.system(size: 11, weight: .medium, design: .monospaced))
           .foregroundColor(GainsColor.softInk)
       : Text("")
-    let unitText = Text(unit)
-      .font(.system(size: 10, weight: .medium, design: .monospaced))
-      .foregroundColor(GainsColor.mutedInk)
+    let unitText = trimmedUnit.isEmpty
+      ? Text("")
+      : Text(trimmedUnit)
+          .font(.system(size: 10, weight: .medium, design: .monospaced))
+          .foregroundColor(GainsColor.mutedInk)
     return VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
       Text(trimmedLabel.isEmpty ? "Makro" : trimmedLabel)
         .font(GainsFont.eyebrow)
