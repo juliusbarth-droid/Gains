@@ -4695,11 +4695,13 @@ private struct WorkoutArrangeView: View {
   }
 
   private func metaPill(icon: String, text: String) -> some View {
+    let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
     HStack(spacing: GainsSpacing.xs) {
       Image(systemName: icon)
         .font(.system(size: 10, weight: .bold))
         .foregroundStyle(GainsColor.moss)
-      Text(text)
+      Text(trimmedText.isEmpty ? "ohne Angabe" : trimmedText)
         .font(GainsFont.label(10))
         .tracking(GainsTracking.eyebrowTight)
         .foregroundStyle(GainsColor.softInk)
