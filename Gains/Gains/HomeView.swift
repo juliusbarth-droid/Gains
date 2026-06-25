@@ -4995,8 +4995,11 @@ struct StatCard: View {
   let foreground: Color
 
   var body: some View {
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+
     VStack(alignment: .leading, spacing: GainsSpacing.tight) {
-      Text(title)
+      Text(trimmedTitle.isEmpty ? "Status" : trimmedTitle)
         .font(GainsFont.label(10))
         .tracking(2)
         .foregroundStyle(foreground.opacity(0.7))
@@ -5005,9 +5008,11 @@ struct StatCard: View {
 
       Spacer(minLength: 0)
 
-      Text(subtitle)
-        .font(GainsFont.body(13))
-        .foregroundStyle(foreground.opacity(0.72))
+      if !trimmedSubtitle.isEmpty {
+        Text(trimmedSubtitle)
+          .font(GainsFont.body(13))
+          .foregroundStyle(foreground.opacity(0.72))
+      }
     }
     .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
     .padding(GainsSpacing.m)
