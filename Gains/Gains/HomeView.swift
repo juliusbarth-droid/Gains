@@ -1390,6 +1390,7 @@ struct HomeView: View {
   ) -> some View {
     let trimmedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
     let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedUnit = unit.trimmingCharacters(in: .whitespacesAndNewlines)
 
     // 2026-05-14 (Polish-Loop 101): Mini-Tile bekommt die gleiche
     // Icon-Halo-Komposition wie ActionTile + dezenten Akzent-Glow im
@@ -1435,9 +1436,11 @@ struct HomeView: View {
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
             .minimumScaleFactor(0.7)
-          Text(unit)
-            .font(.system(size: 11, weight: .medium, design: .monospaced))
-            .foregroundStyle(GainsColor.softInk)
+          if !trimmedUnit.isEmpty {
+            Text(trimmedUnit)
+              .font(.system(size: 11, weight: .medium, design: .monospaced))
+              .foregroundStyle(GainsColor.softInk)
+          }
         }
       }
 
