@@ -796,6 +796,8 @@ struct HomeView: View {
   }
 
   private func coachSecondaryLink(_ action: CoachActionDescriptor, accent: Color) -> some View {
+    let trimmedTitle = action.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
     // 2026-05-14 (Polish-Loop 52): Secondary-Link Pfeil bekommt einen
     // dezenten Akzent-Glow — markiert „weitere Option" ohne mit dem
     // Primary-CTA zu konkurrieren.
@@ -813,7 +815,7 @@ struct HomeView: View {
             .font(.system(size: 11, weight: .heavy))
             .foregroundStyle(GainsColor.mutedInk)
         }
-        Text(action.title)
+        Text(trimmedTitle.isEmpty ? "Weitere Aktion" : trimmedTitle)
           .font(GainsFont.label(11))
           .tracking(1.4)
           .foregroundStyle(GainsColor.softInk)
