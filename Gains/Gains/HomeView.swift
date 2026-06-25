@@ -858,6 +858,7 @@ struct HomeView: View {
       runCoachAction(stat.action)
     } label: {
       let trimmedLabel = stat.label.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmedValue = stat.value.trimmingCharacters(in: .whitespacesAndNewlines)
       let trimmedDetail = stat.detail.trimmingCharacters(in: .whitespacesAndNewlines)
 
       VStack(alignment: .leading, spacing: GainsSpacing.xs) {
@@ -871,7 +872,7 @@ struct HomeView: View {
             .lineLimit(2)
         }
         HStack(alignment: .firstTextBaseline, spacing: 2) {
-          Text(stat.value)
+          Text(trimmedValue.isEmpty ? "—" : trimmedValue)
             .font(.system(size: 18, weight: .semibold, design: .monospaced))
             .foregroundStyle(GainsColor.onCtaSurface)
           Text(stat.unit)
