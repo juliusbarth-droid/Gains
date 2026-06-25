@@ -4695,9 +4695,18 @@ private struct WorkoutArrangeView: View {
         .minimumScaleFactor(0.78)
 
       HStack(spacing: GainsSpacing.xsPlus) {
-        metaPill(icon: "list.bullet", text: "\(workout.exercises.count) Übungen")
-        metaPill(icon: "repeat", text: "\(workout.totalSets) Sätze")
-        metaPill(icon: "clock", text: "\(plan.estimatedDurationMinutes) min")
+        metaPill(
+          icon: "list.bullet",
+          text: workout.exercises.isEmpty ? "ohne Übungsangabe" : "\(workout.exercises.count) Übungen"
+        )
+        metaPill(
+          icon: "repeat",
+          text: workout.totalSets > 0 ? "\(workout.totalSets) Sätze" : "ohne Satzangabe"
+        )
+        metaPill(
+          icon: "clock",
+          text: plan.estimatedDurationMinutes > 0 ? "\(plan.estimatedDurationMinutes) min" : "ohne Zeitangabe"
+        )
       }
 
       Text("Reihenfolge ändern, Übungen entfernen oder hinzufügen – dann starten.")
