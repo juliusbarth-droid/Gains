@@ -5039,11 +5039,13 @@ struct StatCard: View {
 
   @ViewBuilder
   private var valueView: some View {
-    if valueAccent, value.contains("/") {
-      let components = value.split(separator: "/", omittingEmptySubsequences: false).map(
+    let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    if valueAccent, trimmedValue.contains("/") {
+      let components = trimmedValue.split(separator: "/", omittingEmptySubsequences: false).map(
         String.init)
       HStack(alignment: .firstTextBaseline, spacing: 2) {
-        Text(components.first ?? value)
+        Text(components.first ?? trimmedValue)
         Text("/")
           .foregroundStyle(GainsColor.lime)
         Text(components.dropFirst().first ?? "")
@@ -5051,7 +5053,7 @@ struct StatCard: View {
       .font(GainsFont.display(28))
       .foregroundStyle(foreground)
     } else {
-      Text(value)
+      Text(trimmedValue.isEmpty ? "—" : trimmedValue)
         .font(GainsFont.display(28))
         .foregroundStyle(foreground)
     }
