@@ -857,6 +857,7 @@ struct HomeView: View {
     Button {
       runCoachAction(stat.action)
     } label: {
+      let trimmedLabel = stat.label.trimmingCharacters(in: .whitespacesAndNewlines)
       let trimmedDetail = stat.detail.trimmingCharacters(in: .whitespacesAndNewlines)
 
       VStack(alignment: .leading, spacing: GainsSpacing.xs) {
@@ -865,7 +866,7 @@ struct HomeView: View {
             .font(.system(size: 10, weight: .heavy))
             .foregroundStyle(stat.accent)
             .shadow(color: stat.accent.opacity(0.55), radius: 4)
-          Text(stat.label)
+          Text(trimmedLabel.isEmpty ? "Status" : trimmedLabel)
             .gainsEyebrow(GainsColor.onCtaSurfaceMuted, size: 9, tracking: 1.2)
             .lineLimit(2)
         }
