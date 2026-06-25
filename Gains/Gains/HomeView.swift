@@ -1922,10 +1922,10 @@ struct HomeView: View {
         .frame(width: 44, height: 44)
 
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text("Community")
+          Text("Community-Feed")
             .font(GainsFont.headline)
             .foregroundStyle(GainsColor.ink)
-          Text("Feed, Forum und Treffs, sieh was die Crew heute trainiert.")
+          Text("Beiträge, Forum und Treffs, sieh was die Crew heute trainiert.")
             .gainsCaption(GainsColor.softInk)
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
