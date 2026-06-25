@@ -1811,6 +1811,8 @@ struct ProgressContentView: View {
       }
       .frame(width: 28)
 
+      let trimmedDetail = h.detail.trimmingCharacters(in: .whitespacesAndNewlines)
+
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         HStack {
           Text(h.title)
@@ -1823,10 +1825,12 @@ struct ProgressContentView: View {
             .tracking(1.4)
             .foregroundStyle(GainsColor.softInk)
         }
-        Text(h.detail)
-          .font(GainsFont.body(12))
-          .foregroundStyle(GainsColor.softInk)
-          .lineLimit(2)
+        if !trimmedDetail.isEmpty {
+          Text(trimmedDetail)
+            .font(GainsFont.body(12))
+            .foregroundStyle(GainsColor.softInk)
+            .lineLimit(2)
+        }
       }
       .padding(.bottom, isLast ? 0 : 14)
     }
