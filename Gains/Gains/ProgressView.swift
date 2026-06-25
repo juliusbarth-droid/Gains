@@ -1998,7 +1998,7 @@ struct ProgressContentView: View {
   private var emptyHistoryTitle: String {
     switch historyFilter {
     case .all:
-      return "Noch keine Aktivitäten"
+      return "Noch kein Training"
     case .strength:
       return "Noch kein Krafttraining"
     case .cardio:
