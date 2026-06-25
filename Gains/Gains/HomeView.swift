@@ -2899,6 +2899,8 @@ struct HomeView: View {
        Calendar.current.isDateInToday(last.finishedAt) {
       let minutesSince = Int(now.timeIntervalSince(last.finishedAt) / 60)
       let proteinGap = max(store.nutritionTargetProtein - store.nutritionProteinToday, 0)
+      let trimmedLastTitle = last.title.trimmingCharacters(in: .whitespacesAndNewlines)
+      let lastTitleText = trimmedLastTitle.isEmpty ? "Training" : trimmedLastTitle
       // PR-Check: höchstes Volumen in der Geschichte = heute?
       let allTimePeak = store.workoutHistory.max(by: { $0.volume < $1.volume })?.volume ?? 0
       let isVolumePR = last.volume >= allTimePeak && last.volume > 0
@@ -2908,7 +2910,7 @@ struct HomeView: View {
           glyph: "trophy.fill",
           accent: GainsColor.lime,
           headline: "Heute war ein Tag fürs Buch.",
-          subline: "\(last.title) · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe") — neuer Bestwert. Sieh dir die Story an.",
+          subline: "\(lastTitleText) · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe") — neuer Bestwert. Sieh dir die Story an.",
           primary: CoachActionDescriptor(
             title: "Story ansehen",
             icon: "chart.line.uptrend.xyaxis",
@@ -2931,7 +2933,7 @@ struct HomeView: View {
           glyph: "fork.knife",
           accent: GainsColor.ember,
           headline: "Solides Training — jetzt nachladen.",
-          subline: "\(last.title) abgeschlossen vor \(minutesSince) Minuten. Noch \(proteinGap) g Eiweiß offen.",
+          subline: "\(lastTitleText) abgeschlossen vor \(minutesSince) Minuten. Noch \(proteinGap) g Eiweiß offen.",
           primary: CoachActionDescriptor(
             title: "Mahlzeit loggen",
             icon: "camera.fill",
@@ -2952,7 +2954,7 @@ struct HomeView: View {
           glyph: "checkmark.circle.fill",
           accent: GainsColor.lime,
           headline: "Sauber abgeliefert.",
-          subline: "\(last.title) · \(last.completedSets) Sätze · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe"). Trink was, dann weiter.",
+          subline: "\(lastTitleText) · \(last.completedSets) Sätze · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe"). Trink was, dann weiter.",
           primary: CoachActionDescriptor(
             title: "Wochenstand ansehen",
             icon: "chart.line.uptrend.xyaxis",
