@@ -1543,6 +1543,8 @@ struct ProgressContentView: View {
       dismiss()
       navigation.openTraining(workspace: .laufen)
     } label: {
+      let trimmedLatestTitle = latest?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
       VStack(alignment: .leading, spacing: GainsSpacing.m) {
         HStack(alignment: .firstTextBaseline) {
           VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
@@ -1550,7 +1552,7 @@ struct ProgressContentView: View {
               .font(GainsFont.label(9))
               .tracking(GainsTracking.eyebrowWide)
               .foregroundStyle(GainsColor.ember)
-            Text(latest?.title ?? "Letzte Session")
+            Text(trimmedLatestTitle.isEmpty ? "Letzte Session" : trimmedLatestTitle)
               .font(GainsFont.title(20))
               .foregroundStyle(GainsColor.ink)
               .lineLimit(2)
