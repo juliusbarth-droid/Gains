@@ -719,7 +719,9 @@ struct ProgressContentView: View {
             }
           }
 
-          Text(current.text)
+          let trimmedCurrentText = current.text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+          Text(trimmedCurrentText.isEmpty ? "Noch kein Fortschrittshinweis" : trimmedCurrentText)
             .font(GainsFont.body(15))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(4)
