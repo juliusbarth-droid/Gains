@@ -3969,12 +3969,15 @@ struct HomeView: View {
             .shadow(color: GainsColor.lime.opacity(0.275), radius: 4)
         }
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text(insight.headline)
+          let trimmedHeadline = insight.headline.trimmingCharacters(in: .whitespacesAndNewlines)
+          let trimmedDetail = insight.detail?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+          Text(trimmedHeadline.isEmpty ? "Fortschrittshinweis" : trimmedHeadline)
             .font(GainsFont.body)
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
-          if let detail = insight.detail {
-            Text(detail)
+          if !trimmedDetail.isEmpty {
+            Text(trimmedDetail)
               .font(GainsFont.caption)
               .foregroundStyle(GainsColor.softInk)
               .lineLimit(2)
