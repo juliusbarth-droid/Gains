@@ -1147,6 +1147,8 @@ struct ProgressContentView: View {
     accessibilityValue: String,
     accessibilityHint: String
   ) -> some View {
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+
     VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack {
         if let ring = ringValue {
@@ -1174,7 +1176,7 @@ struct ProgressContentView: View {
         .lineLimit(2)
         .minimumScaleFactor(0.7)
 
-      Text(title)
+      Text(trimmedTitle.isEmpty ? "Status" : trimmedTitle)
         .font(GainsFont.label(8))
         .tracking(GainsTracking.eyebrow)
         .foregroundStyle(GainsColor.softInk)
