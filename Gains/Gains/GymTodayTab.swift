@@ -485,6 +485,7 @@ struct GymTodayTab: View {
     accessibilityHint: String? = nil,
     action: @escaping () -> Void
   ) -> some View {
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
     // Polish-Loop 151 (2026-05-14): Secondary-Action-Buttons mit Glas-
     // Composition (glassUndertone + ultraThinMaterial + plusLighter Inner-
     // Light) statt flachem GainsColor.card. Hairline-Border als
@@ -493,7 +494,7 @@ struct GymTodayTab: View {
       HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: icon)
           .font(.system(size: 12, weight: .semibold))
-        Text(title)
+        Text(trimmedTitle.isEmpty ? "Schnellzugriff" : trimmedTitle)
           .font(GainsFont.label(11))
           .tracking(1.0)
           .lineLimit(1)
