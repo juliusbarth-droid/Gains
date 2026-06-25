@@ -724,6 +724,8 @@ struct HomeView: View {
     // dem ganzen Screen haben — vorher konkurrierte er mit Pulse-Tiles um
     // Aufmerksamkeit. Der schmale onAccent-Stroke hält die Form definiert,
     // ohne den Solid-Look aufzubrechen.
+    let trimmedPrimaryTitle = brief.primary.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
     Button {
       runCoachAction(brief.primary.action)
     } label: {
@@ -732,7 +734,7 @@ struct HomeView: View {
           .font(.system(size: 14, weight: .heavy))
           .foregroundStyle(GainsColor.onCtaSurface)
 
-        Text(brief.primary.title.uppercased())
+        Text((trimmedPrimaryTitle.isEmpty ? "Empfohlene Aktion" : trimmedPrimaryTitle).uppercased())
           .font(GainsFont.label(13))
           .tracking(GainsTracking.eyebrowWide)
           .foregroundStyle(GainsColor.onCtaSurface)
