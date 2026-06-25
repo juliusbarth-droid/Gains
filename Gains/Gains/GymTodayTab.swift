@@ -751,13 +751,14 @@ struct GymTodayTab: View {
   // Metric, damit Stellenbreiten beim Live-Tick nicht springen.
   private func liveStat(_ label: String, _ value: String) -> some View {
     let trimmedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     VStack(spacing: GainsSpacing.xxs) {
       Text(trimmedLabel.isEmpty ? "Status" : trimmedLabel)
         .font(GainsFont.label(8))
         .tracking(1.5)
         .foregroundStyle(GainsColor.softInk)
-      Text(value)
+      Text(trimmedValue.isEmpty ? "—" : trimmedValue)
         .font(GainsFont.metricMono(16))
         .foregroundStyle(GainsColor.ink)
         .lineLimit(1)
