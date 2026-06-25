@@ -1035,13 +1035,15 @@ struct ProgressContentView: View {
   }
 
   private func readinessCell(_ vital: VitalReading) -> some View {
+    let trimmedValue = vital.value.trimmingCharacters(in: .whitespacesAndNewlines)
+
     Button { store.syncVitalData() } label: {
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         Text(vital.title.uppercased())
           .font(GainsFont.label(8))
           .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.softInk)
-        Text(vital.value)
+        Text(trimmedValue.isEmpty || trimmedValue == "—" ? "Noch keine Daten" : trimmedValue)
           .font(GainsFont.metricSmall)
           .foregroundStyle(GainsColor.ink)
           .lineLimit(2)
