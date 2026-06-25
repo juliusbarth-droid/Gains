@@ -2305,12 +2305,10 @@ struct HomeView: View {
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
             .minimumScaleFactor(0.78)
-          if !trimmedSubtitle.isEmpty {
-            Text(trimmedSubtitle)
-              .gainsCaption()
-              .lineLimit(2)
-              .truncationMode(.tail)
-          }
+          Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
+            .gainsCaption()
+            .lineLimit(2)
+            .truncationMode(.tail)
         }
       }
       .frame(maxWidth: .infinity, minHeight: 124, alignment: .topLeading)
