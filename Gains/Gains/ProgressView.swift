@@ -1037,11 +1037,12 @@ struct ProgressContentView: View {
   }
 
   private func readinessCell(_ vital: VitalReading) -> some View {
+    let trimmedTitle = vital.title.trimmingCharacters(in: .whitespacesAndNewlines)
     let trimmedValue = vital.value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     Button { store.syncVitalData() } label: {
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-        Text(vital.title.uppercased())
+        Text((trimmedTitle.isEmpty ? "Readiness" : trimmedTitle).uppercased())
           .font(GainsFont.label(8))
           .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.softInk)
