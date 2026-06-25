@@ -861,6 +861,7 @@ struct HomeView: View {
     } label: {
       let trimmedLabel = stat.label.trimmingCharacters(in: .whitespacesAndNewlines)
       let trimmedValue = stat.value.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmedUnit = stat.unit.trimmingCharacters(in: .whitespacesAndNewlines)
       let trimmedDetail = stat.detail.trimmingCharacters(in: .whitespacesAndNewlines)
 
       VStack(alignment: .leading, spacing: GainsSpacing.xs) {
@@ -877,9 +878,11 @@ struct HomeView: View {
           Text(trimmedValue.isEmpty ? "—" : trimmedValue)
             .font(.system(size: 18, weight: .semibold, design: .monospaced))
             .foregroundStyle(GainsColor.onCtaSurface)
-          Text(stat.unit)
-            .font(.system(size: 10, weight: .medium, design: .monospaced))
-            .foregroundStyle(GainsColor.onCtaSurfaceSecondary)
+          if !trimmedUnit.isEmpty {
+            Text(trimmedUnit)
+              .font(.system(size: 10, weight: .medium, design: .monospaced))
+              .foregroundStyle(GainsColor.onCtaSurfaceSecondary)
+          }
         }
         if !trimmedDetail.isEmpty {
           Text(trimmedDetail)
