@@ -191,6 +191,9 @@ struct ProgressContentView: View {
         navigation.openWeekPlanFullscreen()
       }
     } label: {
+      let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+
       HStack(spacing: GainsSpacing.m) {
         ZStack {
           Circle()
@@ -204,14 +207,16 @@ struct ProgressContentView: View {
         VStack(alignment: .leading, spacing: 2) {
           Text("NÄCHSTER SCHRITT")
             .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.4)
-          Text(title)
+          Text(trimmedTitle.isEmpty ? "Nächster Schritt" : trimmedTitle)
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
-          Text(subtitle)
-            .font(GainsFont.body(11))
-            .foregroundStyle(GainsColor.softInk)
-            .lineLimit(2)
-            .fixedSize(horizontal: false, vertical: true)
+          if !trimmedSubtitle.isEmpty {
+            Text(trimmedSubtitle)
+              .font(GainsFont.body(11))
+              .foregroundStyle(GainsColor.softInk)
+              .lineLimit(2)
+              .fixedSize(horizontal: false, vertical: true)
+          }
         }
         Spacer(minLength: 0)
         Image(systemName: "arrow.up.right")
