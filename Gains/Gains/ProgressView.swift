@@ -1152,6 +1152,7 @@ struct ProgressContentView: View {
     accessibilityHint: String
   ) -> some View {
     let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
       HStack {
@@ -1174,7 +1175,7 @@ struct ProgressContentView: View {
         Spacer()
       }
 
-      Text(value)
+      Text(trimmedValue.isEmpty ? "—" : trimmedValue)
         .font(GainsFont.metricSmall)
         .foregroundStyle(GainsColor.ink)
         .lineLimit(2)
