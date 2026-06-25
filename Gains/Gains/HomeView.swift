@@ -5038,11 +5038,9 @@ struct StatCard: View {
 
       Spacer(minLength: 0)
 
-      if !trimmedSubtitle.isEmpty {
-        Text(trimmedSubtitle)
-          .font(GainsFont.body(13))
-          .foregroundStyle(foreground.opacity(0.72))
-      }
+      Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
+        .font(GainsFont.body(13))
+        .foregroundStyle(foreground.opacity(0.72))
     }
     .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
     .padding(GainsSpacing.m)
