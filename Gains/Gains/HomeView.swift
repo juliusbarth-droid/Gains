@@ -2221,6 +2221,10 @@ struct HomeView: View {
   }
 
   private func actionTile(_ spec: ActionTileSpec) -> some View {
+    let trimmedEyebrow = spec.eyebrow.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedTitle = spec.title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedSubtitle = spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+
     Button(action: { runCoachAction(spec.action) }) {
       VStack(alignment: .leading, spacing: 0) {
         HStack(alignment: .top, spacing: 0) {
@@ -2273,17 +2277,19 @@ struct HomeView: View {
         Spacer(minLength: 12)
 
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text(spec.eyebrow)
+          Text(trimmedEyebrow.isEmpty ? "Schnellzugriff" : trimmedEyebrow)
             .gainsEyebrow(spec.accent, size: 10, tracking: 1.4)
-          Text(spec.title)
+          Text(trimmedTitle.isEmpty ? "Aktion" : trimmedTitle)
             .font(GainsFont.title(18))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
             .minimumScaleFactor(0.78)
-          Text(spec.subtitle)
-            .gainsCaption()
-            .lineLimit(2)
-            .truncationMode(.tail)
+          if !trimmedSubtitle.isEmpty {
+            Text(trimmedSubtitle)
+              .gainsCaption()
+              .lineLimit(2)
+              .truncationMode(.tail)
+          }
         }
       }
       .frame(maxWidth: .infinity, minHeight: 124, alignment: .topLeading)
