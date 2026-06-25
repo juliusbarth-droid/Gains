@@ -1036,7 +1036,7 @@ struct GymTodayTab: View {
   private func volumeTrendDelta(current: Double, previous: Double) -> (label: String, color: Color) {
     guard previous > 0 else {
       if current > 0 { return ("Erste Daten dieser Woche", GainsColor.softInk) }
-      return ("Noch keine Trainings", GainsColor.softInk)
+      return ("Noch kein Training diese Woche", GainsColor.softInk)
     }
     let pct = ((current - previous) / previous) * 100
     if abs(pct) < 1 {
