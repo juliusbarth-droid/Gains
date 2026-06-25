@@ -2032,6 +2032,10 @@ struct HomeView: View {
     isLive: Bool,
     action: @escaping () -> Void
   ) -> some View {
+    let trimmedEyebrow = eyebrow.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+
     Button(action: action) {
       VStack(alignment: .leading, spacing: 0) {
         HStack(alignment: .top, spacing: 0) {
@@ -2087,17 +2091,19 @@ struct HomeView: View {
         Spacer(minLength: 14)
 
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text(eyebrow)
+          Text(trimmedEyebrow.isEmpty ? "Schnellzugriff" : trimmedEyebrow)
             .gainsEyebrow(accent, size: 10, tracking: 1.5)
-          Text(title)
+          Text(trimmedTitle.isEmpty ? "Aktion" : trimmedTitle)
             .font(GainsFont.title(22))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
             .minimumScaleFactor(0.78)
-          Text(subtitle)
-            .gainsCaption()
-            .lineLimit(2)
-            .truncationMode(.tail)
+          if !trimmedSubtitle.isEmpty {
+            Text(trimmedSubtitle)
+              .gainsCaption()
+              .lineLimit(2)
+              .truncationMode(.tail)
+          }
         }
       }
       .frame(maxWidth: .infinity, minHeight: 144, alignment: .topLeading)
