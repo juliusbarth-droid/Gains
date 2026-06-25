@@ -4671,8 +4671,10 @@ private struct WorkoutArrangeView: View {
   }
 
   private func headline(for workout: WorkoutSession) -> some View {
+    let trimmedWorkoutTitle = workout.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
     VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
-      Text(workout.title)
+      Text(trimmedWorkoutTitle.isEmpty ? "Workout" : trimmedWorkoutTitle)
         .font(GainsFont.display(28))
         .foregroundStyle(GainsColor.ink)
         .lineLimit(2)
