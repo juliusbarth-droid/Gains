@@ -148,6 +148,9 @@ struct GymTodayTab: View {
   }
 
   private func dayOneTourRow(icon: String, title: String, detail: String) -> some View {
+    let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedDetail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
+
     HStack(spacing: GainsSpacing.tight) {
       ZStack {
         Circle().fill(GainsColor.lime.opacity(0.10))
@@ -167,11 +170,11 @@ struct GymTodayTab: View {
           .shadow(color: GainsColor.lime.opacity(0.225), radius: 3)
       }
       .frame(width: 22, height: 22)
-      Text(title)
+      Text(trimmedTitle.isEmpty ? "Schritt" : trimmedTitle)
         .font(GainsFont.title(12))
         .foregroundStyle(GainsColor.ink)
         .frame(width: 78, alignment: .leading)
-      Text(detail)
+      Text(trimmedDetail.isEmpty ? "ohne Detailangabe" : trimmedDetail)
         .font(GainsFont.body(11))
         .foregroundStyle(GainsColor.softInk)
         .lineLimit(2)
