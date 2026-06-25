@@ -750,8 +750,10 @@ struct GymTodayTab: View {
   // Polish-Loop 154 (2026-05-14): Live-Stat-Werte als monospacedDigit-
   // Metric, damit Stellenbreiten beim Live-Tick nicht springen.
   private func liveStat(_ label: String, _ value: String) -> some View {
+    let trimmedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
+
     VStack(spacing: GainsSpacing.xxs) {
-      Text(label)
+      Text(trimmedLabel.isEmpty ? "Status" : trimmedLabel)
         .font(GainsFont.label(8))
         .tracking(1.5)
         .foregroundStyle(GainsColor.softInk)
