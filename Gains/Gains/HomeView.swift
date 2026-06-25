@@ -1925,7 +1925,7 @@ struct HomeView: View {
           Text("Community")
             .font(GainsFont.headline)
             .foregroundStyle(GainsColor.ink)
-          Text("Feed, Forum & Treffs — sieh, woran die Crew arbeitet.")
+          Text("Feed, Forum und Treffs, sieh was die Crew heute trainiert.")
             .gainsCaption(GainsColor.softInk)
             .lineLimit(2)
             .fixedSize(horizontal: false, vertical: true)
