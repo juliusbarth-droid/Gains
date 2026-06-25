@@ -855,6 +855,8 @@ struct HomeView: View {
     Button {
       runCoachAction(stat.action)
     } label: {
+      let trimmedDetail = stat.detail.trimmingCharacters(in: .whitespacesAndNewlines)
+
       VStack(alignment: .leading, spacing: GainsSpacing.xs) {
         HStack(spacing: GainsSpacing.xs) {
           Image(systemName: stat.icon)
@@ -873,11 +875,13 @@ struct HomeView: View {
             .font(.system(size: 10, weight: .medium, design: .monospaced))
             .foregroundStyle(GainsColor.onCtaSurfaceSecondary)
         }
-        Text(stat.detail)
-          .font(GainsFont.label(9))
-          .tracking(GainsTracking.eyebrowTight)
-          .foregroundStyle(GainsColor.onCtaSurfaceMuted)
-          .lineLimit(2)
+        if !trimmedDetail.isEmpty {
+          Text(trimmedDetail)
+            .font(GainsFont.label(9))
+            .tracking(GainsTracking.eyebrowTight)
+            .foregroundStyle(GainsColor.onCtaSurfaceMuted)
+            .lineLimit(2)
+        }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.horizontal, GainsSpacing.s)
