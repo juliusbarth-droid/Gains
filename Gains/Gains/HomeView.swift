@@ -1384,6 +1384,7 @@ struct HomeView: View {
     accent: Color
   ) -> some View {
     let trimmedLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     // 2026-05-14 (Polish-Loop 101): Mini-Tile bekommt die gleiche
     // Icon-Halo-Komposition wie ActionTile + dezenten Akzent-Glow im
@@ -1424,7 +1425,7 @@ struct HomeView: View {
           .gainsEyebrow(GainsColor.mutedInk, size: 9, tracking: 1.3)
           .lineLimit(2)
         HStack(alignment: .firstTextBaseline, spacing: 2) {
-          Text(value)
+          Text(trimmedValue.isEmpty ? "—" : trimmedValue)
             .font(.system(size: 19, weight: .semibold, design: .monospaced))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
