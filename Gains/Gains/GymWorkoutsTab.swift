@@ -466,15 +466,18 @@ struct GymWorkoutsTab: View {
   /// Datum der letzten absolvierten Session, gematched über den Plan-Titel.
   /// Workout-Historie speichert keine Plan-IDs, deshalb der Titel-Vergleich.
   private func lastPerformedDate(for plan: WorkoutPlan) -> Date? {
-    store.workoutHistory
-      .first(where: { $0.title == plan.title })?
+    let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    return store.workoutHistory
+      .first(where: { $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle })?
       .finishedAt
   }
 
   // MARK: - Workout-Row
 
   private func workoutRow(_ plan: WorkoutPlan) -> some View {
-    let isActive = store.activeWorkout?.title == plan.title
+    let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let isActive = store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle
     let isBlocked = store.activeRun != nil || (store.activeWorkout != nil && !isActive)
     let isMatchingToday = store.todayPlannedWorkout?.id == plan.id
     let lastDate = lastPerformedDate(for: plan)
