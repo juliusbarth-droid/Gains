@@ -3859,13 +3859,13 @@ struct HomeView: View {
       isShowingWorkoutBuilder = true
       return
     }
-    let expectedTitle = plannedWorkout.title
+    let expectedTitle = plannedWorkout.title.trimmingCharacters(in: .whitespacesAndNewlines)
     // P0 B: Lock setzen, damit der Coach-Brief nicht zwischen Day-One /
     // Window-Brief und „Workout läuft" flackert, während store.activeWorkout
     // noch nil ist.
     pendingActionLock = .startingWorkout
     store.startQuickWorkout()
-    if store.activeWorkout?.title == expectedTitle {
+    if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == expectedTitle {
       isShowingWorkoutTracker = true
     }
   }
