@@ -1063,12 +1063,16 @@ struct ProgressContentView: View {
     }
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
-    .accessibilityLabel("Readiness-Wert \(vital.title)")
+    .accessibilityLabel("Readiness-Wert \(trimmedTitle.isEmpty ? "Readiness" : trimmedTitle)")
     .accessibilityValue({
       let trimmedValue = vital.value.trimmingCharacters(in: .whitespacesAndNewlines)
       return trimmedValue.isEmpty || trimmedValue == "—" ? "Noch keine Daten" : trimmedValue
     }())
-    .accessibilityHint(store.hasConnectedAppleHealth ? "Doppeltippen, um \(vital.title) für deine Readiness zu aktualisieren" : "Doppeltippen, um Apple Health zu verbinden und \(vital.title) für deine Readiness zu laden")
+    .accessibilityHint(
+      store.hasConnectedAppleHealth
+        ? "Doppeltippen, um \(trimmedTitle.isEmpty ? "deine Readiness" : trimmedTitle) für deine Readiness zu aktualisieren"
+        : "Doppeltippen, um Apple Health zu verbinden und \(trimmedTitle.isEmpty ? "deine Readiness" : trimmedTitle) für deine Readiness zu laden"
+    )
   }
 
   // MARK: - 4. Pulse-Strip (Wochen-Snapshot in 4 Zellen)
