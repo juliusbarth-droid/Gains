@@ -700,7 +700,7 @@ struct WeekPlanFullscreenView: View {
       )
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Laufendes Workout fortsetzen")
+    .accessibilityLabel("Laufendes Workout öffnen")
   }
 
   private var activeRunResumeBanner: some View {
@@ -715,7 +715,7 @@ struct WeekPlanFullscreenView: View {
       )
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Laufende Cardio-Session fortsetzen")
+    .accessibilityLabel("Laufende Cardio-Session öffnen")
   }
 
   private func resumeBannerBody(icon: String, title: String) -> some View {
