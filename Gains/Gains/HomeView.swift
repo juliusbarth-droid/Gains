@@ -1157,9 +1157,9 @@ struct HomeView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(
           store.activeWorkout != nil
-            ? "Aktives Training fortsetzen"
+            ? "Aktives Training öffnen"
             : store.activeRun != nil
-              ? "Aktiven Lauf fortsetzen"
+              ? "Aktiven Lauf öffnen"
               : "Wochenplan öffnen"
         )
         .accessibilityHint(
