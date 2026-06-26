@@ -4207,10 +4207,12 @@ struct HomeView: View {
         .accessibilityValue(
           {
             let trimmedSnapshotTitle = snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines)
+            let trimmedActiveWorkoutTitle = store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let trimmedActiveRunTitle = store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
             if store.activeWorkout != nil || store.activeRun != nil {
-              return trimmedSnapshotTitle.isEmpty
-                ? (store.activeRun != nil ? "Lauf aktiv" : "Workout aktiv")
-                : trimmedSnapshotTitle
+              if !trimmedActiveWorkoutTitle.isEmpty { return trimmedActiveWorkoutTitle }
+              if !trimmedActiveRunTitle.isEmpty { return trimmedActiveRunTitle }
+              return store.activeRun != nil ? "Lauf aktiv" : "Workout aktiv"
             }
             return trimmedSnapshotTitle.isEmpty
               ? "Gespeichertes Workout, \(completed) von \(total) Sätzen"
