@@ -112,7 +112,8 @@ struct WeekPlanFullscreenView: View {
           weekdayPostDismiss = nil
           switch action {
           case .startWorkoutTracker(let title):
-            if store.activeWorkout?.title == title {
+            let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedTitle {
               showsWorkoutTracker = true
             }
           case .startRunTracker(let title):
