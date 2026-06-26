@@ -361,11 +361,16 @@ struct GymTodayTab: View {
       return
     }
 
-    if store.repeatLastWorkout(), store.activeWorkout?.title == reference.title {
+    let trimmedReferenceTitle = reference.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    if store.repeatLastWorkout(),
+       store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedReferenceTitle {
       isShowingWorkoutTracker = true
-    } else if let plan = store.savedWorkoutPlans.first(where: { $0.title == reference.title }) {
+    } else if let plan = store.savedWorkoutPlans.first(where: {
+      $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedReferenceTitle
+    }) {
       store.startWorkout(from: plan)
-      if store.activeWorkout?.title == plan.title {
+      if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == plan.title.trimmingCharacters(in: .whitespacesAndNewlines) {
         isShowingWorkoutTracker = true
       }
     } else {
