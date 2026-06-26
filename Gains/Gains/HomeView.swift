@@ -4127,13 +4127,15 @@ struct HomeView: View {
       }
       HStack(spacing: GainsSpacing.xs) {
         Button {
+          let trimmedSnapshotTitle = snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
           if store.activeWorkout != nil {
             isShowingWorkoutTracker = true
           } else if store.activeRun != nil {
             isShowingRunTracker = true
           } else {
             store.restoreActiveWorkout(from: snapshot)
-            if store.activeWorkout?.title == snapshot.title {
+            if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedSnapshotTitle {
               isShowingWorkoutTracker = true
               UISelectionFeedbackGenerator().selectionChanged()
             }
