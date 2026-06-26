@@ -235,7 +235,8 @@ struct ProgressContentView: View {
     .accessibilityLabel(isPlanned ? (opensRun ? "Nächster Schritt, Lauftraining öffnen" : "Nächster Schritt, Krafttraining öffnen") : "Nächster Schritt, Wochenplan öffnen")
     .accessibilityValue(
       {
-        let spokenTitle = title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Nächster Schritt" : title
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let spokenTitle = trimmedTitle.isEmpty ? "Nächster Schritt" : trimmedTitle
         let spokenSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
         if isPlanned {
           return spokenSubtitle.isEmpty ? spokenTitle : "\(spokenTitle). \(spokenSubtitle)"
