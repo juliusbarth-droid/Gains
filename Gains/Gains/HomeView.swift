@@ -4124,6 +4124,11 @@ struct HomeView: View {
                 : store.activeRun != nil
                   ? "Aktiver Lauf"
                   : (trimmedSnapshotTitle.isEmpty ? "Gespeichertes Workout" : trimmedSnapshotTitle)
+          let recoveryDetail = store.activeWorkout != nil
+            ? "Workout läuft gerade"
+            : store.activeRun != nil
+              ? "Lauf läuft gerade"
+              : "\(completed)/\(total) Sätze · gespeichert \(savedAgoText)"
 
           Text(
             store.activeWorkout != nil
@@ -4139,7 +4144,7 @@ struct HomeView: View {
             .font(GainsFont.title(15))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
-          Text("\(completed)/\(total) Sätze · gespeichert \(savedAgoText)")
+          Text(recoveryDetail)
             .font(GainsFont.caption)
             .foregroundStyle(GainsColor.softInk)
         }
