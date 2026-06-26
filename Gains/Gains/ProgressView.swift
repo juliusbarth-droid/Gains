@@ -929,10 +929,11 @@ struct ProgressContentView: View {
 
     for goal in store.currentGoals {
       let progress = goalProgressLocal(goal)
+      let trimmedGoalTitle = goal.title.trimmingCharacters(in: .whitespacesAndNewlines)
       if progress >= 0.85 && progress < 1.0 {
         list.append(CoachInsight(
           icon: "scope",
-          text: "\(goal.title) liegt bei \(Int(progress * 100)) %. Letzte Meile — kein Sprint, einfach den Plan zu Ende fahren.",
+          text: "\(trimmedGoalTitle.isEmpty ? "Ziel" : trimmedGoalTitle) liegt bei \(Int(progress * 100)) %. Letzte Meile — kein Sprint, einfach den Plan zu Ende fahren.",
           accent: GainsColor.lime
         ))
         break
