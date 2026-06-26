@@ -2167,7 +2167,9 @@ struct ProgressContentView: View {
   }
 
   private func goalProgressLocal(_ goal: ProgressGoal) -> Double {
-    switch goal.title {
+    let trimmedGoalTitle = goal.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    switch trimmedGoalTitle {
     case "Körpergewicht":
       let start  = store.startingWeight
       let target = goal.target
@@ -2199,7 +2201,9 @@ struct ProgressContentView: View {
   }
 
   private func goalAction(for goal: ProgressGoal) -> () -> Void {
-    switch goal.title {
+    let trimmedGoalTitle = goal.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    switch trimmedGoalTitle {
     case "Körpergewicht": return store.logWeightCheckIn
     case "Taillenumfang": return store.logWaistCheckIn
     default:              return store.logProteinCheckIn
