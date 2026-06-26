@@ -573,15 +573,17 @@ struct GymWorkoutsTab: View {
         //   isActive  → Tracker einfach (wieder) öffnen.
         //   isBlocked → andere Session läuft → Confirm-Alert statt no-op.
         //   sonst     → frisch starten.
+        let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
         if isActive {
-          guard store.activeWorkout?.title == plan.title else { return }
+          guard store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle else { return }
           isShowingWorkoutTracker = true
         } else if isBlocked {
           UINotificationFeedbackGenerator().notificationOccurred(.warning)
           blockedPlanAttempt = plan
         } else {
           store.startWorkout(from: plan)
-          if store.activeWorkout?.title == plan.title {
+          if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
             isShowingWorkoutTracker = true
           }
         }
