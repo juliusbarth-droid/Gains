@@ -3882,9 +3882,13 @@ struct HomeView: View {
       return
     }
 
-    if let plan = store.savedWorkoutPlans.first(where: { $0.title == last.title }) {
+    let trimmedLastTitle = last.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    if let plan = store.savedWorkoutPlans.first(where: {
+      $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedLastTitle
+    }) {
       store.startWorkout(from: plan)
-      if store.activeWorkout?.title == plan.title {
+      if store.activeWorkout?.title?.trimmingCharacters(in: .whitespacesAndNewlines) == plan.title.trimmingCharacters(in: .whitespacesAndNewlines) {
         isShowingWorkoutTracker = true
       }
     } else {
