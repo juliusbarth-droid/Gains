@@ -3937,8 +3937,10 @@ struct HomeView: View {
   }
 
   private func presentArrange(for plan: WorkoutPlan) {
+    let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
     if store.activeWorkout != nil {
-      if store.activeWorkout?.title == plan.title {
+      if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
         arrangingPlan = plan
       } else {
         isShowingWorkoutTracker = true
@@ -3953,7 +3955,7 @@ struct HomeView: View {
 
     pendingActionLock = .startingWorkout
     store.startWorkout(from: plan)
-    guard store.activeWorkout?.title == plan.title else { return }
+    guard store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle else { return }
     arrangingPlan = plan
   }
 
