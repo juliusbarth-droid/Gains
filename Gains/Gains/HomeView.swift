@@ -4125,7 +4125,13 @@ struct HomeView: View {
                   ? "Aktiver Lauf"
                   : (trimmedSnapshotTitle.isEmpty ? "Gespeichertes Workout" : trimmedSnapshotTitle)
 
-          Text("WORKOUT GEFUNDEN")
+          Text(
+            store.activeWorkout != nil
+              ? "WORKOUT AKTIV"
+              : store.activeRun != nil
+                ? "LAUF AKTIV"
+                : "WORKOUT GEFUNDEN"
+          )
             .font(GainsFont.eyebrow)
             .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.ember)
