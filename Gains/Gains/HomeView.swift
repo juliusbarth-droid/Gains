@@ -4203,7 +4203,7 @@ struct HomeView: View {
             .shadow(color: GainsColor.lime.opacity(0.15), radius: 10)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(store.activeWorkout != nil ? "Aktives Workout fortsetzen" : store.activeRun != nil ? "Aktiven Lauf fortsetzen" : "Gespeichertes Workout fortsetzen")
+        .accessibilityLabel(store.activeWorkout != nil ? "Aktives Workout öffnen" : store.activeRun != nil ? "Aktiven Lauf öffnen" : "Gespeichertes Workout fortsetzen")
         .accessibilityValue(
           {
             let trimmedSnapshotTitle = snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines)
