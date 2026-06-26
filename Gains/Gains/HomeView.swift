@@ -3818,6 +3818,7 @@ struct HomeView: View {
           isShowingWorkoutTracker = true
         } else {
           let trimmedRunTitle = runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          pendingActionLock = .startingRun
           store.startRun(from: runTemplate)
           if store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedRunTitle {
             isShowingRunTracker = true
