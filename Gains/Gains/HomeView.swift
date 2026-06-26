@@ -4167,7 +4167,7 @@ struct HomeView: View {
             }
           }
         } label: {
-          Text("FORTSETZEN")
+          Text(store.activeWorkout != nil || store.activeRun != nil ? "ÖFFNEN" : "FORTSETZEN")
             .font(GainsFont.eyebrow)
             .tracking(GainsTracking.eyebrowTight)
             .foregroundStyle(GainsColor.onLime)
