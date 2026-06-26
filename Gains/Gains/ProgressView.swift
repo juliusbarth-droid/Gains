@@ -1715,9 +1715,9 @@ struct ProgressContentView: View {
           )
     )
     .accessibilityHint(
-      goal.title == "Körpergewicht"
+      trimmedTitle == "Körpergewicht"
         ? (isDone ? "Öffnet den Gewichts-Check-in, um dein erreichtes Ziel weiter zu pflegen" : "Öffnet den Check-in für dein Gewicht")
-        : goal.title == "Taillenumfang"
+        : trimmedTitle == "Taillenumfang"
           ? (isDone ? "Öffnet den Taillen-Check-in, um dein erreichtes Ziel weiter zu pflegen" : "Öffnet den Check-in für deine Taille")
           : (isDone ? "Öffnet den Protein-Check-in, um dein erreichtes Ziel weiter zu pflegen" : "Öffnet den Check-in für dein Protein-Ziel")
     )
