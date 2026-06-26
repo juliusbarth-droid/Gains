@@ -629,12 +629,14 @@ struct WeekPlanFullscreenView: View {
     UISelectionFeedbackGenerator().selectionChanged()
     if session.isGym {
       if let plan = store.workoutPlan(for: session) {
-        if store.activeWorkout?.title == plan.title {
+        let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
           showsWorkoutTracker = true
           return
         }
         store.startWorkout(from: plan)
-        if store.activeWorkout?.title == plan.title {
+        if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
           showsWorkoutTracker = true
         }
       }
