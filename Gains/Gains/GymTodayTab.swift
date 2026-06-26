@@ -542,7 +542,10 @@ struct GymTodayTab: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(
-      accessibilityLabel ?? (title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Schnellzugriff" : title)
+      accessibilityLabel ?? ({
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmedTitle.isEmpty ? "Schnellzugriff" : trimmedTitle
+      }())
     )
     .accessibilityValue(accessibilityValue ?? secondaryActionAccessibilityValue(for: title))
     .accessibilityHint(accessibilityHint ?? secondaryActionAccessibilityHint(for: title))
