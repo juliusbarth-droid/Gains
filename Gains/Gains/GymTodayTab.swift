@@ -308,11 +308,14 @@ struct GymTodayTab: View {
     // der User durch Plan/Bibliothek navigieren muss.
     HStack(spacing: GainsSpacing.tight) {
       if let last = store.lastCompletedWorkout {
+        let trimmedLastTitle = last.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let lastTitleText = trimmedLastTitle.isEmpty ? "Training" : trimmedLastTitle
+        let activeWorkoutTitle = store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         secondaryActionButton(
           icon: "arrow.uturn.backward.circle",
           title: "Wdh.",
           accessibilityLabel: "Letztes Workout wiederholen",
-          accessibilityValue: store.activeWorkout != nil ? "Bereits aktiv, \((store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? store.activeWorkout!.title : (last.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Training" : last.title)))" : store.activeRun != nil ? "Aktiver Lauf, öffnet den laufenden Run" : "\(last.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Training" : last.title), \(last.completedSets) von \(last.totalSets) Sätzen zuletzt abgeschlossen",
+          accessibilityValue: store.activeWorkout != nil ? "Bereits aktiv, \(activeWorkoutTitle.isEmpty ? lastTitleText : activeWorkoutTitle)" : store.activeRun != nil ? "Aktiver Lauf, öffnet den laufenden Run" : "\(lastTitleText), \(last.completedSets) von \(last.totalSets) Sätzen zuletzt abgeschlossen",
           accessibilityHint: store.activeWorkout != nil ? "Öffnet das bereits laufende Workout" : store.activeRun != nil ? "Öffnet den bereits laufenden Run" : "Startet dein letztes Workout erneut oder öffnet dessen Wiederaufnahme"
         ) {
           repeatLastWorkout(reference: last)
