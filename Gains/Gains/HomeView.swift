@@ -4113,12 +4113,23 @@ struct HomeView: View {
         }
         VStack(alignment: .leading, spacing: 2) {
           let trimmedSnapshotTitle = snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          let trimmedActiveWorkoutTitle = store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+          let trimmedActiveRunTitle = store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+          let recoveryTitle = !trimmedActiveWorkoutTitle.isEmpty
+            ? trimmedActiveWorkoutTitle
+            : !trimmedActiveRunTitle.isEmpty
+              ? trimmedActiveRunTitle
+              : store.activeWorkout != nil
+                ? "Aktives Workout"
+                : store.activeRun != nil
+                  ? "Aktiver Lauf"
+                  : (trimmedSnapshotTitle.isEmpty ? "Gespeichertes Workout" : trimmedSnapshotTitle)
 
           Text("WORKOUT GEFUNDEN")
             .font(GainsFont.eyebrow)
             .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.ember)
-          Text(trimmedSnapshotTitle.isEmpty ? "Gespeichertes Workout" : trimmedSnapshotTitle)
+          Text(recoveryTitle)
             .font(GainsFont.title(15))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
