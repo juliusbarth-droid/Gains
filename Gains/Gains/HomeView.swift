@@ -4137,6 +4137,7 @@ struct HomeView: View {
           } else if store.activeRun != nil {
             isShowingRunTracker = true
           } else {
+            pendingActionLock = .startingWorkout
             store.restoreActiveWorkout(from: snapshot)
             if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedSnapshotTitle {
               isShowingWorkoutTracker = true
