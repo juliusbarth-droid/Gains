@@ -3102,13 +3102,15 @@ struct HomeView: View {
     // 6) Comeback — letzter Workout ≥ 4 Tage her.
     if let last = store.lastCompletedWorkout {
       let days = Calendar.current.dateComponents([.day], from: last.finishedAt, to: now).day ?? 0
+      let trimmedLastTitle = last.title.trimmingCharacters(in: .whitespacesAndNewlines)
+      let lastTitleText = trimmedLastTitle.isEmpty ? "Training" : trimmedLastTitle
       if days >= 4, !hasCompletedWorkoutToday {
         return CoachBrief(
           eyebrow: "COMEBACK",
           glyph: "arrow.counterclockwise",
           accent: GainsColor.accentCool,
           headline: "\(days) Tage Pause — Zeit zurück in den Rhythmus.",
-          subline: "Letzter Stand: \(last.title), \(last.completedSets) Sätze. Ein lockerer Start ist Gold wert.",
+          subline: "Letzter Stand: \(lastTitleText), \(last.completedSets) Sätze. Ein lockerer Start ist Gold wert.",
           primary: CoachActionDescriptor(
             title: "Spontan starten",
             icon: "play.fill",
