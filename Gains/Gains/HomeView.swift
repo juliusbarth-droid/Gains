@@ -326,7 +326,8 @@ struct HomeView: View {
       onStart: {
         isShowingWorkoutTracker = false
         pendingAfterArrange = {
-          if store.activeWorkout?.title == plan.title {
+          let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
             isShowingWorkoutTracker = true
           }
           pendingAfterArrange = nil
