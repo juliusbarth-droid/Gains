@@ -1696,7 +1696,7 @@ struct ProgressContentView: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Ziel, \(goal.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Ziel" : goal.title)")
+    .accessibilityLabel("Ziel, \(trimmedTitle.isEmpty ? "Ziel" : trimmedTitle)")
     .accessibilityValue(
       goal.unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         ? String(
