@@ -4059,7 +4059,10 @@ struct HomeView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(insight.headline.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Fortschrittshinweis" : insight.headline)
+    .accessibilityLabel({
+      let trimmedHeadline = insight.headline.trimmingCharacters(in: .whitespacesAndNewlines)
+      return trimmedHeadline.isEmpty ? "Fortschrittshinweis" : trimmedHeadline
+    }())
     .accessibilityValue({
       let trimmedDetail = insight.detail?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
       return trimmedDetail.isEmpty ? "Fortschrittshinweis" : trimmedDetail
