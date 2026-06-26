@@ -783,7 +783,7 @@ struct HomeView: View {
       .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel(brief.primary.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Empfohlene nächste Aktion" : brief.primary.title)
+    .accessibilityLabel(trimmedPrimaryTitle.isEmpty ? "Empfohlene nächste Aktion" : trimmedPrimaryTitle)
     .accessibilityValue(
       {
         let trimmedMetric = brief.primary.metric?.trimmingCharacters(in: .whitespacesAndNewlines)
