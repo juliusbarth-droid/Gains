@@ -2178,9 +2178,13 @@ struct HomeView: View {
       }()
     )
     .accessibilityValue(
-      subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        ? (isLive ? "Bereits aktiv" : "Schnellzugriff")
-        : (isLive ? "Bereits aktiv. \(subtitle)" : subtitle)
+      {
+        let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedSubtitle.isEmpty {
+          return isLive ? "Bereits aktiv" : "Schnellzugriff"
+        }
+        return isLive ? "Bereits aktiv. \(trimmedSubtitle)" : trimmedSubtitle
+      }()
     )
     .accessibilityHint(isLive ? "Öffnet die bereits laufende Einheit" : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Workout-Einstieg für ein neues Training")
     .accessibilityAddTraits(isLive ? .isSelected : [])
