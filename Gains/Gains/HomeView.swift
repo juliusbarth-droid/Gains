@@ -3890,6 +3890,7 @@ struct HomeView: View {
     if let plan = store.savedWorkoutPlans.first(where: {
       $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedLastTitle
     }) {
+      pendingActionLock = .startingWorkout
       store.startWorkout(from: plan)
       if store.activeWorkout?.title?.trimmingCharacters(in: .whitespacesAndNewlines) == plan.title.trimmingCharacters(in: .whitespacesAndNewlines) {
         isShowingWorkoutTracker = true
