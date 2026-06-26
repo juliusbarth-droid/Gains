@@ -127,7 +127,7 @@ struct GymWorkoutsTab: View {
             store.discardWorkout()
           }
           store.startWorkout(from: plan)
-          if store.activeWorkout?.title == plan.title {
+          if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == plan.title.trimmingCharacters(in: .whitespacesAndNewlines) {
             isShowingWorkoutTracker = true
           }
         }
