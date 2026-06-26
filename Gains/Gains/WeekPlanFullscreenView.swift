@@ -643,12 +643,14 @@ struct WeekPlanFullscreenView: View {
       }
     } else if session.isCardio {
       if let template = RunTemplate.template(for: session.kind) {
-        if store.activeRun?.title == template.title {
+        let trimmedTemplateTitle = template.title.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedTemplateTitle {
           showsRunTracker = true
           return
         }
         store.startRun(from: template)
-        if store.activeRun?.title == template.title {
+        if store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedTemplateTitle {
           showsRunTracker = true
         }
       }
