@@ -701,7 +701,7 @@ struct GymTodayTab: View {
               isShowingWorkoutTracker = true
             }
           )
-          .accessibilityLabel("Aktives Workout fortsetzen")
+          .accessibilityLabel("Aktives Workout öffnen")
           .accessibilityValue({
             let trimmedTitle = session.title.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedFocus = session.focus.trimmingCharacters(in: .whitespacesAndNewlines)
