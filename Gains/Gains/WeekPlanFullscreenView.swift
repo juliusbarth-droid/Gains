@@ -117,7 +117,8 @@ struct WeekPlanFullscreenView: View {
               showsWorkoutTracker = true
             }
           case .startRunTracker(let title):
-            if store.activeRun?.title == title {
+            let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            if store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedTitle {
               showsRunTracker = true
             }
           }
