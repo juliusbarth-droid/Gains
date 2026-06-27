@@ -3162,7 +3162,7 @@ struct HomeView: View {
           action: .openNutritionCapture
         ),
         secondary: CoachActionDescriptor(
-          title: "Wochenplan",
+          title: "Wochenplan öffnen",
           icon: "calendar",
           metric: nil,
           action: .openPlanner
