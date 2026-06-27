@@ -4224,7 +4224,7 @@ struct HomeView: View {
         Button {
           store.discardRecoverableWorkout()
         } label: {
-          Text("VERWERFEN")
+          Text(store.activeWorkout != nil || store.activeRun != nil ? "AUSBLENDEN" : "VERWERFEN")
             .font(GainsFont.eyebrow)
             .tracking(GainsTracking.eyebrowTight)
             .foregroundStyle(GainsColor.softInk)
@@ -4237,8 +4237,8 @@ struct HomeView: View {
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Gespeichertes Workout verwerfen")
-        .accessibilityHint("Entfernt den gespeicherten Workout-Stand und blendet diesen Wiederherstellungshinweis aus")
+        .accessibilityLabel(store.activeWorkout != nil || store.activeRun != nil ? "Wiederherstellungshinweis ausblenden" : "Gespeichertes Workout verwerfen")
+        .accessibilityHint(store.activeWorkout != nil || store.activeRun != nil ? "Blendet diesen Wiederherstellungshinweis aus, ohne die laufende Session zu verändern" : "Entfernt den gespeicherten Workout-Stand und blendet diesen Wiederherstellungshinweis aus")
       }
     }
     .padding(GainsSpacing.m)
