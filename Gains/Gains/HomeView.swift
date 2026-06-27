@@ -3557,7 +3557,7 @@ struct HomeView: View {
     let trainingTile = ActionTileSpec(
       kind: .training,
       eyebrow: "PLAN",
-      title: (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? "Laufbereich öffnen" : "Krafttraining öffnen",
+      title: runningWorkout ? "Training öffnen" : runningRun ? "Lauf öffnen" : (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? "Laufbereich öffnen" : "Krafttraining öffnen",
       subtitle: quickStartTrainingSubtitle,
       icon: "dumbbell.fill",
       accent: GainsColor.lime,
