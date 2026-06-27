@@ -3631,7 +3631,7 @@ struct HomeView: View {
     let plannerTile = ActionTileSpec(
       kind: .planner,
       eyebrow: "WOCHE",
-      title: "Plan",
+      title: "Wochenplan öffnen",
       subtitle: nextPlannedSchedule.map { day in
         let weekday = day.weekday.shortLabel.uppercased()
         if let workout = day.workoutPlan {
