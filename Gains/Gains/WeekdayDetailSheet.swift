@@ -470,7 +470,7 @@ struct WeekdayDetailSheet: View {
       dismiss()
       return
     }
-    if let activeTitle = store.activeWorkout?.title, runTemplate == nil {
+    if let activeTitle = store.activeWorkout?.title {
       pendingPostDismiss = .startWorkoutTracker(activeTitle)
       dismiss()
       return
