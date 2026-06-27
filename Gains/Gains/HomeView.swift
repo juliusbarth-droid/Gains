@@ -1965,7 +1965,7 @@ struct HomeView: View {
     HStack(spacing: GainsSpacing.s) {
       quickStartTile(
         kind: .training,
-        title: store.activeWorkout != nil ? "Fortsetzen" : "Training",
+        title: store.activeWorkout != nil ? "Öffnen" : "Training",
         eyebrow: "TRAINING",
         subtitle: quickStartTrainingSubtitle,
         icon: store.activeWorkout != nil ? "dumbbell.fill" : "play.fill",
@@ -1981,7 +1981,7 @@ struct HomeView: View {
       )
       quickStartTile(
         kind: .cardio,
-        title: store.activeRun != nil ? "Fortsetzen" : "Laufen",
+        title: store.activeRun != nil ? "Öffnen" : "Laufen",
         eyebrow: "LAUFEN",
         subtitle: quickStartCardioSubtitle,
         // Tap = Lauf (häufigster Modus). Long-Press öffnet Modi-Auswahl
