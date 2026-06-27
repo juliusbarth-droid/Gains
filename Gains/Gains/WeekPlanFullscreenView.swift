@@ -447,7 +447,13 @@ struct WeekPlanFullscreenView: View {
             )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(info.title) starten")
+        .accessibilityLabel({
+          let trimmedInfoTitle = info.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          let spokenTitle = trimmedInfoTitle.isEmpty ? info.title : trimmedInfoTitle
+          let matchingActiveWorkout = session.isGym && store.workoutPlan(for: session)?.title.trimmingCharacters(in: .whitespacesAndNewlines) == store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          let matchingActiveRun = session.isCardio && RunTemplate.template(for: session.kind)?.title.trimmingCharacters(in: .whitespacesAndNewlines) == store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          return matchingActiveWorkout || matchingActiveRun ? "\(spokenTitle) öffnen" : "\(spokenTitle) starten"
+        }())
       }
     }
     .padding(.vertical, GainsSpacing.xs)
