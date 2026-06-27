@@ -379,7 +379,7 @@ struct ProgressContentView: View {
         headline: "\(days) Tage am Stück",
         subline: line,
         badge: "STREAK · \(days)d",
-        cta: "Plan ansehen"
+        cta: "Wochenplan öffnen"
       )
     case let .weightLow(weight, delta):
       let deltaTxt = abs(delta) >= 0.05
