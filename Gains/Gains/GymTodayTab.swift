@@ -423,7 +423,7 @@ struct GymTodayTab: View {
   // Closure aus dem Hero aufgerufen werden.
 
   private func primaryActionTitle(day: WorkoutDayPlan, isLive: Bool) -> String {
-    if isLive { return "Tracker öffnen" }
+    if isLive { return "Workout öffnen" }
     if store.activeRun != nil { return "Run öffnen" }
     if day.status == .rest { return "Spontan trainieren" }
     if day.runTemplate != nil { return "Lauf starten" }
