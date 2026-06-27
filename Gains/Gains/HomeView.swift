@@ -3556,7 +3556,7 @@ struct HomeView: View {
     let trainingTile = ActionTileSpec(
       kind: .training,
       eyebrow: "PLAN",
-      title: "Training",
+      title: "Krafttraining öffnen",
       subtitle: quickStartTrainingSubtitle,
       icon: "dumbbell.fill",
       accent: GainsColor.lime,
