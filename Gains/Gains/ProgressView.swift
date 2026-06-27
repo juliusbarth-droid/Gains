@@ -430,7 +430,7 @@ struct ProgressContentView: View {
         headline: "Fortschritt sichtbar machen",
         subline: "Logge dein erstes Workout oder einen Check-in — ab dann erzählt sich diese Seite selbst.",
         badge: "TAG 1",
-        cta: "Loslegen"
+        cta: "Wochenplan öffnen"
       )
     }
   }
