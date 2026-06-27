@@ -635,6 +635,10 @@ struct WeekPlanFullscreenView: View {
   private func startSession(_ session: PlannedSession) {
     UISelectionFeedbackGenerator().selectionChanged()
     if session.isGym {
+      if store.activeRun != nil {
+        showsRunTracker = true
+        return
+      }
       if let plan = store.workoutPlan(for: session) {
         let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -648,6 +652,10 @@ struct WeekPlanFullscreenView: View {
         }
       }
     } else if session.isCardio {
+      if store.activeWorkout != nil {
+        showsWorkoutTracker = true
+        return
+      }
       if let template = RunTemplate.template(for: session.kind) {
         let trimmedTemplateTitle = template.title.trimmingCharacters(in: .whitespacesAndNewlines)
 
