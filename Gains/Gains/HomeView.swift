@@ -2016,6 +2016,9 @@ struct HomeView: View {
       let volume = s.totalVolume > 0 ? String(format: "%.1f t", s.totalVolume / 1000) : "ohne Volumenangabe"
       return "\(s.completedSets)/\(s.totalSets) Sätze · \(volume)"
     }
+    if store.activeRun != nil {
+      return "Lauf läuft gerade"
+    }
     if let plan = store.todayPlannedWorkout {
       return "Heute · \(plan.estimatedDurationMinutes) Min · \(plan.exercises.count) Übungen"
     }
