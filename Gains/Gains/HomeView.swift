@@ -3808,8 +3808,14 @@ struct HomeView: View {
     case .openNutritionCapture:
       navigation.presentCapture(kind: .meal)
     case .openTrainingTab:
-      let plan = store.todayPlannedDay
-      navigation.openTraining(workspace: (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? .laufen : .kraft)
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+      } else if store.activeRun != nil {
+        isShowingRunTracker = true
+      } else {
+        let plan = store.todayPlannedDay
+        navigation.openTraining(workspace: (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? .laufen : .kraft)
+      }
     case .startQuickWorkout:
       startFreeWorkout()
     case .startQuickRun:
