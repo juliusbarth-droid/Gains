@@ -445,8 +445,8 @@ struct WeekdayDetailSheet: View {
   // (Card ist sonst nicht sichtbar). Dadurch bleibt die Logik kompakt.
 
   private var primaryActionTitle: String {
-    if store.activeRun != nil { return "Run fortsetzen" }
-    if store.activeWorkout != nil { return "Workout fortsetzen" }
+    if store.activeRun != nil { return "Run öffnen" }
+    if store.activeWorkout != nil { return "Workout öffnen" }
     if isBikeDay { return "Fahrt starten" }
     if isRunDay { return "Lauf starten" }
     if assignedPlan != nil { return "Workout starten" }
