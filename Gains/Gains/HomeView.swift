@@ -1107,7 +1107,13 @@ struct HomeView: View {
           }
         } label: {
           HStack(spacing: GainsSpacing.xxs) {
-            Text("WOCHENPLAN ÖFFNEN")
+            Text(
+              store.activeWorkout != nil
+                ? "TRAINING ÖFFNEN"
+                : store.activeRun != nil
+                  ? "LAUF ÖFFNEN"
+                  : "WOCHENPLAN ÖFFNEN"
+            )
               .gainsEyebrow(GainsColor.lime, size: 10, tracking: 1.4)
             Image(systemName: "arrow.up.right")
               .font(.system(size: 10, weight: .heavy))
