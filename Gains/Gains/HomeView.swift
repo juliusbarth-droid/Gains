@@ -2223,7 +2223,7 @@ struct HomeView: View {
       Button {
         runCoachAction(.openPlanner)
       } label: {
-        Label("Plan ansehen", systemImage: "calendar")
+        Label("Wochenplan öffnen", systemImage: "calendar")
       }
 
     case .cardio:
@@ -2434,7 +2434,7 @@ struct HomeView: View {
       Button {
         runCoachAction(.openPlanner)
       } label: {
-        Label("Plan ansehen", systemImage: "calendar")
+        Label("Wochenplan öffnen", systemImage: "calendar")
       }
 
     case .cardio:
