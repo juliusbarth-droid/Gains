@@ -443,7 +443,7 @@ struct GymTodayTab: View {
     }
 
     if store.activeRun != nil {
-      navigation.openTraining(workspace: .laufen)
+      isShowingRunTracker = true
       return
     }
 
