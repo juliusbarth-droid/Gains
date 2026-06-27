@@ -411,7 +411,7 @@ struct ProgressContentView: View {
         headline: "Zurück nach \(daysAway) Tagen",
         subline: "Erste Session nach Pause sitzt. Halte heute die Intensität niedrig — Comeback nicht überdrehen.",
         badge: "COMEBACK",
-        cta: "Heute planen"
+        cta: "Wochenplan öffnen"
       )
     case let .onTrack(done, goal, percent):
       let remaining = max(goal - done, 0)
