@@ -3597,7 +3597,7 @@ struct HomeView: View {
     let progressTile = ActionTileSpec(
       kind: .progress,
       eyebrow: "INSIGHTS",
-      title: "Fortschritt",
+      title: "Fortschritt öffnen",
       subtitle: {
         let goal = max(store.weeklyGoalCount, 1)
         let progress = min(Int((Double(store.weeklySessionsCompleted) / Double(goal)) * 100), 100)
