@@ -2952,7 +2952,7 @@ struct HomeView: View {
             action: .openNutritionCapture
           ),
           secondary: CoachActionDescriptor(
-            title: "Training ansehen",
+            title: "Fortschritt öffnen",
             icon: "chart.bar.fill",
             metric: nil,
             action: .openProgress
