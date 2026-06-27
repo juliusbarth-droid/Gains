@@ -176,7 +176,7 @@ struct ProgressContentView: View {
     let plan = store.todayPlannedDay
     let isPlanned = plan.status == .planned
     let opensRun = plan.runTemplate != nil || plan.sessionKind?.isRun == true
-    let title: String = isPlanned ? "Heute starten" : "Plan ansehen"
+    let title: String = isPlanned ? (opensRun ? "Lauftraining öffnen" : "Krafttraining öffnen") : "Wochenplan öffnen"
     let subtitle: String = isPlanned
       ? plan.runTemplate?.title ?? plan.workoutPlan?.title ?? plan.title
       : "Wochenplan anpassen"
