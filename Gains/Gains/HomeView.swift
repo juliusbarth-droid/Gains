@@ -3552,6 +3552,7 @@ struct HomeView: View {
     let hour = currentHour
     let plan = store.todayPlannedDay
     let runningRun = store.activeRun != nil
+    let runningWorkout = store.activeWorkout != nil
 
     let trainingTile = ActionTileSpec(
       kind: .training,
@@ -3566,7 +3567,7 @@ struct HomeView: View {
     let cardioTile = ActionTileSpec(
       kind: .cardio,
       eyebrow: "LAUFEN",
-      title: runningRun ? "Lauf öffnen" : "Lauf starten",
+      title: runningRun ? "Lauf öffnen" : runningWorkout ? "Training öffnen" : "Lauf starten",
       subtitle: {
         if runningRun {
           let dm = store.activeRun?.durationMinutes ?? 0
