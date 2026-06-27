@@ -3031,7 +3031,7 @@ struct HomeView: View {
             action: .startQuickRun
           ),
           secondary: CoachActionDescriptor(
-            title: "Plan anpassen",
+            title: "Wochenplan öffnen",
             icon: "calendar",
             metric: nil,
             action: .openPlanner
