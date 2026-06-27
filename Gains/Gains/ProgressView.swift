@@ -367,7 +367,7 @@ struct ProgressContentView: View {
         headline: "\(name) — \(weight)",
         subline: "Frischer Top-Wert. Im nächsten Block 2.5 kg drauf, 3×5 saubere Reps.",
         badge: delta,
-        cta: "PR feiern"
+        cta: "Krafttraining öffnen"
       )
     case let .streak(days):
       let line: String
