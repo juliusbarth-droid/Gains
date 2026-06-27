@@ -2751,7 +2751,7 @@ struct HomeView: View {
               action: .startQuickRun
             ),
             secondary: CoachActionDescriptor(
-              title: "Plan ansehen",
+              title: "Wochenplan öffnen",
               icon: "calendar",
               metric: nil,
               action: .openPlanner
@@ -2775,7 +2775,7 @@ struct HomeView: View {
             action: .startPlannedWorkout
           ),
           secondary: CoachActionDescriptor(
-            title: "Plan ansehen",
+            title: "Wochenplan öffnen",
             icon: "calendar",
             metric: nil,
             action: .openPlanner
@@ -2796,7 +2796,7 @@ struct HomeView: View {
             action: .openNutritionCapture
           ),
           secondary: CoachActionDescriptor(
-            title: "Plan ansehen",
+            title: "Wochenplan öffnen",
             icon: "calendar",
             metric: nil,
             action: .openPlanner
@@ -2817,7 +2817,7 @@ struct HomeView: View {
             action: .startQuickWorkout
           ),
           secondary: CoachActionDescriptor(
-            title: "Plan ansehen",
+            title: "Wochenplan öffnen",
             icon: "calendar",
             metric: nil,
             action: .openPlanner
@@ -2897,7 +2897,7 @@ struct HomeView: View {
         subline: subline,
         primary: primaryAction,
         secondary: CoachActionDescriptor(
-          title: "Plan ansehen",
+          title: "Wochenplan öffnen",
           icon: "calendar",
           metric: nil,
           action: .openPlanner
@@ -3052,7 +3052,7 @@ struct HomeView: View {
           action: .startPlannedWorkout
         ),
         secondary: CoachActionDescriptor(
-          title: "Plan ansehen",
+          title: "Wochenplan öffnen",
           icon: "calendar",
           metric: nil,
           action: .openPlanner
@@ -3096,7 +3096,7 @@ struct HomeView: View {
         headline: "Heute steht \(workoutTitle) an.",
         subline: "Plan-Fokus: \(plan.focus). Slots 16–19 Uhr sind erfahrungsgemäß deine besten.",
         primary: CoachActionDescriptor(
-          title: "Plan ansehen",
+          title: "Wochenplan öffnen",
           icon: "calendar",
           metric: plan.workoutPlan.map { "\($0.exercises.count) Übungen" },
           action: .openPlanner
@@ -3129,7 +3129,7 @@ struct HomeView: View {
             action: .startQuickWorkout
           ),
           secondary: CoachActionDescriptor(
-            title: "Plan ansehen",
+            title: "Wochenplan öffnen",
             icon: "calendar",
             metric: nil,
             action: .openPlanner
@@ -3256,7 +3256,7 @@ struct HomeView: View {
         action: plan.status == .planned ? .startPlannedWorkout : .startQuickWorkout
       ),
       secondary: CoachActionDescriptor(
-        title: "Plan ansehen",
+        title: "Wochenplan öffnen",
         icon: "calendar",
         metric: nil,
         action: .openPlanner
