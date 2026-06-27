@@ -594,7 +594,7 @@ struct WorkoutHubView: View {
         // Hero-Card (Gradient + Icon-Plate + atmender Halo) — visueller
         // Anker für „weitermachen" statt flacher Lime-Streifen.
         HeroPrimaryCTAButton(
-          title: "Tracker & Karte öffnen",
+          title: "Tracker öffnen",
           icon: "map.fill",
           action: {
             guard store.activeRun != nil else { return }
