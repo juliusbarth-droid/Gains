@@ -423,7 +423,7 @@ struct ProgressContentView: View {
         headline: "\(done) von \(goal) — \(percent) %",
         subline: line,
         badge: "WOCHENPLAN",
-        cta: "Nächste Session"
+        cta: "Krafttraining öffnen"
       )
     case .starting:
       return (
