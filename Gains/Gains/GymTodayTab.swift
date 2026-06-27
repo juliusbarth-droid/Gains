@@ -694,7 +694,7 @@ struct GymTodayTab: View {
           // Sprache wie der Hero-Start-Button, damit „weitermachen" und
           // „starten" als zusammenhängendes Vokabular gelesen werden.
           HeroPrimaryCTAButton(
-            title: "Tracker öffnen & weitermachen",
+            title: "Tracker öffnen",
             icon: "dumbbell.fill",
             action: {
               guard store.activeWorkout != nil else { return }
