@@ -424,7 +424,7 @@ struct GymTodayTab: View {
 
   private func primaryActionTitle(day: WorkoutDayPlan, isLive: Bool) -> String {
     if isLive { return "Weiter tracken" }
-    if store.activeRun != nil { return "Run fortsetzen" }
+    if store.activeRun != nil { return "Run öffnen" }
     if day.status == .rest { return "Spontan trainieren" }
     if day.runTemplate != nil { return "Lauf starten" }
     return "Training starten"
