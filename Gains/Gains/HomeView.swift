@@ -2967,7 +2967,7 @@ struct HomeView: View {
           headline: "Sauber abgeliefert.",
           subline: "\(lastTitleText) · \(last.completedSets) Sätze · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe"). Trink was, dann weiter.",
           primary: CoachActionDescriptor(
-            title: "Wochenstand ansehen",
+            title: "Fortschritt öffnen",
             icon: "chart.line.uptrend.xyaxis",
             metric: progressDisplayTitle,
             action: .openProgress
