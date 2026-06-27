@@ -3564,7 +3564,7 @@ struct HomeView: View {
       subtitle: quickStartTrainingSubtitle,
       icon: "dumbbell.fill",
       accent: GainsColor.lime,
-      isLive: store.activeWorkout != nil,
+      isLive: runningWorkout || runningRun,
       action: .openTrainingTab
     )
     let cardioTile = ActionTileSpec(
@@ -3598,7 +3598,7 @@ struct HomeView: View {
       }(),
       icon: "figure.run",
       accent: GainsColor.ember,
-      isLive: runningRun,
+      isLive: runningRun || runningWorkout,
       action: .startQuickRun
     )
     let progressTile = ActionTileSpec(
