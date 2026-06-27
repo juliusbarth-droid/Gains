@@ -3579,6 +3579,9 @@ struct HomeView: View {
             : "ohne Paceangabe"
           return String(format: "%.1f km · %@ · %@", store.activeRun?.distanceKm ?? 0, dur, pace)
         }
+        if runningWorkout {
+          return "Workout läuft gerade"
+        }
         if let plannedRun = store.todayPlannedDay.runTemplate {
           return String(format: "Heute · %.1f km · %d Min", plannedRun.targetDistanceKm, plannedRun.targetDurationMinutes)
         }
