@@ -460,7 +460,8 @@ struct WeekdayDetailSheet: View {
   }
 
   private func handlePrimaryAction() {
-    if let runTemplate, store.activeRun?.title == runTemplate.title {
+    if let runTemplate,
+       store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines) {
       pendingPostDismiss = .startRunTracker(runTemplate.title)
       dismiss()
       return
@@ -476,10 +477,11 @@ struct WeekdayDetailSheet: View {
       return
     }
     if let runTemplate {
+      let trimmedRunTitle = runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines)
       store.startRun(from: runTemplate)
       // 2026-05-15 (P1 #6): Kein Tab-Switch mehr — RunTracker startet direkt
       // via pendingPostDismiss-Pattern (race-frei nach Sheet-Teardown).
-      if store.activeRun?.title == runTemplate.title {
+      if store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedRunTitle {
         pendingPostDismiss = .startRunTracker(runTemplate.title)
         dismiss()
       }
