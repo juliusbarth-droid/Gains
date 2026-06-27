@@ -2923,7 +2923,7 @@ struct HomeView: View {
           headline: "Heute war ein Tag fürs Buch.",
           subline: "\(lastTitleText) · \(last.volume > 0 ? "\(Int(last.volume)) kg Volumen" : "ohne Volumenangabe") — neuer Bestwert. Sieh dir die Story an.",
           primary: CoachActionDescriptor(
-            title: "Story ansehen",
+            title: "Fortschritt öffnen",
             icon: "chart.line.uptrend.xyaxis",
             metric: String(format: "%.1f t", last.volume / 1000),
             action: .openProgress
