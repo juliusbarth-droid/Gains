@@ -3621,7 +3621,7 @@ struct HomeView: View {
     let waterTile = ActionTileSpec(
       kind: .water,
       eyebrow: "WASSER",
-      title: "Wasser",
+      title: "Ernährung öffnen",
       subtitle: "Heute · +250 ml",
       icon: "drop.fill",
       accent: GainsColor.accentCool,
