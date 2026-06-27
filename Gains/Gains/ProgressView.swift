@@ -397,7 +397,7 @@ struct ProgressContentView: View {
         headline: "Wochenziel durchgezogen",
         subline: "\(sessionLabel) im Kasten. Bonus-Session ist jetzt Ass im Ärmel, nicht Pflicht.",
         badge: "\(sessions)/\(store.weeklyGoalCount) ✓",
-        cta: "Bonus starten"
+        cta: "Krafttraining öffnen"
       )
     case let .longestRun(km):
       return (
