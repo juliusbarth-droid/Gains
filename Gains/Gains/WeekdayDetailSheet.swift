@@ -470,6 +470,11 @@ struct WeekdayDetailSheet: View {
       dismiss()
       return
     }
+    if let activeTitle = store.activeWorkout?.title, runTemplate == nil {
+      pendingPostDismiss = .startWorkoutTracker(activeTitle)
+      dismiss()
+      return
+    }
     if let runTemplate {
       store.startRun(from: runTemplate)
       // 2026-05-15 (P1 #6): Kein Tab-Switch mehr — RunTracker startet direkt
