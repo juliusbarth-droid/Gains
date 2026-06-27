@@ -3207,7 +3207,7 @@ struct HomeView: View {
         headline: "Tagesziele drin — Zeit zum Runterfahren.",
         subline: "\(store.weeklySessionsCompleted)/\(store.weeklyGoalCount) Einheiten, \(store.nutritionCaloriesToday) kcal. Schlaf wird heute belohnt.",
         primary: CoachActionDescriptor(
-          title: "Wochenstand",
+          title: "Fortschritt öffnen",
           icon: "chart.line.uptrend.xyaxis",
           metric: progressDisplayTitle,
           action: .openProgress
