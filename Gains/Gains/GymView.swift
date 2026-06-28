@@ -92,9 +92,10 @@ struct GymView: View {
       // nach dem Speichern startet der Tracker direkt, statt blank im
       // Gym-Tab zu landen.
       WorkoutBuilderView { savedPlan in
+        let trimmedPlanTitle = savedPlan.title.trimmingCharacters(in: .whitespacesAndNewlines)
         store.startWorkout(from: savedPlan)
         isShowingWorkoutBuilder = false
-        if store.activeWorkout?.title == savedPlan.title {
+        if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
           isShowingWorkoutTracker = true
         }
       }
