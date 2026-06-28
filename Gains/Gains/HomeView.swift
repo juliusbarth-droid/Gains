@@ -2219,7 +2219,13 @@ struct HomeView: View {
       }
       .disabled(store.lastCompletedWorkout == nil)
       Button {
-        navigation.openTraining(workspace: .kraft)
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          navigation.openTraining(workspace: .kraft)
+        }
       } label: {
         Label("Trainings-Tab öffnen", systemImage: "dumbbell.fill")
       }
