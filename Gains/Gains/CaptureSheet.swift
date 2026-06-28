@@ -27,6 +27,8 @@ struct CaptureSheet: View {
 
   @State private var selectedKind: CaptureKind
   @State private var selectedMealSurface: MealCaptureSurface = .photo
+  @State private var isShowingRunTracker = false
+  @State private var isShowingWorkoutTracker = false
   @State private var recipeSearchText = ""
   @State private var isLogged = false
   @State private var selectedRecipeGoal: RecipeGoal?
@@ -58,6 +60,14 @@ struct CaptureSheet: View {
         autofillCard
         selectedContent
       }
+    }
+    .sheet(isPresented: $isShowingRunTracker) {
+      RunTrackerView()
+        .environmentObject(store)
+    }
+    .fullScreenCover(isPresented: $isShowingWorkoutTracker) {
+      WorkoutTrackerView()
+        .environmentObject(store)
     }
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
@@ -188,8 +198,14 @@ struct CaptureSheet: View {
         isActionEnabled: canShareRun
       ) {
         store.shareLatestRun()
-        dismiss()
-        navigation.openTraining(workspace: .laufen)
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          dismiss()
+          navigation.openTraining(workspace: .laufen)
+        }
       }
     case .progress:
       publishCard(
