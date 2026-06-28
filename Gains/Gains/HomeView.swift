@@ -290,15 +290,25 @@ struct HomeView: View {
       WorkoutTrackerEntryView(
         onSelectWorkout: { plan in
           pendingAfterChooser = {
-            guard store.activeWorkout == nil, store.activeRun == nil else { return }
-            presentArrange(for: plan)
+            if store.activeWorkout != nil {
+              isShowingWorkoutTracker = true
+            } else if store.activeRun != nil {
+              isShowingRunTracker = true
+            } else {
+              presentArrange(for: plan)
+            }
           }
           isShowingWorkoutChooser = false
         },
         onCreateWorkout: {
           pendingAfterChooser = {
-            guard store.activeWorkout == nil, store.activeRun == nil else { return }
-            isShowingWorkoutBuilder = true
+            if store.activeWorkout != nil {
+              isShowingWorkoutTracker = true
+            } else if store.activeRun != nil {
+              isShowingRunTracker = true
+            } else {
+              isShowingWorkoutBuilder = true
+            }
           }
           isShowingWorkoutChooser = false
         }
@@ -311,8 +321,13 @@ struct HomeView: View {
   private var workoutBuilderSheet: some View {
     WorkoutBuilderView { workout in
       pendingAfterBuilder = {
-        guard store.activeWorkout == nil, store.activeRun == nil else { return }
-        presentArrange(for: workout)
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          presentArrange(for: workout)
+        }
       }
       isShowingWorkoutBuilder = false
     }
