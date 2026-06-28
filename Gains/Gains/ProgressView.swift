@@ -145,6 +145,8 @@ struct ProgressContentView: View {
 
   @State private var historyFilter: HistoryFilter = .all
   @State private var coachInsightIndex: Int = 0
+  @State private var isShowingRunTracker = false
+  @State private var isShowingWorkoutTracker = false
 
   var body: some View {
     // VStack statt LazyVStack: Fortschritt-Seite ist eine einzige
@@ -168,6 +170,14 @@ struct ProgressContentView: View {
       progressFooterCTA
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    .sheet(isPresented: $isShowingRunTracker) {
+      RunTrackerView()
+        .environmentObject(store)
+    }
+    .fullScreenCover(isPresented: $isShowingWorkoutTracker) {
+      WorkoutTrackerView()
+        .environmentObject(store)
+    }
   }
 
   /// Footer-CTA, der am Ende der ProgressContentView den nächsten Schritt
@@ -1546,8 +1556,14 @@ struct ProgressContentView: View {
     let recent = Array(store.runHistory.prefix(7).reversed())
 
     Button {
-      dismiss()
-      navigation.openTraining(workspace: .laufen)
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+      } else if store.activeRun != nil {
+        isShowingRunTracker = true
+      } else {
+        dismiss()
+        navigation.openTraining(workspace: .laufen)
+      }
     } label: {
       let trimmedLatestTitle = latest?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
 
