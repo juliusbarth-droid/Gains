@@ -55,6 +55,7 @@ enum RunHubTab: String, CaseIterable, Identifiable {
 struct WorkoutHubView: View {
   @EnvironmentObject private var store: GainsStore
   @State private var isShowingRunTracker = false
+  @State private var isShowingWorkoutTracker = false
   @State private var selectedRun: CompletedRunSummary? = nil
   @State private var presentedRoute: SavedRoute? = nil
   @State private var presentedSegment: RunSegment? = nil
@@ -133,6 +134,10 @@ struct WorkoutHubView: View {
     }
     .sheet(isPresented: $isShowingRunTracker) {
       RunTrackerView()
+        .environmentObject(store)
+    }
+    .fullScreenCover(isPresented: $isShowingWorkoutTracker) {
+      WorkoutTrackerView()
         .environmentObject(store)
     }
     .sheet(item: $selectedRun, onDismiss: { runPending(&pendingAfterSelectedRun) }) { run in
