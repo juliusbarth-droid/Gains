@@ -1004,8 +1004,16 @@ struct WorkoutHubView: View {
   }
 
   private func templateCard(_ template: RunTemplate) -> some View {
-    let isLocked = store.activeRun != nil
+    let isLocked = store.activeRun != nil || store.activeWorkout != nil
     return Button {
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+        return
+      }
+      if store.activeRun != nil {
+        isShowingRunTracker = true
+        return
+      }
       store.startRun(from: template)
       if store.activeRun != nil {
         isShowingRunTracker = true
