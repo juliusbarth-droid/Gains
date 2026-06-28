@@ -194,8 +194,19 @@ struct ProgressContentView: View {
 
     return Button {
       if isPlanned {
-        dismiss()
-        navigation.openTraining(workspace: opensRun ? .laufen : .kraft)
+        if opensRun {
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
+            isShowingRunTracker = true
+          } else {
+            dismiss()
+            navigation.openTraining(workspace: .laufen)
+          }
+        } else {
+          dismiss()
+          navigation.openTraining(workspace: .kraft)
+        }
       } else {
         dismiss()
         navigation.openWeekPlanFullscreen()
