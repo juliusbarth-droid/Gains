@@ -1937,10 +1937,25 @@ struct ProgressContentView: View {
 
   private func historyRowCompact(_ entry: HistoryEntry) -> some View {
     Button {
-      dismiss()
       switch entry {
-      case .workout: navigation.openTraining(workspace: .kraft)
-      case .run:     navigation.openTraining(workspace: .laufen)
+      case .workout:
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          dismiss()
+          navigation.openTraining(workspace: .kraft)
+        }
+      case .run:
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          dismiss()
+          navigation.openTraining(workspace: .laufen)
+        }
       }
     } label: {
       HStack(spacing: GainsSpacing.s) {
