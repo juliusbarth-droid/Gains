@@ -137,6 +137,20 @@ struct WorkoutHubView: View {
     }
     .sheet(item: $selectedRun, onDismiss: { runPending(&pendingAfterSelectedRun) }) { run in
       RunDetailSheet(run: run) {
+        if store.activeWorkout != nil {
+          pendingAfterSelectedRun = {
+            isShowingWorkoutTracker = true
+          }
+          selectedRun = nil
+          return
+        }
+        if store.activeRun != nil {
+          pendingAfterSelectedRun = {
+            isShowingRunTracker = true
+          }
+          selectedRun = nil
+          return
+        }
         store.startRunLike(run)
         pendingAfterSelectedRun = {
           if store.activeRun != nil {
