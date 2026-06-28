@@ -177,7 +177,9 @@ struct WorkoutHubView: View {
     .sheet(item: $presentedWorkout, onDismiss: { runPending(&pendingAfterPresentedWorkout) }) { workout in
       StructuredWorkoutDetailSheet(workout: workout) {
         pendingAfterPresentedWorkout = {
-          if store.activeRun != nil {
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
             isShowingRunTracker = true
           }
         }
