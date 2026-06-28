@@ -1852,6 +1852,10 @@ struct WorkoutHubView: View {
   /// präsentiert. Ein direktes `true` vermeidet das fragile `false → true`-
   /// Toggle, das SwiftUI in demselben Tick schlucken kann.
   private func startOrResumeCardio() {
+    if store.activeWorkout != nil {
+      isShowingWorkoutTracker = true
+      return
+    }
     if store.activeRun == nil {
       store.startQuickRun(modality: preferredModality)
     }
