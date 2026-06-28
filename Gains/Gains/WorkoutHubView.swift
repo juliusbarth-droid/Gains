@@ -158,7 +158,9 @@ struct WorkoutHubView: View {
         }
         store.startRunLike(run)
         pendingAfterSelectedRun = {
-          if store.activeRun != nil {
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
             isShowingRunTracker = true
           }
         }
