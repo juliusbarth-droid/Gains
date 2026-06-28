@@ -873,6 +873,12 @@ struct WorkoutHubView: View {
       }
 
       if preview.isEmpty {
+        let emptyStateActionLabel: String = {
+          if store.activeWorkout != nil { return "Training öffnen" }
+          if store.activeRun != nil { return preferredModality.isCycling ? "Tour öffnen" : "Lauf öffnen" }
+          return "Quick-Start"
+        }()
+
         EmptyStateView(
           style: .inline,
           title: displayedModality.isCycling
@@ -880,7 +886,7 @@ struct WorkoutHubView: View {
             : "Bereit für deinen ersten Lauf?",
           message: "Starte oben über den Hero-Button — danach erscheint hier deine Aktivität mit Karte und Splits.",
           icon: "figure.run.circle.fill",
-          actionLabel: "Quick-Start",
+          actionLabel: emptyStateActionLabel,
           action: {
             if store.activeWorkout != nil {
               isShowingWorkoutTracker = true
