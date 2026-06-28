@@ -344,6 +344,10 @@ struct HomeView: View {
           let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
           if store.activeWorkout?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedPlanTitle {
             isShowingWorkoutTracker = true
+          } else if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
+            isShowingRunTracker = true
           }
           pendingAfterArrange = nil
         }
