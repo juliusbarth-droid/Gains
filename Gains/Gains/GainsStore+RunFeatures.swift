@@ -404,7 +404,7 @@ extension GainsStore {
   /// als auch `activeStructuredWorkout`, damit der Tracker den Step-Status
   /// abfragen kann.
   func startStructuredWorkout(_ workout: StructuredRunWorkout) {
-    guard activeRun == nil else { return }
+    guard activeRun == nil, activeWorkout == nil else { return }
 
     activeRun = ActiveRunSession(
       id: UUID(),
