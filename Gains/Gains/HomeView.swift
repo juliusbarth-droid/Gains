@@ -2246,7 +2246,13 @@ struct HomeView: View {
         Label("Rad indoor starten", systemImage: "figure.indoor.cycle")
       }
       Button {
-        navigation.openTraining(workspace: .laufen)
+        if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else {
+          navigation.openTraining(workspace: .laufen)
+        }
       } label: {
         Label("Laufbereich öffnen", systemImage: "rectangle.stack.fill")
       }
