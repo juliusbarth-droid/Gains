@@ -187,8 +187,14 @@ struct CaptureSheet: View {
         isActionEnabled: canShareWorkout
       ) {
         store.shareLatestWorkout()
-        dismiss()
-        navigation.openHome()
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+        } else if store.activeRun != nil {
+          isShowingRunTracker = true
+        } else {
+          dismiss()
+          navigation.openHome()
+        }
       }
     case .run:
       publishCard(
