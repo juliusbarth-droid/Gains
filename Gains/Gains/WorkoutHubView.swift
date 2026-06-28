@@ -847,7 +847,10 @@ struct WorkoutHubView: View {
           icon: "figure.run.circle.fill",
           actionLabel: "Quick-Start",
           action: {
-            guard store.activeWorkout == nil else { return }
+            if store.activeWorkout != nil {
+              isShowingWorkoutTracker = true
+              return
+            }
             store.startQuickRun(modality: preferredModality)
             if store.activeRun != nil {
               isShowingRunTracker = true
