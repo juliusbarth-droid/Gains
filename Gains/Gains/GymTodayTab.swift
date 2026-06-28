@@ -454,7 +454,7 @@ struct GymTodayTab: View {
         let trimmedRunTitle = runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines)
         store.startRun(from: runTemplate)
         if store.activeRun?.title.trimmingCharacters(in: .whitespacesAndNewlines) == trimmedRunTitle {
-          navigation.openTraining(workspace: .laufen)
+          isShowingRunTracker = true
         }
       }
       return
