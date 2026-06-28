@@ -1262,12 +1262,12 @@ struct WorkoutHubView: View {
             .font(GainsFont.eyebrow(10))
             .tracking(1.4)
         }
-        .foregroundStyle(store.activeRun == nil ? GainsColor.lime : GainsColor.softInk)
+        .foregroundStyle(store.activeRun == nil && store.activeWorkout == nil ? GainsColor.lime : GainsColor.softInk)
         .frame(maxWidth: .infinity)
         .frame(height: 42)
       }
       .buttonStyle(.plain)
-      .disabled(store.activeRun != nil)
+      .disabled(store.activeRun != nil || store.activeWorkout != nil)
     }
     .gainsCardStyle()
   }
