@@ -529,8 +529,14 @@ struct ProgressContentView: View {
   private func heroAction(for hero: ProgressHero) {
     switch hero {
     case .personalRecord, .streak, .weekComplete, .onTrack:
-      dismiss()
-      navigation.openTraining(workspace: .kraft)
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+      } else if store.activeRun != nil {
+        isShowingRunTracker = true
+      } else {
+        dismiss()
+        navigation.openTraining(workspace: .kraft)
+      }
     case .starting:
       // H6-Fix (2026-05-01): Erstanfänger ohne Plan/Daten landeten via
       // openTraining(.kraft) in einer leeren Gym-Session. Stattdessen
