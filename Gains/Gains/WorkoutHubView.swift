@@ -773,6 +773,11 @@ struct WorkoutHubView: View {
       }
       return kind.title
     }()
+    let actionTitle: String = {
+      if store.activeWorkout != nil { return "Training öffnen" }
+      if store.activeRun != nil { return kind.isCycling ? "Tour öffnen" : "Lauf öffnen" }
+      return kind.isCycling ? "Tour starten" : "Lauf starten"
+    }()
 
     return HStack(spacing: GainsSpacing.s) {
       ZStack {
@@ -816,7 +821,7 @@ struct WorkoutHubView: View {
           isShowingRunTracker = true
         }
       } label: {
-        Text("Starten")
+        Text(actionTitle)
           .font(GainsFont.label(11))
           .tracking(GainsTracking.eyebrowTight)
           .foregroundStyle(GainsColor.lime)
