@@ -194,8 +194,8 @@ struct StructuredWorkoutDetailSheet: View {
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
-        .disabled(store.activeRun != nil)
-        .opacity(store.activeRun == nil ? 1 : 0.45)
+        .disabled(store.activeRun != nil || store.activeWorkout != nil)
+        .opacity(store.activeRun == nil && store.activeWorkout == nil ? 1 : 0.45)
         .padding(.horizontal, GainsSpacing.l)
         .padding(.vertical, GainsSpacing.s)
         .background(GainsColor.background)
