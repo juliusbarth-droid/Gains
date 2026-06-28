@@ -1200,7 +1200,10 @@ struct WorkoutHubView: View {
 
       // 4. Footer-Action — modality-aware (P2-7).
       Button {
-        guard store.activeWorkout == nil else { return }
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+          return
+        }
         store.startRunLike(run)
         if store.activeRun != nil {
           isShowingRunTracker = true
