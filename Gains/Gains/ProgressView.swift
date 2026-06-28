@@ -204,8 +204,14 @@ struct ProgressContentView: View {
             navigation.openTraining(workspace: .laufen)
           }
         } else {
-          dismiss()
-          navigation.openTraining(workspace: .kraft)
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil {
+            isShowingRunTracker = true
+          } else {
+            dismiss()
+            navigation.openTraining(workspace: .kraft)
+          }
         }
       } else {
         dismiss()
