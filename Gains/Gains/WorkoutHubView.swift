@@ -773,7 +773,10 @@ struct WorkoutHubView: View {
       Spacer(minLength: GainsSpacing.xs)
 
       Button {
-        guard store.activeWorkout == nil else { return }
+        if store.activeWorkout != nil {
+          isShowingWorkoutTracker = true
+          return
+        }
         if let template {
           store.startRun(from: template)
         } else {
