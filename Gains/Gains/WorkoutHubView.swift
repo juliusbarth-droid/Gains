@@ -240,7 +240,10 @@ struct WorkoutHubView: View {
         let isLocked = store.activeRun != nil && store.activeRun?.modality != modality
 
         Button {
-          guard store.activeRun == nil else { return }
+          if store.activeRun != nil {
+            isShowingRunTracker = true
+            return
+          }
           UISelectionFeedbackGenerator().selectionChanged()
           withAnimation(.spring(response: 0.32, dampingFraction: 0.78)) {
             preferredModalityRaw = modality.rawValue
