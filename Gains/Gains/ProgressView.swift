@@ -530,8 +530,14 @@ struct ProgressContentView: View {
     case .weightLow:
       store.logWeightCheckIn()
     case .longestRun:
-      dismiss()
-      navigation.openTraining(workspace: .laufen)
+      if store.activeWorkout != nil {
+        isShowingWorkoutTracker = true
+      } else if store.activeRun != nil {
+        isShowingRunTracker = true
+      } else {
+        dismiss()
+        navigation.openTraining(workspace: .laufen)
+      }
     case .comeback:
       dismiss()
       navigation.openWeekPlanFullscreen()
