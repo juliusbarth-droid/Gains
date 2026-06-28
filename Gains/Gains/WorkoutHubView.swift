@@ -780,6 +780,10 @@ struct WorkoutHubView: View {
           isShowingWorkoutTracker = true
           return
         }
+        if store.activeRun != nil {
+          isShowingRunTracker = true
+          return
+        }
         if let template {
           store.startRun(from: template)
         } else {
