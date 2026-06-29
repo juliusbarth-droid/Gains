@@ -878,13 +878,24 @@ struct WorkoutHubView: View {
           if store.activeRun != nil { return preferredModality.isCycling ? "Tour öffnen" : "Lauf öffnen" }
           return "Quick-Start"
         }()
+        let emptyStateMessage: String = {
+          if store.activeWorkout != nil {
+            return "Öffne dein aktives Training, damit du direkt zur laufenden Session zurückkehrst."
+          }
+          if store.activeRun != nil {
+            return preferredModality.isCycling
+              ? "Öffne die aktive Tour, damit du direkt zu Karte, Tempo und Live-Steuerung zurückkehrst."
+              : "Öffne den aktiven Lauf, damit du direkt zu Karte, Splits und Live-Steuerung zurückkehrst."
+          }
+          return "Starte oben über den Hero-Button — danach erscheint hier deine Aktivität mit Karte und Splits."
+        }()
 
         EmptyStateView(
           style: .inline,
           title: displayedModality.isCycling
             ? "Noch keine Tour aufgezeichnet"
             : "Bereit für deinen ersten Lauf?",
-          message: "Starte oben über den Hero-Button — danach erscheint hier deine Aktivität mit Karte und Splits.",
+          message: emptyStateMessage,
           icon: "figure.run.circle.fill",
           actionLabel: emptyStateActionLabel,
           action: {
