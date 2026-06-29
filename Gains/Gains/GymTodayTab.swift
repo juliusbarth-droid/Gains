@@ -509,7 +509,7 @@ struct GymTodayTab: View {
       HStack(spacing: GainsSpacing.xsPlus) {
         Image(systemName: icon)
           .font(.system(size: 12, weight: .semibold))
-        Text(trimmedTitle.isEmpty ? "Schnellzugriff" : trimmedTitle)
+        Text(trimmedTitle.isEmpty ? "Gym-Schnellzugriff" : trimmedTitle)
           .font(GainsFont.label(11))
           .tracking(1.0)
           .lineLimit(1)
@@ -559,7 +559,7 @@ struct GymTodayTab: View {
     .accessibilityLabel(
       accessibilityLabel ?? ({
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmedTitle.isEmpty ? "Schnellzugriff" : trimmedTitle
+        return trimmedTitle.isEmpty ? "Gym-Schnellzugriff" : trimmedTitle
       }())
     )
     .accessibilityValue(accessibilityValue ?? secondaryActionAccessibilityValue(for: title))
@@ -575,7 +575,7 @@ struct GymTodayTab: View {
     case "Statistik":
       return "Trainingsstatistiken"
     default:
-      return "Schnellzugriff"
+      return "Gym-Schnellzugriff"
     }
   }
 
@@ -588,7 +588,7 @@ struct GymTodayTab: View {
     case "Statistik":
       return "Öffnet deine Trainingsstatistiken"
     default:
-      return "Öffnet diesen Schnellzugriff"
+      return "Öffnet diesen Gym-Schnellzugriff"
     }
   }
 
