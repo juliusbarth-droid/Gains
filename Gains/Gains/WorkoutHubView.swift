@@ -305,7 +305,6 @@ struct WorkoutHubView: View {
           .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .disabled(isLocked)
         .accessibilityLabel("\(modality.displayName) wählen")
         .accessibilityAddTraits(isActive ? [.isSelected] : [])
       }
