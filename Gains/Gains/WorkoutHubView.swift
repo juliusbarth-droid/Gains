@@ -458,11 +458,11 @@ struct WorkoutHubView: View {
   private func heroLiveSubtitle(for modality: CardioModality) -> String {
     switch modality {
     case .run:
-      return "Öffne den aktiven Lauf für Karte, Splits und Live-Steuerung."
+      return "Öffne den aktiven Lauf für Karte, Splits und Steuerung."
     case .bikeOutdoor:
-      return "Öffne die Tour für Karte, Geschwindigkeit und Live-Steuerung."
+      return "Öffne die Tour für Karte, Geschwindigkeit und Steuerung."
     case .bikeIndoor:
-      return "Öffne den aktiven Heimtrainer für Distanz, Geschwindigkeit und Live-Steuerung."
+      return "Öffne den aktiven Heimtrainer für Distanz, Geschwindigkeit und Steuerung."
     }
   }
 
