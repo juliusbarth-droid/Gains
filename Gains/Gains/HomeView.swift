@@ -4930,7 +4930,11 @@ private struct WorkoutArrangeView: View {
   }
 
   private func startCTA(for workout: WorkoutSession) -> some View {
-    Button {
+    let startHint = workout.exercises.isEmpty
+      ? "Nicht verfügbar, solange dieses Workout noch keine Übungen enthält."
+      : "Startet dieses Workout mit deinen aktuellen Übungen."
+
+    return Button {
       onStart()
     } label: {
       HStack(spacing: GainsSpacing.s) {
@@ -4962,6 +4966,7 @@ private struct WorkoutArrangeView: View {
       .opacity(workout.exercises.isEmpty ? 0.45 : 1)
     }
     .buttonStyle(.plain)
+    .accessibilityHint(startHint)
     .disabled(workout.exercises.isEmpty)
   }
 }
