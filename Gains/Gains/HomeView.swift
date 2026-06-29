@@ -4178,12 +4178,12 @@ struct HomeView: View {
             : !trimmedActiveRunTitle.isEmpty
               ? trimmedActiveRunTitle
               : store.activeWorkout != nil
-                ? "Aktives Workout"
+                ? "Aktives Training"
                 : store.activeRun != nil
                   ? "Aktiver Lauf"
-                  : (trimmedSnapshotTitle.isEmpty ? "Gespeichertes Workout" : trimmedSnapshotTitle)
+                  : (trimmedSnapshotTitle.isEmpty ? "Gespeichertes Training" : trimmedSnapshotTitle)
           let recoveryDetail = store.activeWorkout != nil
-            ? "Workout läuft gerade"
+            ? "Training läuft gerade"
             : store.activeRun != nil
               ? "Lauf läuft gerade"
               : "\(completed)/\(total) Sätze · gespeichert \(savedAgoText)"
