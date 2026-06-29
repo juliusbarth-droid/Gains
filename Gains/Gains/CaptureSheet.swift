@@ -507,7 +507,14 @@ struct CaptureSheet: View {
     isActionEnabled: Bool,
     action: @escaping () -> Void
   ) -> some View {
-    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+    let actionHint: String = {
+      if isActionEnabled {
+        return "Öffnet den nächsten Schritt für diesen Beitrag."
+      }
+      return "Nicht verfügbar, solange keine passende Einheit oder kein passender Verlauf vorliegt."
+    }()
+
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Text(title)
         .font(GainsFont.title(24))
         .foregroundStyle(GainsColor.ink)
@@ -544,6 +551,7 @@ struct CaptureSheet: View {
           .gainsGlassCTA()
       }
       .buttonStyle(.plain)
+      .accessibilityHint(actionHint)
       .disabled(!isActionEnabled)
       .opacity(isActionEnabled ? 1 : 0.5)
     }
