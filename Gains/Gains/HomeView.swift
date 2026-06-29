@@ -1104,9 +1104,9 @@ struct HomeView: View {
         )
         .accessibilityHint(
           store.activeWorkout != nil
-            ? "Öffnet den bereits laufenden Workout-Tracker"
+            ? "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen"
             : store.activeRun != nil
-              ? "Öffnet den bereits laufenden Run-Tracker"
+              ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung"
               : "Öffnet deinen Wochenplan mit den geplanten Einheiten"
         )
 
@@ -1189,9 +1189,9 @@ struct HomeView: View {
         )
         .accessibilityHint(
           store.activeWorkout != nil
-            ? "Öffnet den bereits laufenden Workout-Tracker"
+            ? "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen"
             : store.activeRun != nil
-              ? "Öffnet den bereits laufenden Run-Tracker"
+              ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung"
               : "Öffnet deinen Wochenplan mit den geplanten Einheiten"
         )
         .padding(.top, GainsSpacing.xs)
