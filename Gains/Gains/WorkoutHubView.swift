@@ -1040,10 +1040,20 @@ struct WorkoutHubView: View {
         secondaryColor: GainsColor.softInk)
 
       if filtered.isEmpty {
+        let emptyTemplateMessage: String = {
+          if store.activeWorkout != nil {
+            return "Wähle oben rechts einen anderen Modus oder öffne dein aktives Training über die Live-Steuerung."
+          }
+          if store.activeRun != nil {
+            return "Wähle oben rechts einen anderen Modus oder öffne deine laufende Session über die Live-Steuerung."
+          }
+          return "Wähle oben rechts einen anderen Modus oder starte eine Quick-Session über den Hero-Button."
+        }()
+
         EmptyStateView(
           style: .inline,
           title: "Keine Vorlagen für diesen Modus",
-          message: "Wähle oben rechts einen anderen Modus oder starte eine Quick-Session über den Hero-Button.",
+          message: emptyTemplateMessage,
           icon: "list.bullet.clipboard"
         )
       } else {
