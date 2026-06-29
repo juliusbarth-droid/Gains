@@ -462,7 +462,7 @@ struct WorkoutHubView: View {
     case .bikeOutdoor:
       return "Öffne die Tour für Karte, Geschwindigkeit und Live-Steuerung."
     case .bikeIndoor:
-      return "Öffne den Tracker für Distanz, Geschwindigkeit und Live-Steuerung."
+      return "Öffne den aktiven Heimtrainer für Distanz, Geschwindigkeit und Live-Steuerung."
     }
   }
 
