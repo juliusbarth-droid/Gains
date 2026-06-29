@@ -707,7 +707,7 @@ struct GymTodayTab: View {
             let trimmedFocus = session.focus.trimmingCharacters(in: .whitespacesAndNewlines)
             return "\(trimmedTitle.isEmpty ? "Training" : trimmedTitle), \(trimmedFocus.isEmpty ? "ohne Fokusangabe" : trimmedFocus), \(s.completedSets) von \(s.totalSets) Sätzen abgeschlossen"
           }())
-          .accessibilityHint("Öffnet den laufenden Workout-Tracker und führt zur aktuellen Einheit zurück")
+          .accessibilityHint("Öffnet dein laufendes Training mit Übungen, Sätzen und Pausen und führt zur aktuellen Einheit zurück")
         }
         // A13 (Cleaner-Pass): Hero-Resume-Card auf Standard-Card-Geometrie
         // (`GainsRadius.standard` 16, accent-Border statt 1.5pt-Stroke).
