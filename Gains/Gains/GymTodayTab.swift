@@ -692,14 +692,14 @@ struct GymTodayTab: View {
           // Sprache wie der Hero-Start-Button, damit „weitermachen" und
           // „starten" als zusammenhängendes Vokabular gelesen werden.
           HeroPrimaryCTAButton(
-            title: "Workout öffnen",
+            title: "Training öffnen",
             icon: "dumbbell.fill",
             action: {
               guard store.activeWorkout != nil else { return }
               isShowingWorkoutTracker = true
             }
           )
-          .accessibilityLabel("Aktives Workout öffnen")
+          .accessibilityLabel("Aktives Training öffnen")
           .accessibilityValue({
             let trimmedTitle = session.title.trimmingCharacters(in: .whitespacesAndNewlines)
             let trimmedFocus = session.focus.trimmingCharacters(in: .whitespacesAndNewlines)
