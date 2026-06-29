@@ -1028,7 +1028,7 @@ struct GymTodayTab: View {
           let trimmedTrendLabel = trendInfo.label.trimmingCharacters(in: .whitespacesAndNewlines)
           return "\(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten, \(currentVolume > 0 ? "\(String(format: "%.1f", currentVolume / 1000)) Tonnen Volumen" : "noch keine Volumendaten")\(trimmedTrendLabel.isEmpty ? "" : ", \(trimmedTrendLabel)")"
         }())
-        .accessibilityHint("Öffnet den Stats-Bereich mit Volumen, Trends und weiteren Trainingsdaten")
+        .accessibilityHint("Öffnet den Statistikbereich mit Volumen, Trends und weiteren Trainingsdaten")
       }
     }
     .padding(GainsSpacing.m)
