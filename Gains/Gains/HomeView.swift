@@ -4277,7 +4277,7 @@ struct HomeView: View {
               : "\(trimmedSnapshotTitle), \(completed) von \(total) Sätzen"
           }()
         )
-        .accessibilityHint(store.activeWorkout != nil ? "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen" : store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung" : "Stellt das gespeicherte Workout wieder her und öffnet dein Training")
+        .accessibilityHint(store.activeWorkout != nil ? "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen" : store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung" : "Stellt das gespeicherte Training wieder her und öffnet dein Training")
 
         Button {
           store.discardRecoverableWorkout()
@@ -4295,8 +4295,8 @@ struct HomeView: View {
             .clipShape(Capsule())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(store.activeWorkout != nil || store.activeRun != nil ? "Wiederherstellungshinweis ausblenden" : "Gespeichertes Workout verwerfen")
-        .accessibilityHint(store.activeWorkout != nil || store.activeRun != nil ? "Blendet diesen Wiederherstellungshinweis aus, ohne die laufende Session zu verändern" : "Entfernt den gespeicherten Workout-Stand und blendet diesen Wiederherstellungshinweis aus")
+        .accessibilityLabel(store.activeWorkout != nil || store.activeRun != nil ? "Wiederherstellungshinweis ausblenden" : "Gespeichertes Training verwerfen")
+        .accessibilityHint(store.activeWorkout != nil || store.activeRun != nil ? "Blendet diesen Wiederherstellungshinweis aus, ohne die laufende Session zu verändern" : "Entfernt den gespeicherten Trainingsstand und blendet diesen Wiederherstellungshinweis aus")
       }
     }
     .padding(GainsSpacing.m)
