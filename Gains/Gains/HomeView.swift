@@ -2236,6 +2236,7 @@ struct HomeView: View {
       } label: {
         Label("Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
       }
+      .accessibilityHint(store.lastCompletedWorkout == nil ? "Nicht verfügbar, solange noch kein abgeschlossenes Training vorliegt." : "Wiederholt dein zuletzt abgeschlossenes Training.")
       .disabled(store.lastCompletedWorkout == nil)
       Button {
         if store.activeWorkout != nil {
@@ -2457,6 +2458,7 @@ struct HomeView: View {
       } label: {
         Label("Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
       }
+      .accessibilityHint(store.lastCompletedWorkout == nil ? "Nicht verfügbar, solange noch kein abgeschlossenes Training vorliegt." : "Wiederholt dein zuletzt abgeschlossenes Training.")
       .disabled(store.lastCompletedWorkout == nil)
 
       Button {
