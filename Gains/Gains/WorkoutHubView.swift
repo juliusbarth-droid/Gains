@@ -1049,7 +1049,14 @@ struct WorkoutHubView: View {
               ? "Wähle oben rechts einen anderen Modus oder öffne deine aktive Tour über die Live-Steuerung."
               : "Wähle oben rechts einen anderen Modus oder öffne deinen aktiven Lauf über die Live-Steuerung."
           }
-          return "Wähle oben rechts einen anderen Modus oder starte eine Quick-Session über den Hero-Button."
+          switch displayedModality {
+          case .run:
+            return "Wähle oben rechts einen anderen Modus oder starte einen Lauf über den Hero-Button."
+          case .bikeOutdoor:
+            return "Wähle oben rechts einen anderen Modus oder starte eine Tour über den Hero-Button."
+          case .bikeIndoor:
+            return "Wähle oben rechts einen anderen Modus oder starte den Heimtrainer über den Hero-Button."
+          }
         }()
 
         EmptyStateView(
