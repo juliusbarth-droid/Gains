@@ -1619,8 +1619,17 @@ struct WorkoutHubView: View {
         secondaryColor: GainsColor.softInk)
 
       let zones = store.paceZones
+      let emptyZonesMessage: String = {
+        if store.activeWorkout != nil {
+          return "Öffne dein aktives Training. Pace-Zonen erscheinen, sobald du wieder Läufe trackst."
+        }
+        if store.activeRun != nil {
+          return "Öffne deinen aktiven Lauf. Pace-Zonen erscheinen, sobald genug Laufdaten vorliegen."
+        }
+        return "Starte deine ersten Läufe, um deine Pace-Zonen zu sehen."
+      }()
       if zones.isEmpty {
-        Text("Starte deine ersten Läufe, um deine Pace-Zonen zu sehen.")
+        Text(emptyZonesMessage)
           .font(GainsFont.body(13))
           .foregroundStyle(GainsColor.softInk)
           .padding(.vertical, GainsSpacing.xsPlus)
