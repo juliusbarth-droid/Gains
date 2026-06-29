@@ -2215,7 +2215,7 @@ struct HomeView: View {
         return isLive ? "Bereits aktiv. \(trimmedSubtitle)" : trimmedSubtitle
       }()
     )
-    .accessibilityHint(isLive ? "Öffnet die bereits laufende Einheit" : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Workout-Einstieg für ein neues Training")
+    .accessibilityHint(isLive ? "Öffnet die bereits laufende Einheit" : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Trainingseinstieg für ein neues Training")
     .accessibilityAddTraits(isLive ? .isSelected : [])
     .contextMenu { quickStartContextMenu(for: kind) }
   }
@@ -2423,7 +2423,7 @@ struct HomeView: View {
 
     switch spec.kind {
     case .training:
-      return "Öffnet den Workout-Einstieg für ein neues Training"
+      return "Öffnet den Trainingseinstieg für ein neues Training"
     case .cardio:
       return "Öffnet den Lauf-Einstieg oder führt in weitere Cardio-Aktionen"
     case .progress:
