@@ -1056,12 +1056,12 @@ struct WorkoutHubView: View {
       if filtered.isEmpty {
         let emptyTemplateMessage: String = {
           if store.activeWorkout != nil {
-            return "Wähle oben rechts einen anderen Modus oder öffne dein aktives Training über die Live-Steuerung."
+            return "Wähle oben rechts einen anderen Modus oder öffne direkt dein aktives Training."
           }
           if store.activeRun != nil {
             return displayedModality.isCycling
-              ? "Wähle oben rechts einen anderen Modus oder öffne deine aktive Tour über die Live-Steuerung."
-              : "Wähle oben rechts einen anderen Modus oder öffne deinen aktiven Lauf über die Live-Steuerung."
+              ? "Wähle oben rechts einen anderen Modus oder öffne direkt deine aktive Tour."
+              : "Wähle oben rechts einen anderen Modus oder öffne direkt deinen aktiven Lauf."
           }
           switch displayedModality {
           case .run:
