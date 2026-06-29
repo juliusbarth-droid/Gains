@@ -4277,7 +4277,7 @@ struct HomeView: View {
               : "\(trimmedSnapshotTitle), \(completed) von \(total) Sätzen"
           }()
         )
-        .accessibilityHint(store.activeWorkout != nil ? "Öffnet den bereits laufenden Workout-Tracker" : store.activeRun != nil ? "Öffnet den bereits laufenden Run-Tracker" : "Stellt das gespeicherte Workout wieder her und öffnet den Tracker")
+        .accessibilityHint(store.activeWorkout != nil ? "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen" : store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung" : "Stellt das gespeicherte Workout wieder her und öffnet dein Training")
 
         Button {
           store.discardRecoverableWorkout()
