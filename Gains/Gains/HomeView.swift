@@ -4261,7 +4261,7 @@ struct HomeView: View {
             .shadow(color: GainsColor.lime.opacity(0.15), radius: 10)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(store.activeWorkout != nil ? "Aktives Workout öffnen" : store.activeRun != nil ? "Aktiven Lauf öffnen" : "Gespeichertes Workout fortsetzen")
+        .accessibilityLabel(store.activeWorkout != nil ? "Aktives Training öffnen" : store.activeRun != nil ? "Aktiven Lauf öffnen" : "Gespeichertes Training fortsetzen")
         .accessibilityValue(
           {
             let trimmedSnapshotTitle = snapshot.title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -4270,10 +4270,10 @@ struct HomeView: View {
             if store.activeWorkout != nil || store.activeRun != nil {
               if !trimmedActiveWorkoutTitle.isEmpty { return trimmedActiveWorkoutTitle }
               if !trimmedActiveRunTitle.isEmpty { return trimmedActiveRunTitle }
-              return store.activeRun != nil ? "Aktiver Lauf" : "Aktives Workout"
+              return store.activeRun != nil ? "Aktiver Lauf" : "Aktives Training"
             }
             return trimmedSnapshotTitle.isEmpty
-              ? "Gespeichertes Workout, \(completed) von \(total) Sätzen"
+              ? "Gespeichertes Training, \(completed) von \(total) Sätzen"
               : "\(trimmedSnapshotTitle), \(completed) von \(total) Sätzen"
           }()
         )
