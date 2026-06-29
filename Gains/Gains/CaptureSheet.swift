@@ -185,6 +185,7 @@ struct CaptureSheet: View {
         metrics: workoutMetrics,
         actionTitle: workoutActionTitle,
         isActionEnabled: canShareWorkout,
+        enabledHint: "Öffnet den nächsten Schritt für dein Workout-Update.",
         disabledHint: "Nicht verfügbar, solange kein abgeschlossenes oder geplantes Workout zum Teilen vorliegt."
       ) {
         store.shareLatestWorkout()
@@ -203,6 +204,7 @@ struct CaptureSheet: View {
         metrics: runMetrics,
         actionTitle: runActionTitle,
         isActionEnabled: canShareRun,
+        enabledHint: "Öffnet den nächsten Schritt für dein Lauf-Update.",
         disabledHint: "Nicht verfügbar, solange kein abgeschlossener oder geplanter Lauf zum Teilen vorliegt."
       ) {
         store.shareLatestRun()
@@ -225,6 +227,7 @@ struct CaptureSheet: View {
         ],
         actionTitle: selectedKind.actionTitle,
         isActionEnabled: true,
+        enabledHint: "Öffnet den nächsten Schritt für dein Fortschritts-Update.",
         disabledHint: ""
       ) {
         store.shareProgressUpdate()
@@ -521,12 +524,13 @@ struct CaptureSheet: View {
     metrics: [(String, String)],
     actionTitle: String,
     isActionEnabled: Bool,
+    enabledHint: String,
     disabledHint: String,
     action: @escaping () -> Void
   ) -> some View {
     let actionHint: String = {
       if isActionEnabled {
-        return "Öffnet den nächsten Schritt für diesen Beitrag."
+        return enabledHint
       }
       return disabledHint
     }()
