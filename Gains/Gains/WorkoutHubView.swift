@@ -1065,11 +1065,11 @@ struct WorkoutHubView: View {
           }
           switch displayedModality {
           case .run:
-            return "Wähle oben rechts einen anderen Modus oder starte einen Lauf über den Hero-Button."
+            return "Wähle oben rechts einen anderen Modus oder starte direkt einen Lauf."
           case .bikeOutdoor:
-            return "Wähle oben rechts einen anderen Modus oder starte eine Tour über den Hero-Button."
+            return "Wähle oben rechts einen anderen Modus oder starte direkt eine Tour."
           case .bikeIndoor:
-            return "Wähle oben rechts einen anderen Modus oder starte den Heimtrainer über den Hero-Button."
+            return "Wähle oben rechts einen anderen Modus oder starte direkt den Heimtrainer."
           }
         }()
 
