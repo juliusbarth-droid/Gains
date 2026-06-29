@@ -236,7 +236,19 @@ struct CaptureSheet: View {
   }
 
   private var mealLogger: some View {
-    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+    let isMealTitleMissing = mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    let isMealPhotoMissing = selectedMealSurface == .photo && !hasSelectedMealPhoto
+    let mealActionHint: String = {
+      if isMealTitleMissing {
+        return "Nicht verfügbar, solange der Mahlzeitenname fehlt."
+      }
+      if isMealPhotoMissing {
+        return "Nicht verfügbar, solange noch kein Essensfoto ausgewählt ist."
+      }
+      return "Speichert diese Mahlzeit und öffnet danach den Ernährungsbereich."
+    }()
+
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       Picker("Meal Capture", selection: $selectedMealSurface) {
         ForEach(MealCaptureSurface.allCases) { surface in
           Text(surface.title).tag(surface)
@@ -316,8 +328,9 @@ struct CaptureSheet: View {
           .gainsGlassCTA()
       }
       .buttonStyle(.plain)
-      .disabled(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto))
-      .opacity(mealTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (selectedMealSurface == .photo && !hasSelectedMealPhoto) ? 0.5 : 1)
+      .accessibilityHint(mealActionHint)
+      .disabled(isMealTitleMissing || isMealPhotoMissing)
+      .opacity(isMealTitleMissing || isMealPhotoMissing ? 0.5 : 1)
     }
   }
 
