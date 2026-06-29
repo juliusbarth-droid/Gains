@@ -176,6 +176,16 @@ struct StructuredWorkoutDetailSheet: View {
         }
       }
       .safeAreaInset(edge: .bottom) {
+        let startHint: String = {
+          if store.activeWorkout != nil {
+            return "Nicht verfügbar, solange ein Krafttraining aktiv ist."
+          }
+          if store.activeRun != nil {
+            return "Nicht verfügbar, solange ein Lauf oder eine Tour aktiv ist."
+          }
+          return "Startet dieses strukturierte Lauftraining mit Pace-Vorgaben und Steps."
+        }()
+
         Button {
           store.startStructuredWorkout(workout)
           onStart()
@@ -194,6 +204,7 @@ struct StructuredWorkoutDetailSheet: View {
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
         }
         .buttonStyle(.plain)
+        .accessibilityHint(startHint)
         .disabled(store.activeRun != nil || store.activeWorkout != nil)
         .opacity(store.activeRun == nil && store.activeWorkout == nil ? 1 : 0.45)
         .padding(.horizontal, GainsSpacing.l)
