@@ -2412,7 +2412,25 @@ struct HomeView: View {
     )
     .accessibilityValue({
       let trimmedSubtitle = spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
-      return trimmedSubtitle.isEmpty ? (spec.isLive ? "Bereits aktiv" : "Home-Schnellzugriff") : trimmedSubtitle
+      let liveFallback: String = {
+        switch spec.kind {
+        case .training:
+          return "Training läuft bereits"
+        case .cardio:
+          return "Lauf läuft bereits"
+        case .progress:
+          return "Fortschritt ist bereits aktiv"
+        case .meal:
+          return "Ernährung ist bereits aktiv"
+        case .water:
+          return "Wasserübersicht ist bereits aktiv"
+        case .community:
+          return "Community ist bereits aktiv"
+        case .plan:
+          return "Planbereich ist bereits aktiv"
+        }
+      }()
+      return trimmedSubtitle.isEmpty ? (spec.isLive ? liveFallback : "Home-Schnellzugriff") : trimmedSubtitle
     }())
     .accessibilityHint(actionTileAccessibilityHint(for: spec))
     .accessibilityAddTraits(spec.isLive ? .isSelected : [])
