@@ -639,9 +639,9 @@ struct CaptureSheet: View {
         return plannedRun.title
       }
       if store.todayPlannedDay.sessionKind?.isRun == true {
-        return "Run vorbereiten"
+        return "Lauf vorbereiten"
       }
-      return "Run nicht verfügbar"
+      return "Lauf nicht verfügbar"
     case .progress:
       return String(format: "%.1f kg / %.1f cm", store.currentWeight, store.waistMeasurement)
     case .meal:
@@ -664,13 +664,13 @@ struct CaptureSheet: View {
         return "Distanz, Pace und Herzfrequenz kommen aus deinem letzten gespeicherten Lauf."
       }
       if store.todayPlannedDay.runTemplate != nil || store.todayPlannedDay.sessionKind?.isRun == true {
-        return "Nutzt deinen heutigen geplanten Run als Vorschlag."
+        return "Nutzt deinen heutigen geplanten Lauf als Vorschlag."
       }
-      return "Aktuell ist kein konkreter Run verfügbar."
+      return "Aktuell ist kein konkreter Lauf verfügbar."
     case .progress:
       return "Gewicht, Taille und Health-Fortschritt werden als Update vorbereitet."
     case .meal:
-      return "Freier Meal-Log mit Zielmodus, Kalorien und Makros."
+      return "Freies Mahlzeiten-Log mit Zielmodus, Kalorien und Makros."
     }
   }
 
