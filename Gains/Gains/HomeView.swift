@@ -2218,7 +2218,7 @@ struct HomeView: View {
           }
         }()
         if trimmedSubtitle.isEmpty {
-          return isLive ? liveFallback : "Schnellzugriff"
+          return isLive ? liveFallback : "Home-Schnellzugriff"
         }
         return isLive ? "\(liveFallback). \(trimmedSubtitle)" : trimmedSubtitle
       }()
