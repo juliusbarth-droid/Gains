@@ -1940,7 +1940,6 @@ struct ProgressContentView: View {
               .accessibilityValue(historyFilter == filter ? "Ausgewählt" : "Nicht ausgewählt")
               .accessibilityHint(historyFilter == filter ? "Dieser Filter ist bereits aktiv" : historyFilterAccessibilityHint(filter))
               .accessibilityAddTraits(historyFilter == filter ? .isSelected : [])
-              .disabled(historyFilter == filter)
             }
           }
         }
