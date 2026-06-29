@@ -1169,7 +1169,13 @@ struct WorkoutHubView: View {
   // und der Footer-Button hatte kein Trenner-Pendant.
 
   private func runActivityCard(_ run: CompletedRunSummary, isLatest: Bool) -> some View {
-    VStack(alignment: .leading, spacing: 0) {
+    let footerActionTitle: String = {
+      if store.activeWorkout != nil { return "Training öffnen" }
+      if store.activeRun != nil { return run.modality.isCycling ? "Tour öffnen" : "Lauf öffnen" }
+      return repeatActionLabel(for: run.modality)
+    }()
+
+    return VStack(alignment: .leading, spacing: 0) {
       // 0. Mini-Map-Kopf (Strava-Look). Outdoor mit Route-Polyline, Indoor /
       // ohne GPS ein dezentes Fallback-Panel mit Modus-Glyphe. Die Card
       // clippt via `gainsCardStyle()` automatisch die oberen Ecken.
@@ -1269,7 +1275,7 @@ struct WorkoutHubView: View {
         HStack(spacing: GainsSpacing.xs) {
           Image(systemName: "arrow.clockwise")
             .font(.system(size: 11, weight: .semibold))
-          Text(repeatActionLabel(for: run.modality))
+          Text(footerActionTitle)
             .font(GainsFont.eyebrow(10))
             .tracking(1.4)
         }
