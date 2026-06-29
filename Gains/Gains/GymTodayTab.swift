@@ -106,7 +106,7 @@ struct GymTodayTab: View {
                       detail: "Deine Wochenstruktur — anpassen oder neu bauen.")
         dayOneTourRow(icon: "square.stack.3d.up.fill", title: "Bibliothek",
                       detail: "Fertige Vorlagen + deine eigenen Workouts.")
-        dayOneTourRow(icon: "chart.bar.fill", title: "Stats",
+        dayOneTourRow(icon: "chart.bar.fill", title: "Statistik",
                       detail: "Volumen, Frequenz, persönliche Rekorde.")
       }
     }
@@ -201,11 +201,9 @@ struct GymTodayTab: View {
       ) {
         selectedTab = .workouts
       }
-      // P0-3: war „Daten" — angeglichen an Tab-Label „STATS" und an die
-      // Default-Reihe weiter unten, die ebenfalls „Stats" nutzt.
       secondaryActionButton(
         icon: "chart.bar.fill",
-        title: "Stats"
+        title: "Statistik"
       ) {
         selectedTab = .stats
       }
@@ -338,7 +336,7 @@ struct GymTodayTab: View {
 
       secondaryActionButton(
         icon: "chart.bar.fill",
-        title: "Stats"
+        title: "Statistik"
       ) {
         selectedTab = .stats
       }
@@ -574,7 +572,7 @@ struct GymTodayTab: View {
       return "Wochenplan"
     case "Bibliothek":
       return "Workout-Bibliothek"
-    case "Stats":
+    case "Statistik":
       return "Trainingsstatistiken"
     default:
       return "Schnellzugriff"
@@ -587,7 +585,7 @@ struct GymTodayTab: View {
       return "Öffnet deinen Wochenplan"
     case "Bibliothek":
       return "Öffnet deine Workout-Bibliothek"
-    case "Stats":
+    case "Statistik":
       return "Öffnet deine Trainingsstatistiken"
     default:
       return "Öffnet diesen Schnellzugriff"
@@ -1011,10 +1009,7 @@ struct GymTodayTab: View {
           selectedTab = .stats
         } label: {
           HStack(spacing: GainsSpacing.xxs) {
-            // P0-3: Vorher „Statistik" — Tab heißt aber „STATS", Day-One-
-            // Tour und Action-Button sagen ebenfalls „Stats". Drei Begriffe
-            // für denselben Ziel-Tab → einheitlich auf „Stats".
-            Text("Stats")
+            Text("Statistik")
               .font(GainsFont.label(9))
               .tracking(1.4)
             Image(systemName: "chevron.right")
