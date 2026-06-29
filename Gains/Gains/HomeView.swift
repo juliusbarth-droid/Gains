@@ -2144,7 +2144,7 @@ struct HomeView: View {
         Spacer(minLength: 14)
 
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text(trimmedEyebrow.isEmpty ? "Schnellzugriff" : trimmedEyebrow)
+          Text(trimmedEyebrow.isEmpty ? "Home-Schnellzugriff" : trimmedEyebrow)
             .gainsEyebrow(accent, size: 10, tracking: 1.5)
           Text(trimmedTitle.isEmpty ? "Aktion" : trimmedTitle)
             .font(GainsFont.title(22))
@@ -2345,7 +2345,7 @@ struct HomeView: View {
         Spacer(minLength: 12)
 
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-          Text(trimmedEyebrow.isEmpty ? "Schnellzugriff" : trimmedEyebrow)
+          Text(trimmedEyebrow.isEmpty ? "Home-Schnellzugriff" : trimmedEyebrow)
             .gainsEyebrow(spec.accent, size: 10, tracking: 1.4)
           Text(trimmedTitle.isEmpty ? "Aktion" : trimmedTitle)
             .font(GainsFont.title(18))
@@ -2399,12 +2399,12 @@ struct HomeView: View {
         if !spokenEyebrow.isEmpty && !spokenTitle.isEmpty {
           return "\(spokenEyebrow) — \(spokenTitle)"
         }
-        return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Schnellzugriff" : spokenEyebrow) : spokenTitle
+        return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Home-Schnellzugriff" : spokenEyebrow) : spokenTitle
       }()
     )
     .accessibilityValue({
       let trimmedSubtitle = spec.subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
-      return trimmedSubtitle.isEmpty ? (spec.isLive ? "Bereits aktiv" : "Schnellzugriff") : trimmedSubtitle
+      return trimmedSubtitle.isEmpty ? (spec.isLive ? "Bereits aktiv" : "Home-Schnellzugriff") : trimmedSubtitle
     }())
     .accessibilityHint(actionTileAccessibilityHint(for: spec))
     .accessibilityAddTraits(spec.isLive ? .isSelected : [])
