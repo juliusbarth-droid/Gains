@@ -1326,7 +1326,6 @@ struct WorkoutHubView: View {
         .frame(height: 42)
       }
       .buttonStyle(.plain)
-      .disabled(store.activeRun != nil || store.activeWorkout != nil)
     }
     .gainsCardStyle()
   }
