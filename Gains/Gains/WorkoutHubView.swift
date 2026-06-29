@@ -1197,7 +1197,6 @@ struct WorkoutHubView: View {
       .gainsCardStyle()
     }
     .buttonStyle(.plain)
-    .disabled(isLocked)
   }
 
   // MARK: - Run-Activity-Card
