@@ -2418,7 +2418,22 @@ struct HomeView: View {
 
   private func actionTileAccessibilityHint(for spec: ActionTileSpec) -> String {
     if spec.isLive {
-      return "Öffnet die bereits laufende Ansicht zu diesem Bereich"
+      switch spec.kind {
+      case .training:
+        return "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen"
+      case .cardio:
+        return "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung"
+      case .progress:
+        return "Öffnet deinen bereits aktiven Fortschrittsbereich"
+      case .meal:
+        return "Öffnet deine bereits aktive Ernährungserfassung"
+      case .water:
+        return "Öffnet deine bereits aktive Wasserübersicht"
+      case .community:
+        return "Öffnet deinen bereits aktiven Community-Bereich"
+      case .plan:
+        return "Öffnet deinen bereits aktiven Planbereich"
+      }
     }
 
     switch spec.kind {
