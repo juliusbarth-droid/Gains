@@ -184,7 +184,8 @@ struct CaptureSheet: View {
         title: autofillTitle,
         metrics: workoutMetrics,
         actionTitle: workoutActionTitle,
-        isActionEnabled: canShareWorkout
+        isActionEnabled: canShareWorkout,
+        disabledHint: "Nicht verfügbar, solange kein abgeschlossenes oder geplantes Workout zum Teilen vorliegt."
       ) {
         store.shareLatestWorkout()
         if store.activeWorkout != nil {
@@ -201,7 +202,8 @@ struct CaptureSheet: View {
         title: autofillTitle,
         metrics: runMetrics,
         actionTitle: runActionTitle,
-        isActionEnabled: canShareRun
+        isActionEnabled: canShareRun,
+        disabledHint: "Nicht verfügbar, solange kein abgeschlossener oder geplanter Lauf zum Teilen vorliegt."
       ) {
         store.shareLatestRun()
         if store.activeWorkout != nil {
@@ -222,7 +224,8 @@ struct CaptureSheet: View {
           ("Risiko", "-\(store.currentCardioRiskImprovement)%"),
         ],
         actionTitle: selectedKind.actionTitle,
-        isActionEnabled: true
+        isActionEnabled: true,
+        disabledHint: ""
       ) {
         store.shareProgressUpdate()
         // Fortschritt-Tab existiert nicht mehr — Home zeigt den
@@ -518,13 +521,14 @@ struct CaptureSheet: View {
     metrics: [(String, String)],
     actionTitle: String,
     isActionEnabled: Bool,
+    disabledHint: String,
     action: @escaping () -> Void
   ) -> some View {
     let actionHint: String = {
       if isActionEnabled {
         return "Öffnet den nächsten Schritt für diesen Beitrag."
       }
-      return "Nicht verfügbar, solange keine passende Einheit oder kein passender Verlauf vorliegt."
+      return disabledHint
     }()
 
     return VStack(alignment: .leading, spacing: GainsSpacing.m) {
