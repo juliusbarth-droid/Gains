@@ -1045,7 +1045,9 @@ struct WorkoutHubView: View {
             return "Wähle oben rechts einen anderen Modus oder öffne dein aktives Training über die Live-Steuerung."
           }
           if store.activeRun != nil {
-            return "Wähle oben rechts einen anderen Modus oder öffne deine laufende Session über die Live-Steuerung."
+            return displayedModality.isCycling
+              ? "Wähle oben rechts einen anderen Modus oder öffne deine aktive Tour über die Live-Steuerung."
+              : "Wähle oben rechts einen anderen Modus oder öffne deinen aktiven Lauf über die Live-Steuerung."
           }
           return "Wähle oben rechts einen anderen Modus oder starte eine Quick-Session über den Hero-Button."
         }()
