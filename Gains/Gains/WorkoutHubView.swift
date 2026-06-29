@@ -880,7 +880,7 @@ struct WorkoutHubView: View {
         }()
         let emptyStateMessage: String = {
           if store.activeWorkout != nil {
-            return "Öffne dein aktives Training, damit du direkt zur laufenden Session zurückkehrst."
+            return "Öffne dein aktives Training, damit du direkt zum Workout-Tracker zurückkehrst."
           }
           if store.activeRun != nil {
             return preferredModality.isCycling
