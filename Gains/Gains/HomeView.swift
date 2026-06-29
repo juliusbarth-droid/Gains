@@ -2209,10 +2209,18 @@ struct HomeView: View {
     .accessibilityValue(
       {
         let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let liveFallback: String = {
+          switch kind {
+          case .training:
+            return "Training läuft bereits"
+          case .cardio:
+            return "Lauf läuft bereits"
+          }
+        }()
         if trimmedSubtitle.isEmpty {
-          return isLive ? "Bereits aktiv" : "Schnellzugriff"
+          return isLive ? liveFallback : "Schnellzugriff"
         }
-        return isLive ? "Bereits aktiv. \(trimmedSubtitle)" : trimmedSubtitle
+        return isLive ? "\(liveFallback). \(trimmedSubtitle)" : trimmedSubtitle
       }()
     )
     .accessibilityHint(isLive ? "Öffnet die bereits laufende Einheit" : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Trainingseinstieg für ein neues Training")
