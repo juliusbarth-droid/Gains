@@ -894,7 +894,14 @@ struct WorkoutHubView: View {
               ? "Öffne die aktive Tour, damit du direkt zu Karte, Tempo und Live-Steuerung zurückkehrst."
               : "Öffne den aktiven Lauf, damit du direkt zu Karte, Splits und Live-Steuerung zurückkehrst."
           }
-          return "Starte oben über den Hero-Button — danach erscheint hier deine Aktivität mit Karte und Splits."
+          switch preferredModality {
+          case .run:
+            return "Starte einen Lauf, danach erscheint hier deine Aktivität mit Karte und Splits."
+          case .bikeOutdoor:
+            return "Starte eine Tour, danach erscheint hier deine Aktivität mit Karte und Tempo."
+          case .bikeIndoor:
+            return "Starte den Heimtrainer, danach erscheint hier deine Aktivität mit Tempo und Distanz."
+          }
         }()
 
         EmptyStateView(
