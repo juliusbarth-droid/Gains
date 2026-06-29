@@ -876,7 +876,14 @@ struct WorkoutHubView: View {
         let emptyStateActionLabel: String = {
           if store.activeWorkout != nil { return "Training öffnen" }
           if store.activeRun != nil { return preferredModality.isCycling ? "Tour öffnen" : "Lauf öffnen" }
-          return "Quick-Start"
+          switch preferredModality {
+          case .run:
+            return "Lauf starten"
+          case .bikeOutdoor:
+            return "Tour starten"
+          case .bikeIndoor:
+            return "Heimtrainer starten"
+          }
         }()
         let emptyStateMessage: String = {
           if store.activeWorkout != nil {
