@@ -511,9 +511,9 @@ struct CaptureSheet: View {
       return "Lauf teilen"
     }
     if store.todayPlannedDay.runTemplate != nil || store.todayPlannedDay.sessionKind?.isRun == true {
-      return "Run vorbereiten"
+      return "Lauf vorbereiten"
     }
-    return "Run nicht verfügbar"
+    return "Lauf nicht verfügbar"
   }
 
   private func publishCard(
