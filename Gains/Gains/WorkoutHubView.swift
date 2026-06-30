@@ -739,7 +739,13 @@ struct WorkoutHubView: View {
     case .segments:
       RunSegmentsTab(
         presentedSegment: $presentedSegment,
-        onCreateFromRun: { showsSegmentCreator = true }
+        onCreateFromRun: {
+          if store.activeRun != nil || store.runHistory.isEmpty {
+            isShowingRunTracker = true
+          } else {
+            showsSegmentCreator = true
+          }
+        }
       )
       .environmentObject(store)
     case .workouts:

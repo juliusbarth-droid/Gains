@@ -70,7 +70,9 @@ struct RunSegmentsTab: View {
   }
 
   private var emptyCard: some View {
-    VStack(alignment: .leading, spacing: GainsSpacing.m) {
+    let isMissingRunHistory = store.runHistory.isEmpty
+
+    return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       EmptyStateView(
         style: .card(icon: "flag.checkered"),
         title: "Noch keine Segmente",
@@ -81,9 +83,9 @@ struct RunSegmentsTab: View {
         onCreateFromRun()
       } label: {
         HStack(spacing: GainsSpacing.xsPlus) {
-          Image(systemName: "plus.circle.fill")
+          Image(systemName: isMissingRunHistory ? "figure.run.circle.fill" : "plus.circle.fill")
             .font(.system(size: 14, weight: .semibold))
-          Text("Aus Lauf erstellen")
+          Text(isMissingRunHistory ? "Ersten Lauf starten" : "Aus Lauf erstellen")
             .font(GainsFont.label(11))
             .tracking(GainsTracking.eyebrowTight)
         }
@@ -94,8 +96,7 @@ struct RunSegmentsTab: View {
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
-      .disabled(store.runHistory.isEmpty)
-      .opacity(store.runHistory.isEmpty ? 0.4 : 1)
+      .accessibilityHint(isMissingRunHistory ? "Öffnet deinen Laufeinstieg, damit du zuerst einen Lauf aufzeichnen kannst." : "Öffnet die Auswahl eines fertigen Laufs, aus dem du ein Segment markieren kannst.")
     }
   }
 
