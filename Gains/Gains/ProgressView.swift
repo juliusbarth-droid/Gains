@@ -1870,7 +1870,7 @@ struct ProgressContentView: View {
 
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
         HStack {
-          Text(trimmedTitle.isEmpty ? "Highlight" : trimmedTitle)
+          Text(trimmedTitle.isEmpty ? "Meilenstein" : trimmedTitle)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
