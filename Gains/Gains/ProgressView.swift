@@ -1226,7 +1226,7 @@ struct ProgressContentView: View {
         .lineLimit(2)
         .minimumScaleFactor(0.7)
 
-      Text(trimmedTitle.isEmpty ? "Status" : trimmedTitle)
+      Text(trimmedTitle.isEmpty ? "Fortschrittsstatus" : trimmedTitle)
         .font(GainsFont.label(8))
         .tracking(GainsTracking.eyebrow)
         .foregroundStyle(GainsColor.softInk)
