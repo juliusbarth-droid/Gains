@@ -2046,6 +2046,8 @@ struct WorkoutBuilderView: View {
   @Environment(\.dismiss) private var dismiss
   @EnvironmentObject private var store: GainsStore
 
+  private let exerciseLibraryAnchorID = "workout-builder-exercise-library"
+
   /// Wenn gesetzt → Bearbeitungs-Modus, sonst Neu-Erstellen
   var editingPlan: WorkoutPlan? = nil
   var onSaved: ((WorkoutPlan) -> Void)? = nil
@@ -2102,32 +2104,38 @@ struct WorkoutBuilderView: View {
 
   var body: some View {
     NavigationStack {
-      ZStack(alignment: .bottom) {
-        GainsAppBackground()
-        ScrollView(showsIndicators: false) {
-          VStack(alignment: .leading, spacing: GainsSpacing.xl) {
-            // Header
-            screenHeader(
-              eyebrow: isEditing ? "WORKOUT / BEARBEITEN" : "WORKOUT / ERSTELLEN",
-              title: isEditing ? "Training bearbeiten" : "Eigenes Training",
-              subtitle: isEditing
-                ? "Passe Name und Übungen an – deine Pläne aktualisieren sich automatisch."
-                : "Drei Schritte: Name, Übungen wählen, Sätze & Reps anpassen."
-            )
+      ScrollViewReader { proxy in
+        ZStack(alignment: .bottom) {
+          GainsAppBackground()
+          ScrollView(showsIndicators: false) {
+            VStack(alignment: .leading, spacing: GainsSpacing.xl) {
+              // Header
+              screenHeader(
+                eyebrow: isEditing ? "WORKOUT / BEARBEITEN" : "WORKOUT / ERSTELLEN",
+                title: isEditing ? "Training bearbeiten" : "Eigenes Training",
+                subtitle: isEditing
+                  ? "Passe Name und Übungen an – deine Pläne aktualisieren sich automatisch."
+                  : "Drei Schritte: Name, Übungen wählen, Sätze & Reps anpassen."
+              )
 
-            nameSection
-            selectedExercisesSection
-            exerciseLibrarySection
-            // Spacer für den sticky Button
-            Color.clear.frame(height: 80)
+              nameSection
+              selectedExercisesSection(scrollToLibrary: {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                  proxy.scrollTo(exerciseLibraryAnchorID, anchor: .top)
+                }
+              })
+              exerciseLibrarySection
+              // Spacer für den sticky Button
+              Color.clear.frame(height: 80)
+            }
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.top, GainsSpacing.m)
           }
-          .padding(.horizontal, GainsSpacing.l)
-          .padding(.top, GainsSpacing.m)
+          // ── Sticky Save-Button ─────────────────────────────────────
+          stickyActionBar
+            .padding(.horizontal, GainsSpacing.l)
+            .padding(.bottom, GainsSpacing.l)
         }
-        // ── Sticky Save-Button ─────────────────────────────────────
-        stickyActionBar
-          .padding(.horizontal, GainsSpacing.l)
-          .padding(.bottom, GainsSpacing.l)
       }
       .onAppear {
         if let plan = editingPlan {
@@ -2249,7 +2257,7 @@ struct WorkoutBuilderView: View {
   // MARK: - Ausgewählte Übungen (Drag-to-Reorder + Sets/Reps Stepper)
 
   @ViewBuilder
-  private var selectedExercisesSection: some View {
+  private func selectedExercisesSection(scrollToLibrary: @escaping () -> Void) -> some View {
     VStack(alignment: .leading, spacing: GainsSpacing.tight) {
       HStack {
         SlashLabel(
@@ -2269,7 +2277,9 @@ struct WorkoutBuilderView: View {
         EmptyStateView(
           style: .card(icon: "hand.point.down"),
           title: "Noch keine Übungen gewählt",
-          message: "Wähle Übungen aus der Bibliothek unten. 4 – 6 reichen für den Start."
+          message: "Wähle Übungen aus der Bibliothek unten. 4 – 6 reichen für den Start.",
+          actionLabel: "Zur Übungsbibliothek",
+          action: scrollToLibrary
         )
       } else {
         VStack(spacing: 0) {
@@ -2459,6 +2469,7 @@ struct WorkoutBuilderView: View {
       SlashLabel(
         parts: ["GYM", "BIBLIOTHEK"], primaryColor: GainsColor.lime,
         secondaryColor: GainsColor.softInk)
+        .id(exerciseLibraryAnchorID)
 
       // Suchfeld
       HStack(spacing: GainsSpacing.tight) {
