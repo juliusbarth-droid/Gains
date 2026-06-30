@@ -3121,7 +3121,8 @@ struct HomeView: View {
           )
         )
       }
-      let workoutTitle = plan.workoutPlan?.title ?? plan.title
+      let trimmedWorkoutTitle = (plan.workoutPlan?.title ?? plan.title).trimmingCharacters(in: .whitespacesAndNewlines)
+      let workoutTitle = trimmedWorkoutTitle.isEmpty ? "Dein Training" : trimmedWorkoutTitle
       let trimmedFocus = plan.focus.trimmingCharacters(in: .whitespacesAndNewlines)
       let focusLine = trimmedFocus.isEmpty ? "Heutiges Training" : "Heutiger Plan: \(trimmedFocus)"
       return CoachBrief(
@@ -3173,7 +3174,8 @@ struct HomeView: View {
           )
         )
       }
-      let workoutTitle = plan.workoutPlan?.title ?? plan.title
+      let trimmedWorkoutTitle = (plan.workoutPlan?.title ?? plan.title).trimmingCharacters(in: .whitespacesAndNewlines)
+      let workoutTitle = trimmedWorkoutTitle.isEmpty ? "Dein Training" : trimmedWorkoutTitle
       let trimmedFocus = plan.focus.trimmingCharacters(in: .whitespacesAndNewlines)
       let focusLine = trimmedFocus.isEmpty ? "Heutiges Training" : "Plan-Fokus: \(trimmedFocus)"
       return CoachBrief(
