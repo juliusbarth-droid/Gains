@@ -3336,12 +3336,12 @@ struct HomeView: View {
     // 11) Default — Plan-Status anzeigen.
     let plan = store.todayPlannedDay
     let isRunPlan = plan.runTemplate != nil || plan.sessionKind?.isRun == true
-    let title = plan.runTemplate?.title ?? plan.sessionKind?.title ?? plan.workoutPlan?.title ?? plan.title
+    let trimmedTitle = (plan.runTemplate?.title ?? plan.sessionKind?.title ?? plan.workoutPlan?.title ?? plan.title).trimmingCharacters(in: .whitespacesAndNewlines)
     return CoachBrief(
       eyebrow: "BEREIT?",
       glyph: isRunPlan ? "figure.run" : "play.fill",
       accent: isRunPlan ? GainsColor.ember : GainsColor.lime,
-      headline: title.isEmpty ? "Was passt gerade?" : "Heute: \(title).",
+      headline: trimmedTitle.isEmpty ? "Was passt gerade?" : "Heute: \(trimmedTitle).",
       subline: store.coachHeadline,
       primary: CoachActionDescriptor(
         title: isRunPlan ? "Lauf starten" : "Training starten",
