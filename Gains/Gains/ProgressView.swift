@@ -237,7 +237,7 @@ struct ProgressContentView: View {
           Text(trimmedTitle.isEmpty ? "Nächster Fortschrittsschritt" : trimmedTitle)
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
-          Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
+          Text(trimmedSubtitle.isEmpty ? "ohne Fortschrittsdetail" : trimmedSubtitle)
             .font(GainsFont.body(11))
             .foregroundStyle(GainsColor.softInk)
             .lineLimit(2)
