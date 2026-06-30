@@ -2242,10 +2242,9 @@ struct HomeView: View {
       Button {
         repeatLastWorkoutFromHome()
       } label: {
-        Label("Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
+        Label(store.lastCompletedWorkout == nil ? "Erstes Training erstellen" : "Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
       }
-      .accessibilityHint(store.lastCompletedWorkout == nil ? "Nicht verfügbar, solange noch kein abgeschlossenes Training vorliegt." : "Wiederholt dein zuletzt abgeschlossenes Training.")
-      .disabled(store.lastCompletedWorkout == nil)
+      .accessibilityHint(store.lastCompletedWorkout == nil ? "Öffnet den Trainingsaufbau, damit du dein erstes Training anlegen kannst." : "Wiederholt dein zuletzt abgeschlossenes Training.")
       Button {
         if store.activeWorkout != nil {
           isShowingWorkoutTracker = true
@@ -2497,10 +2496,9 @@ struct HomeView: View {
       Button {
         repeatLastWorkoutFromHome()
       } label: {
-        Label("Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
+        Label(store.lastCompletedWorkout == nil ? "Erstes Training erstellen" : "Letztes Training wiederholen", systemImage: "arrow.uturn.backward")
       }
-      .accessibilityHint(store.lastCompletedWorkout == nil ? "Nicht verfügbar, solange noch kein abgeschlossenes Training vorliegt." : "Wiederholt dein zuletzt abgeschlossenes Training.")
-      .disabled(store.lastCompletedWorkout == nil)
+      .accessibilityHint(store.lastCompletedWorkout == nil ? "Öffnet den Trainingsaufbau, damit du dein erstes Training anlegen kannst." : "Wiederholt dein zuletzt abgeschlossenes Training.")
 
       Button {
         runCoachAction(.startQuickWorkout)
@@ -3987,8 +3985,6 @@ struct HomeView: View {
   }
 
   private func repeatLastWorkoutFromHome() {
-    guard let last = store.lastCompletedWorkout else { return }
-
     if store.activeWorkout != nil {
       isShowingWorkoutTracker = true
       return
@@ -3996,6 +3992,11 @@ struct HomeView: View {
 
     if store.activeRun != nil {
       isShowingRunTracker = true
+      return
+    }
+
+    guard let last = store.lastCompletedWorkout else {
+      isShowingWorkoutBuilder = true
       return
     }
 
