@@ -890,7 +890,7 @@ struct HomeView: View {
             .font(.system(size: 10, weight: .heavy))
             .foregroundStyle(stat.accent)
             .shadow(color: stat.accent.opacity(0.55), radius: 4)
-          Text(trimmedLabel.isEmpty ? "Status" : trimmedLabel)
+          Text(trimmedLabel.isEmpty ? "Cockpitstatus" : trimmedLabel)
             .gainsEyebrow(GainsColor.onCtaSurfaceMuted, size: 9, tracking: 1.2)
             .lineLimit(2)
         }
