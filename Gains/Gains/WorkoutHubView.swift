@@ -790,7 +790,7 @@ struct WorkoutHubView: View {
       return kind.title
     }()
     let actionTitle: String = {
-      if store.activeWorkout != nil { return "Training öffnen" }
+      if store.activeWorkout != nil { return "Aktives Training öffnen" }
       if store.activeRun != nil { return kind.isCycling ? "Tour öffnen" : "Lauf öffnen" }
       return kind.isCycling ? "Tour starten" : "Lauf starten"
     }()
@@ -890,7 +890,7 @@ struct WorkoutHubView: View {
 
       if preview.isEmpty {
         let emptyStateActionLabel: String = {
-          if store.activeWorkout != nil { return "Training öffnen" }
+          if store.activeWorkout != nil { return "Aktives Training öffnen" }
           if store.activeRun != nil { return preferredModality.isCycling ? "Tour öffnen" : "Lauf öffnen" }
           switch preferredModality {
           case .run:
@@ -1253,7 +1253,7 @@ struct WorkoutHubView: View {
 
   private func runActivityCard(_ run: CompletedRunSummary, isLatest: Bool) -> some View {
     let footerActionTitle: String = {
-      if store.activeWorkout != nil { return "Training öffnen" }
+      if store.activeWorkout != nil { return "Aktives Training öffnen" }
       if store.activeRun != nil { return run.modality.isCycling ? "Tour öffnen" : "Lauf öffnen" }
       return repeatActionLabel(for: run.modality)
     }()
