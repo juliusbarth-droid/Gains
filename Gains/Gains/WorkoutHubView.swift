@@ -734,8 +734,17 @@ struct WorkoutHubView: View {
   private var tabContent: some View {
     switch selectedTab {
     case .routes:
-      RunRoutesTab(presentedRoute: $presentedRoute)
-        .environmentObject(store)
+      RunRoutesTab(
+        presentedRoute: $presentedRoute,
+        onEmptyAction: {
+          if store.activeRun != nil {
+            isShowingRunTracker = true
+          } else {
+            isShowingRunTracker = true
+          }
+        }
+      )
+      .environmentObject(store)
     case .segments:
       RunSegmentsTab(
         presentedSegment: $presentedSegment,

@@ -13,6 +13,7 @@ import SwiftUI
 struct RunRoutesTab: View {
   @EnvironmentObject private var store: GainsStore
   @Binding var presentedRoute: SavedRoute?
+  let onEmptyAction: () -> Void
 
   var body: some View {
     VStack(alignment: .leading, spacing: GainsSpacing.l) {
@@ -30,11 +31,32 @@ struct RunRoutesTab: View {
       }
 
       if store.savedRoutes.isEmpty {
-        EmptyStateView(
-          style: .card(icon: "map"),
-          title: "Noch keine Routen",
-          message: "Starte einen GPS-Lauf — du kannst die Strecke beim Speichern als Route übernehmen."
-        )
+        VStack(alignment: .leading, spacing: GainsSpacing.m) {
+          EmptyStateView(
+            style: .card(icon: "map"),
+            title: "Noch keine Routen",
+            message: "Starte einen GPS-Lauf — du kannst die Strecke beim Speichern als Route übernehmen."
+          )
+
+          Button {
+            onEmptyAction()
+          } label: {
+            HStack(spacing: GainsSpacing.xsPlus) {
+              Image(systemName: store.activeRun != nil ? "figure.run.circle.fill" : "play.circle.fill")
+                .font(.system(size: 14, weight: .semibold))
+              Text(store.activeRun != nil ? "Aktiven Lauf öffnen" : "Ersten Lauf starten")
+                .font(GainsFont.label(11))
+                .tracking(GainsTracking.eyebrowTight)
+            }
+            .foregroundStyle(GainsColor.onLime)
+            .frame(maxWidth: .infinity)
+            .frame(height: 46)
+            .background(GainsColor.lime)
+            .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+          }
+          .buttonStyle(.plain)
+          .accessibilityHint(store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf oder deine Tour." : "Öffnet deinen Laufeinstieg, damit du eine erste Route aufzeichnen kannst.")
+        }
       } else {
         VStack(spacing: GainsSpacing.m) {
           ForEach(store.savedRoutes) { route in
