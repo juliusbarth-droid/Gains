@@ -3766,6 +3766,8 @@ struct HomeView: View {
     // oben + Hero-Tile unten), weil Discovery vor Redundanz-Hygiene geht.
     if isInDayOneWindow {
       let primaryFirstAction: ActionTileSpec = {
+        let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let planTitleFallback = trimmedPlanTitle.isEmpty ? "ohne Detailangabe" : trimmedPlanTitle
         if let runTemplate = plan.runTemplate {
           return ActionTileSpec(
             kind: .cardio,
@@ -3783,7 +3785,7 @@ struct HomeView: View {
             kind: .cardio,
             eyebrow: "ERSTER LAUF",
             title: "Lauf starten",
-            subtitle: plan.title,
+            subtitle: planTitleFallback,
             icon: "play.fill",
             accent: GainsColor.ember,
             isLive: false,
@@ -3794,7 +3796,7 @@ struct HomeView: View {
           kind: .training,
           eyebrow: "ERSTE SESSION",
           title: "Training starten",
-          subtitle: plan.workoutPlan.map { "\($0.estimatedDurationMinutes) Min · \($0.exercises.count) Übungen" } ?? plan.title,
+          subtitle: plan.workoutPlan.map { "\($0.estimatedDurationMinutes) Min · \($0.exercises.count) Übungen" } ?? planTitleFallback,
           icon: "play.fill",
           accent: GainsColor.lime,
           isLive: false,
