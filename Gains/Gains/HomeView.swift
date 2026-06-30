@@ -1453,7 +1453,7 @@ struct HomeView: View {
       .shadow(color: accent.opacity(0.22), radius: 5)
 
       VStack(alignment: .leading, spacing: 1) {
-        Text(trimmedLabel.isEmpty ? "Status" : trimmedLabel)
+        Text(trimmedLabel.isEmpty ? "Cockpitwert" : trimmedLabel)
           .gainsEyebrow(GainsColor.mutedInk, size: 9, tracking: 1.3)
           .lineLimit(2)
         HStack(alignment: .firstTextBaseline, spacing: 2) {
