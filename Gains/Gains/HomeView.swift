@@ -4989,19 +4989,24 @@ private struct WorkoutArrangeView: View {
   }
 
   private func startCTA(for workout: WorkoutSession) -> some View {
-    let startHint = workout.exercises.isEmpty
-      ? "Nicht verfügbar, solange dieses Workout noch keine Übungen enthält."
+    let isMissingExercises = workout.exercises.isEmpty
+    let startHint = isMissingExercises
+      ? "Öffnet die Übungsauswahl, damit du dieses Training zuerst mit Übungen füllst."
       : "Startet dieses Workout mit deinen aktuellen Übungen."
 
     return Button {
-      onStart()
+      if isMissingExercises {
+        isShowingExercisePicker = true
+      } else {
+        onStart()
+      }
     } label: {
       HStack(spacing: GainsSpacing.s) {
-        Image(systemName: "play.fill")
+        Image(systemName: isMissingExercises ? "plus.circle.fill" : "play.fill")
           .font(.system(size: 13, weight: .heavy))
           .foregroundStyle(GainsColor.lime)
 
-        Text("TRAINING STARTEN")
+        Text(isMissingExercises ? "ÜBUNGEN HINZUFÜGEN" : "TRAINING STARTEN")
           .font(GainsFont.label(13))
           .tracking(2)
           .foregroundStyle(GainsColor.lime)
@@ -5022,11 +5027,9 @@ private struct WorkoutArrangeView: View {
       )
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.hero, style: .continuous))
       .shadow(color: GainsColor.lime.opacity(0.09), radius: 18, x: 0, y: 10)
-      .opacity(workout.exercises.isEmpty ? 0.45 : 1)
     }
     .buttonStyle(.plain)
     .accessibilityHint(startHint)
-    .disabled(workout.exercises.isEmpty)
   }
 }
 
