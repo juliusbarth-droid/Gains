@@ -1086,12 +1086,36 @@ struct WorkoutHubView: View {
             return "Wähle oben rechts einen anderen Modus oder starte direkt den Heimtrainer."
           }
         }()
+        let emptyTemplateActionLabel: String = {
+          if store.activeWorkout != nil {
+            return "Aktives Training öffnen"
+          }
+          if store.activeRun != nil {
+            return displayedModality.isCycling ? "Aktive Tour öffnen" : "Aktiven Lauf öffnen"
+          }
+          switch displayedModality {
+          case .run:
+            return "Lauf starten"
+          case .bikeOutdoor:
+            return "Tour starten"
+          case .bikeIndoor:
+            return "Heimtrainer starten"
+          }
+        }()
 
         EmptyStateView(
           style: .inline,
           title: "Keine Vorlagen für diesen Modus",
           message: emptyTemplateMessage,
-          icon: "list.bullet.clipboard"
+          icon: "list.bullet.clipboard",
+          actionLabel: emptyTemplateActionLabel,
+          action: {
+            if store.activeWorkout != nil {
+              isShowingWorkoutTracker = true
+              return
+            }
+            startOrResumeCardio()
+          }
         )
       } else {
         VStack(spacing: GainsSpacing.xsPlus) {
