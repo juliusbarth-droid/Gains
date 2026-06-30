@@ -71,6 +71,23 @@ struct RunSegmentsTab: View {
 
   private var emptyCard: some View {
     let isMissingRunHistory = store.runHistory.isEmpty
+    let emptyActionIcon: String = {
+      if store.activeWorkout != nil { return "dumbbell.fill" }
+      return isMissingRunHistory ? "figure.run.circle.fill" : "plus.circle.fill"
+    }()
+    let emptyActionTitle: String = {
+      if store.activeWorkout != nil { return "Aktives Training öffnen" }
+      return isMissingRunHistory ? "Ersten Lauf starten" : "Aus Lauf erstellen"
+    }()
+    let emptyActionHint: String = {
+      if store.activeWorkout != nil {
+        return "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen."
+      }
+      if isMissingRunHistory {
+        return "Öffnet deinen Laufeinstieg, damit du zuerst einen Lauf aufzeichnen kannst."
+      }
+      return "Öffnet die Auswahl eines fertigen Laufs, aus dem du ein Segment markieren kannst."
+    }()
 
     return VStack(alignment: .leading, spacing: GainsSpacing.m) {
       EmptyStateView(
@@ -83,9 +100,9 @@ struct RunSegmentsTab: View {
         onCreateFromRun()
       } label: {
         HStack(spacing: GainsSpacing.xsPlus) {
-          Image(systemName: isMissingRunHistory ? "figure.run.circle.fill" : "plus.circle.fill")
+          Image(systemName: emptyActionIcon)
             .font(.system(size: 14, weight: .semibold))
-          Text(isMissingRunHistory ? "Ersten Lauf starten" : "Aus Lauf erstellen")
+          Text(emptyActionTitle)
             .font(GainsFont.label(11))
             .tracking(GainsTracking.eyebrowTight)
         }
@@ -96,7 +113,7 @@ struct RunSegmentsTab: View {
         .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
       }
       .buttonStyle(.plain)
-      .accessibilityHint(isMissingRunHistory ? "Öffnet deinen Laufeinstieg, damit du zuerst einen Lauf aufzeichnen kannst." : "Öffnet die Auswahl eines fertigen Laufs, aus dem du ein Segment markieren kannst.")
+      .accessibilityHint(emptyActionHint)
     }
   }
 
