@@ -550,7 +550,9 @@ struct SegmentCreatorSheet: View {
               style: .inline,
               title: "Noch kein Lauf gewählt",
               message: "Wähle oben einen Lauf, um den Bereich für das Segment einzustellen.",
-              icon: "figure.run"
+              icon: "figure.run",
+              actionLabel: runs.isEmpty ? nil : "Letzten Lauf wählen",
+              action: runs.isEmpty ? nil : { selectRun(runs[0]) }
             )
           }
         }
@@ -591,6 +593,13 @@ struct SegmentCreatorSheet: View {
     return runs.first(where: { $0.id == id })
   }
 
+  private func selectRun(_ run: CompletedRunSummary) {
+    selectedRunID = run.id
+    startKm = 0
+    endKm = max(min(run.distanceKm * 0.5, 2), 0.5)
+    if title.isEmpty { title = "\(run.routeName) Stretch" }
+  }
+
   private var canSave: Bool {
     selectedRun != nil && endKm > startKm + 0.05
       && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -607,10 +616,7 @@ struct SegmentCreatorSheet: View {
         HStack(spacing: GainsSpacing.tight) {
           ForEach(runs) { run in
             Button {
-              selectedRunID = run.id
-              startKm = 0
-              endKm = max(min(run.distanceKm * 0.5, 2), 0.5)
-              if title.isEmpty { title = "\(run.routeName) Stretch" }
+              selectRun(run)
             } label: {
               VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
                 Text(run.title)
