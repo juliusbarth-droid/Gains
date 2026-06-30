@@ -3122,12 +3122,14 @@ struct HomeView: View {
         )
       }
       let workoutTitle = plan.workoutPlan?.title ?? plan.title
+      let trimmedFocus = plan.focus.trimmingCharacters(in: .whitespacesAndNewlines)
+      let focusLine = trimmedFocus.isEmpty ? "Heutiges Training" : "Heutiger Plan: \(trimmedFocus)"
       return CoachBrief(
         eyebrow: "WORKOUT-FENSTER",
         glyph: "dumbbell.fill",
         accent: GainsColor.lime,
         headline: "\(workoutTitle) wartet — let's go.",
-        subline: "Heutiger Plan: \(plan.focus). Bestes Slot-Fenster läuft bis 21 Uhr.",
+        subline: "\(focusLine). Bestes Slot-Fenster läuft bis 21 Uhr.",
         primary: CoachActionDescriptor(
           title: "Training starten",
           icon: "play.fill",
