@@ -176,24 +176,38 @@ struct StructuredWorkoutDetailSheet: View {
         }
       }
       .safeAreaInset(edge: .bottom) {
-        let startHint: String = {
+        let ctaTitle: String = {
           if store.activeWorkout != nil {
-            return "Nicht verfügbar, solange ein Krafttraining aktiv ist."
+            return "Aktives Training öffnen"
           }
           if store.activeRun != nil {
-            return "Nicht verfügbar, solange ein Lauf oder eine Tour aktiv ist."
+            return "Aktiven Lauf öffnen"
+          }
+          return "Workout starten"
+        }()
+
+        let startHint: String = {
+          if store.activeWorkout != nil {
+            return "Öffnet dein bereits laufendes Krafttraining."
+          }
+          if store.activeRun != nil {
+            return "Öffnet deinen bereits laufenden Lauf oder deine Tour."
           }
           return "Startet dieses strukturierte Lauftraining mit Pace-Vorgaben und Steps."
         }()
 
         Button {
-          store.startStructuredWorkout(workout)
-          onStart()
+          if store.activeWorkout != nil || store.activeRun != nil {
+            onStart()
+          } else {
+            store.startStructuredWorkout(workout)
+            onStart()
+          }
         } label: {
           HStack(spacing: GainsSpacing.tight) {
             Image(systemName: "play.fill")
               .font(.system(size: 14, weight: .semibold))
-            Text("Workout starten")
+            Text(ctaTitle)
               .font(GainsFont.label(13))
               .tracking(1.4)
           }
@@ -205,8 +219,6 @@ struct StructuredWorkoutDetailSheet: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint(startHint)
-        .disabled(store.activeRun != nil || store.activeWorkout != nil)
-        .opacity(store.activeRun == nil && store.activeWorkout == nil ? 1 : 0.45)
         .padding(.horizontal, GainsSpacing.l)
         .padding(.vertical, GainsSpacing.s)
         .background(GainsColor.background)
