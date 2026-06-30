@@ -128,6 +128,25 @@ struct RunRoutesTab: View {
             .foregroundStyle(GainsColor.softInk)
             .multilineTextAlignment(.center)
             .padding(.horizontal, GainsSpacing.xl)
+
+          Button {
+            onEmptyAction()
+          } label: {
+            HStack(spacing: GainsSpacing.xsPlus) {
+              Image(systemName: store.activeRun != nil ? "figure.run.circle.fill" : "play.circle.fill")
+                .font(.system(size: 13, weight: .semibold))
+              Text(store.activeRun != nil ? "Aktiven Lauf öffnen" : "Ersten Lauf starten")
+                .font(GainsFont.label(10))
+                .tracking(GainsTracking.eyebrowTight)
+            }
+            .foregroundStyle(GainsColor.onLime)
+            .padding(.horizontal, GainsSpacing.m)
+            .frame(height: 36)
+            .background(GainsColor.lime)
+            .clipShape(Capsule())
+          }
+          .buttonStyle(.plain)
+          .accessibilityHint(store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf oder deine Tour." : "Öffnet deinen Laufeinstieg, damit du erste Heatmap-Punkte aufzeichnen kannst.")
         }
       }
     } else {
