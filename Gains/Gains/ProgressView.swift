@@ -1050,8 +1050,8 @@ struct ProgressContentView: View {
           }
           .buttonStyle(.plain)
           .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
-          .accessibilityLabel("Apple Health für Readiness verbinden")
-          .accessibilityValue("HRV- und Schlafdaten für deine Readiness aktivieren")
+          .accessibilityLabel("Apple Health für Bereitschaft verbinden")
+          .accessibilityValue("HRV- und Schlafdaten für deine Bereitschaft aktivieren")
           .accessibilityHint("Verbindet Apple Health und startet den Datenabgleich für HRV und Schlaf")
         }
       }
