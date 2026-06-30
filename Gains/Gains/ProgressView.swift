@@ -234,7 +234,7 @@ struct ProgressContentView: View {
         VStack(alignment: .leading, spacing: 2) {
           Text("NÄCHSTER SCHRITT")
             .gainsEyebrow(GainsColor.lime, size: 9, tracking: 1.4)
-          Text(trimmedTitle.isEmpty ? "Nächster Schritt" : trimmedTitle)
+          Text(trimmedTitle.isEmpty ? "Nächster Fortschrittsschritt" : trimmedTitle)
             .font(GainsFont.title(17))
             .foregroundStyle(GainsColor.ink)
           Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
@@ -263,7 +263,7 @@ struct ProgressContentView: View {
     .accessibilityValue(
       {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let spokenTitle = trimmedTitle.isEmpty ? "Nächster Schritt" : trimmedTitle
+        let spokenTitle = trimmedTitle.isEmpty ? "Nächster Fortschrittsschritt" : trimmedTitle
         let spokenSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
         if isPlanned {
           return spokenSubtitle.isEmpty ? spokenTitle : "\(spokenTitle). \(spokenSubtitle)"
