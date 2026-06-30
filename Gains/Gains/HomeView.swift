@@ -5217,7 +5217,7 @@ struct StatCard: View {
 
       Spacer(minLength: 0)
 
-      Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
+      Text(trimmedSubtitle.isEmpty ? "ohne Kennzahldetail" : trimmedSubtitle)
         .font(GainsFont.body(13))
         .foregroundStyle(foreground.opacity(0.72))
     }
