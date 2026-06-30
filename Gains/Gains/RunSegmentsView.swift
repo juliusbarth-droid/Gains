@@ -73,15 +73,20 @@ struct RunSegmentsTab: View {
     let isMissingRunHistory = store.runHistory.isEmpty
     let emptyActionIcon: String = {
       if store.activeWorkout != nil { return "dumbbell.fill" }
+      if store.activeRun != nil { return "figure.run.circle.fill" }
       return isMissingRunHistory ? "figure.run.circle.fill" : "plus.circle.fill"
     }()
     let emptyActionTitle: String = {
       if store.activeWorkout != nil { return "Aktives Training öffnen" }
+      if store.activeRun != nil { return "Aktiven Lauf öffnen" }
       return isMissingRunHistory ? "Ersten Lauf starten" : "Aus Lauf erstellen"
     }()
     let emptyActionHint: String = {
       if store.activeWorkout != nil {
         return "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen."
+      }
+      if store.activeRun != nil {
+        return "Öffnet deinen bereits laufenden Lauf oder deine Tour."
       }
       if isMissingRunHistory {
         return "Öffnet deinen Laufeinstieg, damit du zuerst einen Lauf aufzeichnen kannst."
