@@ -737,8 +737,8 @@ struct WorkoutHubView: View {
       RunRoutesTab(
         presentedRoute: $presentedRoute,
         onEmptyAction: {
-          if store.activeRun != nil {
-            isShowingRunTracker = true
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
           } else {
             isShowingRunTracker = true
           }

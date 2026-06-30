@@ -15,6 +15,38 @@ struct RunRoutesTab: View {
   @Binding var presentedRoute: SavedRoute?
   let onEmptyAction: () -> Void
 
+  private var emptyActionIcon: String {
+    if store.activeWorkout != nil { return "dumbbell.fill" }
+    if store.activeRun != nil { return "figure.run.circle.fill" }
+    return "play.circle.fill"
+  }
+
+  private var emptyActionTitle: String {
+    if store.activeWorkout != nil { return "Aktives Training öffnen" }
+    if store.activeRun != nil { return "Aktiven Lauf öffnen" }
+    return "Ersten Lauf starten"
+  }
+
+  private var emptyActionHint: String {
+    if store.activeWorkout != nil {
+      return "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen."
+    }
+    if store.activeRun != nil {
+      return "Öffnet deinen bereits laufenden Lauf oder deine Tour."
+    }
+    return "Öffnet deinen Laufeinstieg, damit du eine erste Route aufzeichnen kannst."
+  }
+
+  private var heatmapActionHint: String {
+    if store.activeWorkout != nil {
+      return "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen."
+    }
+    if store.activeRun != nil {
+      return "Öffnet deinen bereits laufenden Lauf oder deine Tour."
+    }
+    return "Öffnet deinen Laufeinstieg, damit du erste Heatmap-Punkte aufzeichnen kannst."
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: GainsSpacing.l) {
       heatmapSection
@@ -42,9 +74,9 @@ struct RunRoutesTab: View {
             onEmptyAction()
           } label: {
             HStack(spacing: GainsSpacing.xsPlus) {
-              Image(systemName: store.activeRun != nil ? "figure.run.circle.fill" : "play.circle.fill")
+              Image(systemName: emptyActionIcon)
                 .font(.system(size: 14, weight: .semibold))
-              Text(store.activeRun != nil ? "Aktiven Lauf öffnen" : "Ersten Lauf starten")
+              Text(emptyActionTitle)
                 .font(GainsFont.label(11))
                 .tracking(GainsTracking.eyebrowTight)
             }
@@ -55,7 +87,7 @@ struct RunRoutesTab: View {
             .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
           }
           .buttonStyle(.plain)
-          .accessibilityHint(store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf oder deine Tour." : "Öffnet deinen Laufeinstieg, damit du eine erste Route aufzeichnen kannst.")
+          .accessibilityHint(emptyActionHint)
         }
       } else {
         VStack(spacing: GainsSpacing.m) {
@@ -133,9 +165,9 @@ struct RunRoutesTab: View {
             onEmptyAction()
           } label: {
             HStack(spacing: GainsSpacing.xsPlus) {
-              Image(systemName: store.activeRun != nil ? "figure.run.circle.fill" : "play.circle.fill")
+              Image(systemName: emptyActionIcon)
                 .font(.system(size: 13, weight: .semibold))
-              Text(store.activeRun != nil ? "Aktiven Lauf öffnen" : "Ersten Lauf starten")
+              Text(emptyActionTitle)
                 .font(GainsFont.label(10))
                 .tracking(GainsTracking.eyebrowTight)
             }
@@ -146,7 +178,7 @@ struct RunRoutesTab: View {
             .clipShape(Capsule())
           }
           .buttonStyle(.plain)
-          .accessibilityHint(store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf oder deine Tour." : "Öffnet deinen Laufeinstieg, damit du erste Heatmap-Punkte aufzeichnen kannst.")
+          .accessibilityHint(heatmapActionHint)
         }
       }
     } else {
