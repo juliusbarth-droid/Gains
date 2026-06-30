@@ -2203,7 +2203,7 @@ struct HomeView: View {
         if !spokenEyebrow.isEmpty && !spokenTitle.isEmpty {
           return "\(spokenEyebrow) — \(spokenTitle)"
         }
-        return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Schnellstart" : spokenEyebrow) : spokenTitle
+        return spokenTitle.isEmpty ? (spokenEyebrow.isEmpty ? "Home-Schnellzugriff" : spokenEyebrow) : spokenTitle
       }()
     )
     .accessibilityValue(
