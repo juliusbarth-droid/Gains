@@ -749,7 +749,9 @@ struct WorkoutHubView: View {
       RunSegmentsTab(
         presentedSegment: $presentedSegment,
         onCreateFromRun: {
-          if store.activeRun != nil || store.runHistory.isEmpty {
+          if store.activeWorkout != nil {
+            isShowingWorkoutTracker = true
+          } else if store.activeRun != nil || store.runHistory.isEmpty {
             isShowingRunTracker = true
           } else {
             showsSegmentCreator = true
