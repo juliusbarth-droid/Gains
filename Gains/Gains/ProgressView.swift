@@ -1700,12 +1700,13 @@ struct ProgressContentView: View {
     let isDone = progress >= 1.0
 
     let trimmedTitle = goal.title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let goalTitle = trimmedTitle.isEmpty ? "Fortschrittsziel" : trimmedTitle
     let trimmedUnit = goal.unit.trimmingCharacters(in: .whitespacesAndNewlines)
 
     return Button { goalAction(for: goal)() } label: {
       VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
         HStack(alignment: .firstTextBaseline, spacing: GainsSpacing.tight) {
-          Text(trimmedTitle.isEmpty ? "Ziel" : trimmedTitle)
+          Text(goalTitle)
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
@@ -1743,7 +1744,7 @@ struct ProgressContentView: View {
       .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Ziel, \(trimmedTitle.isEmpty ? "Ziel" : trimmedTitle)")
+    .accessibilityLabel("Ziel, \(goalTitle)")
     .accessibilityValue(
       goal.unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         ? String(
