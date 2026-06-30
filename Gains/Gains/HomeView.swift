@@ -3773,7 +3773,7 @@ struct HomeView: View {
     if isInDayOneWindow {
       let primaryFirstAction: ActionTileSpec = {
         let trimmedPlanTitle = plan.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        let planTitleFallback = trimmedPlanTitle.isEmpty ? "ohne Detailangabe" : trimmedPlanTitle
+        let planTitleFallback = trimmedPlanTitle.isEmpty ? "ohne Plandetail" : trimmedPlanTitle
         if let runTemplate = plan.runTemplate {
           return ActionTileSpec(
             kind: .cardio,
