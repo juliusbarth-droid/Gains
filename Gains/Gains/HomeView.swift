@@ -5208,7 +5208,7 @@ struct StatCard: View {
     let trimmedSubtitle = subtitle.trimmingCharacters(in: .whitespacesAndNewlines)
 
     VStack(alignment: .leading, spacing: GainsSpacing.tight) {
-      Text(trimmedTitle.isEmpty ? "Status" : trimmedTitle)
+      Text(trimmedTitle.isEmpty ? "Kennzahl" : trimmedTitle)
         .font(GainsFont.label(10))
         .tracking(2)
         .foregroundStyle(foreground.opacity(0.7))
