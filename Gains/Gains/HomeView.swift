@@ -2841,7 +2841,8 @@ struct HomeView: View {
             )
           )
         }
-        let workoutTitle = plan.workoutPlan?.title ?? plan.title
+        let trimmedWorkoutTitle = (plan.workoutPlan?.title ?? plan.title).trimmingCharacters(in: .whitespacesAndNewlines)
+        let workoutTitle = trimmedWorkoutTitle.isEmpty ? "deinem Training" : trimmedWorkoutTitle
         let exerciseCount = plan.workoutPlan?.exercises.count ?? 0
         return CoachBrief(
           eyebrow: "TAG 1",
