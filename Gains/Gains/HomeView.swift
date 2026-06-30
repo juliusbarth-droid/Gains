@@ -2818,6 +2818,8 @@ struct HomeView: View {
       switch plan.status {
       case .planned:
         if let runTemplate = plan.runTemplate {
+          let trimmedRunTitle = runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines)
+          let runTitle = trimmedRunTitle.isEmpty ? "dein Lauf" : trimmedRunTitle
           return CoachBrief(
             eyebrow: "TAG 1",
             glyph: "sparkles",
@@ -2825,7 +2827,7 @@ struct HomeView: View {
             headline: "Willkommen\(warmName).",
             subline: String(
               format: "Heute steht dein erster Lauf an: %@ · %.1f km · %d Min. Du musst nichts vorbereiten — die Aufzeichnung startet das GPS für dich.",
-              runTemplate.title, runTemplate.targetDistanceKm, runTemplate.targetDurationMinutes
+              runTitle, runTemplate.targetDistanceKm, runTemplate.targetDurationMinutes
             ),
             primary: CoachActionDescriptor(
               title: "Ersten Lauf starten",
