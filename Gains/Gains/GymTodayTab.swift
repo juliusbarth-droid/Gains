@@ -313,7 +313,7 @@ struct GymTodayTab: View {
           icon: "arrow.uturn.backward.circle",
           title: "Wdh.",
           accessibilityLabel: "Letztes Workout wiederholen",
-          accessibilityValue: store.activeWorkout != nil ? "Bereits aktiv, \(activeWorkoutTitle.isEmpty ? lastTitleText : activeWorkoutTitle)" : store.activeRun != nil ? "Aktiver Lauf, öffnet dein laufendes Lauftraining" : "\(lastTitleText), \(last.completedSets) von \(last.totalSets) Sätzen zuletzt abgeschlossen",
+          accessibilityValue: store.activeWorkout != nil ? "Aktives Training, \(activeWorkoutTitle.isEmpty ? lastTitleText : activeWorkoutTitle)" : store.activeRun != nil ? "Aktiver Lauf, öffnet dein laufendes Lauftraining" : "\(lastTitleText), \(last.completedSets) von \(last.totalSets) Sätzen zuletzt abgeschlossen",
           accessibilityHint: store.activeWorkout != nil ? "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen" : store.activeRun != nil ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung" : "Startet dein letztes Workout erneut oder öffnet dessen Wiederaufnahme"
         ) {
           repeatLastWorkout(reference: last)
