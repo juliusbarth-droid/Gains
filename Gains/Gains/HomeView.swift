@@ -2146,7 +2146,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(trimmedEyebrow.isEmpty ? "Home-Schnellzugriff" : trimmedEyebrow)
             .gainsEyebrow(accent, size: 10, tracking: 1.5)
-          Text(trimmedTitle.isEmpty ? "Aktion" : trimmedTitle)
+          Text(trimmedTitle.isEmpty ? "Schnellaktion" : trimmedTitle)
             .font(GainsFont.title(22))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
@@ -2355,7 +2355,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
           Text(trimmedEyebrow.isEmpty ? "Home-Schnellzugriff" : trimmedEyebrow)
             .gainsEyebrow(spec.accent, size: 10, tracking: 1.4)
-          Text(trimmedTitle.isEmpty ? "Aktion" : trimmedTitle)
+          Text(trimmedTitle.isEmpty ? "Schnellaktion" : trimmedTitle)
             .font(GainsFont.title(18))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
