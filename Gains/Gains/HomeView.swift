@@ -4442,11 +4442,13 @@ struct HomeView: View {
 
     let title: String = {
       if isCompleted { return "Heute erledigt" }
-      if let runTemplate, let assigned {
-        return "\(assigned.title) + \(runTemplate.title)"
+      let assignedTitle = assigned?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+      let runTitle = runTemplate?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+      if !assignedTitle.isEmpty, !runTitle.isEmpty {
+        return "\(assignedTitle) + \(runTitle)"
       }
-      if let runTemplate { return runTemplate.title }
-      if let assigned { return assigned.title }
+      if !runTitle.isEmpty { return runTitle }
+      if !assignedTitle.isEmpty { return assignedTitle }
       switch pref {
       case .training: return "Trainingstag · noch kein Training"
       case .flexible: return "Flexibler Tag · spontan trainieren"
