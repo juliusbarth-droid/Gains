@@ -174,7 +174,7 @@ struct GymTodayTab: View {
         .font(GainsFont.title(12))
         .foregroundStyle(GainsColor.ink)
         .frame(width: 78, alignment: .leading)
-      Text(trimmedDetail.isEmpty ? "ohne Detailangabe" : trimmedDetail)
+      Text(trimmedDetail.isEmpty ? "ohne Schrittdetail" : trimmedDetail)
         .font(GainsFont.body(11))
         .foregroundStyle(GainsColor.softInk)
         .lineLimit(2)
