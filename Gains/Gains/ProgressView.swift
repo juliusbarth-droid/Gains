@@ -1077,11 +1077,12 @@ struct ProgressContentView: View {
 
   private func readinessCell(_ vital: VitalReading) -> some View {
     let trimmedTitle = vital.title.trimmingCharacters(in: .whitespacesAndNewlines)
+    let readinessTitle = trimmedTitle.isEmpty ? "Bereitschaft" : trimmedTitle
     let trimmedValue = vital.value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     Button { store.syncVitalData() } label: {
       VStack(alignment: .leading, spacing: GainsSpacing.xxs) {
-        Text((trimmedTitle.isEmpty ? "Readiness" : trimmedTitle).uppercased())
+        Text(readinessTitle.uppercased())
           .font(GainsFont.label(8))
           .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.softInk)
@@ -1103,15 +1104,15 @@ struct ProgressContentView: View {
     }
     .buttonStyle(.plain)
     .contentShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
-    .accessibilityLabel("Readiness-Wert \(trimmedTitle.isEmpty ? "Readiness" : trimmedTitle)")
+    .accessibilityLabel("Bereitschaftswert \(readinessTitle)")
     .accessibilityValue({
       let trimmedValue = vital.value.trimmingCharacters(in: .whitespacesAndNewlines)
       return trimmedValue.isEmpty || trimmedValue == "—" ? "Noch keine Daten" : trimmedValue
     }())
     .accessibilityHint(
       store.hasConnectedAppleHealth
-        ? "Doppeltippen, um \(trimmedTitle.isEmpty ? "deine Readiness" : trimmedTitle) für deine Readiness zu aktualisieren"
-        : "Doppeltippen, um Apple Health zu verbinden und \(trimmedTitle.isEmpty ? "deine Readiness" : trimmedTitle) für deine Readiness zu laden"
+        ? "Doppeltippen, um \(readinessTitle) für deine Bereitschaft zu aktualisieren"
+        : "Doppeltippen, um Apple Health zu verbinden und \(readinessTitle) für deine Bereitschaft zu laden"
     )
   }
 
