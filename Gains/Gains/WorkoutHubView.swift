@@ -468,7 +468,7 @@ struct WorkoutHubView: View {
   /// CTA-Wording — Live öffnet, sonst startet Modalität-spezifisch.
   private func heroCtaTitle(for modality: CardioModality, isLive: Bool) -> String {
     if isLive {
-      return modality.isCycling ? "Tour öffnen" : "Lauf öffnen"
+      return modality.isCycling ? "Aktive Tour öffnen" : "Aktiven Lauf öffnen"
     }
     switch modality {
     case .run:         return "Lauf starten"
