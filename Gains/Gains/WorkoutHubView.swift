@@ -1778,11 +1778,29 @@ struct WorkoutHubView: View {
 
         let prs = store.distancePRs
         if prs.isEmpty {
+          let emptyPrActionLabel: String = {
+            if store.activeWorkout != nil {
+              return "Aktives Training öffnen"
+            }
+            if store.activeRun != nil {
+              return displayedModality.isCycling ? "Aktive Tour öffnen" : "Aktiven Lauf öffnen"
+            }
+            return displayedModality.isCycling ? "Tour starten" : "Lauf starten"
+          }()
+
           EmptyStateView(
             style: .inline,
             title: "Noch keine Bestzeiten",
             message: "Läufe ab 5 km reichen, um deine ersten PR-Zeiten zu sammeln.",
-            icon: "trophy"
+            icon: "trophy",
+            actionLabel: emptyPrActionLabel,
+            action: {
+              if store.activeWorkout != nil {
+                isShowingWorkoutTracker = true
+                return
+              }
+              startOrResumeCardio()
+            }
           )
         } else {
           VStack(spacing: GainsSpacing.xsPlus) {
