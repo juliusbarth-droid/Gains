@@ -2003,7 +2003,7 @@ struct ProgressContentView: View {
             .font(GainsFont.body(13))
             .foregroundStyle(GainsColor.ink)
             .lineLimit(2)
-          Text(trimmedSubtitle.isEmpty ? "ohne Detailangabe" : trimmedSubtitle)
+          Text(trimmedSubtitle.isEmpty ? "ohne Verlaufsdetail" : trimmedSubtitle)
             .font(GainsFont.label(9))
             .tracking(0.6)
             .foregroundStyle(GainsColor.softInk)
