@@ -3098,11 +3098,13 @@ struct HomeView: View {
        !hasCompletedWorkoutToday {
       let plan = store.todayPlannedDay
       if let runTemplate = plan.runTemplate {
+        let trimmedRunTitle = runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let runTitle = trimmedRunTitle.isEmpty ? "dein Lauf" : trimmedRunTitle.lowercased()
         return CoachBrief(
           eyebrow: "LAUF-FENSTER",
           glyph: "figure.run",
           accent: GainsColor.ember,
-          headline: "Heute steht \(runTemplate.title.lowercased()) an.",
+          headline: "Heute steht \(runTitle) an.",
           subline: String(
             format: "%.1f km · ca. %d Minuten. Bestes Timing: jetzt — Wetter & Energie passen.",
             runTemplate.targetDistanceKm,
@@ -3151,11 +3153,13 @@ struct HomeView: View {
     if hour < 11, store.todayPlannedDay.status == .planned {
       let plan = store.todayPlannedDay
       if let runTemplate = plan.runTemplate {
+        let trimmedRunTitle = runTemplate.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let runTitle = trimmedRunTitle.isEmpty ? "dein Lauf" : trimmedRunTitle.lowercased()
         return CoachBrief(
           eyebrow: "GUTEN MORGEN",
           glyph: "sun.max.fill",
           accent: GainsColor.ember,
-          headline: "Heute läuft \(runTemplate.title.lowercased()).",
+          headline: "Heute läuft \(runTitle).",
           subline: String(
             format: "%.1f km · %d Min im Plan. Empfohlene Slots: 07–09 Uhr oder 17–19 Uhr.",
             runTemplate.targetDistanceKm,
