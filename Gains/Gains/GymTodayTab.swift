@@ -776,7 +776,7 @@ struct GymTodayTab: View {
     let trimmedValue = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     VStack(spacing: GainsSpacing.xxs) {
-      Text(trimmedLabel.isEmpty ? "Status" : trimmedLabel)
+      Text(trimmedLabel.isEmpty ? "Livewert" : trimmedLabel)
         .font(GainsFont.label(8))
         .tracking(1.5)
         .foregroundStyle(GainsColor.softInk)
