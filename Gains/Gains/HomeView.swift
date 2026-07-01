@@ -1669,7 +1669,7 @@ struct HomeView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Ernährung öffnen")
     .accessibilityValue(kcalGoal == 0 ? "Kalorienziel noch nicht festgelegt" : "\(kcalNow) von \(kcalGoal) Kalorien")
-    .accessibilityHint(kcalGoal == 0 ? "Öffnet die Ernährung, damit du zuerst dein Kalorienziel festlegen kannst" : "Öffnet deine heutige Ernährung und dein Kalorienziel")
+    .accessibilityHint(kcalGoal == 0 ? "Öffnet deine Ernährung direkt zur Einrichtung deines Kalorienziels" : "Öffnet deine heutige Ernährung und dein Kalorienziel")
   }
 
   /// Eine kompakte Macro-Säule: Eyebrow, Mono-Wert (X/Y g), und eine
