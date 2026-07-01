@@ -2765,7 +2765,7 @@ struct HomeView: View {
           ? "Alle \(s.totalSets) Sätze fast durch — \(aw.title) wartet auf den Schlusspunkt."
           : "\(s.completedSets)/\(s.totalSets) Sätze · \(progress) % von \(aw.title) durch.",
         primary: CoachActionDescriptor(
-          title: "Training öffnen",
+          title: "Aktives Training öffnen",
           icon: "play.fill",
           metric: "\(s.completedSets)/\(s.totalSets)",
           action: .openWorkoutTracker
@@ -2794,7 +2794,7 @@ struct HomeView: View {
           )
         }(),
         primary: CoachActionDescriptor(
-          title: "Lauf öffnen",
+          title: "Aktiven Lauf öffnen",
           icon: "figure.run",
           metric: String(format: "%.2f km", ar.distanceKm),
           action: .openRunTracker
