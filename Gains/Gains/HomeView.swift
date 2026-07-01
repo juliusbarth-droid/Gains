@@ -3651,7 +3651,7 @@ struct HomeView: View {
     let trainingTile = ActionTileSpec(
       kind: .training,
       eyebrow: "PLAN",
-      title: runningWorkout ? "Training öffnen" : runningRun ? "Lauf öffnen" : (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? "Laufbereich öffnen" : "Krafttraining öffnen",
+      title: runningWorkout ? "Aktives Training öffnen" : runningRun ? "Aktiven Lauf öffnen" : (plan.runTemplate != nil || plan.sessionKind?.isRun == true) ? "Laufbereich öffnen" : "Krafttraining öffnen",
       subtitle: quickStartTrainingSubtitle,
       icon: "dumbbell.fill",
       accent: GainsColor.lime,
@@ -3661,7 +3661,7 @@ struct HomeView: View {
     let cardioTile = ActionTileSpec(
       kind: .cardio,
       eyebrow: "LAUFEN",
-      title: runningRun ? "Lauf öffnen" : runningWorkout ? "Training öffnen" : "Lauf starten",
+      title: runningRun ? "Aktiven Lauf öffnen" : runningWorkout ? "Aktives Training öffnen" : "Lauf starten",
       subtitle: {
         if runningRun {
           let dm = store.activeRun?.durationMinutes ?? 0
