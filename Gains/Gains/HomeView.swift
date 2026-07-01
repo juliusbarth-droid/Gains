@@ -2651,7 +2651,7 @@ struct HomeView: View {
       .buttonStyle(.plain)
       .accessibilityLabel("Heart-Rate-Sensor verbunden")
       .accessibilityValue((ble.liveHeartRate ?? 0) > 0 ? "\(ble.liveHeartRate!) BPM" : "Keine Live-Herzfrequenz")
-      .accessibilityHint("Öffnet den verbundenen Heart-Rate-Sensor")
+      .accessibilityHint("Öffnet dein Profil mit dem verbundenen Heart-Rate-Sensor und weiteren Gerätedaten")
     }
   }
 
