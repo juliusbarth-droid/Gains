@@ -2489,7 +2489,7 @@ struct HomeView: View {
     case .progress:
       return "Öffnet deinen Fortschritt und Verlauf"
     case .meal:
-      return "Öffnet die Ernährung, von dort kannst du Mahlzeiten loggen oder erfassen"
+      return "Öffnet deine Ernährung direkt zum Mahlzeiten-Loggen oder Erfassen"
     case .water:
       return "Öffnet deine Ernährung direkt zum Wasser-Loggen"
     case .planner:
