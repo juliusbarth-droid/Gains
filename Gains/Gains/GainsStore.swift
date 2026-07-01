@@ -4359,7 +4359,7 @@ final class GainsStore: ObservableObject {
     guard !newRecords.isEmpty else { return }
 
     let title = newRecords.count == 1
-      ? "Neuer PR: \(newRecords[0].exercise)"
+      ? "Neuer PR: \(newRecords.first?.exercise ?? "Übung")"
       : "\(newRecords.count) neue Personal Records"
     let detail = newRecords
       .map { "\($0.exercise): \(Int($0.weight)) kg" }
