@@ -1661,7 +1661,7 @@ struct ProgressContentView: View {
       let paceLabel = $0.averagePaceSeconds > 0 ? spokenPaceLabel($0.averagePaceSeconds) : "ohne Paceangabe"
       return String(format: "%.1f Kilometer, %@, %@, %@", $0.distanceKm, minutesLabel, paceLabel, heartRateLabel)
     } ?? "Noch kein Lauftraining geloggt")
-    .accessibilityHint(latest == nil ? "Schließt den Fortschritt und öffnet den Laufbereich für dein erstes Cardio-Training" : "Schließt den Fortschritt und öffnet den Lauftraining-Bereich für weitere Details zu dieser letzten Cardio-Einheit")
+    .accessibilityHint(latest == nil ? "Schließt den Fortschritt und öffnet den Laufbereich für dein erstes Cardio-Training" : "Schließt den Fortschritt und öffnet den Laufbereich mit Verlauf und letzter Cardio-Einheit")
   }
 
   private func cardioDistanceSparkline(values: [Double]) -> some View {
