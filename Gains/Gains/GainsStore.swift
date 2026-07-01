@@ -919,7 +919,19 @@ final class GainsStore: ObservableObject {
   }
 
   var todayPlannedDay: WorkoutDayPlan {
-    weeklyWorkoutSchedule.first(where: { $0.isToday }) ?? weeklyWorkoutSchedule[0]
+    weeklyWorkoutSchedule.first(where: { $0.isToday })
+      ?? weeklyWorkoutSchedule.first
+      ?? WorkoutDayPlan(
+        weekday: .today,
+        dayLabel: Weekday.today.shortLabel,
+        title: "Heute",
+        focus: "Noch kein Plan",
+        isToday: true,
+        status: .flexible,
+        workoutPlan: nil,
+        sessionKind: nil,
+        runTemplate: nil
+      )
   }
 
   var todayPlannedWorkout: WorkoutPlan? {
