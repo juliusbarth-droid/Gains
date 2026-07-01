@@ -2387,6 +2387,7 @@ private struct CompactSetRow: View {
       .opacity(isCompleted ? 0.45 : 1)
       .disabled(isCompleted)
       .accessibilityLabel(isTimerRunning ? "Satz pausieren" : "Satz starten")
+      .accessibilityHint(isCompleted ? "Nicht verfügbar, weil dieser Satz bereits abgeschlossen ist" : (isTimerRunning ? "Pausiert den laufenden Satz-Timer" : "Startet den Satz-Timer für diesen Satz"))
 
       // Erledigt-Toggle
       Button(action: onComplete) {
