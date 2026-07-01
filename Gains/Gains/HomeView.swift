@@ -2223,7 +2223,7 @@ struct HomeView: View {
         return isLive ? "\(liveFallback). \(trimmedSubtitle)" : trimmedSubtitle
       }()
     )
-    .accessibilityHint(isLive ? "Öffnet die bereits laufende Einheit" : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Trainingseinstieg für ein neues Training")
+    .accessibilityHint(isLive ? (kind == .cardio ? "Öffnet deinen bereits laufenden Lauf mit Karte, Splits und Steuerung" : "Öffnet dein bereits laufendes Training mit Übungen, Sätzen und Pausen") : kind == .cardio ? "Startet einen neuen Lauf oder öffnet per Langdruck weitere Cardio-Modi" : "Öffnet den Trainingseinstieg für ein neues Training")
     .accessibilityAddTraits(isLive ? .isSelected : [])
     .contextMenu { quickStartContextMenu(for: kind) }
   }
