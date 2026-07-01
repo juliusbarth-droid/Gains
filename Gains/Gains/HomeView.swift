@@ -931,7 +931,24 @@ struct HomeView: View {
             ? "\(stat.label): \(stat.value). \(stat.detail)."
             : "\(stat.label): \(stat.value) \(stat.unit). \(stat.detail).")
     )
-    .accessibilityHint("Öffnet den passenden Detailbereich zu diesem Wert")
+    .accessibilityHint(pulseTileAccessibilityHint(for: stat.action))
+  }
+
+  private func pulseTileAccessibilityHint(for action: CoachAction) -> String {
+    switch action {
+    case .openWorkoutTracker, .openTrainingTab, .startQuickWorkout, .startPlannedWorkout:
+      return "Öffnet dein Training mit Übungen, Sätzen und Pausen"
+    case .openRunTracker, .startQuickRun:
+      return "Öffnet deinen Lauf mit Karte, Splits und Steuerung"
+    case .openProgress:
+      return "Öffnet deinen Fortschritt und Verlauf"
+    case .openProfile:
+      return "Öffnet dein Profil mit deinen Daten und Einstellungen"
+    case .openPlanner:
+      return "Öffnet deinen Wochenplan mit den geplanten Einheiten"
+    case .openNutrition, .openNutritionCapture:
+      return "Öffnet deine Ernährung mit Kalorien, Makros und Erfassung"
+    }
   }
 
   // MARK: - Spotlight Stack (eine Card laut, die andere kompakt)
