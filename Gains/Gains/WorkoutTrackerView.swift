@@ -1073,7 +1073,7 @@ struct WorkoutTrackerView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(exercise.name) entfernen")
-      .accessibilityValue("\(completed) von \(exercise.sets.count) Sätzen erledigt")
+      .accessibilityValue("\(exercise.name), \(completed) von \(exercise.sets.count) Sätzen erledigt")
       .accessibilityHint("Entfernt diese Übung aus dem aktuellen Workout")
     }
     .padding(.horizontal, GainsSpacing.m)
