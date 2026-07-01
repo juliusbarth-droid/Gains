@@ -939,7 +939,18 @@ final class GainsStore: ObservableObject {
   }
 
   var currentWorkoutPreview: WorkoutPlan {
-    todayPlannedWorkout ?? savedWorkoutPlans.first ?? WorkoutPlan.starterTemplates[0]
+    todayPlannedWorkout
+      ?? savedWorkoutPlans.first
+      ?? WorkoutPlan.starterTemplates.first
+      ?? WorkoutPlan(
+        source: .template,
+        title: "Training",
+        focus: "Noch keine Trainingsvorschau",
+        split: "Flexibel",
+        estimatedDurationMinutes: 0,
+        exercises: [],
+        program: nil
+      )
   }
 
   var latestCompletedWorkout: CompletedWorkoutSummary? {
