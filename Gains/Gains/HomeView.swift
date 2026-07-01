@@ -1291,7 +1291,7 @@ struct HomeView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Wochenfortschritt — \(store.weeklySessionsCompleted) von \(store.weeklyGoalCount) Einheiten geschafft")
     .accessibilityValue(store.weeklyVolumeTons > 0 ? String(format: "%.1f Tonnen Volumen diese Woche", store.weeklyVolumeTons) : "Noch kein Wochenvolumen")
-    .accessibilityHint("Öffnet deinen Fortschritt und die Wochenübersicht")
+    .accessibilityHint("Öffnet deinen Fortschritt mit Verlauf und Wochenübersicht")
   }
 
   /// Mini-Pill mit „NÄCHSTES: Push" oder „HEUTE: Push" — als Quick-Hint
