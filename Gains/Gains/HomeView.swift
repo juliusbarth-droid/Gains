@@ -816,7 +816,7 @@ struct HomeView: View {
     )
     .accessibilityHint({
       let spokenTitle = trimmedPrimaryTitle.isEmpty ? "die empfohlene nächste Aktion" : trimmedPrimaryTitle
-      return "Öffnet \(spokenTitle)"
+      return trimmedPrimaryTitle.isEmpty ? "Öffnet \(spokenTitle)" : "Aktion: \(spokenTitle)"
     }())
   }
 
