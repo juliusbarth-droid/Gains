@@ -2720,7 +2720,7 @@ struct HomeView: View {
           headline: "Training wird geöffnet …",
           subline: "Setup läuft im Hintergrund — dein Training ist gleich bereit.",
           primary: CoachActionDescriptor(
-            title: "Training öffnen",
+            title: "Aktives Training öffnen",
             icon: "play.fill",
             metric: nil,
             action: .openWorkoutTracker
@@ -2735,7 +2735,7 @@ struct HomeView: View {
           headline: "GPS wird gesucht …",
           subline: "Setup läuft im Hintergrund — dein Lauf ist gleich bereit.",
           primary: CoachActionDescriptor(
-            title: "Lauf öffnen",
+            title: "Aktiven Lauf öffnen",
             icon: "figure.run",
             metric: nil,
             action: .openRunTracker
