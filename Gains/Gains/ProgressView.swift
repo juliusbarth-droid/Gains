@@ -996,9 +996,11 @@ struct ProgressContentView: View {
       return hh
     }
     let parts = text.split(separator: ":")
-    if parts.count == 2,
-       let h = Double(parts[0]),
-       let m = Double(parts[1]) {
+    if let hourPart = parts.first,
+       let minutePart = parts.dropFirst().first,
+       parts.count == 2,
+       let h = Double(hourPart),
+       let m = Double(minutePart) {
       return h + m / 60.0
     }
     return nil
