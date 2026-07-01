@@ -679,22 +679,22 @@ struct ProgressContentView: View {
     switch (wTop, rTop) {
     case (nil, nil): return nil
     case (let w?, nil):
-      guard store.workoutHistory.count >= 2 else { return nil }
+      guard let nextWorkoutDate = store.workoutHistory.dropFirst().first?.finishedAt else { return nil }
       latest = w
-      secondDate = store.workoutHistory[1].finishedAt
+      secondDate = nextWorkoutDate
     case (nil, let r?):
-      guard store.runHistory.count >= 2 else { return nil }
+      guard let nextRunDate = store.runHistory.dropFirst().first?.finishedAt else { return nil }
       latest = r
-      secondDate = store.runHistory[1].finishedAt
+      secondDate = nextRunDate
     case (let w?, let r?):
       if w >= r {
         latest = w
-        // Zweitgrößte: entweder workoutHistory[1] oder runHistory[0]
-        let w2 = store.workoutHistory.count >= 2 ? store.workoutHistory[1].finishedAt : Date.distantPast
+        // Zweitgrößte: entweder der zweitneueste Workout-Eintrag oder der neueste Lauf.
+        let w2 = store.workoutHistory.dropFirst().first?.finishedAt ?? Date.distantPast
         secondDate = max(r, w2)
       } else {
         latest = r
-        let r2 = store.runHistory.count >= 2 ? store.runHistory[1].finishedAt : Date.distantPast
+        let r2 = store.runHistory.dropFirst().first?.finishedAt ?? Date.distantPast
         secondDate = max(w, r2)
       }
     }
