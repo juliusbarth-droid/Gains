@@ -1631,7 +1631,7 @@ struct WorkoutTrackerView: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Satz hinzufügen")
-          .accessibilityValue(exercise.name)
+          .accessibilityValue("\(exercise.name), aktuell \(exercise.sets.count) Sätze")
           .accessibilityHint("Fügt dieser Übung einen neuen Satz hinzu")
 
           Button {
