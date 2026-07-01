@@ -4327,7 +4327,7 @@ struct HomeView: View {
             if store.activeWorkout != nil || store.activeRun != nil {
               if !trimmedActiveWorkoutTitle.isEmpty { return trimmedActiveWorkoutTitle }
               if !trimmedActiveRunTitle.isEmpty { return trimmedActiveRunTitle }
-              return store.activeRun != nil ? "Aktiver Lauf" : "Aktives Training"
+              return store.activeRun != nil ? "Aktiven Lauf öffnen" : "Aktives Training öffnen"
             }
             return trimmedSnapshotTitle.isEmpty
               ? "Gespeichertes Training, \(completed) von \(total) Sätzen"
