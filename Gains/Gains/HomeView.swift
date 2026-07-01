@@ -814,7 +814,10 @@ struct HomeView: View {
         return trimmedSubline.isEmpty ? "Empfohlene nächste Aktion" : "Empfohlene nächste Aktion. \(trimmedSubline)"
       }()
     )
-    .accessibilityHint("Öffnet diese empfohlene nächste Aktion")
+    .accessibilityHint({
+      let spokenTitle = trimmedPrimaryTitle.isEmpty ? "die empfohlene nächste Aktion" : trimmedPrimaryTitle
+      return "Öffnet \(spokenTitle)"
+    }())
   }
 
   private func coachSecondaryLink(_ action: CoachActionDescriptor, accent: Color) -> some View {
