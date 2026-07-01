@@ -1988,7 +1988,7 @@ struct HomeView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Community öffnen")
     .accessibilityValue("Feed, Forum und Treffs")
-    .accessibilityHint("Öffnet den Community-Bereich, um Beiträge und Aktivitäten der Crew zu sehen")
+    .accessibilityHint("Öffnet den Community-Feed mit Beiträgen, Forum und Treffs der Crew")
   }
 
   // MARK: - Schnellstart-Bar (Workout + Laufen — immer sichtbar)
