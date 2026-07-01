@@ -1836,7 +1836,7 @@ struct HomeView: View {
     .buttonStyle(.plain)
     .accessibilityLabel(store.nutritionTargetCalories == 0 ? "Ernährung" : "Ernährung — \(store.nutritionCaloriesToday) von \(store.nutritionTargetCalories) Kalorien")
     .accessibilityValue(store.nutritionTargetCalories == 0 ? "Kalorienziel noch nicht festgelegt" : "\(store.nutritionProteinToday) von \(store.nutritionTargetProtein) Gramm Eiweiß")
-    .accessibilityHint(store.nutritionTargetCalories == 0 ? "Öffnet die Ernährung, damit du zuerst dein Kalorienziel festlegen kannst" : "Öffnet deine heutige Ernährung mit Kalorien und Eiweiß")
+    .accessibilityHint(store.nutritionTargetCalories == 0 ? "Öffnet deine Ernährung direkt zur Einrichtung deines Kalorienziels" : "Öffnet deine heutige Ernährung mit Kalorien und Eiweiß")
   }
 
   @ViewBuilder
