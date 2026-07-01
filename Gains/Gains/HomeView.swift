@@ -4212,7 +4212,7 @@ struct HomeView: View {
       let trimmedDetail = insight.detail?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
       return trimmedDetail.isEmpty ? "Fortschrittshinweis" : trimmedDetail
     }())
-    .accessibilityHint("Öffnet deinen Fortschritt mit weiteren Details zu diesem Hinweis")
+    .accessibilityHint("Öffnet deinen Fortschritt und Verlauf zu diesem Hinweis")
   }
 
   // MARK: - Workout-Recovery-Banner (Audit-Loop 3, 2026-05-14)
