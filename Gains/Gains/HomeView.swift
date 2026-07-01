@@ -2717,8 +2717,8 @@ struct HomeView: View {
           eyebrow: "WORKOUT STARTET",
           glyph: "dumbbell.fill",
           accent: GainsColor.lime,
-          headline: "Training wird geöffnet …",
-          subline: "Setup läuft im Hintergrund — dein Training ist gleich bereit.",
+          headline: "Aktives Training wird geöffnet …",
+          subline: "Setup läuft im Hintergrund — dein aktives Training ist gleich bereit.",
           primary: CoachActionDescriptor(
             title: "Aktives Training öffnen",
             icon: "play.fill",
@@ -2732,8 +2732,8 @@ struct HomeView: View {
           eyebrow: "LAUF STARTET",
           glyph: "figure.run",
           accent: GainsColor.ember,
-          headline: "GPS wird gesucht …",
-          subline: "Setup läuft im Hintergrund — dein Lauf ist gleich bereit.",
+          headline: "Aktiver Lauf wird vorbereitet …",
+          subline: "Setup läuft im Hintergrund — dein aktiver Lauf ist gleich bereit.",
           primary: CoachActionDescriptor(
             title: "Aktiven Lauf öffnen",
             icon: "figure.run",
