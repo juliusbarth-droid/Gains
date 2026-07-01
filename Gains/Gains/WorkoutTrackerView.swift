@@ -1673,7 +1673,7 @@ struct WorkoutTrackerView: View {
           .buttonStyle(.plain)
           .accessibilityLabel("Letzten Satz wiederholen")
           .accessibilityValue(exercise.name)
-          .accessibilityHint(exercise.sets.isEmpty ? "Es gibt noch keinen Satz zum Wiederholen" : "Fügt einen neuen Satz mit den Werten des letzten Satzes hinzu")
+          .accessibilityHint(exercise.sets.isEmpty ? "Nicht verfügbar, weil es für diese Übung noch keinen Satz zum Wiederholen gibt" : "Fügt einen neuen Satz mit den Werten des letzten Satzes hinzu")
           .disabled(exercise.sets.isEmpty)
           .opacity(exercise.sets.isEmpty ? 0.4 : 1)
 
