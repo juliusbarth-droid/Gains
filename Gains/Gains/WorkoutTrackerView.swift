@@ -2518,6 +2518,8 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) verringern")
+      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)")
+      .accessibilityHint("Verringert den Wert für \(unit) um einen Schritt")
 
       VStack(spacing: 1) {
         Text(unit)
@@ -2557,6 +2559,8 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) erhöhen")
+      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)")
+      .accessibilityHint("Erhöht den Wert für \(unit) um einen Schritt")
     }
     .background(
       // 2026-05-29 (Polish-Pass): Stepper-Block ruhig — kein Radial-Glow,
