@@ -2394,7 +2394,7 @@ private struct CompactSetRow: View {
       .disabled(isCompleted)
       .accessibilityLabel(isTimerRunning ? "Satz pausieren" : "Satz starten")
       .accessibilityValue(isCompleted ? "Satz bereits abgeschlossen" : (isTimerRunning ? "Aktiver Satz, Timer läuft" : "Satz offen, bereit zum Starten"))
-      .accessibilityHint(isCompleted ? "Nicht verfügbar, weil dieser Satz bereits abgeschlossen ist" : (isTimerRunning ? "Pausiert den laufenden Satz-Timer" : "Startet den Satz-Timer für diesen Satz"))
+      .accessibilityHint(isCompleted ? "Nicht verfügbar, weil dieser Satz bereits abgeschlossen ist" : (isTimerRunning ? "Pausiert den Timer für diesen aktiven Satz" : "Startet den Timer für diesen offenen Satz"))
 
       // Erledigt-Toggle
       Button(action: onComplete) {
