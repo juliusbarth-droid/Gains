@@ -2071,7 +2071,7 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(title)
-    .accessibilityValue(detail ?? (isComplete ? "Workout bereit zum Abschließen" : isEmpty ? "Noch keine Übung im Workout" : "\(wStats.completedSets) von \(wStats.totalSets) Sätzen erledigt"))
+    .accessibilityValue(detail ?? (isComplete ? "Workout bereit zum Abschließen" : isEmpty ? "Noch keine Übung im Workout" : "\(wStats.completedSets) von \(wStats.totalSets) Sätzen, \(wStats.completedExercises) von \(workout.exercises.count) Übungen erledigt"))
     .accessibilityHint(isEmpty ? "Öffnet die Übungsauswahl für dein Workout" : isComplete ? "Schließt das aktuelle Workout ab" : isSetActive ? (isActivePendingSet ? "Markiert den aktuellen Satz als abgeschlossen" : "Stoppt den aktuell laufenden Satz") : "Startet den nächsten offenen Satz")
   }
 
