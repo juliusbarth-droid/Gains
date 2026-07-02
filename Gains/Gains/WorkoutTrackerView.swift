@@ -1638,7 +1638,7 @@ struct WorkoutTrackerView: View {
           .buttonStyle(.plain)
           .accessibilityLabel("Satz hinzufügen")
           .accessibilityValue("\(exercise.name), aktuell \(exercise.sets.count) Sätze, bereit zum Hinzufügen")
-          .accessibilityHint("Fügt dieser Übung einen neuen Satz hinzu")
+          .accessibilityHint("Hinzufügen ist bereit und fügt dieser Übung einen neuen Satz hinzu")
 
           Button {
             if let lastSet = exercise.sets.last, activeSetID == lastSet.id {
