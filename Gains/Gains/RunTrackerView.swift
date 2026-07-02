@@ -698,6 +698,8 @@ private struct PreRunSetupView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Hinweis ausblenden")
+      .accessibilityValue("Hinweis sichtbar")
+      .accessibilityHint("Blendet nur diesen Hinweis aus und lässt deine Laufeinstellungen unverändert")
     }
     .padding(GainsSpacing.s)
     .gainsGlassSurface(corner: GainsRadius.small, material: .thin, tint: GainsColor.accentCool.opacity(0.05), depth: .rest)
