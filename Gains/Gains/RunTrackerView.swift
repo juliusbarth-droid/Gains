@@ -748,6 +748,8 @@ private struct PreRunSetupView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Lauf sofort starten — \(quickStartSubtitle)")
+    .accessibilityValue("\(quickStartHeadline), \(quickStartSubtitle)")
+    .accessibilityHint(selectedModality.isCycling ? "Startet sofort eine neue Tour mit den gewählten Cardio-Einstellungen" : "Startet sofort einen neuen Lauf mit den gewählten Cardio-Einstellungen")
   }
 
   private var quickStartHeadline: String {
