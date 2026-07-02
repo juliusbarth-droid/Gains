@@ -2518,7 +2518,7 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) verringern")
-      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)")
+      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", Eingabe aktiv" : "")")
       .accessibilityHint("Verringert den Wert für \(unit) um einen Schritt")
 
       VStack(spacing: 1) {
@@ -2562,7 +2562,7 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) erhöhen")
-      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)")
+      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", Eingabe aktiv" : "")")
       .accessibilityHint("Erhöht den Wert für \(unit) um einen Schritt")
     }
     .background(
