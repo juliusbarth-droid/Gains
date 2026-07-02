@@ -1441,6 +1441,7 @@ private struct LiveRunView: View {
     .accessibilityLabel(deltaKm > 0
       ? "Distanz um \(label) Kilometer erhöhen"
       : "Distanz um \(label) Kilometer reduzieren")
+    .accessibilityValue(run.isPaused ? "Lauf pausiert" : "Bereit")
     .accessibilityHint(run.isPaused ? "Nicht verfügbar, solange dein Lauf pausiert ist" : (deltaKm > 0 ? "Erhöht deine Indoor-Distanz während des laufenden Trainings" : "Reduziert deine Indoor-Distanz während des laufenden Trainings"))
   }
 
