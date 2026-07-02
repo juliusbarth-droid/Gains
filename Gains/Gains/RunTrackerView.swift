@@ -1631,6 +1631,9 @@ private struct LiveRunView: View {
         .gainsGlassCTA(corner: GainsRadius.small, accent: GainsColor.lime)
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("Lauf stoppen")
+      .accessibilityValue(run.isPaused ? "Lauf pausiert" : "Lauf aktiv")
+      .accessibilityHint("Öffnet die Abschlussansicht zum Speichern, Verwerfen oder Fortsetzen deines Laufs")
     }
   }
 
