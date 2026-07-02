@@ -1874,6 +1874,8 @@ private struct StopRunSheet: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Lauf verwerfen")
+          .accessibilityValue("Noch nicht gespeichert")
+          .accessibilityHint("Öffnet die Bestätigung zum Verwerfen dieses Laufs")
         }
         .padding(.horizontal, GainsSpacing.l)
         .padding(.bottom, GainsSpacing.m)
