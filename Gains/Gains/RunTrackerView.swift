@@ -1613,6 +1613,7 @@ private struct LiveRunView: View {
       .buttonStyle(.plain)
       .disabled(run.isPaused)
       .accessibilityLabel("Runde markieren")
+      .accessibilityValue(run.isPaused ? "Lauf pausiert" : "Bereit")
       .accessibilityHint(run.isPaused ? "Nicht verfügbar, solange dein Lauf pausiert ist" : "Markiert eine neue Runde in deinem laufenden Training")
 
       Button(action: onStop) {
