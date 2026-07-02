@@ -2406,7 +2406,7 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel(isCompleted ? "Satz erledigt" : "Satz als erledigt markieren")
-      .accessibilityValue(isCompleted ? "Bereits abgeschlossen" : "Noch offen")
+      .accessibilityValue(isCompleted ? "Bereits abgeschlossen" : "Noch offen, bereit zum Abschließen")
       .accessibilityHint(isCompleted ? "Dieser Satz ist bereits als erledigt markiert" : "Markiert diesen Satz als erledigt")
     }
     .padding(.horizontal, GainsSpacing.xsPlus)
