@@ -2536,6 +2536,9 @@ private struct CompactSetRow: View {
           .minimumScaleFactor(0.7)
           .focused($focusedField, equals: field)
           .submitLabel(.done)
+          .accessibilityLabel("\(unit) eingeben")
+          .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)")
+          .accessibilityHint("Öffnet die Eingabe für \(unit)")
           .onSubmit(commit)
           .onChange(of: focusedField) { _, newValue in
             if newValue != field {
