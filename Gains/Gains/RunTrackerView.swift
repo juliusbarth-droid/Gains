@@ -1599,6 +1599,9 @@ private struct LiveRunView: View {
           .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
       }
       .buttonStyle(.plain)
+      .accessibilityLabel(run.isPaused ? "Lauf fortsetzen" : "Lauf pausieren")
+      .accessibilityValue(run.isPaused ? "Lauf pausiert" : "Lauf aktiv")
+      .accessibilityHint(run.isPaused ? "Setzt deinen pausierten Lauf fort" : "Pausiert deinen aktuell laufenden Lauf")
 
       Button(action: onLap) {
         VStack(spacing: 2) {
