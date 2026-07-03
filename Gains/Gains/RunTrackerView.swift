@@ -1878,7 +1878,7 @@ private struct StopRunSheet: View {
           Button {
             isConfirmingDiscard = true
           } label: {
-            Text("Verwerfen")
+            Text("Lauf verwerfen")
               .font(.system(size: 14, weight: .semibold))
               .foregroundStyle(GainsColor.softInk)
               .frame(maxWidth: .infinity)
