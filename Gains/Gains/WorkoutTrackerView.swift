@@ -463,7 +463,7 @@ struct WorkoutTrackerView: View {
           Circle()
             .fill(GainsColor.lime)
             .frame(width: 6, height: 6)
-          Text("LIVE")
+          Text("AKTIV")
             .font(TrackerType.eyebrow)
             .tracking(GainsTracking.eyebrowWide)
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
