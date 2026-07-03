@@ -1249,7 +1249,7 @@ private struct LiveRunView: View {
               .font(GainsFont.label(10))
               .tracking(1.4)
               .foregroundStyle(stepColor)
-            Text("STEP \(workout.currentStepIndex + 1)/\(workout.steps.count)")
+            Text("SCHRITT \(workout.currentStepIndex + 1)/\(workout.steps.count)")
               .font(GainsFont.label(9))
               .tracking(1.0)
               .foregroundStyle(GainsColor.softInk)
