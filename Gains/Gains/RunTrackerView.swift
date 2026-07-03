@@ -1826,7 +1826,7 @@ private struct StopRunSheet: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button("Weiter laufen", action: onResume)
+          Button("Lauf fortsetzen", action: onResume)
             .foregroundStyle(GainsColor.ink)
             .accessibilityLabel("Lauf fortsetzen")
             .accessibilityValue(run?.isPaused == true ? "Lauf pausiert" : "Lauf aktiv")
