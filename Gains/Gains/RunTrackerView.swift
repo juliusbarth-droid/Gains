@@ -1903,7 +1903,7 @@ private struct StopRunSheet: View {
         Button("Verwerfen", role: .destructive, action: onDiscard)
         Button("Abbrechen", role: .cancel) {}
       } message: {
-        Text("Distanz, Pace und Runden werden nicht in deine Historie übernommen.")
+        Text("Distanz, Pace und Runden landen nicht im Feed oder in den Routen.")
       }
       .onAppear {
         if title.isEmpty { title = run?.title ?? "" }
