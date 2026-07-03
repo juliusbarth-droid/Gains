@@ -1668,7 +1668,7 @@ private struct LiveRunView: View {
             && split.paceSeconds == fastestPace
           VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: GainsSpacing.xxs) {
-              Text(split.isManualLap ? "LAP \(split.index)" : "KM \(split.index)")
+              Text(split.isManualLap ? "RUNDE \(split.index)" : "KM \(split.index)")
                 .font(GainsFont.label(9))
                 .tracking(1.4)
                 .foregroundStyle(isFastest ? GainsColor.moss : GainsColor.softInk)
