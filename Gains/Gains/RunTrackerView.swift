@@ -1828,6 +1828,9 @@ private struct StopRunSheet: View {
         ToolbarItem(placement: .topBarLeading) {
           Button("Weiter laufen", action: onResume)
             .foregroundStyle(GainsColor.ink)
+            .accessibilityLabel("Lauf fortsetzen")
+            .accessibilityValue(run?.isPaused == true ? "Lauf pausiert" : "Lauf aktiv")
+            .accessibilityHint("Schließt die Abschlussansicht und kehrt zu deinem aktuellen Lauf zurück")
         }
       }
       .safeAreaInset(edge: .bottom) {
