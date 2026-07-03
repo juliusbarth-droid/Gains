@@ -177,10 +177,10 @@ struct WorkoutTrackerView: View {
             .shadow(color: GainsColor.lime.opacity(0.11), radius: 16)
 
             VStack(spacing: GainsSpacing.xs) {
-              Text("Kein aktives Workout")
+              Text("Kein aktives Training")
                 .font(GainsFont.title(20))
                 .foregroundStyle(GainsColor.ink)
-              Text("Starte ein Workout vom Plan oder der Bibliothek.")
+              Text("Starte ein Training vom Plan oder der Bibliothek.")
                 .font(GainsFont.body)
                 .foregroundStyle(GainsColor.softInk)
                 .multilineTextAlignment(.center)
