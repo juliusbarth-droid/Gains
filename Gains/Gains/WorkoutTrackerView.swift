@@ -356,7 +356,7 @@ struct WorkoutTrackerView: View {
       // iOS bündelt destructive Buttons sowieso unten — wir sortieren sie
       // explizit, damit der Mis-Tap-Abstand zur primären Save-Aktion größer
       // wird.
-      .alert("Workout beenden?", isPresented: $isFinishing) {
+      .alert("Training beenden?", isPresented: $isFinishing) {
         Button("Speichern") {
           if activeSetID != nil {
             stopActiveSet()
@@ -377,7 +377,7 @@ struct WorkoutTrackerView: View {
           dismiss()
         }
       } message: {
-        Text("Speicher deinen Fortschritt oder verwirf das aktuelle Workout.")
+        Text("Speicher deinen Fortschritt oder verwirf dein aktuelles Training.")
       }
       .onChange(of: store.activeWorkout?.id) { _, newID in
         if newID == nil {
