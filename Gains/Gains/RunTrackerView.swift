@@ -1846,7 +1846,7 @@ private struct StopRunSheet: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Lauf speichern")
-          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, landet im Feed und in den Routen" : "Noch nicht speicherbar")
+          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, landet im Feed und in den Routen" : "Noch nicht speicherbar, Lauf braucht mindestens 30 Sekunden oder 0,01 Kilometer")
           .accessibilityHint(canSaveRun ? "Speichert deinen Lauf mit Titel, Notiz und Gefühl, danach landet er im Feed und in den Routen" : "Nicht verfügbar, bis dein Lauf mindestens 30 Sekunden oder 0,01 Kilometer erreicht hat")
           .disabled(!canSaveRun)
           .opacity(canSaveRun ? 1 : 0.5)
