@@ -1144,7 +1144,7 @@ struct WorkoutTrackerView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Übung zum Workout hinzufügen")
     .accessibilityValue("Bearbeiten-Modus aktiv, Übungsauswahl verfügbar")
-    .accessibilityHint("Öffnet die Übungsauswahl für das aktuelle Workout")
+    .accessibilityHint("Öffnet die Übungsauswahl für dein aktuelles Training")
   }
 
   /// Löscht eine Übung aus dem aktiven Workout — mit Undo-Snackbar.
