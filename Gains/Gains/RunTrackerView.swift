@@ -481,7 +481,7 @@ struct RunTrackerView: View {
     // Der Tracker fügt den Lap an `splits` an; via `syncStoreWithTracker`
     // (onReceive auf gpsTracker.$splits) landet er automatisch im Store.
     _ = gpsTracker.recordManualLap()
-    audio.speak("Lap.")
+    audio.speak("Runde.")
   }
 
   private func stopTracking() {
