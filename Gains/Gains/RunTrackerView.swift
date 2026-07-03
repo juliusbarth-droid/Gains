@@ -1614,7 +1614,7 @@ private struct LiveRunView: View {
         VStack(spacing: 2) {
           Image(systemName: "flag.checkered")
             .font(.system(size: 14, weight: .semibold))
-          Text("Lap")
+          Text("Runde")
             .font(.system(size: 12, weight: .semibold))
         }
         .foregroundStyle(GainsColor.ink)
