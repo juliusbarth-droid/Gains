@@ -1051,7 +1051,7 @@ private struct PreRunSetupView: View {
         Circle()
           .fill(gpsTracker.canStartTracking ? GainsColor.lime : GainsColor.softInk)
           .frame(width: 6, height: 6)
-        Text(gpsTracker.canStartTracking ? "GPS BEREIT" : "GPS WIRD VORBEREITET")
+        Text(gpsTracker.canStartTracking ? "GPS BEREIT" : "GPS WIRD AKTIVIERT")
           .font(GainsFont.label(10))
           .tracking(GainsTracking.eyebrow)
           .foregroundStyle(GainsColor.softInk)
