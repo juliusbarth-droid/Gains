@@ -102,6 +102,9 @@ struct RunTrackerView: View {
             }
           }
           .foregroundStyle(GainsColor.ink)
+          .accessibilityLabel(hasVisibleLiveRun ? "Lauf beenden" : "Laufansicht schließen")
+          .accessibilityValue(hasVisibleLiveRun ? "Aktiver Lauf" : (phase == .countdown ? "Lauf wird vorbereitet" : "Kein aktiver Lauf"))
+          .accessibilityHint(hasVisibleLiveRun ? "Öffnet die Abschlussansicht für deinen aktiven Lauf" : (phase == .countdown ? "Öffnet die Bestätigung zum Verwerfen der aktuellen Lauf-Vorbereitung" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
         }
       }
       // 2026-05-15 (Audit-Loop 20): Labels waren irreführend — „Abbrechen"
