@@ -313,7 +313,7 @@ struct WorkoutTrackerView: View {
           .disabled(store.activeWorkout == nil)
           .accessibilityLabel("Training beenden")
           .accessibilityValue(store.activeWorkout == nil ? "Kein aktives Training" : "Aktives Training, bereit zum Beenden")
-          .accessibilityHint(store.activeWorkout == nil ? "Nicht verfügbar, weil aktuell kein Workout geöffnet ist" : "Öffnet die Abschlussbestätigung für dein aktives Training")
+          .accessibilityHint(store.activeWorkout == nil ? "Nicht verfügbar, weil aktuell kein Training geöffnet ist" : "Öffnet die Abschlussbestätigung für dein aktives Training")
         }
         ToolbarItemGroup(placement: .keyboard) {
           Spacer()
