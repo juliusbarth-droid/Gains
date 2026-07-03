@@ -1822,7 +1822,7 @@ private struct StopRunSheet: View {
         .padding(GainsSpacing.l)
       }
       .background(GainsColor.background.ignoresSafeArea())
-      .navigationTitle("Lauf beenden")
+      .navigationTitle("Lauf abschließen")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
