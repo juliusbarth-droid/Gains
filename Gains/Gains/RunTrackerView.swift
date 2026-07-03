@@ -1656,7 +1656,7 @@ private struct LiveRunView: View {
     let fastestPace = splits.map(\.paceSeconds).filter { $0 > 0 }.min()
 
     return VStack(alignment: .leading, spacing: GainsSpacing.xsPlus) {
-      Text("LETZTE SPLITS")
+      Text("LETZTE RUNDEN")
         .font(GainsFont.label(10))
         .tracking(GainsTracking.eyebrow)
         .foregroundStyle(GainsColor.softInk)
