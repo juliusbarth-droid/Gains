@@ -1650,7 +1650,7 @@ struct WorkoutTrackerView: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Letzten Satz entfernen")
-          .accessibilityValue(exercise.sets.count <= 1 ? "\(exercise.name), nur ein Satz vorhanden" : "\(exercise.name), aktuell \(exercise.sets.count) Sätze, bereit zum Entfernen")
+          .accessibilityValue(exercise.sets.count <= 1 ? "\(exercise.name), nicht entfernbar, mindestens ein Satz muss bleiben" : "\(exercise.name), aktuell \(exercise.sets.count) Sätze, bereit zum Entfernen")
           .accessibilityHint(exercise.sets.count <= 1 ? "Nicht verfügbar, weil mindestens ein Satz für diese Übung bestehen bleiben muss" : "Entfernen ist bereit und entfernt den letzten Satz dieser Übung")
           .disabled(exercise.sets.count <= 1)
           .opacity(exercise.sets.count <= 1 ? 0.4 : 1)
