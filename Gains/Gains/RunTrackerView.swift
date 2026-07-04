@@ -76,7 +76,7 @@ struct RunTrackerView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button(hasVisibleLiveRun ? "Beenden" : "Schließen") {
+          Button(hasVisibleLiveRun ? "Abschließen" : "Schließen") {
             if hasVisibleLiveRun {
               isConfirmingCountdownAbort = false
               suppressNextAutoPauseSync = false
@@ -102,7 +102,7 @@ struct RunTrackerView: View {
             }
           }
           .foregroundStyle(GainsColor.ink)
-          .accessibilityLabel(hasVisibleLiveRun ? "Lauf beenden" : "Laufansicht schließen")
+          .accessibilityLabel(hasVisibleLiveRun ? "Lauf abschließen" : "Laufansicht schließen")
           .accessibilityValue(hasVisibleLiveRun ? "Aktiver Lauf" : (phase == .countdown ? "Lauf wird vorbereitet" : "Kein aktiver Lauf"))
           .accessibilityHint(hasVisibleLiveRun ? "Öffnet die Abschlussansicht für deinen aktiven Lauf" : (phase == .countdown ? "Öffnet die Bestätigung zum Verwerfen der aktuellen Lauf-Vorbereitung" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
         }
