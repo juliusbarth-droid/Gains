@@ -116,7 +116,7 @@ struct RunTrackerView: View {
         isPresented: $isConfirmingCountdownAbort,
         titleVisibility: .visible
       ) {
-        Button("Setup verwerfen", role: .destructive) {
+        Button("Vorbereitung verwerfen", role: .destructive) {
           isConfirmingCountdownAbort = false
           suppressNextAutoPauseSync = false
           cancelCountdown()
