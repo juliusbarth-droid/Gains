@@ -1900,7 +1900,7 @@ private struct StopRunSheet: View {
         isPresented: $isConfirmingDiscard,
         titleVisibility: .visible
       ) {
-        Button("Verwerfen", role: .destructive, action: onDiscard)
+        Button("Lauf verwerfen", role: .destructive, action: onDiscard)
         Button("Abbrechen", role: .cancel) {}
       } message: {
         Text("Distanz, Pace und Runden landen nicht im Feed oder in den Routen.")
