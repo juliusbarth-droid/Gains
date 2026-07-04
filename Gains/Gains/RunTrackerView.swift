@@ -126,7 +126,7 @@ struct RunTrackerView: View {
           }
           dismiss()
         }
-        Button("Zurück", role: .cancel) {}
+        Button("Vorbereitung fortsetzen", role: .cancel) {}
       } message: {
         Text("Dein eingestelltes Ziel und der Modus gehen verloren.")
       }
