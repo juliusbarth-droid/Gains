@@ -1635,7 +1635,7 @@ private struct LiveRunView: View {
           Image(systemName: "stop.fill")
             .font(.system(size: 13, weight: .bold))
             .foregroundStyle(GainsColor.moss)
-          Text("Stopp")
+          Text("Abschließen")
             .font(.system(size: 15, weight: .semibold))
             .foregroundStyle(GainsColor.ink)
         }
@@ -1644,7 +1644,7 @@ private struct LiveRunView: View {
         .gainsGlassCTA(corner: GainsRadius.small, accent: GainsColor.lime)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Lauf stoppen")
+      .accessibilityLabel("Lauf abschließen")
       .accessibilityValue(run.isPaused ? "Lauf pausiert" : "Lauf aktiv")
       .accessibilityHint(run.isPaused ? "Öffnet die Abschlussansicht für deinen pausierten Lauf zum Speichern, Verwerfen oder Fortsetzen" : "Öffnet die Abschlussansicht für deinen aktiven Lauf zum Speichern, Verwerfen oder Fortsetzen")
     }
