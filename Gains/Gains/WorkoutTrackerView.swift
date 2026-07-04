@@ -419,7 +419,7 @@ struct WorkoutTrackerView: View {
         Button(actionTitle, role: .destructive) {
           performSkipExercise(exercise)
         }
-        Button("Abbrechen", role: .cancel) {}
+        Button("Übung behalten", role: .cancel) {}
       } message: { exercise in
         // 2026-05-03 Intuitivitäts-Sweep P1-12: Wording ehrlich machen.
         // Skip ≠ erledigt — die offenen Sätze bleiben ungezählt, damit
