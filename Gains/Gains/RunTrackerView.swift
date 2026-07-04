@@ -1842,7 +1842,7 @@ private struct StopRunSheet: View {
               Image(systemName: "checkmark")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(GainsColor.moss)
-              Text("Speichern")
+              Text("Lauf speichern")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(GainsColor.ink)
             }
