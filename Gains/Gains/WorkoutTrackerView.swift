@@ -295,7 +295,7 @@ struct WorkoutTrackerView: View {
             HStack(spacing: GainsSpacing.xs) {
               Image(systemName: "flag.checkered")
                 .font(.system(size: 10, weight: .heavy))
-              Text("ENDE")
+              Text("ABSCHLUSS")
                 .font(TrackerType.eyebrow)
                 .tracking(GainsTracking.eyebrowTight)
             }
@@ -311,8 +311,8 @@ struct WorkoutTrackerView: View {
             .contentShape(Capsule())
           }
           .disabled(store.activeWorkout == nil)
-          .accessibilityLabel("Training beenden")
-          .accessibilityValue(store.activeWorkout == nil ? "Kein aktives Training" : "Aktives Training, bereit zum Beenden")
+          .accessibilityLabel("Training abschließen")
+          .accessibilityValue(store.activeWorkout == nil ? "Kein aktives Training" : "Aktives Training, bereit zum Abschließen")
           .accessibilityHint(store.activeWorkout == nil ? "Nicht verfügbar, weil aktuell kein Training geöffnet ist" : "Öffnet die Abschlussbestätigung für dein aktives Training")
         }
         ToolbarItemGroup(placement: .keyboard) {
