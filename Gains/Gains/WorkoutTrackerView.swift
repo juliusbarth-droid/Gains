@@ -368,7 +368,7 @@ struct WorkoutTrackerView: View {
         Button("Weiter trainieren", role: .cancel) {
           isFinishing = false
         }
-        Button("Verwerfen", role: .destructive) {
+        Button("Training verwerfen", role: .destructive) {
           if activeSetID != nil {
             stopActiveSet()
           }
