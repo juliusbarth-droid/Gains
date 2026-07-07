@@ -377,7 +377,7 @@ struct WorkoutTrackerView: View {
           dismiss()
         }
       } message: {
-        Text("Speichere oder verwerfe dein aktuelles Training.")
+        Text("Wenn du das Training verwirfst, geht dein aktueller Fortschritt verloren.")
       }
       .onChange(of: store.activeWorkout?.id) { _, newID in
         if newID == nil {
