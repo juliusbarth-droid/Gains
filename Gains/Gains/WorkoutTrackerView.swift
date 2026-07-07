@@ -1926,7 +1926,7 @@ struct WorkoutTrackerView: View {
     .shadow(color: GainsColor.moss.opacity(0.20), radius: 14, x: 0, y: 0)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Alle Sätze erledigt")
-    .accessibilityValue("\(s.completedSets) von \(s.totalSets) Sätzen, \(completedExercises) von \(workout.exercises.count) Übungen, \(Int(s.totalVolume)) Kilogramm Volumen, \(sessionTimeString(start: workout.startedAt, now: Date())) Dauer")
+    .accessibilityValue("\(s.completedSets) von \(s.totalSets) Sätzen, \(completedExercises) von \(workout.exercises.count) Übungen, \(Int(s.totalVolume)) Kilogramm Volumen, \(sessionTimeString(start: workout.startedAt, now: Date())) Dauer. Training kann gespeichert, fortgesetzt oder verworfen werden")
     .accessibilityHint("Zeigt deine Abschlusszusammenfassung, bevor du dein Training speichern, fortsetzen oder verwerfen kannst")
   }
 
