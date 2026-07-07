@@ -1903,7 +1903,7 @@ private struct StopRunSheet: View {
         Button("Lauf verwerfen", role: .destructive, action: onDiscard)
         Button("Lauf behalten", role: .cancel) {}
       } message: {
-        Text("Wenn du den Lauf behältst, kannst du ihn weiter fortsetzen oder speichern. Wenn du ihn verwirfst, landen Distanz, Pace und Runden nicht im Feed oder in den Routen.")
+        Text("Wenn du den Lauf behältst, kannst du ihn direkt fortsetzen oder speichern. Wenn du ihn verwirfst, landen Distanz, Pace und Runden nicht im Feed oder in den Routen.")
       }
       .onAppear {
         if title.isEmpty { title = run?.title ?? "" }
