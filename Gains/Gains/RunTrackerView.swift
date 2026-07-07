@@ -104,7 +104,7 @@ struct RunTrackerView: View {
           .foregroundStyle(GainsColor.ink)
           .accessibilityLabel(hasVisibleLiveRun ? "Lauf abschließen" : "Laufansicht schließen")
           .accessibilityValue(hasVisibleLiveRun ? "Aktiver Lauf" : (phase == .countdown ? "Lauf wird vorbereitet" : "Kein aktiver Lauf"))
-          .accessibilityHint(hasVisibleLiveRun ? "Öffnet die Abschlussansicht für deinen aktiven Lauf" : (phase == .countdown ? "Öffnet die Bestätigung, in der du die aktuelle Lauf-Vorbereitung fortsetzen oder verwerfen kannst" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
+          .accessibilityHint(hasVisibleLiveRun ? "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst" : (phase == .countdown ? "Öffnet die Bestätigung, in der du die aktuelle Lauf-Vorbereitung fortsetzen oder verwerfen kannst" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
         }
       }
       // 2026-05-15 (Audit-Loop 20): Labels waren irreführend — „Abbrechen"
