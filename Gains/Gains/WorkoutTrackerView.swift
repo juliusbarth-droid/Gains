@@ -365,7 +365,7 @@ struct WorkoutTrackerView: View {
           store.finishWorkout()
           dismiss()
         }
-        Button("Weiter trainieren", role: .cancel) {
+        Button("Training fortsetzen", role: .cancel) {
           isFinishing = false
         }
         Button("Training verwerfen", role: .destructive) {
