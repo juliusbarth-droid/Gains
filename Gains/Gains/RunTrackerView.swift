@@ -1830,7 +1830,7 @@ private struct StopRunSheet: View {
             .foregroundStyle(GainsColor.ink)
             .accessibilityLabel("Lauf fortsetzen")
             .accessibilityValue(run?.isPaused == true ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt weitergeführt werden")
-            .accessibilityHint("Schließt die Abschlussansicht und kehrt zu deinem aktuellen Lauf zurück")
+            .accessibilityHint("Schließt die Abschlussansicht und setzt deinen aktuellen Lauf fort")
         }
       }
       .safeAreaInset(edge: .bottom) {
