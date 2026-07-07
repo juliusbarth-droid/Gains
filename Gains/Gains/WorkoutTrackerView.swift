@@ -410,9 +410,9 @@ struct WorkoutTrackerView: View {
         let pending = exercise.sets.filter { !$0.isCompleted }.count
         let actionTitle: String = {
           switch pending {
-          case 0: return "Übung schließen"
-          case 1: return "1 Satz offen lassen"
-          default: return "\(pending) Sätze offen lassen"
+          case 0: return "Übung überspringen"
+          case 1: return "Übung mit 1 offenem Satz überspringen"
+          default: return "Übung mit \(pending) offenen Sätzen überspringen"
           }
         }()
 
