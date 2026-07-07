@@ -1628,7 +1628,7 @@ private struct LiveRunView: View {
       .disabled(run.isPaused)
       .accessibilityLabel("Runde markieren")
       .accessibilityValue(run.isPaused ? "Pausierter Lauf, neue Runde kann erst nach dem Fortsetzen markiert werden" : "Aktiver Lauf, neue Runde kann direkt markiert werden")
-      .accessibilityHint(run.isPaused ? "Nicht verfügbar, solange dein Lauf pausiert ist" : "Markiert eine neue Runde in deinem laufenden Training")
+      .accessibilityHint(run.isPaused ? "Nicht verfügbar, weil eine neue Runde erst nach dem Fortsetzen deines Laufs markiert werden kann" : "Markiert eine neue Runde in deinem laufenden Training")
 
       Button(action: onStop) {
         HStack(spacing: GainsSpacing.xs) {
