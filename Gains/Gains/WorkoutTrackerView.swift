@@ -429,11 +429,11 @@ struct WorkoutTrackerView: View {
         let message: String = {
           switch pending {
           case 0:
-            return "Wenn du die Übung überspringst, wird sie nur eingeklappt."
+            return "Wenn du die Übung behältst, kannst du sie direkt weitertrainieren. Wenn du sie überspringst, wird sie nur eingeklappt."
           case 1:
-            return "Wenn du die Übung überspringst, bleibt 1 offener Satz ungezählt und Volumen sowie Stats bleiben korrekt."
+            return "Wenn du die Übung behältst, kannst du den offenen Satz weitertrainieren. Wenn du sie überspringst, bleibt 1 offener Satz ungezählt und Volumen sowie Stats bleiben korrekt."
           default:
-            return "Wenn du die Übung überspringst, bleiben \(pending) offene Sätze ungezählt und Volumen sowie Stats bleiben korrekt."
+            return "Wenn du die Übung behältst, kannst du die offenen Sätze weitertrainieren. Wenn du sie überspringst, bleiben \(pending) offene Sätze ungezählt und Volumen sowie Stats bleiben korrekt."
           }
         }()
         Text(message)
