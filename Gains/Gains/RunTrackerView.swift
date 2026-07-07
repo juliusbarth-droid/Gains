@@ -1860,14 +1860,14 @@ private struct StopRunSheet: View {
           // C4-Fix (2026-05-01): Klar machen, was Speichern bewirkt und —
           // wenn die Save-Bedingung NICHT erfüllt ist — warum nicht.
           if !canSaveRun {
-            Text("Mindestens 30 Sekunden oder 0,01 km, sonst landet der Lauf nicht im Feed oder in den Routen.")
+            Text("Du kannst den Lauf erst nach mindestens 30 Sekunden oder 0,01 km speichern, sonst landet er nicht im Feed oder in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
               .frame(maxWidth: .infinity)
               .padding(.horizontal, GainsSpacing.xxs)
           } else {
-            Text("Landet im Feed und in den Routen.")
+            Text("Wenn du den Lauf speicherst, landet er im Feed und in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
