@@ -1645,7 +1645,7 @@ private struct LiveRunView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Lauf abschließen")
-      .accessibilityValue(run.isPaused ? "Lauf pausiert" : "Lauf aktiv")
+      .accessibilityValue(run.isPaused ? "Pausierter Lauf, kann gespeichert, fortgesetzt oder verworfen werden" : "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden")
       .accessibilityHint(run.isPaused ? "Öffnet die Abschlussansicht, in der du deinen pausierten Lauf speichern, fortsetzen oder verwerfen kannst" : "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst")
     }
   }
