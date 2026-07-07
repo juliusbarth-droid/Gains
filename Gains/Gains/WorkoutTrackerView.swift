@@ -1864,7 +1864,7 @@ struct WorkoutTrackerView: View {
         Text("Alle Sätze erledigt")
           .font(GainsFont.headline)
           .foregroundStyle(GainsColor.ink)
-        Text("Stark – jetzt Training abschließen.")
+        Text("Stark – jetzt Abschluss öffnen und Training speichern, fortsetzen oder verwerfen.")
           .font(GainsFont.caption)
           .foregroundStyle(GainsColor.softInk)
 
