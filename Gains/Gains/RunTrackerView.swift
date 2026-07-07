@@ -1611,7 +1611,7 @@ private struct LiveRunView: View {
       .buttonStyle(.plain)
       .accessibilityLabel(run.isPaused ? "Lauf fortsetzen" : "Lauf pausieren")
       .accessibilityValue(run.isPaused ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt pausiert werden")
-      .accessibilityHint(run.isPaused ? "Setzt deinen pausierten Lauf fort" : "Pausiert deinen aktuell laufenden Lauf")
+      .accessibilityHint(run.isPaused ? "Setzt deinen pausierten Lauf direkt fort" : "Pausiert deinen aktuell laufenden Lauf")
 
       Button(action: onLap) {
         VStack(spacing: 2) {
