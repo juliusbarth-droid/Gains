@@ -128,7 +128,7 @@ struct RunTrackerView: View {
         }
         Button("Vorbereitung fortsetzen", role: .cancel) {}
       } message: {
-        Text("Wenn du die Vorbereitung verwirfst, gehen Ziel und Modus verloren.")
+        Text("Wenn du die Vorbereitung fortsetzt, bleiben Ziel und Modus erhalten. Wenn du sie verwirfst, gehen sie verloren.")
       }
       .sheet(isPresented: $showsStopSheet) {
         StopRunSheet(
