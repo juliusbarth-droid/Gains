@@ -2076,7 +2076,7 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(title)
-    .accessibilityValue(detail ?? (isComplete ? "Training bereit zum Abschließen" : isEmpty ? "Noch keine Übung im Training" : isSetActive ? (isActivePendingSet ? "Aktiver Satz, bereit zum Abschließen" : "Aktiver Satz, Timer läuft") : "\(wStats.completedSets) von \(wStats.totalSets) Sätzen, \(wStats.completedExercises) von \(workout.exercises.count) Übungen erledigt"))
+    .accessibilityValue(detail ?? (isComplete ? "Training kann gespeichert, fortgesetzt oder verworfen werden" : isEmpty ? "Noch keine Übung im Training" : isSetActive ? (isActivePendingSet ? "Aktiver Satz, bereit zum Abschließen" : "Aktiver Satz, Timer läuft") : "\(wStats.completedSets) von \(wStats.totalSets) Sätzen, \(wStats.completedExercises) von \(workout.exercises.count) Übungen erledigt"))
     .accessibilityHint(isEmpty ? "Öffnet die Übungsauswahl für dein Training" : isComplete ? "Öffnet die Abschlussbestätigung, in der du dein Training speichern, fortsetzen oder verwerfen kannst" : isSetActive ? (isActivePendingSet ? "Markiert diesen aktiven Satz als abgeschlossen" : "Stoppt den Timer für diesen aktiven Satz") : "Startet den nächsten offenen Satz")
   }
 
