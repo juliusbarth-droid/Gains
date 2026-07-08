@@ -505,7 +505,7 @@ struct WorkoutTrackerView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(isEditMode ? "Bearbeiten beenden" : "Übungen bearbeiten")
         .accessibilityValue(isEditMode ? "Bearbeiten-Modus aktiv" : "Bearbeiten-Modus aus")
-        .accessibilityHint(isEditMode ? "Schließt den Bearbeiten-Modus und kehrt zum Training zurück" : "Öffnet den Bearbeiten-Modus zum Sortieren, Entfernen und Hinzufügen von Übungen")
+        .accessibilityHint(isEditMode ? "Schließt den Bearbeiten-Modus und kehrt zu deinem aktiven Training zurück" : "Öffnet den Bearbeiten-Modus zum Sortieren, Entfernen und Hinzufügen von Übungen in deinem aktiven Training")
 
         HStack(spacing: GainsSpacing.xxs) {
           Image(systemName: "clock")
