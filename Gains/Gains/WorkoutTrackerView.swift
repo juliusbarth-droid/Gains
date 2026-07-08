@@ -1476,7 +1476,7 @@ struct WorkoutTrackerView: View {
             .contentShape(Circle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(hasGuide ? "Ausführung anzeigen" : "Hinweis zur Übung anzeigen")
+        .accessibilityLabel(hasGuide ? "Ausführung für \(exercise.name) anzeigen" : "Hinweis zu \(exercise.name) anzeigen")
         .accessibilityValue("\(exercise.name), \(completed) von \(total) Sätzen erledigt")
         .accessibilityHint("Öffnet die Hilfe für diese Übung")
 
