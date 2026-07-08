@@ -1928,7 +1928,7 @@ struct WorkoutTrackerView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Alle Sätze erledigt")
     .accessibilityValue("\(s.completedSets) von \(s.totalSets) Sätzen, \(completedExercises) von \(workout.exercises.count) Übungen, \(Int(s.totalVolume)) Kilogramm Volumen, \(sessionTimeString(start: workout.startedAt, now: Date())) Dauer. Training kann gespeichert, fortgesetzt oder verworfen werden")
-    .accessibilityHint("Zeigt deine Abschlusszusammenfassung, bevor du dein Training speichern, fortsetzen oder verwerfen kannst")
+    .accessibilityHint("Zeigt die Abschlusszusammenfassung deines aktiven Trainings, bevor du es speichern, fortsetzen oder verwerfen kannst")
   }
 
   private func finishedMetric(label: String, value: String) -> some View {
