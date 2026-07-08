@@ -1232,7 +1232,7 @@ struct WorkoutTrackerView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Bearbeiten beenden")
     .accessibilityValue("Bearbeiten-Modus aktiv")
-    .accessibilityHint("Schließt den Bearbeiten-Modus und kehrt zum Training zurück")
+    .accessibilityHint("Schließt den Bearbeiten-Modus und kehrt zu deinem aktiven Training zurück")
   }
 
   // MARK: - Drag&Drop-Reorder (2026-05-14)
