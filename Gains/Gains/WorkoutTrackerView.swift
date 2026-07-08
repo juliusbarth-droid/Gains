@@ -212,6 +212,7 @@ struct WorkoutTrackerView: View {
           .accessibilityElement(children: .contain)
           .accessibilityLabel("Kein aktives Training")
           .accessibilityValue("Starte ein Training vom Plan oder der Bibliothek.")
+          .accessibilityHint("Wähle als Nächstes einen Plan oder eine Übung aus der Bibliothek, um dein aktives Training zu starten")
         }
       }
       // Pause-Ende-Trigger (Optimierungs-Sweep 2026-05-03):
