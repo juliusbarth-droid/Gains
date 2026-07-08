@@ -1503,7 +1503,7 @@ struct WorkoutTrackerView: View {
               .contentShape(Circle())
           }
           .buttonStyle(.plain)
-          .accessibilityLabel(isCollapsed ? "Übung ausklappen" : "Übung einklappen")
+          .accessibilityLabel(isCollapsed ? "\(exercise.name) ausklappen" : "\(exercise.name) einklappen")
           .accessibilityValue("\(exercise.name), \(completed) von \(total) Sätzen erledigt")
           .accessibilityHint(isCollapsed ? "Zeigt wieder alle Sätze dieser Übung" : "Blendet die Satzliste dieser Übung aus")
         }
