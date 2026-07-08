@@ -203,7 +203,7 @@ struct WorkoutTrackerView: View {
                 .contentShape(Capsule())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Trainingsbildschirm schließen")
+            .accessibilityLabel("Leeren Trainingsbildschirm schließen")
             .accessibilityValue("Kein aktives Training")
             .accessibilityHint("Schließt den leeren Trainingsbildschirm und kehrt zurück")
             .padding(.top, GainsSpacing.xs)
