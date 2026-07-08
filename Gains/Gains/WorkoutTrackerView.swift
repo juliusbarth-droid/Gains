@@ -1142,7 +1142,7 @@ struct WorkoutTrackerView: View {
       .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Übung zum Training hinzufügen")
+    .accessibilityLabel("Neue Übung zum aktiven Training hinzufügen")
     .accessibilityValue("Bearbeiten-Modus aktiv, Übungsauswahl verfügbar")
     .accessibilityHint("Öffnet die Übungsauswahl für dein aktuelles Training")
   }
