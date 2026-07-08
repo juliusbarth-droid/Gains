@@ -2677,7 +2677,7 @@ struct GainsUndoSnackbar: View {
           .clipShape(Capsule())
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Letzte Aktion rückgängig machen")
+      .accessibilityLabel("Letzte Aktion im aktiven Training rückgängig machen")
       .accessibilityValue("Rückgängig verfügbar")
       .accessibilityHint("Stellt den zuletzt entfernten oder verschobenen Trainingsschritt wieder her")
     }
