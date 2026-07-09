@@ -1554,7 +1554,7 @@ struct WorkoutTrackerView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("Ausführung für \(exercise.name) anzeigen")
             .accessibilityValue("In deinem aktiven Training: \(exercise.name), \(completed) von \(total) Sätzen erledigt")
-            .accessibilityHint("Öffnet die Ausführungshilfe für diese Übung in deinem aktiven Training")
+            .accessibilityHint("Öffnet die Ausführungshilfe für \(exercise.name) in deinem aktiven Training")
           }
         }
 
