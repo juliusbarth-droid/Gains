@@ -2538,7 +2538,7 @@ private struct CompactSetRow: View {
           .focused($focusedField, equals: field)
           .submitLabel(.done)
           .accessibilityLabel("\(unit) eingeben")
-          .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", Eingabe aktiv" : "")")
+          .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", direkte Eingabe aktiv" : "")")
           .accessibilityHint(focusedField == field ? "Direkte Eingabe für \(unit) ist aktiv, Wert kann direkt bearbeitet werden" : "Öffnet die direkte Eingabe für \(unit)")
           .onSubmit(commit)
           .onChange(of: focusedField) { _, newValue in
