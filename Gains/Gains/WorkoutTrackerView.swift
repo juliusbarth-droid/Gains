@@ -1086,7 +1086,7 @@ struct WorkoutTrackerView: View {
     .gainsCardStyle(GainsColor.card)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(exercise.name)
-    .accessibilityValue("\(exercise.targetMuscle), \(completed) von \(exercise.sets.count) Sätzen erledigt")
+    .accessibilityValue("In deinem aktiven Training: \(exercise.targetMuscle), \(completed) von \(exercise.sets.count) Sätzen erledigt")
     .accessibilityHint("Zeigt die Übung in deinem aktiven Training mit Sortieren- und Entfernen-Aktionen")
   }
 
