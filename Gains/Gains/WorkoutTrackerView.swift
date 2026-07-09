@@ -1087,7 +1087,7 @@ struct WorkoutTrackerView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel(exercise.name)
     .accessibilityValue("In deinem aktiven Training: \(exercise.targetMuscle), \(completed) von \(exercise.sets.count) Sätzen erledigt")
-    .accessibilityHint("Zeigt die Übung in deinem aktiven Training mit Sortieren- und Entfernen-Aktionen")
+    .accessibilityHint("Zeigt \(exercise.name) in deinem aktiven Training mit Sortieren- und Entfernen-Aktionen")
   }
 
   /// Sortier-Pfeil-Button für die Edit-Zeile.
