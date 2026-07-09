@@ -2520,7 +2520,7 @@ private struct CompactSetRow: View {
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) verringern")
       .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", Eingabe aktiv" : "")")
-      .accessibilityHint(focusedField == field ? "Direkte Eingabe für \(unit) ist aktiv, verringert den Wert um einen Schritt" : "Verringert den Wert für \(unit) um einen Schritt")
+      .accessibilityHint(focusedField == field ? "Direkte Eingabe für \(unit) ist aktiv, verringert den Wert um einen Schritt" : "Verringert den Wert für \(unit) in der direkten Eingabe um einen Schritt")
 
       VStack(spacing: 1) {
         Text(unit)
