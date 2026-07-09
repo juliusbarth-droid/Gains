@@ -2519,7 +2519,7 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) verringern")
-      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", Eingabe aktiv" : "")")
+      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", direkte Eingabe aktiv" : "")")
       .accessibilityHint(focusedField == field ? "Direkte Eingabe für \(unit) ist aktiv, verringert den Wert um einen Schritt" : "Verringert den Wert für \(unit) in der direkten Eingabe um einen Schritt")
 
       VStack(spacing: 1) {
@@ -2563,7 +2563,7 @@ private struct CompactSetRow: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("\(unit) erhöhen")
-      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", Eingabe aktiv" : "")")
+      .accessibilityValue("Aktuell \(text.wrappedValue.isEmpty ? "0" : text.wrappedValue) \(unit)\(focusedField == field ? ", direkte Eingabe aktiv" : "")")
       .accessibilityHint(focusedField == field ? "Direkte Eingabe für \(unit) ist aktiv, erhöht den Wert um einen Schritt" : "Erhöht den Wert für \(unit) in der direkten Eingabe um einen Schritt")
     }
     .background(
