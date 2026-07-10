@@ -211,7 +211,7 @@ struct WorkoutTrackerView: View {
           .padding(.horizontal, GainsSpacing.l)
           .accessibilityElement(children: .contain)
           .accessibilityLabel("Kein aktives Training")
-          .accessibilityValue("Starte dein aktives Training vom Plan oder aus der Bibliothek.")
+          .accessibilityValue("Kein aktives Training geöffnet, bereit zum Starten über Plan oder Bibliothek")
           .accessibilityHint("Wähle jetzt einen Plan oder direkt eine Übung aus der Bibliothek, um dein aktives Training zu starten")
         }
       }
