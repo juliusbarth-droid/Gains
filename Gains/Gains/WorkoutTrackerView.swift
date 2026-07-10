@@ -296,7 +296,7 @@ struct WorkoutTrackerView: View {
             HStack(spacing: GainsSpacing.xs) {
               Image(systemName: "flag.checkered")
                 .font(.system(size: 10, weight: .heavy))
-              Text("ABSCHLUSS ÖFFNEN")
+              Text("BESTÄTIGUNG ÖFFNEN")
                 .font(TrackerType.eyebrow)
                 .tracking(GainsTracking.eyebrowTight)
             }
