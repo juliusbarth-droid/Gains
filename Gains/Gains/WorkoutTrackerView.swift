@@ -279,7 +279,7 @@ struct WorkoutTrackerView: View {
           }
           .accessibilityLabel("Aktiven Trainingsbildschirm schließen")
           .accessibilityValue("Dein aktives Training bleibt erhalten, bereit zur Rückkehr zur Trainingsübersicht")
-          .accessibilityHint("Schließt den aktiven Trainingsbildschirm, dein aktives Training bleibt erhalten und du kehrst zur Trainingsübersicht zurück")
+          .accessibilityHint("Schließt den aktiven Trainingsbildschirm, dein aktives Training bleibt erhalten und du kehrst direkt zur Trainingsübersicht zurück")
         }
         ToolbarItem(placement: .principal) {
           Text("KRAFT-TRAINER")
