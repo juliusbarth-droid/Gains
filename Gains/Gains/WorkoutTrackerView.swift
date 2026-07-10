@@ -2680,7 +2680,7 @@ struct GainsUndoSnackbar: View {
       .buttonStyle(.plain)
       .accessibilityLabel("Letzte Aktion im aktiven Training rückgängig machen")
       .accessibilityValue("Letzte Aktion in deinem aktiven Training kann rückgängig gemacht werden")
-      .accessibilityHint("Stellt den zuletzt entfernten oder verschobenen Trainingsschritt in deinem aktiven Training wieder her")
+      .accessibilityHint("Stellt den zuletzt entfernten oder verschobenen Schritt in deinem aktiven Training direkt wieder her")
     }
     .padding(.horizontal, GainsSpacing.m)
     .padding(.vertical, GainsSpacing.s)
