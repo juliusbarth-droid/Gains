@@ -649,7 +649,7 @@ struct WorkoutTrackerView: View {
             // nur, wenn ein Satz oder eine Pause wirklich läuft — hier ein
             // ruhiger, zustands-bewusster Prompt statt einer großen Null
             // (Polish-Pass 2026-05-29).
-            Text(nextPending(in: workout) == nil ? "Training abschließen" : "Starte den nächsten Satz")
+            Text(nextPending(in: workout) == nil ? "Aktives Training abschließen" : "Starte den nächsten Satz")
               .font(.system(size: 17, weight: .semibold))
               .foregroundStyle(GainsColor.onCtaSurface.opacity(0.92))
               .lineLimit(2)
