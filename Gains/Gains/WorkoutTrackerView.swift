@@ -506,7 +506,7 @@ struct WorkoutTrackerView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(isEditMode ? "Bearbeiten beenden" : "Übungen bearbeiten")
         .accessibilityValue(isEditMode ? "Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Beenden" : "Bearbeiten-Modus für dein aktives Training aus, bereit zum Öffnen")
-        .accessibilityHint(isEditMode ? "Schließt den Bearbeiten-Modus und kehrt zu deinem aktiven Training zurück" : "Öffnet den Bearbeiten-Modus zum Sortieren, Entfernen und Hinzufügen von Übungen in deinem aktiven Training")
+        .accessibilityHint(isEditMode ? "Schließt den Bearbeiten-Modus und kehrt direkt zu deinem aktiven Training zurück" : "Öffnet den Bearbeiten-Modus zum Sortieren, Entfernen und Hinzufügen von Übungen in deinem aktiven Training")
 
         HStack(spacing: GainsSpacing.xxs) {
           Image(systemName: "clock")
@@ -1233,7 +1233,7 @@ struct WorkoutTrackerView: View {
     .buttonStyle(.plain)
     .accessibilityLabel("Bearbeiten beenden")
     .accessibilityValue("Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Beenden")
-    .accessibilityHint("Schließt den Bearbeiten-Modus und kehrt zu deinem aktiven Training zurück")
+    .accessibilityHint("Schließt den Bearbeiten-Modus und kehrt direkt zu deinem aktiven Training zurück")
   }
 
   // MARK: - Drag&Drop-Reorder (2026-05-14)
