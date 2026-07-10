@@ -1144,7 +1144,7 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Neue Übung zum aktiven Training hinzufügen")
-    .accessibilityValue("Bearbeiten-Modus für dein aktives Training aktiv, Übungsauswahl verfügbar")
+    .accessibilityValue("Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Hinzufügen einer neuen Übung")
     .accessibilityHint("Öffnet die Übungsauswahl, um deinem aktiven Training direkt eine neue Übung hinzuzufügen")
   }
 
