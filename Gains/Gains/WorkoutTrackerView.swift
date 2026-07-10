@@ -1202,7 +1202,7 @@ struct WorkoutTrackerView: View {
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Noch keine Übung")
     .accessibilityValue("Noch keine Übung in deinem aktiven Training, bereit zum Hinzufügen der ersten Übung")
-    .accessibilityHint("Leerer Zustand im Bearbeiten-Modus, füge deinem aktiven Training jetzt direkt eine neue Übung hinzu")
+    .accessibilityHint("Öffnet die Übungsauswahl, damit du deinem aktiven Training jetzt direkt die erste Übung hinzufügen kannst")
   }
 
   /// „Fertig"-Leiste, die im Bearbeiten-Modus die Satz-CTA ersetzt.
