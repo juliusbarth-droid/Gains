@@ -1713,7 +1713,7 @@ struct WorkoutTrackerView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("\(exercise.name) überspringen")
             .accessibilityValue("In deinem aktiven Training: \(exercise.name), \(completed) von \(total) Sätzen erledigt, Übung kann behalten oder übersprungen werden")
-            .accessibilityHint("Öffnet die Bestätigung, in der du diese Übung in deinem aktiven Training behalten oder überspringen kannst")
+            .accessibilityHint("Öffnet die Bestätigung, in der du \(exercise.name) in deinem aktiven Training behalten oder überspringen kannst")
           }
         }
       }
