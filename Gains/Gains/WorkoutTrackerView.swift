@@ -1927,7 +1927,7 @@ struct WorkoutTrackerView: View {
     .shadow(color: GainsColor.moss.opacity(0.20), radius: 14, x: 0, y: 0)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Alle Sätze erledigt")
-    .accessibilityValue("In deinem aktiven Training: \(s.completedSets) von \(s.totalSets) Sätzen, \(completedExercises) von \(workout.exercises.count) Übungen, \(Int(s.totalVolume)) Kilogramm Volumen, \(sessionTimeString(start: workout.startedAt, now: Date())) Dauer. Dein aktives Training kann gespeichert, fortgesetzt oder verworfen werden")
+    .accessibilityValue("In deinem aktiven Training: \(s.completedSets) von \(s.totalSets) Sätzen, \(completedExercises) von \(workout.exercises.count) Übungen, \(Int(s.totalVolume)) Kilogramm Volumen, \(sessionTimeString(start: workout.startedAt, now: Date())) Dauer. Dein aktives Training ist bereit zum Speichern, Fortsetzen oder Verwerfen")
     .accessibilityHint("Öffnet die Abschlusszusammenfassung deines aktiven Trainings, in der du es speichern, fortsetzen oder verwerfen kannst")
   }
 
