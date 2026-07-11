@@ -2292,6 +2292,7 @@ struct WorkoutTrackerView: View {
   }
 
   private func openFormGuide(for exercise: TrackedExercise) {
+    focusedField = nil
     if let item = libraryItem(for: exercise) {
       formGuideExercise = item
     } else {
