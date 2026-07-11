@@ -995,6 +995,11 @@ struct WorkoutTrackerView: View {
               draggingExerciseID = exercise.id
               UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             }
+            .onDisappear {
+              if draggingExerciseID == exercise.id {
+                draggingExerciseID = nil
+              }
+            }
         }
         // Drop-Target — jede Karte ist ein Reorder-Slot.
         .dropDestination(for: String.self) { items, _ in
