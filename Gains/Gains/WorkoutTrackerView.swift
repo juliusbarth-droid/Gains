@@ -405,6 +405,7 @@ struct WorkoutTrackerView: View {
           lastAutoCollapsedID = nil
           formGuideExercise = nil
           scrollToExerciseID = nil
+          pendingUndo = nil
           collapsedExerciseIDs = []
           draggingExerciseID = nil
           dropHoverID = nil
