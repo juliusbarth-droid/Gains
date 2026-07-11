@@ -1975,7 +1975,7 @@ struct WorkoutTrackerView: View {
       return active.set.id == pending.set.id
     }()
     let title: String = {
-      if isEmpty { return "ÜBUNG HINZUFÜGEN" }
+      if isEmpty { return "ERSTE ÜBUNG HINZUFÜGEN" }
       if isComplete { return "ABSCHLUSSBESTÄTIGUNG ÖFFNEN" }
       if isSetActive { return isActivePendingSet ? "SATZ ABSCHLIESSEN" : "SATZ STOPPEN" }
       if let pending {
