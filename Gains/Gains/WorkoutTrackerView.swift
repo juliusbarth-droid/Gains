@@ -388,6 +388,7 @@ struct WorkoutTrackerView: View {
           formGuideExercise = nil
           scrollToExerciseID = nil
           pendingUndo = nil
+          focusedField = nil
           collapsedExerciseIDs = []
           draggingExerciseID = nil
           dropHoverID = nil
@@ -406,6 +407,7 @@ struct WorkoutTrackerView: View {
           formGuideExercise = nil
           scrollToExerciseID = nil
           pendingUndo = nil
+          focusedField = nil
           collapsedExerciseIDs = []
           draggingExerciseID = nil
           dropHoverID = nil
