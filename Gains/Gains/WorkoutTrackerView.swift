@@ -1150,6 +1150,7 @@ struct WorkoutTrackerView: View {
   /// ExercisePickerSheet. Sitzt am Listenende in beiden Modi.
   private var addExerciseButton: some View {
     Button {
+      focusedField = nil
       isShowingExercisePicker = true
       UISelectionFeedbackGenerator().selectionChanged()
     } label: {
@@ -2019,6 +2020,7 @@ struct WorkoutTrackerView: View {
 
     return Button {
       if isEmpty {
+        focusedField = nil
         isShowingExercisePicker = true
         return
       }
