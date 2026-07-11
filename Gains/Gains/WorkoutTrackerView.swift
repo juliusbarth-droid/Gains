@@ -400,6 +400,7 @@ struct WorkoutTrackerView: View {
           restTimerEndsAt = nil
           isFinishing = false
           isEditMode = false
+          isShowingExercisePicker = false
           skipConfirmExercise = nil
           lastAutoCollapsedID = nil
           formGuideExercise = nil
