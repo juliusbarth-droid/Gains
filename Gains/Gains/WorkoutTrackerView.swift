@@ -1128,7 +1128,6 @@ struct WorkoutTrackerView: View {
   /// ExercisePickerSheet. Sitzt am Listenende in beiden Modi.
   private var addExerciseButton: some View {
     Button {
-      if activeSetID != nil { stopActiveSet() }
       isShowingExercisePicker = true
       UISelectionFeedbackGenerator().selectionChanged()
     } label: {
