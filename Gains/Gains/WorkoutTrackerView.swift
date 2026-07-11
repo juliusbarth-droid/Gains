@@ -263,10 +263,6 @@ struct WorkoutTrackerView: View {
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
           Button {
-            if activeSetID != nil {
-              stopActiveSet()
-            }
-            restTimerEndsAt = nil
             dismiss()
           } label: {
             Image(systemName: "chevron.down")
