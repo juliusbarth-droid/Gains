@@ -509,6 +509,7 @@ struct WorkoutTrackerView: View {
         Button {
           withAnimation(.easeInOut(duration: 0.22)) {
             isEditMode.toggle()
+            focusedField = nil
             if !isEditMode {
               draggingExerciseID = nil
               dropHoverID = nil
@@ -1242,6 +1243,7 @@ struct WorkoutTrackerView: View {
     Button {
       withAnimation(.easeInOut(duration: 0.22)) {
         isEditMode = false
+        focusedField = nil
         draggingExerciseID = nil
         dropHoverID = nil
       }
