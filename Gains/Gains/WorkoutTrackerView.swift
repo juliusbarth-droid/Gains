@@ -102,7 +102,9 @@ struct WorkoutTrackerView: View {
               // verschwindet (vermeidet Stale-Animation nach Sheet-Close).
               Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 50_000_000) // 0.05s
-                guard currentExerciseID(in: workout) == newID else { return }
+                guard let liveWorkout = store.activeWorkout,
+                      liveWorkout.id == workout.id,
+                      currentExerciseID(in: liveWorkout) == newID else { return }
                 withAnimation(.easeInOut(duration: 0.32)) {
                   proxy.scrollTo(newID, anchor: .top)
                 }
