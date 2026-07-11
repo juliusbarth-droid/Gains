@@ -335,7 +335,6 @@ struct WorkoutTrackerView: View {
       // zur frischen Karte ausgelöst und ein Success-Haptik gefeuert.
       .sheet(isPresented: $isShowingExercisePicker) {
         ExercisePickerSheet { item in
-          if activeSetID != nil { stopActiveSet() }
           store.appendActiveExercise(from: item)
           isShowingExercisePicker = false
           if let newID = store.activeWorkout?.exercises.last?.id {
