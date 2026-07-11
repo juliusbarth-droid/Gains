@@ -2172,10 +2172,15 @@ struct WorkoutTrackerView: View {
     // gesetzt). Wir collapsen die Übung lediglich und stoppen ggf. den
     // aktiven Satz. So stimmt das Tracker-„X / Y"-Verhältnis am Ende mit
     // dem überein, was wirklich gemacht wurde.
-    if let active = activeSetID, exercise.sets.contains(where: { $0.id == active }) {
+    let isSkippingActiveSet = {
+      guard let active = activeSetID else { return false }
+      return exercise.sets.contains(where: { $0.id == active })
+    }()
+
+    if isSkippingActiveSet {
       stopActiveSet()
+      restTimerEndsAt = nil
     }
-    restTimerEndsAt = nil
     collapsedExerciseIDs.insert(exercise.id)
     skipConfirmExercise = nil
     UISelectionFeedbackGenerator().selectionChanged()
