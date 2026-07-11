@@ -401,6 +401,7 @@ struct WorkoutTrackerView: View {
       .onChange(of: store.activeWorkout?.exercises.isEmpty) { _, isEmpty in
         if isEmpty == true {
           isFinishing = false
+          isEditMode = false
           skipConfirmExercise = nil
           formGuideExercise = nil
           scrollToExerciseID = nil
