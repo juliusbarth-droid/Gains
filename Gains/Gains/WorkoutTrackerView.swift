@@ -2258,11 +2258,6 @@ struct WorkoutTrackerView: View {
   }
 
   private func openFormGuide(for exercise: TrackedExercise) {
-    if activeSetID != nil {
-      stopActiveSet()
-    }
-    restTimerEndsAt = nil
-
     if let item = libraryItem(for: exercise) {
       formGuideExercise = item
     } else {
