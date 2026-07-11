@@ -1240,7 +1240,11 @@ struct WorkoutTrackerView: View {
   /// „Fertig"-Leiste, die im Bearbeiten-Modus die Satz-CTA ersetzt.
   private var editDoneBar: some View {
     Button {
-      withAnimation(.easeInOut(duration: 0.22)) { isEditMode = false }
+      withAnimation(.easeInOut(duration: 0.22)) {
+        isEditMode = false
+        draggingExerciseID = nil
+        dropHoverID = nil
+      }
       UISelectionFeedbackGenerator().selectionChanged()
     } label: {
       HStack(spacing: GainsSpacing.s) {
