@@ -1217,7 +1217,7 @@ struct WorkoutTrackerView: View {
     .gainsCardStyle(GainsColor.elevated)
     .accessibilityElement(children: .combine)
     .accessibilityLabel("Noch keine Übung")
-    .accessibilityValue("Noch keine Übung in deinem aktiven Training, bereit zum Hinzufügen der ersten Übung")
+    .accessibilityValue(isEditMode ? "Noch keine Übung in deinem aktiven Training, Bearbeiten-Modus aktiv und bereit zum Hinzufügen der ersten Übung" : "Noch keine Übung in deinem aktiven Training, Bearbeiten-Modus aus und bereit zum Hinzufügen der ersten Übung")
     .accessibilityHint("Öffnet die Übungsauswahl, damit du deinem aktiven Training jetzt direkt die erste Übung hinzufügen kannst")
   }
 
