@@ -1730,6 +1730,7 @@ struct WorkoutTrackerView: View {
 
           if !isAllDone {
             Button {
+              focusedField = nil
               skipConfirmExercise = exercise
             } label: {
               HStack(spacing: GainsSpacing.xs) {
