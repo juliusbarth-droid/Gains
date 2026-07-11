@@ -115,10 +115,13 @@ struct WorkoutTrackerView: View {
               guard let target else { return }
               Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 80_000_000)
+                guard scrollToExerciseID == target else { return }
                 withAnimation(.easeInOut(duration: 0.34)) {
                   proxy.scrollTo(target, anchor: .center)
                 }
-                scrollToExerciseID = nil
+                if scrollToExerciseID == target {
+                  scrollToExerciseID = nil
+                }
               }
             }
           }
