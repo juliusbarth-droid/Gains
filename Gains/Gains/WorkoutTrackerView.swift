@@ -509,6 +509,10 @@ struct WorkoutTrackerView: View {
         Button {
           withAnimation(.easeInOut(duration: 0.22)) {
             isEditMode.toggle()
+            if !isEditMode {
+              draggingExerciseID = nil
+              dropHoverID = nil
+            }
           }
           UISelectionFeedbackGenerator().selectionChanged()
         } label: {
