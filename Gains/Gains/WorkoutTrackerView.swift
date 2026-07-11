@@ -296,6 +296,7 @@ struct WorkoutTrackerView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
+            focusedField = nil
             isFinishing = true
           } label: {
             HStack(spacing: GainsSpacing.xs) {
@@ -2025,6 +2026,7 @@ struct WorkoutTrackerView: View {
         return
       }
       if isComplete {
+        focusedField = nil
         isFinishing = true
         return
       }
