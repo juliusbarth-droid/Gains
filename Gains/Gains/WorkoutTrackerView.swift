@@ -1160,8 +1160,8 @@ struct WorkoutTrackerView: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel("Neue Übung zum aktiven Training hinzufügen")
-    .accessibilityValue(isEditMode ? "Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Hinzufügen einer neuen Übung" : "Bearbeiten-Modus für dein aktives Training aus, bereit zum Hinzufügen einer neuen Übung")
-    .accessibilityHint("Öffnet die Übungsauswahl, um deinem aktiven Training direkt eine neue Übung hinzuzufügen")
+    .accessibilityValue(store.activeWorkout?.exercises.isEmpty == true ? (isEditMode ? "Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Hinzufügen der ersten Übung" : "Bearbeiten-Modus für dein aktives Training aus, bereit zum Hinzufügen der ersten Übung") : (isEditMode ? "Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Hinzufügen einer neuen Übung" : "Bearbeiten-Modus für dein aktives Training aus, bereit zum Hinzufügen einer neuen Übung"))
+    .accessibilityHint(store.activeWorkout?.exercises.isEmpty == true ? "Öffnet die Übungsauswahl, um deinem aktiven Training direkt die erste Übung hinzuzufügen" : "Öffnet die Übungsauswahl, um deinem aktiven Training direkt eine neue Übung hinzuzufügen")
   }
 
   /// Löscht eine Übung aus dem aktiven Workout — mit Undo-Snackbar.
