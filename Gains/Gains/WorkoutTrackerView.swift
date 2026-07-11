@@ -1704,10 +1704,6 @@ struct WorkoutTrackerView: View {
 
           if !isAllDone {
             Button {
-              if activeSetID != nil {
-                stopActiveSet()
-              }
-              restTimerEndsAt = nil
               skipConfirmExercise = exercise
             } label: {
               HStack(spacing: GainsSpacing.xs) {
