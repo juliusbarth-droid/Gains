@@ -400,6 +400,9 @@ struct WorkoutTrackerView: View {
       }
       .onChange(of: store.activeWorkout?.exercises.isEmpty) { _, isEmpty in
         if isEmpty == true {
+          activeSetID = nil
+          activeSetStartedAt = nil
+          restTimerEndsAt = nil
           isFinishing = false
           isEditMode = false
           skipConfirmExercise = nil
