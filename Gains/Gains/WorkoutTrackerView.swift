@@ -311,10 +311,10 @@ struct WorkoutTrackerView: View {
             .clipShape(Capsule())
             .contentShape(Capsule())
           }
-          .disabled(store.activeWorkout == nil)
+          .disabled(store.activeWorkout?.exercises.isEmpty != false)
           .accessibilityLabel("Abschlussbestätigung deines aktiven Trainings öffnen")
-          .accessibilityValue(store.activeWorkout == nil ? "Kein aktives Training geöffnet, Abschluss nicht verfügbar" : "Dein aktives Training ist bereit zum Speichern, Fortsetzen oder Verwerfen")
-          .accessibilityHint(store.activeWorkout == nil ? "Nicht verfügbar, weil aktuell kein Training geöffnet ist" : "Öffnet die Abschlussbestätigung deines aktiven Trainings, in der du es speichern, fortsetzen oder verwerfen kannst")
+          .accessibilityValue(store.activeWorkout == nil ? "Kein aktives Training geöffnet, Abschluss nicht verfügbar" : (store.activeWorkout?.exercises.isEmpty == true ? "Dein aktives Training enthält noch keine Übung, Abschluss nicht verfügbar" : "Dein aktives Training ist bereit zum Speichern, Fortsetzen oder Verwerfen"))
+          .accessibilityHint(store.activeWorkout == nil ? "Nicht verfügbar, weil aktuell kein Training geöffnet ist" : (store.activeWorkout?.exercises.isEmpty == true ? "Nicht verfügbar, weil dein aktives Training erst mindestens eine Übung braucht" : "Öffnet die Abschlussbestätigung deines aktiven Trainings, in der du es speichern, fortsetzen oder verwerfen kannst"))
         }
         ToolbarItemGroup(placement: .keyboard) {
           Spacer()
