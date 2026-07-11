@@ -375,8 +375,8 @@ struct WorkoutTrackerView: View {
       } message: {
         Text("Wenn du dein aktives Training speicherst, wird es gespeichert und dein aktueller Fortschritt bleibt erhalten. Wenn du dein aktives Training fortsetzt, kehrst du direkt zu deinem aktiven Training zurück. Wenn du dein aktives Training verwirfst, wird es verworfen und dein aktueller Fortschritt geht verloren.")
       }
-      .onChange(of: store.activeWorkout?.id) { _, newID in
-        if newID == nil {
+      .onChange(of: store.activeWorkout?.id) { oldID, newID in
+        if oldID != newID {
           activeSetID = nil
           activeSetStartedAt = nil
           restTimerEndsAt = nil
