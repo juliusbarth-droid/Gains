@@ -1159,7 +1159,7 @@ struct WorkoutTrackerView: View {
       .contentShape(RoundedRectangle(cornerRadius: GainsRadius.standard, style: .continuous))
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Neue Übung zum aktiven Training hinzufügen")
+    .accessibilityLabel(store.activeWorkout?.exercises.isEmpty == true ? "Erste Übung zum aktiven Training hinzufügen" : "Neue Übung zum aktiven Training hinzufügen")
     .accessibilityValue(store.activeWorkout?.exercises.isEmpty == true ? (isEditMode ? "Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Hinzufügen der ersten Übung" : "Bearbeiten-Modus für dein aktives Training aus, bereit zum Hinzufügen der ersten Übung") : (isEditMode ? "Bearbeiten-Modus für dein aktives Training aktiv, bereit zum Hinzufügen einer neuen Übung" : "Bearbeiten-Modus für dein aktives Training aus, bereit zum Hinzufügen einer neuen Übung"))
     .accessibilityHint(store.activeWorkout?.exercises.isEmpty == true ? "Öffnet die Übungsauswahl, um deinem aktiven Training direkt die erste Übung hinzuzufügen" : "Öffnet die Übungsauswahl, um deinem aktiven Training direkt eine neue Übung hinzuzufügen")
   }
