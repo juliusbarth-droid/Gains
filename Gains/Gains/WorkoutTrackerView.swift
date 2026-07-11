@@ -2022,8 +2022,8 @@ struct WorkoutTrackerView: View {
     }()
 
     return Button {
+      focusedField = nil
       if isEmpty {
-        focusedField = nil
         isShowingExercisePicker = true
         return
       }
