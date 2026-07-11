@@ -296,7 +296,7 @@ struct WorkoutTrackerView: View {
             HStack(spacing: GainsSpacing.xs) {
               Image(systemName: "flag.checkered")
                 .font(.system(size: 10, weight: .heavy))
-              Text("ABSCHLUSSBESTÄTIGUNG DEINES AKTIVEN TRAININGS ÖFFNEN")
+              Text("ABSCHLUSSBESTÄTIGUNG ÖFFNEN")
                 .font(TrackerType.eyebrow)
                 .tracking(GainsTracking.eyebrowTight)
             }
@@ -649,7 +649,7 @@ struct WorkoutTrackerView: View {
             // nur, wenn ein Satz oder eine Pause wirklich läuft — hier ein
             // ruhiger, zustands-bewusster Prompt statt einer großen Null
             // (Polish-Pass 2026-05-29).
-            Text(nextPending(in: workout) == nil ? "Abschlussbestätigung deines aktiven Trainings öffnen" : "Starte den nächsten Satz")
+            Text(nextPending(in: workout) == nil ? "Abschlussbestätigung öffnen" : "Starte den nächsten Satz")
               .font(.system(size: 17, weight: .semibold))
               .foregroundStyle(GainsColor.onCtaSurface.opacity(0.92))
               .lineLimit(2)
@@ -1960,7 +1960,7 @@ struct WorkoutTrackerView: View {
     }()
     let title: String = {
       if isEmpty { return "ÜBUNG HINZUFÜGEN" }
-      if isComplete { return "ABSCHLUSSBESTÄTIGUNG DEINES AKTIVEN TRAININGS ÖFFNEN" }
+      if isComplete { return "ABSCHLUSSBESTÄTIGUNG ÖFFNEN" }
       if isSetActive { return isActivePendingSet ? "SATZ ABSCHLIESSEN" : "SATZ STOPPEN" }
       if let pending {
         let exerciseName = pending.exercise.name.uppercased()
