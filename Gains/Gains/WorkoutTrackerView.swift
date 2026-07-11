@@ -1989,8 +1989,7 @@ struct WorkoutTrackerView: View {
         return
       }
       if isComplete {
-        store.finishWorkout()
-        dismiss()
+        isFinishing = true
         return
       }
       if isSetActive, let id = activeSetID {
