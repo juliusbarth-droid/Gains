@@ -398,6 +398,17 @@ struct WorkoutTrackerView: View {
           dropHoverID = nil
         }
       }
+      .onChange(of: store.activeWorkout?.exercises.isEmpty) { _, isEmpty in
+        if isEmpty == true {
+          isFinishing = false
+          skipConfirmExercise = nil
+          formGuideExercise = nil
+          scrollToExerciseID = nil
+          collapsedExerciseIDs = []
+          draggingExerciseID = nil
+          dropHoverID = nil
+        }
+      }
       // Mis-Tap-Schutz für Skip (Optimierungs-Sweep 2026-05-03)
       .confirmationDialog(
         skipConfirmExercise.map { "'\($0.name)' überspringen?" } ?? "Übung überspringen?",
