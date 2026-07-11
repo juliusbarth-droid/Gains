@@ -1140,7 +1140,7 @@ struct WorkoutTrackerView: View {
         Image(systemName: "plus")
           .font(.system(size: 12, weight: .heavy))
           .accessibilityHidden(true)
-        Text("ÜBUNG HINZUFÜGEN")
+        Text(store.activeWorkout?.exercises.isEmpty == true ? "ERSTE ÜBUNG HINZUFÜGEN" : "ÜBUNG HINZUFÜGEN")
           .font(TrackerType.eyebrow)
           .tracking(GainsTracking.eyebrowWide)
       }
