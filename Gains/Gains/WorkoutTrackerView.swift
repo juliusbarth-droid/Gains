@@ -1960,7 +1960,7 @@ struct WorkoutTrackerView: View {
     }()
     let title: String = {
       if isEmpty { return "ÜBUNG HINZUFÜGEN" }
-      if isComplete { return "ABSCHLUSSBESTÄTIGUNG ÖFFNEN" }
+      if isComplete { return "ABSCHLUSSBESTÄTIGUNG FÜRS AKTIVE TRAINING ÖFFNEN" }
       if isSetActive { return isActivePendingSet ? "SATZ ABSCHLIESSEN" : "SATZ STOPPEN" }
       if let pending {
         let exerciseName = pending.exercise.name.uppercased()
