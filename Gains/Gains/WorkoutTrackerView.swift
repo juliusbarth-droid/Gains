@@ -2669,6 +2669,7 @@ private struct CompactSetRow: View {
   }
 
   private func adjustWeight(by delta: Double) {
+    focusedField = nil
     let base = Double(weightText.replacingOccurrences(of: ",", with: ".")) ?? set.weight
     let next = max(0, base + delta)
     let rounded = (next * 2).rounded() / 2  // 0.5er-Schritte
@@ -2677,6 +2678,7 @@ private struct CompactSetRow: View {
   }
 
   private func adjustReps(by delta: Int) {
+    focusedField = nil
     let base = Int(repsText) ?? set.reps
     let next = max(0, base + delta)
     store.updateSet(exerciseID: exerciseID, setID: set.id, reps: next)
