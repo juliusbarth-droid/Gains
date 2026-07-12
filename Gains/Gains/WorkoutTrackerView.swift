@@ -1616,6 +1616,7 @@ struct WorkoutTrackerView: View {
                 completeSet(exerciseID: exercise.id, set: set)
               },
               onDuplicate: {
+                focusedField = nil
                 if activeSetID == set.id {
                   stopActiveSet()
                 }
@@ -1624,6 +1625,7 @@ struct WorkoutTrackerView: View {
                 }
               },
               onDelete: {
+                focusedField = nil
                 // Falls der zu löschende Satz gerade aktiv läuft → Timer
                 // sauber stoppen, sonst hängt activeSetID auf einer ID,
                 // die nicht mehr existiert.
