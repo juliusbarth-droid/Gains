@@ -146,6 +146,7 @@ struct WorkoutTrackerView: View {
                 message: undo.message,
                 onUndo: {
                   focusedField = nil
+                  scrollToExerciseID = nil
                   undo.perform()
                   withAnimation(.easeOut(duration: 0.22)) {
                     pendingUndo = nil
