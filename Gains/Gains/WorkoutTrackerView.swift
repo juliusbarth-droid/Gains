@@ -1672,6 +1672,7 @@ struct WorkoutTrackerView: View {
 
         HStack(spacing: GainsSpacing.xsPlus) {
           Button {
+            focusedField = nil
             if let activeSetID,
               exercise.sets.contains(where: { $0.id == activeSetID })
             {
@@ -1687,6 +1688,7 @@ struct WorkoutTrackerView: View {
           .accessibilityHint("Hinzufügen ist bereit und fügt \(exercise.name) in deinem aktiven Training einen neuen Satz hinzu")
 
           Button {
+            focusedField = nil
             if let lastSet = exercise.sets.last, activeSetID == lastSet.id {
               stopActiveSet()
             }
@@ -1706,6 +1708,7 @@ struct WorkoutTrackerView: View {
           // startet den Rest-Timer. Spart 2 Taps gegenüber „+ Satz" →
           // Werte tippen → „Complete".
           Button {
+            focusedField = nil
             if let activeSetID,
               exercise.sets.contains(where: { $0.id == activeSetID })
             {
