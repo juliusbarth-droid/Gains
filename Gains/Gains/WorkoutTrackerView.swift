@@ -1186,6 +1186,7 @@ struct WorkoutTrackerView: View {
   private var addExerciseButton: some View {
     Button {
       focusedField = nil
+      scrollToExerciseID = nil
       isShowingExercisePicker = true
       UISelectionFeedbackGenerator().selectionChanged()
     } label: {
