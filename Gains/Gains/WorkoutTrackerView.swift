@@ -761,7 +761,11 @@ struct WorkoutTrackerView: View {
 
         HStack(spacing: GainsSpacing.xs) {
           adjustChip("−15", tone: .neutral) { adjustRest(by: -15) }
+            .accessibilityLabel("Aktuelle Pause um 15 Sekunden verkürzen")
+            .accessibilityHint("Verkürzt die aktuelle Erholungspause in deinem aktiven Training um 15 Sekunden")
           adjustChip("+15", tone: .neutral) { adjustRest(by: 15) }
+            .accessibilityLabel("Aktuelle Pause um 15 Sekunden verlängern")
+            .accessibilityHint("Verlängert die aktuelle Erholungspause in deinem aktiven Training um 15 Sekunden")
         }
         adjustChip("PAUSE BEENDEN", tone: .accent) {
           restTimerEndsAt = nil
