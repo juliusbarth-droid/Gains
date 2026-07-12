@@ -118,10 +118,16 @@ struct WorkoutTrackerView: View {
               guard let target else { return }
               Task { @MainActor in
                 try? await Task.sleep(nanoseconds: 80_000_000)
-                guard scrollToExerciseID == target,
-                      let liveWorkout = store.activeWorkout,
+                guard scrollToExerciseID == target else { return }
+                guard let liveWorkout = store.activeWorkout,
                       liveWorkout.id == workout.id,
-                      liveWorkout.exercises.contains(where: { $0.id == target }) else { return }
+                      liveWorkout.exercises.contains(where: { $0.id == target })
+                else {
+                  if scrollToExerciseID == target {
+                    scrollToExerciseID = nil
+                  }
+                  return
+                }
                 withAnimation(.easeInOut(duration: 0.34)) {
                   proxy.scrollTo(target, anchor: .center)
                 }
