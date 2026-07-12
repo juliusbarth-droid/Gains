@@ -763,7 +763,7 @@ struct WorkoutTrackerView: View {
           adjustChip("−15", tone: .neutral) { adjustRest(by: -15) }
           adjustChip("+15", tone: .neutral) { adjustRest(by: 15) }
         }
-        adjustChip("ÜBERSPRINGEN", tone: .accent) {
+        adjustChip("PAUSE BEENDEN", tone: .accent) {
           restTimerEndsAt = nil
         }
       }
