@@ -2172,6 +2172,7 @@ struct WorkoutTrackerView: View {
   }
 
   private func stopActiveSet() {
+    focusedField = nil
     activeSetID = nil
     activeSetStartedAt = nil
   }
