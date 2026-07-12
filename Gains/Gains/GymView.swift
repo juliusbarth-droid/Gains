@@ -88,6 +88,12 @@ struct GymView: View {
         isShowingWorkoutTracker = false
       }
     }
+    .onChange(of: store.activeRun?.id) { _, newID in
+      if newID != nil {
+        isShowingWorkoutTracker = false
+        navigation.openTraining(workspace: .laufen)
+      }
+    }
     // 2026-05-15 (P1 #5): fullScreenCover statt sheet — WorkoutTracker ist
     // ein dedizierter Modus, konsistent mit HomeView + WeekPlanFullscreenView.
     .fullScreenCover(isPresented: $isShowingWorkoutTracker) {
