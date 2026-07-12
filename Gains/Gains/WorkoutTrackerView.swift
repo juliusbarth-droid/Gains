@@ -139,6 +139,7 @@ struct WorkoutTrackerView: View {
               GainsUndoSnackbar(
                 message: undo.message,
                 onUndo: {
+                  focusedField = nil
                   undo.perform()
                   withAnimation(.easeOut(duration: 0.22)) {
                     pendingUndo = nil
