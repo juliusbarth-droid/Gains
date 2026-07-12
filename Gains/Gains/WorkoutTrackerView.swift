@@ -2199,6 +2199,7 @@ struct WorkoutTrackerView: View {
   }
 
   private func adjustRest(by delta: Int) {
+    focusedField = nil
     guard let end = restTimerEndsAt else { return }
     let newEnd = Calendar.current.date(byAdding: .second, value: delta, to: end) ?? end
     if newEnd <= Date() {
