@@ -766,6 +766,8 @@ struct WorkoutTrackerView: View {
         adjustChip("PAUSE BEENDEN", tone: .accent) {
           restTimerEndsAt = nil
         }
+        .accessibilityLabel("Aktuelle Pause beenden")
+        .accessibilityHint("Beendet die aktuelle Erholungspause in deinem aktiven Training sofort")
       }
     } else if isSet {
       VStack(alignment: .trailing, spacing: 4) {
