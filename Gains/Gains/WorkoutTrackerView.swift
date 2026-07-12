@@ -2074,6 +2074,7 @@ struct WorkoutTrackerView: View {
     return Button {
       focusedField = nil
       if isEmpty {
+        scrollToExerciseID = nil
         isShowingExercisePicker = true
         return
       }
