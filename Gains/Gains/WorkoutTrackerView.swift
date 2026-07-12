@@ -2153,6 +2153,7 @@ struct WorkoutTrackerView: View {
   }
 
   private func toggleSetTimer(for setID: UUID) {
+    focusedField = nil
     if activeSetID == setID {
       stopActiveSet()
     } else {
@@ -2168,6 +2169,7 @@ struct WorkoutTrackerView: View {
   }
 
   private func completeSet(exerciseID: UUID, set: TrackedSet) {
+    focusedField = nil
     let wasCompleted = set.isCompleted
     if activeSetID == set.id {
       stopActiveSet()
