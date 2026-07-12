@@ -788,6 +788,8 @@ struct WorkoutTrackerView: View {
         adjustChip("STOP", tone: .accent) {
           stopActiveSet()
         }
+        .accessibilityLabel("Aktiven Satz stoppen")
+        .accessibilityHint("Stoppt den Timer für den aktuellen Satz in deinem aktiven Training sofort")
       }
     } else if let pending = nextPending(in: workout) {
       VStack(alignment: .trailing, spacing: 4) {
