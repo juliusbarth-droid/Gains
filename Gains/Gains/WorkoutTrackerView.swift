@@ -772,6 +772,7 @@ struct WorkoutTrackerView: View {
           restTimerEndsAt = nil
         }
         .accessibilityLabel("Aktuelle Pause beenden")
+        .accessibilityValue("Aktuelle Erholungspause in deinem aktiven Training läuft gerade")
         .accessibilityHint("Beendet die aktuelle Erholungspause in deinem aktiven Training sofort")
       }
     } else if isSet {
