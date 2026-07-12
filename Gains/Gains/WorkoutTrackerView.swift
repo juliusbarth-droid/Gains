@@ -740,7 +740,7 @@ struct WorkoutTrackerView: View {
       VStack(alignment: .trailing, spacing: GainsSpacing.xs) {
         if let pending = nextPending(in: workout) {
           VStack(alignment: .trailing, spacing: 4) {
-            Text("DANACH")
+            Text("ALS NÄCHSTES")
               .font(TrackerType.eyebrow)
               .tracking(GainsTracking.eyebrow)
               .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
