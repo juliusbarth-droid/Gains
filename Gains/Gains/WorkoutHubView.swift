@@ -125,6 +125,8 @@ struct WorkoutHubView: View {
       }
     }
     .onChange(of: store.activeWorkout?.id) { _, newID in
+      pendingAfterSelectedRun = nil
+      pendingAfterPresentedWorkout = nil
       if newID != nil {
         isShowingWorkoutTracker = true
         isShowingRunTracker = false
@@ -133,6 +135,8 @@ struct WorkoutHubView: View {
       }
     }
     .onChange(of: store.activeRun?.id) { _, newID in
+      pendingAfterSelectedRun = nil
+      pendingAfterPresentedWorkout = nil
       if newID != nil {
         isShowingRunTracker = true
         isShowingWorkoutTracker = false
