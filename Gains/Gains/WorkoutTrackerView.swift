@@ -2165,7 +2165,10 @@ struct WorkoutTrackerView: View {
   // MARK: - Logic Helpers
 
   private func currentExerciseID(in workout: WorkoutSession) -> UUID? {
-    nextPending(in: workout)?.exercise.id
+    if let active = activeSetContext(in: workout) {
+      return active.exercise.id
+    }
+    return nextPending(in: workout)?.exercise.id
   }
 
   private func activeSetContext(in workout: WorkoutSession) -> (
