@@ -2198,6 +2198,7 @@ struct WorkoutTrackerView: View {
 
   private func toggleSetTimer(for setID: UUID) {
     focusedField = nil
+    scrollToExerciseID = nil
     if activeSetID == setID {
       stopActiveSet()
     } else {
