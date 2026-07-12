@@ -1340,6 +1340,7 @@ struct WorkoutTrackerView: View {
   /// Target-Index und ruft `reorderActiveExercises`. Setzt anschließend
   /// die Drag-States zurück.
   private func handleDrop(items: [String], onto targetID: UUID, in workout: WorkoutSession) {
+    focusedField = nil
     defer {
       // States immer aufräumen — auch wenn der Drop fehlschlägt
       withAnimation(.easeOut(duration: 0.18)) {
