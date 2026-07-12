@@ -794,6 +794,7 @@ struct WorkoutTrackerView: View {
           stopActiveSet()
         }
         .accessibilityLabel("Aktiven Satz stoppen")
+        .accessibilityValue("Aktiver Satz in deinem aktiven Training läuft gerade")
         .accessibilityHint("Stoppt den Timer für den aktuellen Satz in deinem aktiven Training sofort")
       }
     } else if let pending = nextPending(in: workout) {
