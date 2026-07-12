@@ -2257,6 +2257,7 @@ struct WorkoutTrackerView: View {
 
   private func performSkipExercise(_ exercise: TrackedExercise) {
     focusedField = nil
+    scrollToExerciseID = nil
     // 2026-05-03 Intuitivitäts-Sweep P1-12: Skip darf Volumen/Stats nicht
     // verfälschen — offene Sätze bleiben ungezählt (nicht auf erledigt
     // gesetzt). Wir collapsen die Übung lediglich und stoppen ggf. den
