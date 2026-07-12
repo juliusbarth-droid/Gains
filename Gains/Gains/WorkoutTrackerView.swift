@@ -852,6 +852,10 @@ struct WorkoutTrackerView: View {
       // Herz-Glyph bleibt als semantisches Rot, kein Coral-Block mehr.
       .background(GainsColor.onCtaSurface.opacity(0.08))
       .clipShape(Capsule())
+      .accessibilityElement(children: .combine)
+      .accessibilityLabel("Live-Herzfrequenz in deinem aktiven Training")
+      .accessibilityValue("\(bpm) Schläge pro Minute")
+      .accessibilityHint("Zeigt dir die aktuelle Live-Herzfrequenz, solange kein nächster Satz hervorgehoben wird")
     } else {
       VStack(alignment: .trailing, spacing: 4) {
         Text("BEREIT FÜR DEN NÄCHSTEN SATZ")
