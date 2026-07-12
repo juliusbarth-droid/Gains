@@ -784,18 +784,24 @@ struct WorkoutTrackerView: View {
     } else if isSet {
       VStack(alignment: .trailing, spacing: 4) {
         if let active = activeSetContext(in: workout) {
-          Text("AKTUELL")
-            .font(TrackerType.eyebrow)
-            .tracking(GainsTracking.eyebrow)
-            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
-          Text("Satz \(active.set.order) · \(active.exercise.name)")
-            .font(GainsFont.label(12))
-            .foregroundStyle(GainsColor.onCtaSurface)
-            .lineLimit(2)
-            .multilineTextAlignment(.trailing)
-          Text(setContextDetail(active.set))
-            .font(GainsFont.label(10))
-            .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
+          Group {
+            Text("AKTUELL")
+              .font(TrackerType.eyebrow)
+              .tracking(GainsTracking.eyebrow)
+              .foregroundStyle(GainsColor.onCtaSurface.opacity(0.6))
+            Text("Satz \(active.set.order) · \(active.exercise.name)")
+              .font(GainsFont.label(12))
+              .foregroundStyle(GainsColor.onCtaSurface)
+              .lineLimit(2)
+              .multilineTextAlignment(.trailing)
+            Text(setContextDetail(active.set))
+              .font(GainsFont.label(10))
+              .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
+          }
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("Aktuell in deinem aktiven Training")
+          .accessibilityValue("Satz \(active.set.order) in \(active.exercise.name), \(setContextDetail(active.set))")
+          .accessibilityHint("Zeigt dir den gerade laufenden Satz in deinem aktiven Training")
         }
         adjustChip("SATZ STOPPEN", tone: .accent) {
           stopActiveSet()
