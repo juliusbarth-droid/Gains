@@ -768,6 +768,7 @@ struct WorkoutTrackerView: View {
             .accessibilityHint("Verlängert die aktuelle Erholungspause in deinem aktiven Training um 15 Sekunden")
         }
         adjustChip("PAUSE BEENDEN", tone: .accent) {
+          focusedField = nil
           restTimerEndsAt = nil
         }
         .accessibilityLabel("Aktuelle Pause beenden")
