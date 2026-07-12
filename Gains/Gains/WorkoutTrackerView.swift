@@ -757,6 +757,10 @@ struct WorkoutTrackerView: View {
           .padding(.vertical, GainsSpacing.xs)
           .background(GainsColor.onCtaSurface.opacity(0.08))
           .clipShape(RoundedRectangle(cornerRadius: GainsRadius.small, style: .continuous))
+          .accessibilityElement(children: .combine)
+          .accessibilityLabel("Als Nächstes in deinem aktiven Training")
+          .accessibilityValue("Satz \(pending.set.order) in \(pending.exercise.name), \(setContextDetail(pending.set))")
+          .accessibilityHint("Zeigt dir den nächsten offenen Satz nach der aktuellen Erholungspause")
         }
 
         HStack(spacing: GainsSpacing.xs) {
