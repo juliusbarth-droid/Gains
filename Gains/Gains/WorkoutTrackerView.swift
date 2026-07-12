@@ -1189,6 +1189,7 @@ struct WorkoutTrackerView: View {
   /// Extrahiert aus dem früheren Long-Press-ContextMenu, jetzt vom
   /// Bearbeiten-Modus aufgerufen.
   private func deleteExercise(_ exercise: TrackedExercise, at index: Int) {
+    focusedField = nil
     if activeSetID != nil, exercise.sets.contains(where: { $0.id == activeSetID }) {
       stopActiveSet()
     }
