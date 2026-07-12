@@ -1368,6 +1368,7 @@ struct WorkoutTrackerView: View {
 
   /// Verschiebt eine Übung um ±1 Position. Wird vom ContextMenu aufgerufen.
   private func moveExercise(at index: Int, by delta: Int) {
+    focusedField = nil
     guard let workout = store.activeWorkout else { return }
     let target = index + delta
     guard target >= 0, target < workout.exercises.count else { return }
@@ -1382,6 +1383,7 @@ struct WorkoutTrackerView: View {
 
   /// Verschiebt eine Übung auf eine absolute Zielposition (Anfang/Ende).
   private func moveExercise(at index: Int, to target: Int) {
+    focusedField = nil
     guard let workout = store.activeWorkout else { return }
     guard target >= 0, target < workout.exercises.count, target != index else { return }
     let destination = target > index ? target + 1 : target
