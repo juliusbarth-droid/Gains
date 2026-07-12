@@ -276,6 +276,8 @@ struct WorkoutTrackerView: View {
         HealthKitManager.shared.startHeartRateObserver()
       }
       .onDisappear {
+        draggingExerciseID = nil
+        dropHoverID = nil
         HealthKitManager.shared.stopHeartRateObserver()
       }
       .navigationBarTitleDisplayMode(.inline)
