@@ -2646,6 +2646,7 @@ private struct CompactSetRow: View {
   }
 
   private func commitWeight() {
+    focusedField = nil
     let normalized = weightText.replacingOccurrences(of: ",", with: ".")
     if let value = Double(normalized) {
       stopRunningSetIfNeeded()
@@ -2658,6 +2659,7 @@ private struct CompactSetRow: View {
   }
 
   private func commitReps() {
+    focusedField = nil
     if let value = Int(repsText) {
       stopRunningSetIfNeeded()
       let bounded = max(0, value)
