@@ -2216,6 +2216,7 @@ struct WorkoutTrackerView: View {
 
   private func completeSet(exerciseID: UUID, set: TrackedSet) {
     focusedField = nil
+    scrollToExerciseID = nil
     let wasCompleted = set.isCompleted
     if activeSetID == set.id {
       stopActiveSet()
