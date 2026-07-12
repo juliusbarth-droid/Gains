@@ -198,6 +198,7 @@ struct WorkoutTrackerView: View {
 
             Button {
               focusedField = nil
+              scrollToExerciseID = nil
               dismiss()
             } label: {
               Text("SCHLIESSEN")
@@ -275,6 +276,7 @@ struct WorkoutTrackerView: View {
         ToolbarItem(placement: .topBarLeading) {
           Button {
             focusedField = nil
+            scrollToExerciseID = nil
             dismiss()
           } label: {
             Image(systemName: "chevron.down")
