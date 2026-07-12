@@ -789,7 +789,7 @@ struct WorkoutTrackerView: View {
             .font(GainsFont.label(10))
             .foregroundStyle(GainsColor.onCtaSurface.opacity(0.72))
         }
-        adjustChip("STOP", tone: .accent) {
+        adjustChip("SATZ STOPPEN", tone: .accent) {
           stopActiveSet()
         }
         .accessibilityLabel("Aktiven Satz stoppen")
