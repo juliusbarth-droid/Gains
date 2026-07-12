@@ -368,6 +368,7 @@ struct WorkoutTrackerView: View {
       // wird.
       .alert("Aktives Training speichern, fortsetzen oder verwerfen", isPresented: $isFinishing) {
         Button("Aktives Training speichern") {
+          scrollToExerciseID = nil
           if activeSetID != nil {
             stopActiveSet()
           }
@@ -376,9 +377,11 @@ struct WorkoutTrackerView: View {
           dismiss()
         }
         Button("Aktives Training fortsetzen", role: .cancel) {
+          scrollToExerciseID = nil
           isFinishing = false
         }
         Button("Aktives Training verwerfen", role: .destructive) {
+          scrollToExerciseID = nil
           if activeSetID != nil {
             stopActiveSet()
           }
