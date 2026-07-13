@@ -4045,6 +4045,7 @@ final class GainsStore: ObservableObject {
     } else {
       sharedPostIDs.insert(postID)
     }
+    scheduleSave()
   }
 
   func createCommunityPost(from action: CommunityComposerAction) {
