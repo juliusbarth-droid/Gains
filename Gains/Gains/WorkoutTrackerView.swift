@@ -276,6 +276,12 @@ struct WorkoutTrackerView: View {
         HealthKitManager.shared.startHeartRateObserver()
       }
       .onDisappear {
+        isFinishing = false
+        pendingUndo = nil
+        focusedField = nil
+        scrollToExerciseID = nil
+        skipConfirmExercise = nil
+        formGuideExercise = nil
         draggingExerciseID = nil
         dropHoverID = nil
         HealthKitManager.shared.stopHeartRateObserver()
