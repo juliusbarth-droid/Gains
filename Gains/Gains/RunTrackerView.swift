@@ -589,6 +589,7 @@ private struct PreRunSetupView: View {
     .onDisappear {
       showsAdvanced = false
       showsWearablePicker = false
+      hfHintDismissed = false
     }
     .sheet(isPresented: $showsWearablePicker) {
       WearablePickerSheet()
