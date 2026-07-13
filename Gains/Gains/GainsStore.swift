@@ -2940,6 +2940,7 @@ final class GainsStore: ObservableObject {
   func startWorkout(from plan: WorkoutPlan) {
     guard activeWorkout == nil, activeRun == nil else { return }
     activeWorkout = WorkoutSession.fromPlan(plan)
+    activeRestTimerEndsAt = nil
   }
 
   func startQuickWorkout() {
@@ -2948,6 +2949,7 @@ final class GainsStore: ObservableObject {
           let plan = todayPlannedWorkout
     else { return }
     activeWorkout = WorkoutSession.fromPlan(plan)
+    activeRestTimerEndsAt = nil
   }
 
   /// Wiederholt das zuletzt absolvierte Workout — sucht im savedWorkoutPlans
@@ -2966,6 +2968,7 @@ final class GainsStore: ObservableObject {
           })
     else { return false }
     activeWorkout = WorkoutSession.fromPlan(plan)
+    activeRestTimerEndsAt = nil
     return true
   }
 
