@@ -519,6 +519,9 @@ struct WorkoutHubView: View {
   private func runPending(_ action: inout (() -> Void)?) {
     let next = action
     action = nil
+    if store.activeWorkout != nil || store.activeRun != nil {
+      return
+    }
     next?()
   }
 
