@@ -80,10 +80,10 @@ final class AppNavigationStore: ObservableObject {
   }
 
   /// Öffnet das globale Capture-Sheet mit dem gewünschten Inhaltstyp.
-  /// Setzt zuerst `pendingGymTab` zurück, damit kein verwaister Sub-Tab-
-  /// Sprung im Hintergrund mitschwingt.
+  /// Räumt zuerst globale Overlays auf, damit kein verwaister Sub-Tab-
+  /// Sprung oder Fullscreen-Overlay im Hintergrund mitschwingt.
   func presentCapture(kind: CaptureKind = .workout) {
-    if pendingGymTab != nil { pendingGymTab = nil }
+    dismissOverlays()
     pendingCaptureKind = kind
   }
 
