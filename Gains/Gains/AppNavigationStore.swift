@@ -52,7 +52,7 @@ final class AppNavigationStore: ObservableObject {
   /// Ersetzt den alten Tab-Switch-Ansatz — der User bleibt im Kontext
   /// und bekommt den Plan direkt als Overlay, kein Tab-Sprung.
   func openWeekPlanFullscreen() {
-    if pendingCaptureKind != nil { pendingCaptureKind = nil }
+    dismissOverlays()
     showsWeekPlanFullscreen = true
   }
 
@@ -60,7 +60,7 @@ final class AppNavigationStore: ObservableObject {
   /// Wird nur noch intern (GymView-Kontext) genutzt. Für alle anderen
   /// Kontexte → `openWeekPlanFullscreen()`.
   func openPlanner() {
-    if pendingCaptureKind != nil { pendingCaptureKind = nil }
+    dismissOverlays()
     pendingGymTab = .plan
     selectedTab = .gym
   }
@@ -100,7 +100,7 @@ final class AppNavigationStore: ObservableObject {
   /// Home). 2026-05-30: ersetzt den 2026-05-01 entfernten Tab-Helper — der
   /// Hub ist jetzt eine eigene Surface über dem aktuellen Tab, kein Tab-Sprung.
   func openCommunity() {
-    if pendingCaptureKind != nil { pendingCaptureKind = nil }
+    dismissOverlays()
     showsCommunity = true
   }
 }
