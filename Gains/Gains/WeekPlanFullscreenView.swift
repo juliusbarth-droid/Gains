@@ -108,11 +108,19 @@ struct WeekPlanFullscreenView: View {
       .onChange(of: store.activeWorkout?.id) { _, newID in
         if newID != nil {
           weekdayPostDismiss = nil
+          showsWorkoutTracker = true
+          showsRunTracker = false
+        } else {
+          showsWorkoutTracker = false
         }
       }
       .onChange(of: store.activeRun?.id) { _, newID in
         if newID != nil {
           weekdayPostDismiss = nil
+          showsRunTracker = true
+          showsWorkoutTracker = false
+        } else {
+          showsRunTracker = false
         }
       }
       .sheet(
