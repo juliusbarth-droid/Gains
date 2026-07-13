@@ -105,6 +105,16 @@ struct WeekPlanFullscreenView: View {
           .accessibilityLabel("Plan vorschlagen lassen")
         }
       }
+      .onChange(of: store.activeWorkout?.id) { _, newID in
+        if newID != nil {
+          weekdayPostDismiss = nil
+        }
+      }
+      .onChange(of: store.activeRun?.id) { _, newID in
+        if newID != nil {
+          weekdayPostDismiss = nil
+        }
+      }
       .sheet(
         item: $weekdaySelection,
         onDismiss: {
