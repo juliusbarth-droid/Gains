@@ -225,6 +225,7 @@ struct HomeView: View {
         pendingAfterChooser = nil
         pendingAfterBuilder = nil
         pendingAfterArrange = nil
+        navigation.openTraining(workspace: .kraft)
       }
     }
     .onChange(of: store.activeRun?.id) { _, newValue in
