@@ -585,6 +585,9 @@ private struct PreRunSetupView: View {
       .background(GainsColor.background)
     }
     .onAppear { syncModalityFromActiveRun() }
+    .onDisappear {
+      showsWearablePicker = false
+    }
     .sheet(isPresented: $showsWearablePicker) {
       WearablePickerSheet()
     }
