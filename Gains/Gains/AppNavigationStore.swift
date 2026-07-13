@@ -31,6 +31,8 @@ final class AppNavigationStore: ObservableObject {
   private func dismissOverlays() {
     if pendingCaptureKind != nil { pendingCaptureKind = nil }
     if pendingGymTab != nil { pendingGymTab = nil }
+    if showsWeekPlanFullscreen { showsWeekPlanFullscreen = false }
+    if showsCommunity { showsCommunity = false }
   }
 
   /// Wechselt in den Trainings-Tab. `kraft` öffnet das Gym, `laufen` den
