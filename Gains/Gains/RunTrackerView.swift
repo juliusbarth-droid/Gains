@@ -208,6 +208,7 @@ struct RunTrackerView: View {
       cancelCountdown()
       if store.activeRun == nil {
         phase = .setup
+        stopTracking()
       }
     }
     // Stabilitäts-Fix: vorher feuerten 4 separate onReceive-Publisher alle
