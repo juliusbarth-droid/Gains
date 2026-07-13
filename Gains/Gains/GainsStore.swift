@@ -3039,13 +3039,13 @@ final class GainsStore: ObservableObject {
   }
 
   /// Benennt einen abgeschlossenen Lauf um. Leere Namen werden ignoriert.
-  /// Mutation triggert `runHistory.didSet` → Persistenz + Cache-Invalidierung.
   func renameRun(_ id: UUID, to newTitle: String) {
     let trimmed = newTitle.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty,
           let idx = runHistory.firstIndex(where: { $0.id == id })
     else { return }
     runHistory[idx].title = trimmed
+    scheduleSave()
   }
 
   /// Löscht einen Lauf dauerhaft aus dem Verlauf.
