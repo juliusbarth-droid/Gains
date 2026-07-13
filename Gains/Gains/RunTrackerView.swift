@@ -590,6 +590,7 @@ private struct PreRunSetupView: View {
       selectedIntensity = .free
       selectedModality = .run
       targetMode = .free
+      targetDistance = 5.0
       showsAdvanced = false
       showsWearablePicker = false
       hfHintDismissed = false
