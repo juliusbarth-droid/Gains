@@ -587,6 +587,7 @@ private struct PreRunSetupView: View {
     }
     .onAppear { syncModalityFromActiveRun() }
     .onDisappear {
+      showsAdvanced = false
       showsWearablePicker = false
     }
     .sheet(isPresented: $showsWearablePicker) {
