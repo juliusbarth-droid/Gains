@@ -239,6 +239,7 @@ struct RunTrackerView: View {
         isConfirmingCountdownAbort = false
         gpsTracker.currentHeartRate = 0
         HealthKitManager.shared.stopHeartRateObserver()
+        stopTracking()
       }
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       if store.activeRun != nil {
