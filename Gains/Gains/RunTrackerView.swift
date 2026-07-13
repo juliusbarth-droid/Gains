@@ -588,6 +588,7 @@ private struct PreRunSetupView: View {
     .onAppear { syncModalityFromActiveRun() }
     .onDisappear {
       selectedIntensity = .free
+      targetMode = .free
       showsAdvanced = false
       showsWearablePicker = false
       hfHintDismissed = false
