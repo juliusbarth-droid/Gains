@@ -592,6 +592,7 @@ private struct PreRunSetupView: View {
       targetMode = .free
       targetDistance = 5.0
       targetDurationMinutes = 30
+      targetPaceSeconds = 5 * 60 + 30
       showsAdvanced = false
       showsWearablePicker = false
       hfHintDismissed = false
