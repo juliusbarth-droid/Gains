@@ -61,6 +61,22 @@ struct CaptureSheet: View {
         selectedContent
       }
     }
+    .onChange(of: store.activeWorkout?.id) { _, newID in
+      if newID != nil {
+        isShowingWorkoutTracker = true
+        isShowingRunTracker = false
+      } else {
+        isShowingWorkoutTracker = false
+      }
+    }
+    .onChange(of: store.activeRun?.id) { _, newID in
+      if newID != nil {
+        isShowingRunTracker = true
+        isShowingWorkoutTracker = false
+      } else {
+        isShowingRunTracker = false
+      }
+    }
     .sheet(isPresented: $isShowingRunTracker) {
       RunTrackerView()
         .environmentObject(store)
