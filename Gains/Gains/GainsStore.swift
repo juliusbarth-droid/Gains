@@ -3051,6 +3051,7 @@ final class GainsStore: ObservableObject {
   /// Löscht einen Lauf dauerhaft aus dem Verlauf.
   func deleteRun(_ id: UUID) {
     runHistory.removeAll { $0.id == id }
+    scheduleSave()
   }
 
   func discardRun() {
