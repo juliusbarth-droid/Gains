@@ -202,6 +202,7 @@ struct RunTrackerView: View {
     .onDisappear {
       showsStopSheet = false
       isConfirmingCountdownAbort = false
+      showsWearablePicker = false
       suppressNextAutoPauseSync = false
       HealthKitManager.shared.stopHeartRateObserver()
       cancelCountdown()
