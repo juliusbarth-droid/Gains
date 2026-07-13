@@ -4027,6 +4027,7 @@ final class GainsStore: ObservableObject {
     } else {
       likedPostIDs.insert(postID)
     }
+    scheduleSave()
   }
 
   func toggleComment(postID: UUID) {
