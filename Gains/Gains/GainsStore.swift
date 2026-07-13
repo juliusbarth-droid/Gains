@@ -4036,6 +4036,7 @@ final class GainsStore: ObservableObject {
     } else {
       commentedPostIDs.insert(postID)
     }
+    scheduleSave()
   }
 
   func toggleShare(postID: UUID) {
