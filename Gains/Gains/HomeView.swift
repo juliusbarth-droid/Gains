@@ -240,6 +240,7 @@ struct HomeView: View {
         isShowingRunTracker = true
         isShowingProgress = false
         isShowingProfile = false
+        navigation.openTraining(workspace: .laufen)
       }
     }
     // 2026-05-16 (Fertiger-Audit P0-6): zentrales Haptik-Feedback für die
