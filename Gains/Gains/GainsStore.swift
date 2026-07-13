@@ -2974,6 +2974,7 @@ final class GainsStore: ObservableObject {
     // P1-3: Pause-Timer-State mit dem Workout zusammen wegwerfen, sonst
     // wirkt er beim nächsten Workout-Start fehlerhaft fort.
     activeRestTimerEndsAt = nil
+    scheduleSave()
   }
 
   func startRun(from template: RunTemplate) {
