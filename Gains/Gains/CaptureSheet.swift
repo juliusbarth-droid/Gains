@@ -65,6 +65,7 @@ struct CaptureSheet: View {
       if newID != nil {
         isShowingWorkoutTracker = true
         isShowingRunTracker = false
+        navigation.openTraining(workspace: .kraft)
       } else {
         isShowingWorkoutTracker = false
       }
@@ -73,6 +74,7 @@ struct CaptureSheet: View {
       if newID != nil {
         isShowingRunTracker = true
         isShowingWorkoutTracker = false
+        navigation.openTraining(workspace: .laufen)
       } else {
         isShowingRunTracker = false
       }
