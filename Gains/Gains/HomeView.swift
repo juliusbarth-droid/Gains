@@ -4106,6 +4106,9 @@ struct HomeView: View {
   private func runPending(_ slot: inout (() -> Void)?) {
     guard let action = slot else { return }
     slot = nil
+    if store.activeWorkout != nil || store.activeRun != nil {
+      return
+    }
     action()
   }
 
