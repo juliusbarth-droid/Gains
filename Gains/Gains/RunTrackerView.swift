@@ -595,6 +595,7 @@ private struct PreRunSetupView: View {
       targetPaceSeconds = 5 * 60 + 30
       targetSpeedKmh = 25.0
       autoPauseEnabled = true
+      audioCuesEnabled = true
       showsAdvanced = false
       showsWearablePicker = false
       hfHintDismissed = false
