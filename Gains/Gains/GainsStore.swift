@@ -4013,6 +4013,7 @@ final class GainsStore: ObservableObject {
     } else {
       completedCoachCheckInIDs.insert(id)
     }
+    scheduleSave()
   }
 
   func toggleChallengeJoined() {
