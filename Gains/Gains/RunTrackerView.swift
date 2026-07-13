@@ -208,6 +208,8 @@ struct RunTrackerView: View {
       cancelCountdown()
       if store.activeRun == nil {
         phase = .setup
+        lastSpokenKilometer = 0
+        lastSpokenStepIndex = -1
         stopTracking()
       }
     }
