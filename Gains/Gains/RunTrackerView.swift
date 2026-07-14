@@ -150,6 +150,7 @@ struct RunTrackerView: View {
           onDiscard: {
             isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
+            countdownValue = 3
             stopTracking()
             store.discardActiveRun()
             phase = .setup
