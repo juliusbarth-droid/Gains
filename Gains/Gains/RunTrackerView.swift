@@ -142,6 +142,7 @@ struct RunTrackerView: View {
           onSave: { title, note, feel in
             isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
+            cancelCountdown()
             countdownValue = 3
             finishRun(title: title, note: note, feel: feel)
             phase = .setup
