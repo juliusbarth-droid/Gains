@@ -217,6 +217,7 @@ struct RunTrackerView: View {
       // Wenn beim Öffnen schon ein Lauf aktiv ist (z.B. App im Hintergrund war),
       // direkt in den Live-Screen springen und State synchronisieren.
       if store.activeRun != nil {
+        showsWearablePicker = false
         phase = .live
         synchronizeTrackerState()
       } else {
