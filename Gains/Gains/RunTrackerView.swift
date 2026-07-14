@@ -203,12 +203,6 @@ struct RunTrackerView: View {
       showsStopSheet = false
       isConfirmingCountdownAbort = false
       suppressNextAutoPauseSync = false
-      if store.activeRun?.modality.requiresGPS == true {
-        gpsTracker.requestAuthorization()
-      }
-      if store.activeRun != nil {
-        HealthKitManager.shared.startHeartRateObserver()
-      }
 
       if store.activeRun == nil, store.activeStructuredWorkout != nil {
         store.endStructuredWorkout()
