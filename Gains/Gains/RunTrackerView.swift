@@ -121,6 +121,8 @@ struct RunTrackerView: View {
           suppressNextAutoPauseSync = false
           cancelCountdown()
           countdownValue = 3
+          lastSpokenKilometer = 0
+          lastSpokenStepIndex = -1
           stopTracking()
           if store.activeRun != nil {
             store.discardActiveRun()
