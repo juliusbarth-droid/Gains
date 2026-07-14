@@ -216,6 +216,7 @@ struct RunTrackerView: View {
         synchronizeTrackerState()
       } else {
         showsStopSheet = false
+        showsWearablePicker = false
         phase = .setup
         cancelCountdown()
         countdownValue = 3
