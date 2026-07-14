@@ -151,6 +151,7 @@ struct RunTrackerView: View {
             countdownValue = 3
             lastSpokenKilometer = 0
             lastSpokenStepIndex = -1
+            showsWearablePicker = false
             finishRun(title: title, note: note, feel: feel)
             phase = .setup
             showsStopSheet = false
