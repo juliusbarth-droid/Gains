@@ -370,6 +370,7 @@ struct RunTrackerView: View {
   private func synchronizeTrackerState() {
     guard let run = store.activeRun else {
       showsStopSheet = false
+      showsWearablePicker = false
       isConfirmingCountdownAbort = false
       suppressNextAutoPauseSync = false
       cancelCountdown()
