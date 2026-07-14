@@ -91,6 +91,7 @@ struct RunTrackerView: View {
                 isConfirmingCountdownAbort = true
               case .setup, .live:
                 showsStopSheet = false
+                showsWearablePicker = false
                 isConfirmingCountdownAbort = false
                 suppressNextAutoPauseSync = false
                 stopTracking()
