@@ -619,6 +619,7 @@ private struct PreRunSetupView: View {
     }
     .onAppear { syncModalityFromActiveRun() }
     .onDisappear {
+      cancelCountdown()
       countdownValue = 3
       lastSpokenKilometer = 0
       lastSpokenStepIndex = -1
