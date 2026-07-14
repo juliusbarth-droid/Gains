@@ -292,7 +292,6 @@ struct RunTrackerView: View {
         !showsStopSheet,
         !isConfirmingCountdownAbort
       else { return }
-      HealthKitManager.shared.startHeartRateObserver()
       synchronizeTrackerState()
     }
   }
