@@ -125,6 +125,7 @@ struct RunTrackerView: View {
           lastSpokenKilometer = 0
           lastSpokenStepIndex = -1
           gpsTracker.currentHeartRate = 0
+          showsWearablePicker = false
           stopTracking()
           if store.activeRun != nil {
             store.discardActiveRun()
