@@ -204,7 +204,6 @@ struct RunTrackerView: View {
       isConfirmingCountdownAbort = false
       showsWearablePicker = false
       suppressNextAutoPauseSync = false
-      HealthKitManager.shared.stopHeartRateObserver()
       cancelCountdown()
       if store.activeRun == nil {
         phase = .setup
@@ -212,6 +211,8 @@ struct RunTrackerView: View {
         lastSpokenKilometer = 0
         lastSpokenStepIndex = -1
         stopTracking()
+      } else {
+        HealthKitManager.shared.stopHeartRateObserver()
       }
     }
     // Stabilitäts-Fix: vorher feuerten 4 separate onReceive-Publisher alle
