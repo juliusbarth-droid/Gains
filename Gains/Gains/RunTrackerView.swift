@@ -179,6 +179,7 @@ struct RunTrackerView: View {
               synchronizeTrackerState()
             } else {
               phase = .setup
+              cancelCountdown()
               countdownValue = 3
               lastSpokenKilometer = 0
               lastSpokenStepIndex = -1
