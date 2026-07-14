@@ -241,6 +241,7 @@ struct RunTrackerView: View {
         showsStopSheet = false
         isConfirmingCountdownAbort = false
         suppressNextAutoPauseSync = false
+        cancelCountdown()
         countdownValue = 3
         lastSpokenKilometer = 0
         lastSpokenStepIndex = -1
