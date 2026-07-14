@@ -343,6 +343,7 @@ struct RunTrackerView: View {
     lastSpokenKilometer = 0
     lastSpokenStepIndex = -1
     gpsTracker.currentHeartRate = 0
+    countdownValue = 3
     phase = .live
     if store.activeRun == nil {
       store.startQuickRun()
