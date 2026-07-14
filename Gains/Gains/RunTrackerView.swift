@@ -120,6 +120,7 @@ struct RunTrackerView: View {
           isConfirmingCountdownAbort = false
           suppressNextAutoPauseSync = false
           cancelCountdown()
+          countdownValue = 3
           stopTracking()
           if store.activeRun != nil {
             store.discardActiveRun()
