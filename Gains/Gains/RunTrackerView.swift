@@ -311,6 +311,7 @@ struct RunTrackerView: View {
     suppressNextAutoPauseSync = false
     lastSpokenKilometer = 0
     lastSpokenStepIndex = -1
+    gpsTracker.currentHeartRate = 0
     countdownValue = 3
     phase = .countdown
     audio.speak("Drei.")
