@@ -156,6 +156,8 @@ struct RunTrackerView: View {
             suppressNextAutoPauseSync = false
             cancelCountdown()
             countdownValue = 3
+            lastSpokenKilometer = 0
+            lastSpokenStepIndex = -1
             stopTracking()
             store.discardActiveRun()
             phase = .setup
