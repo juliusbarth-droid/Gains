@@ -212,6 +212,7 @@ struct RunTrackerView: View {
         phase = .live
         synchronizeTrackerState()
       } else {
+        showsStopSheet = false
         phase = .setup
         cancelCountdown()
         countdownValue = 3
