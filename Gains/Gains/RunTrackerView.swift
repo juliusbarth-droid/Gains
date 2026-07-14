@@ -618,6 +618,8 @@ private struct PreRunSetupView: View {
     .onAppear { syncModalityFromActiveRun() }
     .onDisappear {
       countdownValue = 3
+      lastSpokenKilometer = 0
+      lastSpokenStepIndex = -1
       selectedIntensity = .free
       selectedModality = .run
       targetMode = .free
