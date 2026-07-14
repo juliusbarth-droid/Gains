@@ -338,6 +338,7 @@ struct RunTrackerView: View {
   private func startRunNow() {
     cancelCountdown()
     showsStopSheet = false
+    showsWearablePicker = false
     isConfirmingCountdownAbort = false
     suppressNextAutoPauseSync = false
     lastSpokenKilometer = 0
