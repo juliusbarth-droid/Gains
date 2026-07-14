@@ -144,6 +144,8 @@ struct RunTrackerView: View {
             suppressNextAutoPauseSync = false
             cancelCountdown()
             countdownValue = 3
+            lastSpokenKilometer = 0
+            lastSpokenStepIndex = -1
             finishRun(title: title, note: note, feel: feel)
             phase = .setup
             showsStopSheet = false
