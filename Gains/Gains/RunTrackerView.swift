@@ -182,6 +182,7 @@ struct RunTrackerView: View {
               synchronizeTrackerState()
             } else {
               phase = .setup
+              showsWearablePicker = false
               cancelCountdown()
               countdownValue = 3
               lastSpokenKilometer = 0
