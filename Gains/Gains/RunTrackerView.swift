@@ -340,6 +340,7 @@ struct RunTrackerView: View {
       suppressNextAutoPauseSync = false
       cancelCountdown()
       phase = .setup
+      countdownValue = 3
       lastSpokenKilometer = 0
       lastSpokenStepIndex = -1
       gpsTracker.currentHeartRate = 0
