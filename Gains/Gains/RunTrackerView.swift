@@ -128,6 +128,7 @@ struct RunTrackerView: View {
           if store.activeRun != nil {
             store.discardActiveRun()
           }
+          phase = .setup
           dismiss()
         }
         Button("Vorbereitung fortsetzen", role: .cancel) {}
