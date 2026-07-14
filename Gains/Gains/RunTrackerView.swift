@@ -128,6 +128,7 @@ struct RunTrackerView: View {
           if store.activeRun != nil {
             store.discardActiveRun()
           }
+          showsStopSheet = false
           phase = .setup
           dismiss()
         }
