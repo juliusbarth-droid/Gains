@@ -61,6 +61,7 @@ struct RunTrackerView: View {
               onStop: {
                 isConfirmingCountdownAbort = false
                 suppressNextAutoPauseSync = false
+                syncStoreWithTracker()
                 showsStopSheet = true
               }
             )
@@ -80,6 +81,7 @@ struct RunTrackerView: View {
             if hasVisibleLiveRun {
               isConfirmingCountdownAbort = false
               suppressNextAutoPauseSync = false
+              syncStoreWithTracker()
               showsStopSheet = true
             } else {
               switch phase {
