@@ -141,6 +141,7 @@ struct RunTrackerView: View {
       .sheet(isPresented: $showsStopSheet) {
         StopRunSheet(
           run: store.activeRun,
+          isAutoPaused: gpsTracker.autoPaused,
           // 2026-05-01 P1-5: Sekunden-genaue Save-Bedingung — durationMinutes
           // (Int) ist 0 für Läufe < 60s, dadurch konnte ein 45s-Lauf nicht
           // gespeichert werden. Wir reichen die exakten Sekunden aus dem
@@ -1854,6 +1855,7 @@ private struct LiveRunView: View {
 
 private struct StopRunSheet: View {
   let run: ActiveRunSession?
+  let isAutoPaused: Bool
   /// Aktuelle Lauf-Dauer in Sekunden (vom GPS-Tracker durchgereicht).
   /// Wird statt `run.durationMinutes` (Int, rundet < 60s auf 0) für die
   /// Save-Bedingung benutzt — siehe P1-5.
@@ -1914,11 +1916,11 @@ private struct StopRunSheet: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button("Lauf fortsetzen", action: onResume)
+          Button(isAutoPaused ? "Weiter" : "Lauf fortsetzen", action: onResume)
             .foregroundStyle(GainsColor.ink)
-            .accessibilityLabel("Lauf fortsetzen")
-            .accessibilityValue(run?.isPaused == true ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt fortgesetzt werden")
-            .accessibilityHint("Schließt die Abschlussansicht und setzt deinen aktuellen Lauf direkt fort")
+            .accessibilityLabel(isAutoPaused ? "Lauf nach Auto-Pause weiterführen" : "Lauf fortsetzen")
+            .accessibilityValue(isAutoPaused ? "Automatisch pausierter Lauf, kann direkt weiterlaufen" : (run?.isPaused == true ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt fortgesetzt werden"))
+            .accessibilityHint(isAutoPaused ? "Schließt die Abschlussansicht und setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : "Schließt die Abschlussansicht und setzt deinen aktuellen Lauf direkt fort")
         }
       }
       .safeAreaInset(edge: .bottom) {
