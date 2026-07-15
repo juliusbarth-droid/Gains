@@ -1273,7 +1273,11 @@ private struct LiveRunView: View {
 
   private var statusRow: some View {
     HStack(spacing: GainsSpacing.xsPlus) {
-      GainsSignalDot(active: !run.isPaused, color: GainsColor.signal, size: 8)
+      GainsSignalDot(
+        active: gpsTracker.autoPaused || !run.isPaused,
+        color: gpsTracker.autoPaused ? GainsColor.ember : GainsColor.signal,
+        size: 8
+      )
 
       Text(statusText)
         .font(GainsFont.label(11))
