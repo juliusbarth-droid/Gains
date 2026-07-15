@@ -2171,6 +2171,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     guard canStartTracking else { return }
     guard !isUsingGPS else { return }
 
+    let preservedElapsedSeconds = elapsedSeconds
+    let preservedDurationMinutes = durationMinutes
+
     // Falls bereits ein Fallback- oder Indoor-Tracking läuft, fließend auf
     // GPS umschalten. Dabei vorher den alten Modus sauber räumen, damit kein
     // Timer/Mode-Flag aus dem vorherigen Pfad hängen bleibt.
@@ -2181,6 +2184,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
 
     prepareTrackingState(from: run)
+    if preservedElapsedSeconds > elapsedSeconds {
+      elapsedSeconds = preservedElapsedSeconds
+      durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
+      startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+    }
     cardioModality = run.modality
     autoPauseEnabled = run.autoPauseEnabled
     isUsingGPS = true
