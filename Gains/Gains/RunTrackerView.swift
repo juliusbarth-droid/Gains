@@ -480,12 +480,14 @@ struct RunTrackerView: View {
     // Nach dem Toggle den neuen State aus dem Store lesen (nicht `run` — das ist
     // eine struct-Kopie mit dem PRE-toggle-Wert und würde die Logik umkehren).
     let nowPaused = store.activeRun?.isPaused ?? false
+    // Manuelle Pause/Resume-Aktionen lösen im Tracker selbst `autoPaused`
+    // Publishes aus. Die dürfen nicht erneut durch `handleAutoPause(_:)`
+    // laufen, sonst kann der Store direkt wieder zurückgetoggelt werden.
+    suppressNextAutoPauseSync = true
     if nowPaused {
-      suppressNextAutoPauseSync = gpsTracker.autoPaused
       gpsTracker.pauseTracking()
       audio.speak("Pausiert.")
     } else {
-      suppressNextAutoPauseSync = false
       gpsTracker.resumeTracking()
       audio.speak("Lauf fortgesetzt.")
     }
