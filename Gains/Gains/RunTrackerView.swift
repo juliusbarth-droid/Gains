@@ -1471,7 +1471,7 @@ private struct LiveRunView: View {
     if run.modality.isIndoor {
       indoorDistanceTile
     } else {
-      Map(position: .constant(gpsTracker.cameraPosition)) {
+      Map(position: .constant(displayedCameraPosition)) {
         if !displayedRouteCoordinates.isEmpty {
           MapPolyline(coordinates: displayedRouteCoordinates)
             .stroke(GainsColor.lime, lineWidth: 5)
@@ -1875,6 +1875,26 @@ private struct LiveRunView: View {
     return gpsTracker.routeCoordinates.count > run.routeCoordinates.count
       ? gpsTracker.routeCoordinates
       : run.routeCoordinates
+  }
+
+  private var displayedCameraPosition: MapCameraPosition {
+    if let last = displayedRouteCoordinates.last {
+      return .region(
+        MKCoordinateRegion(
+          center: last,
+          span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+      )
+    }
+    if isTrackerActive {
+      return gpsTracker.cameraPosition
+    }
+    return .region(
+      MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 48.1351, longitude: 11.5820),
+        span: MKCoordinateSpan(latitudeDelta: 0.03, longitudeDelta: 0.03)
+      )
+    )
   }
 }
 
