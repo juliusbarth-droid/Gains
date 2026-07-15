@@ -1843,11 +1843,17 @@ private struct LiveRunView: View {
   }
 
   private var displayedDistance: Double {
-    isTrackerActive ? gpsTracker.trackedDistanceKm : run.distanceKm
+    if isTrackerActive {
+      return gpsTracker.trackedDistanceKm
+    }
+    return max(run.distanceKm, gpsTracker.trackedDistanceKm)
   }
 
   private var displayedElevation: Int {
-    isTrackerActive ? gpsTracker.elevationGain : run.elevationGain
+    if isTrackerActive {
+      return gpsTracker.elevationGain
+    }
+    return max(run.elevationGain, gpsTracker.elevationGain)
   }
 
   private var displayedPace: Int {
@@ -1856,11 +1862,19 @@ private struct LiveRunView: View {
   }
 
   private var displayedSplits: [RunSplit] {
-    isTrackerActive ? gpsTracker.splits : run.splits
+    if isTrackerActive {
+      return gpsTracker.splits
+    }
+    return gpsTracker.splits.count > run.splits.count ? gpsTracker.splits : run.splits
   }
 
   private var displayedRouteCoordinates: [CLLocationCoordinate2D] {
-    isTrackerActive ? gpsTracker.routeCoordinates : run.routeCoordinates
+    if isTrackerActive {
+      return gpsTracker.routeCoordinates
+    }
+    return gpsTracker.routeCoordinates.count > run.routeCoordinates.count
+      ? gpsTracker.routeCoordinates
+      : run.routeCoordinates
   }
 }
 
