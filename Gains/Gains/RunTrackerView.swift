@@ -505,7 +505,7 @@ struct RunTrackerView: View {
       gpsTracker.pauseTracking(clearAutoPause: false, stopLocationUpdates: false)
       audio.speak("Auto-Pause.")
     } else if !paused, run.isPaused {
-      suppressNextAutoPauseSync = false
+      suppressNextAutoPauseSync = true
       store.toggleRunPause()
       gpsTracker.resumeTracking()
       audio.speak("Lauf fortgesetzt.")
