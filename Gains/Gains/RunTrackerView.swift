@@ -1266,7 +1266,7 @@ private struct LiveRunView: View {
 
       VStack(spacing: GainsSpacing.m) {
         liveMetricsRow
-        if run.currentHeartRate > 0 {
+        if displayedHeartRate > 0 {
           hrZoneRow
         }
         liveControls
@@ -1575,7 +1575,7 @@ private struct LiveRunView: View {
         metric(title: "PACE", value: paceCompact(displayedPace), unit: "/km", emphasized: true)
       }
       metricSeparator
-      metric(title: "HF", value: run.currentHeartRate > 0 ? "\(run.currentHeartRate)" : "–", unit: "bpm")
+      metric(title: "HF", value: displayedHeartRate > 0 ? "\(displayedHeartRate)" : "–", unit: "bpm")
       metricSeparator
       // Indoor-Bike hat keine echte Höhe (Heimtrainer steht still) — wir
       // zeigen statt „+0 m" eine Kalorien-Schätzung, die der Anwender im
@@ -1601,6 +1601,13 @@ private struct LiveRunView: View {
     let pace = displayedPace
     guard pace > 0 else { return 0 }
     return 3600.0 / Double(pace)
+  }
+
+  private var displayedHeartRate: Int {
+    if isTrackerActive {
+      return max(run.currentHeartRate, gpsTracker.currentHeartRate)
+    }
+    return run.currentHeartRate
   }
 
   private func speedCompact(_ kmh: Double) -> String {
@@ -1659,7 +1666,7 @@ private struct LiveRunView: View {
   // MARK: HF-Zone
 
   private var hrZoneRow: some View {
-    let zone = HRZone.zone(for: run.currentHeartRate, maxHR: maxHeartRate)
+    let zone = HRZone.zone(for: displayedHeartRate, maxHR: maxHeartRate)
     return HStack(spacing: GainsSpacing.tight) {
       ForEach(HRZone.allCases, id: \.self) { z in
         // 2026-05-31 (Live-Polish): aktive Zone bekommt einen weichen Halo in
