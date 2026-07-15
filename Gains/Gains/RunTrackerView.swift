@@ -189,7 +189,6 @@ struct RunTrackerView: View {
                 audio.speak(resumeAnnouncement(for: run.modality))
               } else {
                 suppressNextAutoPauseSync = false
-                synchronizeTrackerState()
               }
             } else {
               suppressNextAutoPauseSync = false
