@@ -178,10 +178,6 @@ struct RunTrackerView: View {
             suppressNextAutoPauseSync = false
             showsStopSheet = false
             if store.activeRun != nil {
-              if store.activeRun?.modality.requiresGPS == true {
-                gpsTracker.requestAuthorization()
-              }
-              HealthKitManager.shared.startHeartRateObserver()
               phase = .live
               synchronizeTrackerState()
             } else {
