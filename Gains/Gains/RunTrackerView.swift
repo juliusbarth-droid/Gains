@@ -2291,6 +2291,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   }
 
   func restorePausedTracking(from run: ActiveRunSession) {
+    let preservedElapsedSeconds = elapsedSeconds
+    let preservedDurationMinutes = durationMinutes
     let preservedPauseDate = pauseDate
     if Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
@@ -2319,6 +2321,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       fallbackPaceSeconds = max(run.averagePaceSeconds, 330)
     }
 
+    if preservedElapsedSeconds > elapsedSeconds {
+      elapsedSeconds = preservedElapsedSeconds
+      durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
+      startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+    }
     pauseDate = preservedPauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
