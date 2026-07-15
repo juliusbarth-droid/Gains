@@ -2410,9 +2410,15 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       self.pauseDate = nil
     }
     autoPaused = false
-    lastMovementDate = Date()
 
     if isUsingGPS {
+      if let currentLocation = manager.location, currentLocation.horizontalAccuracy > 0 {
+        lastLocation = currentLocation
+        lastMovementDate = currentLocation.timestamp
+      } else {
+        lastLocation = nil
+        lastMovementDate = Date()
+      }
       if Self.hasLocationBackgroundMode {
         manager.allowsBackgroundLocationUpdates = true
       }
@@ -2420,6 +2426,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
         manager.requestWhenInUseAuthorization()
       }
       manager.startUpdatingLocation()
+    } else {
+      lastMovementDate = Date()
     }
 
     startTimer()
