@@ -176,12 +176,20 @@ struct RunTrackerView: View {
           },
           onResume: {
             isConfirmingCountdownAbort = false
-            suppressNextAutoPauseSync = false
             showsStopSheet = false
-            if store.activeRun != nil {
+            if let run = store.activeRun {
               phase = .live
-              synchronizeTrackerState()
+              if run.isPaused {
+                suppressNextAutoPauseSync = true
+                store.toggleRunPause()
+                HealthKitManager.shared.startHeartRateObserver()
+                gpsTracker.resumeTracking()
+              } else {
+                suppressNextAutoPauseSync = false
+                synchronizeTrackerState()
+              }
             } else {
+              suppressNextAutoPauseSync = false
               phase = .setup
               showsWearablePicker = false
               cancelCountdown()
