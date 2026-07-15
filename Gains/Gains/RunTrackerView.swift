@@ -2173,6 +2173,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
 
     let preservedElapsedSeconds = elapsedSeconds
     let preservedDurationMinutes = durationMinutes
+    let preservedSplitAnchorDurationSeconds = splitAnchorDurationSeconds
+    let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
 
     // Falls bereits ein Fallback- oder Indoor-Tracking läuft, fließend auf
     // GPS umschalten. Dabei vorher den alten Modus sauber räumen, damit kein
@@ -2188,6 +2190,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       elapsedSeconds = preservedElapsedSeconds
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+      splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
+      manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
     }
     cardioModality = run.modality
     autoPauseEnabled = run.autoPauseEnabled
@@ -2221,6 +2225,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   func beginFallbackTracking(from run: ActiveRunSession) {
     let preservedElapsedSeconds = elapsedSeconds
     let preservedDurationMinutes = durationMinutes
+    let preservedSplitAnchorDurationSeconds = splitAnchorDurationSeconds
+    let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
 
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
@@ -2241,6 +2247,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       elapsedSeconds = preservedElapsedSeconds
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+      splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
+      manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
     }
     cardioModality = run.modality
     isTrackingFallback = true
@@ -2255,6 +2263,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   func beginIndoorTracking(from run: ActiveRunSession) {
     let preservedElapsedSeconds = elapsedSeconds
     let preservedDurationMinutes = durationMinutes
+    let preservedSplitAnchorDurationSeconds = splitAnchorDurationSeconds
+    let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
 
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
@@ -2274,6 +2284,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       elapsedSeconds = preservedElapsedSeconds
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+      splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
+      manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
     }
     cardioModality = run.modality
     isIndoor = true
@@ -2293,6 +2305,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   func restorePausedTracking(from run: ActiveRunSession) {
     let preservedElapsedSeconds = elapsedSeconds
     let preservedDurationMinutes = durationMinutes
+    let preservedSplitAnchorDurationSeconds = splitAnchorDurationSeconds
+    let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedPauseDate = pauseDate
     if Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
@@ -2325,6 +2339,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       elapsedSeconds = preservedElapsedSeconds
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+      splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
+      manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
     }
     pauseDate = preservedPauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
