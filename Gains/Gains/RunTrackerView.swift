@@ -2321,6 +2321,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
+    let preservedAutoPaused = autoPaused
     let preservedPauseDate = pauseDate
     if Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
@@ -2358,6 +2359,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
       manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
     }
+    autoPaused = preservedAutoPaused
     pauseDate = preservedPauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
