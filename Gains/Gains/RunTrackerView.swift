@@ -1715,8 +1715,8 @@ private struct LiveRunView: View {
       .buttonStyle(.plain)
       .disabled(run.isPaused)
       .accessibilityLabel("Runde markieren")
-      .accessibilityValue(run.isPaused ? "Pausierter Lauf, neue Runde kann erst nach dem Fortsetzen markiert werden" : "Aktiver Lauf, neue Runde kann direkt markiert werden")
-      .accessibilityHint(run.isPaused ? "Nicht verfügbar, weil eine neue Runde erst nach dem Fortsetzen deines Laufs markiert werden kann" : "Markiert eine neue Runde in deinem laufenden Training")
+      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, neue Runde erst nach dem Weiterlaufen möglich" : (run.isPaused ? "Pausierter Lauf, neue Runde kann erst nach dem Fortsetzen markiert werden" : "Aktiver Lauf, neue Runde kann direkt markiert werden"))
+      .accessibilityHint(gpsTracker.autoPaused ? "Nicht verfügbar, weil eine neue Runde erst nach dem Weiterlaufen deines automatisch pausierten Laufs markiert werden kann" : (run.isPaused ? "Nicht verfügbar, weil eine neue Runde erst nach dem Fortsetzen deines Laufs markiert werden kann" : "Markiert eine neue Runde in deinem laufenden Training"))
 
       Button(action: onStop) {
         HStack(spacing: GainsSpacing.xs) {
@@ -1733,8 +1733,8 @@ private struct LiveRunView: View {
       }
       .buttonStyle(.plain)
       .accessibilityLabel("Lauf abschließen")
-      .accessibilityValue(run.isPaused ? "Pausierter Lauf, kann gespeichert, fortgesetzt oder verworfen werden" : "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden")
-      .accessibilityHint(run.isPaused ? "Öffnet die Abschlussansicht, in der du deinen pausierten Lauf speichern, fortsetzen oder verwerfen kannst" : "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst")
+      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, kann gespeichert, weitergeführt oder verworfen werden" : (run.isPaused ? "Pausierter Lauf, kann gespeichert, fortgesetzt oder verworfen werden" : "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden"))
+      .accessibilityHint(gpsTracker.autoPaused ? "Öffnet die Abschlussansicht, in der du deinen automatisch pausierten Lauf speichern, weiterführen oder verwerfen kannst" : (run.isPaused ? "Öffnet die Abschlussansicht, in der du deinen pausierten Lauf speichern, fortsetzen oder verwerfen kannst" : "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst"))
     }
   }
 
