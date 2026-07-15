@@ -2335,6 +2335,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
     let preservedRouteCoordinates = routeCoordinates
     let preservedLastLocation = lastLocation
+    let preservedLastMovementDate = lastMovementDate
     let preservedAutoPaused = autoPaused
     let preservedPauseDate = pauseDate
     if Self.hasLocationBackgroundMode {
@@ -2377,6 +2378,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       routeCoordinates = preservedRouteCoordinates
     }
     lastLocation = preservedLastLocation
+    lastMovementDate = preservedLastMovementDate
     autoPaused = preservedAutoPaused
     pauseDate = preservedPauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
