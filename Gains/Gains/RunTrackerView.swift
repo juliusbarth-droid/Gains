@@ -147,10 +147,10 @@ struct RunTrackerView: View {
           // 2026-05-01 P1-5: Sekunden-genaue Save-Bedingung — durationMinutes
           // (Int) ist 0 für Läufe < 60s, dadurch konnte ein 45s-Lauf nicht
           // gespeichert werden. Bei pausierten Läufen ist der Store-Zustand
-          // die ehrlichere Quelle, sonst nehmen wir weiter die Live-Sekunden
-          // aus dem Tracker.
+          // wichtig, aber minutenbasiert. Deshalb nehmen wir den längeren Wert
+          // aus pausiertem Store-Stand und exakten Tracker-Sekunden.
           elapsedSeconds: store.activeRun?.isPaused == true
-            ? ((store.activeRun?.durationMinutes ?? 0) * 60)
+            ? max((store.activeRun?.durationMinutes ?? 0) * 60, gpsTracker.elapsedSeconds)
             : gpsTracker.elapsedSeconds,
           onSave: { title, note, feel in
             isConfirmingCountdownAbort = false
