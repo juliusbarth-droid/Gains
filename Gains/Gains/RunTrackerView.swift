@@ -2253,6 +2253,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   /// der Sekunden-Timer; Distanz wird vom View über `adjustIndoorDistance(by:)`
   /// hochgeschoben (Stepper-UI). Auto-Pause ist hier sinnlos und bleibt aus.
   func beginIndoorTracking(from run: ActiveRunSession) {
+    let preservedElapsedSeconds = elapsedSeconds
+    let preservedDurationMinutes = durationMinutes
+
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
         manager.allowsBackgroundLocationUpdates = false
@@ -2267,6 +2270,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
     guard !isIndoor else { return }
     prepareTrackingState(from: run)
+    if preservedElapsedSeconds > elapsedSeconds {
+      elapsedSeconds = preservedElapsedSeconds
+      durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
+      startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+    }
     cardioModality = run.modality
     isIndoor = true
     autoPauseEnabled = false
