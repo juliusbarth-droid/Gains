@@ -2219,6 +2219,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   }()
 
   func beginFallbackTracking(from run: ActiveRunSession) {
+    let preservedElapsedSeconds = elapsedSeconds
+    let preservedDurationMinutes = durationMinutes
+
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
         manager.allowsBackgroundLocationUpdates = false
@@ -2234,6 +2237,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     guard !isTrackingFallback else { return }
 
     prepareTrackingState(from: run)
+    if preservedElapsedSeconds > elapsedSeconds {
+      elapsedSeconds = preservedElapsedSeconds
+      durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
+      startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
+    }
     cardioModality = run.modality
     isTrackingFallback = true
     autoPauseEnabled = run.autoPauseEnabled
