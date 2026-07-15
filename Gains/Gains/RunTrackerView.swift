@@ -1477,7 +1477,7 @@ private struct LiveRunView: View {
             .stroke(GainsColor.lime, lineWidth: 5)
         }
         if let coord = displayedRouteCoordinates.last ?? (isTrackerActive ? gpsTracker.currentCoordinate : nil) {
-          Annotation("Aktuell", coordinate: coord) {
+          Annotation(isTrackerActive ? "Aktuell" : "Zuletzt", coordinate: coord) {
             Circle()
               .fill(GainsColor.lime)
               .frame(width: 16, height: 16)
