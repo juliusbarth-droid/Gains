@@ -491,6 +491,7 @@ struct RunTrackerView: View {
       gpsTracker.pauseTracking()
       audio.speak("Pausiert.")
     } else {
+      HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
       audio.speak("Lauf fortgesetzt.")
     }
@@ -512,6 +513,7 @@ struct RunTrackerView: View {
     } else if !paused, run.isPaused {
       suppressNextAutoPauseSync = true
       store.toggleRunPause()
+      HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
       audio.speak("Lauf fortgesetzt.")
     }
