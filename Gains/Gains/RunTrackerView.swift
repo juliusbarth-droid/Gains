@@ -476,6 +476,22 @@ struct RunTrackerView: View {
 
   // MARK: – Aktionen
 
+  private func pauseAnnouncement(for modality: CardioModality) -> String {
+    switch modality {
+    case .run: return "Pausiert."
+    case .bikeOutdoor: return "Fahrt pausiert."
+    case .bikeIndoor: return "Indoor-Bike pausiert."
+    }
+  }
+
+  private func autoPauseAnnouncement(for modality: CardioModality) -> String {
+    switch modality {
+    case .run: return "Auto-Pause."
+    case .bikeOutdoor: return "Fahrt automatisch pausiert."
+    case .bikeIndoor: return "Indoor-Bike automatisch pausiert."
+    }
+  }
+
   private func resumeAnnouncement(for modality: CardioModality) -> String {
     switch modality {
     case .run: return "Lauf fortgesetzt."
@@ -497,7 +513,7 @@ struct RunTrackerView: View {
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.pauseTracking()
-      audio.speak("Pausiert.")
+      audio.speak(pauseAnnouncement(for: run.modality))
     } else {
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
@@ -517,7 +533,7 @@ struct RunTrackerView: View {
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.pauseTracking(clearAutoPause: false, stopLocationUpdates: false)
-      audio.speak("Auto-Pause.")
+      audio.speak(autoPauseAnnouncement(for: run.modality))
     } else if !paused, run.isPaused {
       suppressNextAutoPauseSync = true
       store.toggleRunPause()
