@@ -261,24 +261,11 @@ struct RunTrackerView: View {
       }
     }
     .onChange(of: store.activeRun?.id) { _, _ in
-      if store.activeRun == nil {
-        showsStopSheet = false
-        isConfirmingCountdownAbort = false
-        suppressNextAutoPauseSync = false
-        cancelCountdown()
-        countdownValue = 3
-        lastSpokenKilometer = 0
-        lastSpokenStepIndex = -1
-        gpsTracker.currentHeartRate = 0
-        stopTracking()
-      }
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       if store.activeRun != nil {
         phase = .live
-        synchronizeTrackerState()
-      } else {
-        synchronizeTrackerState()
       }
+      synchronizeTrackerState()
     }
     .onChange(of: gpsTracker.authorizationStatus) { _, _ in
       guard
