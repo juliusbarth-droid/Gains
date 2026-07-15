@@ -254,11 +254,10 @@ struct RunTrackerView: View {
     .onReceive(gpsTracker.$autoPaused) { paused in handleAutoPause(paused) }
     .onReceive(healthKit.$liveHeartRate)    { bpm in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
+      guard let run = store.activeRun, !run.isPaused else { return }
       guard let bpm else { return }
       gpsTracker.currentHeartRate = bpm
-      if store.activeRun != nil {
-        store.updateRunHeartRateLive(bpm)
-      }
+      store.updateRunHeartRateLive(bpm)
     }
     .onChange(of: store.activeRun?.id) { _, _ in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
@@ -373,7 +372,8 @@ struct RunTrackerView: View {
       if run.modality.requiresGPS {
         gpsTracker.requestAuthorization()
       }
-      HealthKitManager.shared.startHeartRateObserver()
+      HealthKitManager.shared.stopHeartRateObserver()
+      gpsTracker.currentHeartRate = 0
       gpsTracker.restorePausedTracking(from: run)
       return
     }
