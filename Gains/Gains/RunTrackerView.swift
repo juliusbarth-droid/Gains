@@ -1321,12 +1321,12 @@ private struct LiveRunView: View {
   private func structuredWorkoutBanner(_ workout: ActiveStructuredWorkout) -> some View {
     let step = workout.currentStep
     let progress = workout.currentStepProgress(
-      distanceKm: gpsTracker.trackedDistanceKm,
-      elapsedSeconds: gpsTracker.elapsedSeconds
+      distanceKm: displayedDistance,
+      elapsedSeconds: displayedDurationSeconds
     )
     let remaining = workout.remainingLabel(
-      distanceKm: gpsTracker.trackedDistanceKm,
-      elapsedSeconds: gpsTracker.elapsedSeconds
+      distanceKm: displayedDistance,
+      elapsedSeconds: displayedDurationSeconds
     )
     let stepColor: Color = {
       switch step?.kind {
@@ -1401,7 +1401,7 @@ private struct LiveRunView: View {
   // MARK: Target Progress
 
   private var targetProgressBar: some View {
-    let progress = run.progressFraction(elapsedSeconds: gpsTracker.elapsedSeconds)
+    let progress = run.progressFraction(elapsedSeconds: displayedDurationSeconds)
     return VStack(spacing: GainsSpacing.xxs) {
       GeometryReader { geo in
         ZStack(alignment: .leading) {
