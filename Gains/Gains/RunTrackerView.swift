@@ -1689,7 +1689,7 @@ private struct LiveRunView: View {
   private var liveControls: some View {
     HStack(spacing: GainsSpacing.tight) {
       Button(action: onTogglePause) {
-        Text(run.isPaused ? "Fortsetzen" : "Pause")
+        Text(gpsTracker.autoPaused ? "Weiter" : (run.isPaused ? "Fortsetzen" : "Pause"))
           .font(.system(size: 15, weight: .semibold))
           .foregroundStyle(GainsColor.ink)
           .frame(maxWidth: .infinity)
@@ -1697,9 +1697,9 @@ private struct LiveRunView: View {
           .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel(run.isPaused ? "Lauf fortsetzen" : "Lauf pausieren")
-      .accessibilityValue(run.isPaused ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt pausiert werden")
-      .accessibilityHint(run.isPaused ? "Setzt deinen pausierten Lauf direkt fort" : "Pausiert deinen aktuell laufenden Lauf")
+      .accessibilityLabel(gpsTracker.autoPaused ? "Lauf nach Auto-Pause fortsetzen" : (run.isPaused ? "Lauf fortsetzen" : "Lauf pausieren"))
+      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, kann direkt weiterlaufen" : (run.isPaused ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt pausiert werden"))
+      .accessibilityHint(gpsTracker.autoPaused ? "Setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : (run.isPaused ? "Setzt deinen pausierten Lauf direkt fort" : "Pausiert deinen aktuell laufenden Lauf"))
 
       Button(action: onLap) {
         VStack(spacing: 2) {
