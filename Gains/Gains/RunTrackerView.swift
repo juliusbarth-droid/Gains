@@ -476,6 +476,14 @@ struct RunTrackerView: View {
 
   // MARK: – Aktionen
 
+  private func resumeAnnouncement(for modality: CardioModality) -> String {
+    switch modality {
+    case .run: return "Lauf fortgesetzt."
+    case .bikeOutdoor: return "Fahrt fortgesetzt."
+    case .bikeIndoor: return "Indoor-Bike fortgesetzt."
+    }
+  }
+
   private func togglePause(_ run: ActiveRunSession) {
     store.toggleRunPause()
     // Nach dem Toggle den neuen State aus dem Store lesen (nicht `run` — das ist
@@ -493,7 +501,7 @@ struct RunTrackerView: View {
     } else {
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
-      audio.speak("Lauf fortgesetzt.")
+      audio.speak(resumeAnnouncement(for: run.modality))
     }
   }
 
@@ -515,7 +523,7 @@ struct RunTrackerView: View {
       store.toggleRunPause()
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
-      audio.speak("Lauf fortgesetzt.")
+      audio.speak(resumeAnnouncement(for: run.modality))
     }
   }
 
