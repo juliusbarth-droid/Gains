@@ -2294,7 +2294,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       fallbackPaceSeconds = max(run.averagePaceSeconds, 330)
     }
 
-    pauseDate = Date()
+    pauseDate = pauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
       manager.allowsBackgroundLocationUpdates = false
     }
