@@ -445,18 +445,18 @@ struct RunTrackerView: View {
       store.tickRunHeartRateZone(currentBpm: displayedHeartRate)
     }
     // Audio-Cue an jedem vollen Kilometer
-    let currentKm = Int(gpsTracker.trackedDistanceKm)
+    let currentKm = Int(displayedDistance)
     if run.audioCuesEnabled, currentKm > lastSpokenKilometer, currentKm >= 1 {
       lastSpokenKilometer = currentKm
-      let pace = displayedPaceLabel(for: gpsTracker)
+      let pace = displayedPaceLabel(distanceKm: displayedDistance, elapsedSeconds: displayedDurationSeconds, modality: run.modality)
       audio.speak("Kilometer \(currentKm). Pace \(pace).")
     }
     // Strukturiertes Workout: Step-Wechsel triggern + Audio-Cue beim neuen Step.
     if store.activeStructuredWorkout != nil {
       let previousIndex = store.activeStructuredWorkout?.currentStepIndex ?? -1
       let stepChanged = store.tickStructuredWorkout(
-        distanceKm: gpsTracker.trackedDistanceKm,
-        elapsedSeconds: gpsTracker.elapsedSeconds
+        distanceKm: displayedDistance,
+        elapsedSeconds: displayedDurationSeconds
       )
       if stepChanged, run.audioCuesEnabled,
          let active = store.activeStructuredWorkout,
@@ -474,15 +474,15 @@ struct RunTrackerView: View {
     }
   }
 
-  private func displayedPaceLabel(for tracker: RunLocationTracker) -> String {
-    guard tracker.trackedDistanceKm > 0 else { return "noch unbekannt" }
-    if tracker.cardioModality.isCycling {
-      let kmh = (Double(tracker.elapsedSeconds) > 0)
-        ? tracker.trackedDistanceKm * 3600.0 / Double(tracker.elapsedSeconds)
+  private func displayedPaceLabel(distanceKm: Double, elapsedSeconds: Int, modality: CardioModality) -> String {
+    guard distanceKm > 0 else { return "noch unbekannt" }
+    if modality.isCycling {
+      let kmh = (Double(elapsedSeconds) > 0)
+        ? distanceKm * 3600.0 / Double(elapsedSeconds)
         : 0
       return String(format: "%.1f Kilometer pro Stunde", kmh)
     }
-    let secsPerKm = Int(Double(tracker.elapsedSeconds) / tracker.trackedDistanceKm)
+    let secsPerKm = Int(Double(elapsedSeconds) / distanceKm)
     let m = secsPerKm / 60
     let s = secsPerKm % 60
     return "\(m) Minuten \(s) Sekunden pro Kilometer"
