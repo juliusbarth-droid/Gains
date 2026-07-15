@@ -3209,6 +3209,13 @@ final class GainsStore: ObservableObject {
     activeRun?.currentHeartRate = min(max(bpm, 40), 220)
   }
 
+  /// Räumt die Live-Herzfrequenz des aktiven Laufs, wenn der Sensor gerade
+  /// keinen gültigen Wert liefert und die UI sonst stale BPM weiterzeigen würde.
+  func clearRunHeartRateLive() {
+    guard activeRun != nil else { return }
+    activeRun?.currentHeartRate = 0
+  }
+
   /// Setzt die aktuelle Herzfrequenz für das aktive Workout (Live Gym).
   @Published var liveWorkoutHeartRate: Int? = nil
 
