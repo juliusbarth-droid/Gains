@@ -1290,7 +1290,9 @@ private struct LiveRunView: View {
   }
 
   private var statusText: String {
-    if run.isPaused { return "PAUSIERT" }
+    if run.isPaused {
+      return gpsTracker.autoPaused ? "AUTO-PAUSE" : "PAUSIERT"
+    }
     if gpsTracker.isIndoor { return "\(run.modality.shortLabel) AKTIV" }
     if gpsTracker.isUsingGPS { return "GPS AKTIV" }
     return "AKTIV"
