@@ -2177,6 +2177,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
+    let preservedRouteCoordinates = routeCoordinates
 
     // Falls bereits ein Fallback- oder Indoor-Tracking läuft, fließend auf
     // GPS umschalten. Dabei vorher den alten Modus sauber räumen, damit kein
@@ -2196,6 +2197,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
       splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
       manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
+    }
+    if preservedRouteCoordinates.count > routeCoordinates.count {
+      routeCoordinates = preservedRouteCoordinates
     }
     cardioModality = run.modality
     autoPauseEnabled = run.autoPauseEnabled
@@ -2233,6 +2237,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
+    let preservedRouteCoordinates = routeCoordinates
 
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
@@ -2258,6 +2263,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
       manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
     }
+    if preservedRouteCoordinates.count > routeCoordinates.count {
+      routeCoordinates = preservedRouteCoordinates
+    }
     cardioModality = run.modality
     isTrackingFallback = true
     autoPauseEnabled = run.autoPauseEnabled
@@ -2275,6 +2283,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
+    let preservedRouteCoordinates = routeCoordinates
 
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
@@ -2299,6 +2308,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
       manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
     }
+    if preservedRouteCoordinates.count > routeCoordinates.count {
+      routeCoordinates = preservedRouteCoordinates
+    }
     cardioModality = run.modality
     isIndoor = true
     autoPauseEnabled = false
@@ -2321,6 +2333,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
+    let preservedRouteCoordinates = routeCoordinates
     let preservedAutoPaused = autoPaused
     let preservedPauseDate = pauseDate
     if Self.hasLocationBackgroundMode {
@@ -2358,6 +2371,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
       splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
       manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
+    }
+    if preservedRouteCoordinates.count > routeCoordinates.count {
+      routeCoordinates = preservedRouteCoordinates
     }
     autoPaused = preservedAutoPaused
     pauseDate = preservedPauseDate ?? Date()
