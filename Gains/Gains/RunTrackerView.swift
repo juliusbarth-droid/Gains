@@ -2067,12 +2067,13 @@ private struct StopRunSheet: View {
 
   private var summaryHeader: some View {
     let distance = run?.distanceKm ?? 0
-    let duration = run?.durationMinutes ?? 0
     let pace = run?.averagePaceSeconds ?? 0
+    let minutes = elapsedSeconds / 60
+    let seconds = elapsedSeconds % 60
     return HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.m) {
       summaryCell(value: String(format: "%.2f", distance), unit: "km")
       summaryCell(value: pace > 0 ? String(format: "%d:%02d", pace / 60, pace % 60) : "–:–", unit: "/km")
-      summaryCell(value: "\(duration)", unit: "min")
+      summaryCell(value: String(format: "%d:%02d", minutes, seconds), unit: "zeit")
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, GainsSpacing.xxs)
