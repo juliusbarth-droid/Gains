@@ -1949,24 +1949,15 @@ private struct LiveRunView: View {
   }
 
   private var displayedDurationSeconds: Int {
-    if isTrackerActive {
-      return gpsTracker.elapsedSeconds
-    }
-    return max(run.durationMinutes * 60, gpsTracker.elapsedSeconds)
+    max(run.durationMinutes * 60, gpsTracker.elapsedSeconds)
   }
 
   private var displayedDistance: Double {
-    if isTrackerActive {
-      return gpsTracker.trackedDistanceKm
-    }
-    return max(run.distanceKm, gpsTracker.trackedDistanceKm)
+    max(run.distanceKm, gpsTracker.trackedDistanceKm)
   }
 
   private var displayedElevation: Int {
-    if isTrackerActive {
-      return gpsTracker.elevationGain
-    }
-    return max(run.elevationGain, gpsTracker.elevationGain)
+    max(run.elevationGain, gpsTracker.elevationGain)
   }
 
   private var displayedPace: Int {
