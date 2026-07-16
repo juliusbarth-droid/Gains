@@ -144,14 +144,10 @@ struct RunTrackerView: View {
         StopRunSheet(
           run: store.activeRun,
           isAutoPaused: gpsTracker.autoPaused,
-          // 2026-05-01 P1-5: Sekunden-genaue Save-Bedingung — durationMinutes
-          // (Int) ist 0 für Läufe < 60s, dadurch konnte ein 45s-Lauf nicht
-          // gespeichert werden. Bei pausierten Läufen ist der Store-Zustand
-          // wichtig, aber minutenbasiert. Deshalb nehmen wir den längeren Wert
-          // aus pausiertem Store-Stand und exakten Tracker-Sekunden.
-          elapsedSeconds: store.activeRun?.isPaused == true
-            ? max((store.activeRun?.durationMinutes ?? 0) * 60, gpsTracker.elapsedSeconds)
-            : gpsTracker.elapsedSeconds,
+          // Stop-Sheet nutzt dieselbe pause-sichere Sekundenquelle wie die
+          // übrige Live-UI, damit Save-Gating und sichtbare Dauer nicht bei
+          // Pause/Recovery auseinanderlaufen.
+          elapsedSeconds: displayedDurationSeconds,
           onSave: { title, note, feel in
             isConfirmingCountdownAbort = false
             suppressNextAutoPauseSync = false
