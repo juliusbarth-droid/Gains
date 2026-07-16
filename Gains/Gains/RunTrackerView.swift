@@ -491,7 +491,8 @@ struct RunTrackerView: View {
       } else if !stepChanged, store.activeStructuredWorkout?.isFinished == true,
                 lastSpokenStepIndex != Int.max, run.audioCuesEnabled {
         lastSpokenStepIndex = Int.max
-        audio.speak("Training abgeschlossen. Lauf läuft frei weiter.")
+        let continuation = run.modality.isCycling ? "Fahrt läuft frei weiter." : "Lauf läuft frei weiter."
+        audio.speak("Training abgeschlossen. \(continuation)")
       }
     }
   }
