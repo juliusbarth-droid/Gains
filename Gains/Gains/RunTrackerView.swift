@@ -199,9 +199,11 @@ struct RunTrackerView: View {
                 store.toggleRunPause()
                 HealthKitManager.shared.startHeartRateObserver()
                 gpsTracker.resumeTracking()
+                syncStoreWithTracker()
                 audio.speak(resumeAnnouncement(for: run.modality))
               } else {
                 suppressNextAutoPauseSync = false
+                syncStoreWithTracker()
               }
             } else {
               suppressNextAutoPauseSync = false
