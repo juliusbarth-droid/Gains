@@ -1582,8 +1582,8 @@ private struct LiveRunView: View {
           MapPolyline(coordinates: displayedRouteCoordinates)
             .stroke(GainsColor.lime, lineWidth: 5)
         }
-        if let coord = displayedRouteCoordinates.last ?? (isTrackerActive ? gpsTracker.currentCoordinate : nil) {
-          Annotation(isTrackerActive ? "Aktuell" : "Zuletzt", coordinate: coord) {
+        if let coord = displayedAnnotationCoordinate {
+          Annotation(displayedAnnotationLabel, coordinate: coord) {
             Circle()
               .fill(GainsColor.lime)
               .frame(width: 16, height: 16)
@@ -1982,6 +1982,16 @@ private struct LiveRunView: View {
     return gpsTracker.routeCoordinates.count > run.routeCoordinates.count
       ? gpsTracker.routeCoordinates
       : run.routeCoordinates
+  }
+
+  private var displayedAnnotationCoordinate: CLLocationCoordinate2D? {
+    displayedRouteCoordinates.last ?? (isTrackerActive ? gpsTracker.currentCoordinate : nil)
+  }
+
+  private var displayedAnnotationLabel: String {
+    isTrackerActive && gpsTracker.currentCoordinate != nil && gpsTracker.routeCoordinates.count >= run.routeCoordinates.count
+      ? "Aktuell"
+      : "Zuletzt"
   }
 
   private var displayedCameraPosition: MapCameraPosition {
