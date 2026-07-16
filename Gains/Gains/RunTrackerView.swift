@@ -446,17 +446,26 @@ struct RunTrackerView: View {
 
   private func syncStoreWithTracker() {
     guard gpsTracker.isUsingGPS || gpsTracker.isTrackingFallback || gpsTracker.isIndoor else { return }
-    guard store.activeRun != nil else {
+    guard let activeRun = store.activeRun else {
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
       synchronizeTrackerState()
       return
     }
+    let syncedDistance = max(activeRun.distanceKm, gpsTracker.trackedDistanceKm)
+    let syncedDurationMinutes = max(activeRun.durationMinutes, gpsTracker.durationMinutes)
+    let syncedElevation = max(activeRun.elevationGain, gpsTracker.elevationGain)
+    let syncedRouteCoordinates = gpsTracker.routeCoordinates.count > activeRun.routeCoordinates.count
+      ? gpsTracker.routeCoordinates
+      : activeRun.routeCoordinates
+    let syncedSplits = gpsTracker.splits.count > activeRun.splits.count
+      ? gpsTracker.splits
+      : activeRun.splits
     store.syncActiveRunGPS(
-      distanceKm: gpsTracker.trackedDistanceKm,
-      durationMinutes: gpsTracker.durationMinutes,
-      elevationGain: gpsTracker.elevationGain,
-      routeCoordinates: gpsTracker.routeCoordinates,
-      splits: gpsTracker.splits
+      distanceKm: syncedDistance,
+      durationMinutes: syncedDurationMinutes,
+      elevationGain: syncedElevation,
+      routeCoordinates: syncedRouteCoordinates,
+      splits: syncedSplits
     )
   }
 
