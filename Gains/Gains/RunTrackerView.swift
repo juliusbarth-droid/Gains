@@ -434,6 +434,7 @@ struct RunTrackerView: View {
       }
       gpsTracker.beginFallbackTracking(from: run)
     }
+    syncStoreWithTracker()
     synchronizeSpokenCueProgress()
   }
 
