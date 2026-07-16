@@ -581,6 +581,7 @@ struct RunTrackerView: View {
     } else {
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
+      syncStoreWithTracker()
       audio.speak(resumeAnnouncement(for: run.modality))
     }
   }
