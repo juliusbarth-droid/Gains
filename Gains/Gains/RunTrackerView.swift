@@ -1975,9 +1975,6 @@ private struct LiveRunView: View {
   }
 
   private var displayedSplits: [RunSplit] {
-    if isTrackerActive {
-      return gpsTracker.splits
-    }
     return gpsTracker.splits.count > run.splits.count ? gpsTracker.splits : run.splits
   }
 
