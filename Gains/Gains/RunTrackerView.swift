@@ -520,6 +520,22 @@ struct RunTrackerView: View {
     }
   }
 
+  private func activityNoun(for modality: CardioModality) -> String {
+    switch modality {
+    case .run: return "Lauf"
+    case .bikeOutdoor: return "Fahrt"
+    case .bikeIndoor: return "Indoor-Bike"
+    }
+  }
+
+  private func activityAccusative(for modality: CardioModality) -> String {
+    switch modality {
+    case .run: return "deinen Lauf"
+    case .bikeOutdoor: return "deine Fahrt"
+    case .bikeIndoor: return "dein Indoor-Bike-Training"
+    }
+  }
+
   private func autoPauseAnnouncement(for modality: CardioModality) -> String {
     switch modality {
     case .run: return "Auto-Pause."
@@ -1787,9 +1803,9 @@ private struct LiveRunView: View {
           .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel(gpsTracker.autoPaused ? "Lauf nach Auto-Pause fortsetzen" : (run.isPaused ? "Pausierten Lauf fortsetzen" : "Lauf pausieren"))
-      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, kann direkt weiterlaufen" : (run.isPaused ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt pausiert werden"))
-      .accessibilityHint(gpsTracker.autoPaused ? "Setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : (run.isPaused ? "Setzt deinen pausierten Lauf direkt fort" : "Pausiert deinen aktuell laufenden Lauf"))
+      .accessibilityLabel(gpsTracker.autoPaused ? "\(activityNoun(for: run.modality)) nach Auto-Pause fortsetzen" : (run.isPaused ? "Pausierte \(activityNoun(for: run.modality)) fortsetzen" : "\(activityNoun(for: run.modality)) pausieren"))
+      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierte \(activityNoun(for: run.modality)), kann direkt weiterlaufen" : (run.isPaused ? "Pausierte \(activityNoun(for: run.modality)), kann direkt fortgesetzt werden" : "Aktive \(activityNoun(for: run.modality)), kann direkt pausiert werden"))
+      .accessibilityHint(gpsTracker.autoPaused ? "Setzt \(activityAccusative(for: run.modality)) nach der Auto-Pause direkt wieder in Bewegung" : (run.isPaused ? "Setzt \(activityAccusative(for: run.modality)) direkt fort" : "Pausiert \(activityAccusative(for: run.modality))"))
 
       Button(action: onLap) {
         VStack(spacing: 2) {
@@ -1822,9 +1838,9 @@ private struct LiveRunView: View {
         .gainsGlassCTA(corner: GainsRadius.small, accent: GainsColor.lime)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Lauf abschließen")
-      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, kann gespeichert, weitergeführt oder verworfen werden" : (run.isPaused ? "Pausierter Lauf, kann gespeichert, fortgesetzt oder verworfen werden" : "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden"))
-      .accessibilityHint(gpsTracker.autoPaused ? "Öffnet die Abschlussansicht, in der du deinen automatisch pausierten Lauf speichern, weiterführen oder verwerfen kannst" : (run.isPaused ? "Öffnet die Abschlussansicht, in der du deinen pausierten Lauf speichern, fortsetzen oder verwerfen kannst" : "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst"))
+      .accessibilityLabel("\(activityNoun(for: run.modality)) abschließen")
+      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierte \(activityNoun(for: run.modality)), kann gespeichert, weitergeführt oder verworfen werden" : (run.isPaused ? "Pausierte \(activityNoun(for: run.modality)), kann gespeichert, fortgesetzt oder verworfen werden" : "Aktive \(activityNoun(for: run.modality)), kann gespeichert, fortgesetzt oder verworfen werden"))
+      .accessibilityHint(gpsTracker.autoPaused ? "Öffnet die Abschlussansicht, in der du \(activityAccusative(for: run.modality)) speichern, weiterführen oder verwerfen kannst" : (run.isPaused ? "Öffnet die Abschlussansicht, in der du \(activityAccusative(for: run.modality)) speichern, fortsetzen oder verwerfen kannst" : "Öffnet die Abschlussansicht, in der du \(activityAccusative(for: run.modality)) speichern, fortsetzen oder verwerfen kannst"))
     }
   }
 
