@@ -1139,6 +1139,9 @@ private struct PreRunSetupView: View {
           }
         }
         .tint(GainsColor.lime)
+        .accessibilityLabel("Auto-Pause")
+        .accessibilityValue(autoPauseEnabled ? "Eingeschaltet" : "Ausgeschaltet")
+        .accessibilityHint("Stoppt die Zeit automatisch, wenn du stehen bleibst")
       }
 
       Toggle(isOn: $audioCuesEnabled) {
@@ -1154,6 +1157,11 @@ private struct PreRunSetupView: View {
         }
       }
       .tint(GainsColor.lime)
+      .accessibilityLabel("Audio-Hinweise")
+      .accessibilityValue(audioCuesEnabled ? "Eingeschaltet" : "Ausgeschaltet")
+      .accessibilityHint(selectedModality.isCycling
+        ? "Sprachausgabe bei jedem Kilometer mit aktueller Geschwindigkeit"
+        : "Sprachausgabe bei jedem Kilometer mit aktueller Pace")
     }
     .padding(GainsSpacing.m)
     .gainsGlassSurface(corner: GainsRadius.standard, material: .thin, depth: .rest)
