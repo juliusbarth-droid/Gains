@@ -956,6 +956,10 @@ private struct PreRunSetupView: View {
         .lineLimit(2)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Trainingsübersicht")
+    .accessibilityValue("\(selectedModality.shortLabel), \(primaryCTALabel), \(summaryLine)")
+    .accessibilityHint("Fasst deinen aktuellen Trainingsmodus und die letzten Laufdaten vor dem Start zusammen")
   }
 
   private var summaryLine: String {
