@@ -416,6 +416,7 @@ struct RunTrackerView: View {
     // Distanz wird vom LiveRunView per Stepper-Tile manuell hochgeschoben.
     if !run.modality.requiresGPS {
       gpsTracker.beginIndoorTracking(from: run)
+      syncStoreWithTracker()
       synchronizeSpokenCueProgress()
       return
     }
