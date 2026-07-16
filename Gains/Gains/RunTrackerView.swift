@@ -1986,7 +1986,7 @@ private struct StopRunSheet: View {
             .foregroundStyle(GainsColor.ink)
             .accessibilityLabel(isAutoPaused ? "Lauf nach Auto-Pause weiterführen" : "Lauf fortsetzen")
             .accessibilityValue(isAutoPaused ? "Automatisch pausierter Lauf, kann direkt weiterlaufen" : (run?.isPaused == true ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt fortgesetzt werden"))
-            .accessibilityHint(isAutoPaused ? "Schließt die Abschlussansicht und setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : "Schließt die Abschlussansicht und setzt deinen aktuellen Lauf direkt fort")
+            .accessibilityHint(isAutoPaused ? "Schließt die Abschlussansicht und setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : (run?.isPaused == true ? "Schließt die Abschlussansicht und setzt deinen pausierten Lauf direkt fort" : "Schließt die Abschlussansicht und setzt deinen aktuellen Lauf direkt fort"))
         }
       }
       .safeAreaInset(edge: .bottom) {
