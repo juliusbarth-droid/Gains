@@ -1575,8 +1575,8 @@ private struct LiveRunView: View {
     .accessibilityLabel(deltaKm > 0
       ? "Distanz um \(label) Kilometer erhöhen"
       : "Distanz um \(label) Kilometer reduzieren")
-    .accessibilityValue(run.isPaused ? "Pausierter Lauf, Distanzanpassung erst nach dem Fortsetzen möglich" : "Aktiver Lauf, bereit für Distanzanpassung")
-    .accessibilityHint(run.isPaused ? "Nicht verfügbar, weil die Distanzanpassung erst nach dem Fortsetzen deines Laufs möglich ist" : (deltaKm > 0 ? "Erhöht deine Indoor-Distanz während des laufenden Trainings" : "Reduziert deine Indoor-Distanz während des laufenden Trainings"))
+    .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, Distanzanpassung erst nach dem Weiterlaufen möglich" : (run.isPaused ? "Pausierter Lauf, Distanzanpassung erst nach dem Fortsetzen möglich" : "Aktiver Lauf, bereit für Distanzanpassung"))
+    .accessibilityHint(gpsTracker.autoPaused ? "Nicht verfügbar, weil die Distanzanpassung erst nach dem Weiterlaufen deines automatisch pausierten Laufs möglich ist" : (run.isPaused ? "Nicht verfügbar, weil die Distanzanpassung erst nach dem Fortsetzen deines Laufs möglich ist" : (deltaKm > 0 ? "Erhöht deine Indoor-Distanz während des laufenden Trainings" : "Reduziert deine Indoor-Distanz während des laufenden Trainings")))
   }
 
   // MARK: Metrics
