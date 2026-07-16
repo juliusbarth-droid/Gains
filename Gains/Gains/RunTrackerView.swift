@@ -2064,7 +2064,7 @@ private struct StopRunSheet: View {
               .font(GainsFont.label(10))
               .tracking(1.4)
               .foregroundStyle(GainsColor.softInk)
-            TextField("Wie hat sich der Lauf angefühlt?", text: $note, axis: .vertical)
+            TextField("Wie hat sich \(activityAccusative) angefühlt?", text: $note, axis: .vertical)
               .textFieldStyle(.plain)
               .lineLimit(3...6)
               .padding(GainsSpacing.s)
@@ -2112,14 +2112,14 @@ private struct StopRunSheet: View {
           // C4-Fix (2026-05-01): Klar machen, was Speichern bewirkt und —
           // wenn die Save-Bedingung NICHT erfüllt ist — warum nicht.
           if !canSaveRun {
-            Text("Du kannst den Lauf erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern, sonst landet er nicht im Feed oder in den Routen.")
+            Text("Du kannst \(activityAccusative) erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern, sonst landet sie nicht im Feed oder in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
               .frame(maxWidth: .infinity)
               .padding(.horizontal, GainsSpacing.xxs)
           } else {
-            Text("Wenn du den Lauf speicherst, landet er im Feed und in den Routen.")
+            Text("Wenn du \(activityAccusative) speicherst, landet sie im Feed und in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
