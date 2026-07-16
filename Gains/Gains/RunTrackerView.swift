@@ -728,6 +728,9 @@ private struct PreRunSetupView: View {
             modalityChip(for: modality, isSelected: modality == selectedModality)
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(modality.displayName)
+          .accessibilityValue(modality == selectedModality ? "Ausgewählt" : "Nicht ausgewählt")
+          .accessibilityHint("Wechselt den Trainingsmodus zu \(modality.displayName)")
         }
       }
     }
