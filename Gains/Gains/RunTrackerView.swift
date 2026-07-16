@@ -106,8 +106,20 @@ struct RunTrackerView: View {
           }
           .foregroundStyle(GainsColor.ink)
           .accessibilityLabel(hasVisibleLiveRun ? "Lauf abschließen" : "Laufansicht schließen")
-          .accessibilityValue(hasVisibleLiveRun ? "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden" : (phase == .countdown ? "Lauf wird vorbereitet" : "Kein aktiver Lauf"))
-          .accessibilityHint(hasVisibleLiveRun ? "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst" : (phase == .countdown ? "Öffnet die Bestätigung, in der du die aktuelle Lauf-Vorbereitung fortsetzen oder verwerfen kannst" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
+          .accessibilityValue(hasVisibleLiveRun
+            ? (gpsTracker.autoPaused
+                ? "Automatisch pausierter Lauf, kann gespeichert, weitergeführt oder verworfen werden"
+                : ((store.activeRun?.isPaused == true)
+                    ? "Pausierter Lauf, kann gespeichert, fortgesetzt oder verworfen werden"
+                    : "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden"))
+            : (phase == .countdown ? "Lauf wird vorbereitet" : "Kein aktiver Lauf"))
+          .accessibilityHint(hasVisibleLiveRun
+            ? (gpsTracker.autoPaused
+                ? "Öffnet die Abschlussansicht, in der du deinen automatisch pausierten Lauf speichern, weiterführen oder verwerfen kannst"
+                : ((store.activeRun?.isPaused == true)
+                    ? "Öffnet die Abschlussansicht, in der du deinen pausierten Lauf speichern, fortsetzen oder verwerfen kannst"
+                    : "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst"))
+            : (phase == .countdown ? "Öffnet die Bestätigung, in der du die aktuelle Lauf-Vorbereitung fortsetzen oder verwerfen kannst" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
         }
       }
       // 2026-05-15 (Audit-Loop 20): Labels waren irreführend — „Abbrechen"
