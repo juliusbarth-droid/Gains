@@ -1994,6 +1994,14 @@ private struct LiveRunView: View {
         )
       )
     }
+    if let coord = displayedAnnotationCoordinate {
+      return .region(
+        MKCoordinateRegion(
+          center: coord,
+          span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+      )
+    }
     if isTrackerActive {
       return gpsTracker.cameraPosition
     }
