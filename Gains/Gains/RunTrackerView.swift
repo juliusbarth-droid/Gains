@@ -394,6 +394,7 @@ struct RunTrackerView: View {
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.restorePausedTracking(from: run)
+      synchronizeSpokenCueProgress()
       return
     }
 
@@ -402,6 +403,7 @@ struct RunTrackerView: View {
     // Distanz wird vom LiveRunView per Stepper-Tile manuell hochgeschoben.
     if !run.modality.requiresGPS {
       gpsTracker.beginIndoorTracking(from: run)
+      synchronizeSpokenCueProgress()
       return
     }
 
@@ -419,6 +421,16 @@ struct RunTrackerView: View {
         gpsTracker.requestAuthorization()
       }
       gpsTracker.beginFallbackTracking(from: run)
+    }
+    synchronizeSpokenCueProgress()
+  }
+
+  private func synchronizeSpokenCueProgress() {
+    lastSpokenKilometer = Int(max(gpsTracker.trackedDistanceKm, run.distanceKm))
+    if let workout = store.activeStructuredWorkout {
+      lastSpokenStepIndex = workout.isFinished ? Int.max : workout.currentStepIndex
+    } else {
+      lastSpokenStepIndex = -1
     }
   }
 
