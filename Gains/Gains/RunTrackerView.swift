@@ -105,21 +105,21 @@ struct RunTrackerView: View {
             }
           }
           .foregroundStyle(GainsColor.ink)
-          .accessibilityLabel(hasVisibleLiveRun ? "Lauf abschließen" : "Laufansicht schließen")
+          .accessibilityLabel(hasVisibleLiveRun ? "\(activityNoun(for: store.activeRun?.modality ?? .run)) abschließen" : "Cardioansicht schließen")
           .accessibilityValue(hasVisibleLiveRun
             ? (gpsTracker.autoPaused
-                ? "Automatisch pausierter Lauf, kann gespeichert, weitergeführt oder verworfen werden"
+                ? "Automatisch pausierte \(activityNoun(for: store.activeRun?.modality ?? .run)), kann gespeichert, weitergeführt oder verworfen werden"
                 : ((store.activeRun?.isPaused == true)
-                    ? "Pausierter Lauf, kann gespeichert, fortgesetzt oder verworfen werden"
-                    : "Aktiver Lauf, kann gespeichert, fortgesetzt oder verworfen werden"))
-            : (phase == .countdown ? "Lauf wird vorbereitet" : "Kein aktiver Lauf"))
+                    ? "Pausierte \(activityNoun(for: store.activeRun?.modality ?? .run)), kann gespeichert, fortgesetzt oder verworfen werden"
+                    : "Aktive \(activityNoun(for: store.activeRun?.modality ?? .run)), kann gespeichert, fortgesetzt oder verworfen werden"))
+            : (phase == .countdown ? "Training wird vorbereitet" : "Kein aktives Cardio-Training"))
           .accessibilityHint(hasVisibleLiveRun
             ? (gpsTracker.autoPaused
-                ? "Öffnet die Abschlussansicht, in der du deinen automatisch pausierten Lauf speichern, weiterführen oder verwerfen kannst"
+                ? "Öffnet die Abschlussansicht, in der du \(activityAccusative(for: store.activeRun?.modality ?? .run)) speichern, weiterführen oder verwerfen kannst"
                 : ((store.activeRun?.isPaused == true)
-                    ? "Öffnet die Abschlussansicht, in der du deinen pausierten Lauf speichern, fortsetzen oder verwerfen kannst"
-                    : "Öffnet die Abschlussansicht, in der du deinen aktiven Lauf speichern, fortsetzen oder verwerfen kannst"))
-            : (phase == .countdown ? "Öffnet die Bestätigung, in der du die aktuelle Lauf-Vorbereitung fortsetzen oder verwerfen kannst" : "Schließt die Laufansicht und verwirft den aktuellen Einstieg"))
+                    ? "Öffnet die Abschlussansicht, in der du \(activityAccusative(for: store.activeRun?.modality ?? .run)) speichern, fortsetzen oder verwerfen kannst"
+                    : "Öffnet die Abschlussansicht, in der du \(activityAccusative(for: store.activeRun?.modality ?? .run)) speichern, fortsetzen oder verwerfen kannst"))
+            : (phase == .countdown ? "Öffnet die Bestätigung, in der du die aktuelle Training-Vorbereitung fortsetzen oder verwerfen kannst" : "Schließt die Cardioansicht und verwirft den aktuellen Einstieg"))
         }
       }
       // 2026-05-15 (Audit-Loop 20): Labels waren irreführend — „Abbrechen"
@@ -2143,18 +2143,18 @@ private struct StopRunSheet: View {
         .background(GainsColor.background)
       }
       .confirmationDialog(
-        "Lauf wirklich verwerfen?",
+        "\(activityNoun) wirklich verwerfen?",
         isPresented: $isConfirmingDiscard,
         titleVisibility: .visible
       ) {
         Button("\(activityNoun) verwerfen", role: .destructive, action: onDiscard)
-        Button("Lauf behalten", role: .cancel) {}
+        Button("\(activityNoun) behalten", role: .cancel) {}
       } message: {
         Text(isAutoPaused
-          ? "Wenn du den Lauf behältst, kehrst du direkt zu deinem automatisch pausierten Lauf zurück und kannst ihn weiterführen oder speichern. Wenn du ihn verwirfst, wird dein automatisch pausierter Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
+          ? "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der automatisch pausierten \(activityNoun) zurück und kannst sie weiterführen oder speichern. Wenn du sie verwirfst, wird die automatisch pausierte \(activityNoun) verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
           : (run?.isPaused == true
-              ? "Wenn du den Lauf behältst, kehrst du direkt zu deinem pausierten Lauf zurück und kannst ihn fortsetzen oder speichern. Wenn du ihn verwirfst, wird dein pausierter Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
-              : "Wenn du den Lauf behältst, kehrst du direkt zu deinem aktiven Lauf zurück und kannst ihn fortsetzen oder speichern. Wenn du ihn verwirfst, wird dein aktiver Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."))
+              ? "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der pausierten \(activityNoun) zurück und kannst sie fortsetzen oder speichern. Wenn du sie verwirfst, wird die pausierte \(activityNoun) verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
+              : "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der aktiven \(activityNoun) zurück und kannst sie fortsetzen oder speichern. Wenn du sie verwirfst, wird die aktive \(activityNoun) verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."))
       }
       .onAppear {
         if title.isEmpty { title = run?.title ?? "" }
