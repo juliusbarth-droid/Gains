@@ -1243,6 +1243,9 @@ private struct CountdownView: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.8), value: value)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel("Start-Countdown")
+    .accessibilityValue(value > 0 ? "Start in \(value)" : "Los")
   }
 }
 
