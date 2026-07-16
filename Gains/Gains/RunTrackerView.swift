@@ -1031,6 +1031,9 @@ private struct PreRunSetupView: View {
               .runPickerChip(selected: targetMode == mode, corner: GainsRadius.small)
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(mode.title)
+          .accessibilityValue(mode == targetMode ? "Ausgewählt" : "Nicht ausgewählt")
+          .accessibilityHint("Wechselt das Ziel zu \(mode.title)")
         }
       }
 
