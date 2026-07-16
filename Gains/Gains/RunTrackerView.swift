@@ -2008,15 +2008,15 @@ private struct StopRunSheet: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Lauf speichern")
-          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, dein Lauf landet im Feed und in den Routen" : "Noch nicht speicherbar, du kannst den Lauf erst nach mindestens 30 Sekunden oder 0,01 Kilometer speichern")
-          .accessibilityHint(canSaveRun ? "Speichert deinen Lauf mit Titel, Notiz und Gefühl und legt ihn danach im Feed und in den Routen ab" : "Nicht verfügbar, bis dein Lauf mindestens 30 Sekunden oder 0,01 Kilometer erreicht hat")
+          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, dein Lauf landet im Feed und in den Routen" : "Noch nicht speicherbar, du kannst den Lauf erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern")
+          .accessibilityHint(canSaveRun ? "Speichert deinen Lauf mit Titel, Notiz und Gefühl und legt ihn danach im Feed und in den Routen ab" : "Nicht verfügbar, bis dein Lauf mindestens 30 Sekunden oder eine erfasste Distanz erreicht hat")
           .disabled(!canSaveRun)
           .opacity(canSaveRun ? 1 : 0.5)
 
           // C4-Fix (2026-05-01): Klar machen, was Speichern bewirkt und —
           // wenn die Save-Bedingung NICHT erfüllt ist — warum nicht.
           if !canSaveRun {
-            Text("Du kannst den Lauf erst nach mindestens 30 Sekunden oder 0,01 km speichern, sonst landet er nicht im Feed oder in den Routen.")
+            Text("Du kannst den Lauf erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern, sonst landet er nicht im Feed oder in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
