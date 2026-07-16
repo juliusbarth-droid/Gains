@@ -2059,7 +2059,11 @@ private struct StopRunSheet: View {
         Button("Lauf verwerfen", role: .destructive, action: onDiscard)
         Button("Lauf behalten", role: .cancel) {}
       } message: {
-        Text("Wenn du den Lauf behältst, kehrst du direkt zu deinem aktiven Lauf zurück und kannst ihn fortsetzen oder speichern. Wenn du ihn verwirfst, wird dein aktiver Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen.")
+        Text(isAutoPaused
+          ? "Wenn du den Lauf behältst, kehrst du direkt zu deinem automatisch pausierten Lauf zurück und kannst ihn weiterführen oder speichern. Wenn du ihn verwirfst, wird dein automatisch pausierter Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
+          : (run?.isPaused == true
+              ? "Wenn du den Lauf behältst, kehrst du direkt zu deinem pausierten Lauf zurück und kannst ihn fortsetzen oder speichern. Wenn du ihn verwirfst, wird dein pausierter Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
+              : "Wenn du den Lauf behältst, kehrst du direkt zu deinem aktiven Lauf zurück und kannst ihn fortsetzen oder speichern. Wenn du ihn verwirfst, wird dein aktiver Lauf verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."))
       }
       .onAppear {
         if title.isEmpty { title = run?.title ?? "" }
