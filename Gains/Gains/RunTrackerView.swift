@@ -1397,8 +1397,11 @@ private struct LiveRunView: View {
       return gpsTracker.autoPaused ? "AUTO-PAUSE" : "PAUSIERT"
     }
     if gpsTracker.isIndoor { return "\(run.modality.shortLabel) AKTIV" }
-    if gpsTracker.isUsingGPS { return "GPS AKTIV" }
-    return "AKTIV"
+    if gpsTracker.isUsingGPS {
+      return run.modality.isCycling ? "FAHRT MIT GPS" : "LAUF MIT GPS"
+    }
+    if run.modality.isCycling { return "FAHRT AKTIV" }
+    return "LAUF AKTIV"
   }
 
   // MARK: Structured Workout Banner
