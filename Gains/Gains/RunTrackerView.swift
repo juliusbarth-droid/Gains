@@ -1740,7 +1740,7 @@ private struct LiveRunView: View {
           .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel(gpsTracker.autoPaused ? "Lauf nach Auto-Pause fortsetzen" : (run.isPaused ? "Lauf fortsetzen" : "Lauf pausieren"))
+      .accessibilityLabel(gpsTracker.autoPaused ? "Lauf nach Auto-Pause fortsetzen" : (run.isPaused ? "Pausierten Lauf fortsetzen" : "Lauf pausieren"))
       .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, kann direkt weiterlaufen" : (run.isPaused ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt pausiert werden"))
       .accessibilityHint(gpsTracker.autoPaused ? "Setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : (run.isPaused ? "Setzt deinen pausierten Lauf direkt fort" : "Pausiert deinen aktuell laufenden Lauf"))
 
