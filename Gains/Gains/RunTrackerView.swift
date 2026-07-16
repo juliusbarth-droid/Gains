@@ -806,6 +806,9 @@ private struct PreRunSetupView: View {
           .overlay(Capsule().strokeBorder(GainsColor.accentCool.opacity(0.5), lineWidth: GainsBorder.accent))
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("Herzfrequenzsensor verbinden")
+      .accessibilityValue("Sensor nicht verbunden, genaue Herzfrequenzzonen sind noch nicht verfügbar")
+      .accessibilityHint("Öffnet die Auswahlliste für Wearables und Herzfrequenzsensoren")
 
       Button {
         withAnimation(.spring(response: 0.3)) {
