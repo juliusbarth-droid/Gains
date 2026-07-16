@@ -406,6 +406,7 @@ struct RunTrackerView: View {
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.restorePausedTracking(from: run)
+      syncStoreWithTracker()
       synchronizeSpokenCueProgress()
       return
     }
