@@ -1936,12 +1936,12 @@ private struct StopRunSheet: View {
   @State private var isConfirmingDiscard = false
 
   /// Speichern erlauben, sobald der Lauf entweder Distanz ODER mindestens
-  /// 30 Sekunden Dauer aufgebaut hat. Vorher: `durationMinutes >= 1` →
-  /// 45s-Lauf landete bei 0 Minuten und konnte nicht gespeichert werden;
-  /// 65s wurde als „1 min" gerundet. Jetzt: Sekunden-genau aus dem Tracker.
+  /// 30 Sekunden Dauer aufgebaut hat. Nutzt dieselbe sichtbare Distanzquelle
+  /// wie die Zusammenfassung, damit Save-Gating nach Pause/Recovery nicht
+  /// hinter dem angezeigten Stand zurückbleibt.
   private var canSaveRun: Bool {
-    guard let run else { return false }
-    return run.distanceKm > 0 || elapsedSeconds >= 30
+    guard run != nil else { return false }
+    return displayedDistanceKm > 0 || elapsedSeconds >= 30
   }
 
   var body: some View {
