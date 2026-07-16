@@ -988,6 +988,9 @@ private struct PreRunSetupView: View {
               intensityChip(for: intensity, isSelected: intensity == selectedIntensity)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(intensity.title)
+            .accessibilityValue(intensity == selectedIntensity ? "Ausgewählt" : "Nicht ausgewählt")
+            .accessibilityHint("Wechselt die Trainingsintensität zu \(intensity.title)")
           }
         }
       }
