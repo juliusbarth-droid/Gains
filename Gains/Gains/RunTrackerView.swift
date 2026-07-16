@@ -876,9 +876,17 @@ private struct PreRunSetupView: View {
       )
     }
     .buttonStyle(.plain)
-    .accessibilityLabel("Lauf sofort starten — \(quickStartSubtitle)")
-    .accessibilityValue("\(quickStartHeadline), \(quickStartSubtitle)")
-    .accessibilityHint(selectedModality.isCycling ? "Startet sofort eine neue Tour mit den gewählten Cardio-Einstellungen" : "Startet sofort einen neuen Lauf mit den gewählten Cardio-Einstellungen")
+    .accessibilityLabel(primaryCTALabel)
+    .accessibilityValue(quickStartAccessibilityValue)
+    .accessibilityHint(selectedModality.isCycling ? "Startet sofort eine neue Tour mit den aktuell gewählten Cardio-Einstellungen" : "Startet sofort einen neuen Lauf mit den aktuell gewählten Cardio-Einstellungen")
+  }
+
+  private var quickStartAccessibilityValue: String {
+    let autoPauseSummary = selectedModality.isIndoor
+      ? "Auto-Pause nicht verfügbar"
+      : (autoPauseEnabled ? "Auto-Pause eingeschaltet" : "Auto-Pause ausgeschaltet")
+    let audioSummary = audioCuesEnabled ? "Audio-Hinweise eingeschaltet" : "Audio-Hinweise ausgeschaltet"
+    return "Ziel \(quickStartHeadline), Intensität \(selectedIntensity.title), \(autoPauseSummary), \(audioSummary)"
   }
 
   private var quickStartHeadline: String {
