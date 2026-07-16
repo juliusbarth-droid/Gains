@@ -2056,6 +2056,22 @@ private struct StopRunSheet: View {
     }
   }
 
+  private var activityNominative: String {
+    switch run?.modality ?? .run {
+    case .run: return "dein Lauf"
+    case .bikeOutdoor: return "deine Fahrt"
+    case .bikeIndoor: return "dein Indoor-Bike-Training"
+    }
+  }
+
+  private var activityCompletionPronoun: String {
+    switch run?.modality ?? .run {
+    case .run: return "er"
+    case .bikeOutdoor: return "sie"
+    case .bikeIndoor: return "es"
+    }
+  }
+
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -2080,7 +2096,7 @@ private struct StopRunSheet: View {
               .font(GainsFont.label(10))
               .tracking(1.4)
               .foregroundStyle(GainsColor.softInk)
-            TextField("Wie hat sich \(activityAccusative) angefühlt?", text: $note, axis: .vertical)
+            TextField("Wie hat sich \(activityNominative) angefühlt?", text: $note, axis: .vertical)
               .textFieldStyle(.plain)
               .lineLimit(3...6)
               .padding(GainsSpacing.s)
@@ -2120,7 +2136,7 @@ private struct StopRunSheet: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("\(activityNoun) speichern")
-          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, \(activityAccusative) landet im Feed und in den Routen" : "Noch nicht speicherbar, du kannst \(activityAccusative) erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern")
+          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, \(activityNominative) landet im Feed und in den Routen" : "Noch nicht speicherbar, du kannst \(activityAccusative) erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern")
           .accessibilityHint(canSaveRun ? "Speichert \(activityAccusative) mit Titel, Notiz und Gefühl und legt alles danach im Feed und in den Routen ab" : "Nicht verfügbar, bis \(activityAccusative) mindestens 30 Sekunden oder eine erfasste Distanz erreicht hat")
           .disabled(!canSaveRun)
           .opacity(canSaveRun ? 1 : 0.5)
@@ -2128,14 +2144,14 @@ private struct StopRunSheet: View {
           // C4-Fix (2026-05-01): Klar machen, was Speichern bewirkt und —
           // wenn die Save-Bedingung NICHT erfüllt ist — warum nicht.
           if !canSaveRun {
-            Text("Du kannst \(activityAccusative) erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern, sonst landet sie nicht im Feed oder in den Routen.")
+            Text("Du kannst \(activityAccusative) erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern, sonst landet \(activityCompletionPronoun) nicht im Feed oder in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
               .frame(maxWidth: .infinity)
               .padding(.horizontal, GainsSpacing.xxs)
           } else {
-            Text("Wenn du \(activityAccusative) speicherst, landet sie im Feed und in den Routen.")
+            Text("Wenn du \(activityAccusative) speicherst, landet \(activityCompletionPronoun) im Feed und in den Routen.")
               .font(GainsFont.label(11))
               .foregroundStyle(GainsColor.softInk)
               .multilineTextAlignment(.center)
