@@ -2019,6 +2019,22 @@ private struct StopRunSheet: View {
     return displayedDistanceKm > 0 || elapsedSeconds >= 30
   }
 
+  private var activityNoun: String {
+    switch run?.modality ?? .run {
+    case .run: return "Lauf"
+    case .bikeOutdoor: return "Fahrt"
+    case .bikeIndoor: return "Indoor-Bike-Training"
+    }
+  }
+
+  private var activityAccusative: String {
+    switch run?.modality ?? .run {
+    case .run: return "deinen Lauf"
+    case .bikeOutdoor: return "deine Fahrt"
+    case .bikeIndoor: return "dein Indoor-Bike-Training"
+    }
+  }
+
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -2030,7 +2046,7 @@ private struct StopRunSheet: View {
               .font(GainsFont.label(10))
               .tracking(1.4)
               .foregroundStyle(GainsColor.softInk)
-            TextField(run?.title ?? "Lauf", text: $title)
+            TextField(run?.title ?? activityNoun, text: $title)
               .textFieldStyle(.plain)
               .padding(GainsSpacing.s)
               .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
@@ -2053,15 +2069,15 @@ private struct StopRunSheet: View {
         .padding(GainsSpacing.l)
       }
       .background(GainsColor.background.ignoresSafeArea())
-      .navigationTitle("Lauf abschließen")
+      .navigationTitle("\(activityNoun) abschließen")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button(isAutoPaused ? "Weiter" : "Lauf fortsetzen", action: onResume)
+          Button(isAutoPaused ? "Weiter" : "\(activityNoun) fortsetzen", action: onResume)
             .foregroundStyle(GainsColor.ink)
-            .accessibilityLabel(isAutoPaused ? "Lauf nach Auto-Pause weiterführen" : "Lauf fortsetzen")
-            .accessibilityValue(isAutoPaused ? "Automatisch pausierter Lauf, kann direkt weiterlaufen" : (run?.isPaused == true ? "Pausierter Lauf, kann direkt fortgesetzt werden" : "Aktiver Lauf, kann direkt fortgesetzt werden"))
-            .accessibilityHint(isAutoPaused ? "Schließt die Abschlussansicht und setzt deinen automatisch pausierten Lauf direkt wieder in Bewegung" : (run?.isPaused == true ? "Schließt die Abschlussansicht und setzt deinen pausierten Lauf direkt fort" : "Schließt die Abschlussansicht und setzt deinen aktuellen Lauf direkt fort"))
+            .accessibilityLabel(isAutoPaused ? "\(activityNoun) nach Auto-Pause weiterführen" : "\(activityNoun) fortsetzen")
+            .accessibilityValue(isAutoPaused ? "Automatisch pausierte \(activityNoun), kann direkt weiterlaufen" : (run?.isPaused == true ? "Pausierte \(activityNoun), kann direkt fortgesetzt werden" : "Aktive \(activityNoun), kann direkt fortgesetzt werden"))
+            .accessibilityHint(isAutoPaused ? "Schließt die Abschlussansicht und setzt \(activityAccusative) direkt wieder in Bewegung" : (run?.isPaused == true ? "Schließt die Abschlussansicht und setzt \(activityAccusative) direkt fort" : "Schließt die Abschlussansicht und setzt \(activityAccusative) direkt fort"))
         }
       }
       .safeAreaInset(edge: .bottom) {
@@ -2073,7 +2089,7 @@ private struct StopRunSheet: View {
               Image(systemName: "checkmark")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundStyle(GainsColor.moss)
-              Text("Lauf speichern")
+              Text("\(activityNoun) speichern")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(GainsColor.ink)
             }
@@ -2082,9 +2098,9 @@ private struct StopRunSheet: View {
             .gainsGlassCTA(corner: GainsRadius.standard, accent: GainsColor.lime, isEnabled: canSaveRun)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Lauf speichern")
-          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, dein Lauf landet im Feed und in den Routen" : "Noch nicht speicherbar, du kannst den Lauf erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern")
-          .accessibilityHint(canSaveRun ? "Speichert deinen Lauf mit Titel, Notiz und Gefühl und legt ihn danach im Feed und in den Routen ab" : "Nicht verfügbar, bis dein Lauf mindestens 30 Sekunden oder eine erfasste Distanz erreicht hat")
+          .accessibilityLabel("\(activityNoun) speichern")
+          .accessibilityValue(canSaveRun ? "Bereit zum Speichern, \(activityAccusative) landet im Feed und in den Routen" : "Noch nicht speicherbar, du kannst \(activityAccusative) erst nach mindestens 30 Sekunden oder mit erfasster Distanz speichern")
+          .accessibilityHint(canSaveRun ? "Speichert \(activityAccusative) mit Titel, Notiz und Gefühl und legt alles danach im Feed und in den Routen ab" : "Nicht verfügbar, bis \(activityAccusative) mindestens 30 Sekunden oder eine erfasste Distanz erreicht hat")
           .disabled(!canSaveRun)
           .opacity(canSaveRun ? 1 : 0.5)
 
@@ -2109,7 +2125,7 @@ private struct StopRunSheet: View {
           Button {
             isConfirmingDiscard = true
           } label: {
-            Text("Lauf verwerfen")
+            Text("\(activityNoun) verwerfen")
               .font(.system(size: 14, weight: .semibold))
               .foregroundStyle(GainsColor.softInk)
               .frame(maxWidth: .infinity)
@@ -2117,9 +2133,9 @@ private struct StopRunSheet: View {
               .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel("Lauf verwerfen")
-          .accessibilityValue(isAutoPaused ? "Noch nicht gespeichert, automatisch pausierter Lauf kann behalten oder verworfen werden" : (run?.isPaused == true ? "Noch nicht gespeichert, pausierter Lauf kann behalten oder verworfen werden" : "Noch nicht gespeichert, aktiver Lauf kann behalten oder verworfen werden"))
-          .accessibilityHint(isAutoPaused ? "Öffnet die Bestätigung, in der du deinen automatisch pausierten Lauf behalten oder verwerfen kannst" : (run?.isPaused == true ? "Öffnet die Bestätigung, in der du deinen pausierten Lauf behalten oder verwerfen kannst" : "Öffnet die Bestätigung, in der du deinen aktiven Lauf behalten oder verwerfen kannst"))
+          .accessibilityLabel("\(activityNoun) verwerfen")
+          .accessibilityValue(isAutoPaused ? "Noch nicht gespeichert, automatisch pausierte \(activityNoun) kann behalten oder verworfen werden" : (run?.isPaused == true ? "Noch nicht gespeichert, pausierte \(activityNoun) kann behalten oder verworfen werden" : "Noch nicht gespeichert, aktive \(activityNoun) kann behalten oder verworfen werden"))
+          .accessibilityHint(isAutoPaused ? "Öffnet die Bestätigung, in der du \(activityAccusative) behalten oder verwerfen kannst" : (run?.isPaused == true ? "Öffnet die Bestätigung, in der du \(activityAccusative) behalten oder verwerfen kannst" : "Öffnet die Bestätigung, in der du \(activityAccusative) behalten oder verwerfen kannst"))
         }
         .padding(.horizontal, GainsSpacing.l)
         .padding(.bottom, GainsSpacing.m)
@@ -2131,7 +2147,7 @@ private struct StopRunSheet: View {
         isPresented: $isConfirmingDiscard,
         titleVisibility: .visible
       ) {
-        Button("Lauf verwerfen", role: .destructive, action: onDiscard)
+        Button("\(activityNoun) verwerfen", role: .destructive, action: onDiscard)
         Button("Lauf behalten", role: .cancel) {}
       } message: {
         Text(isAutoPaused
