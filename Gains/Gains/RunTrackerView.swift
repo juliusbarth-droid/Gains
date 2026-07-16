@@ -144,6 +144,8 @@ struct RunTrackerView: View {
         StopRunSheet(
           run: store.activeRun,
           isAutoPaused: gpsTracker.autoPaused,
+          displayedDistanceKm: displayedDistance,
+          displayedPaceSeconds: displayedPace,
           // Stop-Sheet nutzt dieselbe pause-sichere Sekundenquelle wie die
           // übrige Live-UI, damit Save-Gating und sichtbare Dauer nicht bei
           // Pause/Recovery auseinanderlaufen.
@@ -1918,6 +1920,8 @@ private struct LiveRunView: View {
 private struct StopRunSheet: View {
   let run: ActiveRunSession?
   let isAutoPaused: Bool
+  let displayedDistanceKm: Double
+  let displayedPaceSeconds: Int
   /// Aktuelle Lauf-Dauer in Sekunden (vom GPS-Tracker durchgereicht).
   /// Wird statt `run.durationMinutes` (Int, rundet < 60s auf 0) für die
   /// Save-Bedingung benutzt — siehe P1-5.
@@ -2066,13 +2070,11 @@ private struct StopRunSheet: View {
   // MARK: Header
 
   private var summaryHeader: some View {
-    let distance = run?.distanceKm ?? 0
-    let pace = run?.averagePaceSeconds ?? 0
     let minutes = elapsedSeconds / 60
     let seconds = elapsedSeconds % 60
     return HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.m) {
-      summaryCell(value: String(format: "%.2f", distance), unit: "km")
-      summaryCell(value: pace > 0 ? String(format: "%d:%02d", pace / 60, pace % 60) : "–:–", unit: "/km")
+      summaryCell(value: String(format: "%.2f", displayedDistanceKm), unit: "km")
+      summaryCell(value: displayedPaceSeconds > 0 ? String(format: "%d:%02d", displayedPaceSeconds / 60, displayedPaceSeconds % 60) : "–:–", unit: "/km")
       summaryCell(value: String(format: "%d:%02d", minutes, seconds), unit: "zeit")
     }
     .frame(maxWidth: .infinity)
