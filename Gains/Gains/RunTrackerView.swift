@@ -599,7 +599,8 @@ struct RunTrackerView: View {
     // Der Tracker fügt den Lap an `splits` an; via `syncStoreWithTracker`
     // (onReceive auf gpsTracker.$splits) landet er automatisch im Store.
     _ = gpsTracker.recordManualLap()
-    audio.speak("Runde.")
+    let modality = store.activeRun?.modality ?? .run
+    audio.speak(modality.isCycling ? "Abschnitt markiert." : "Runde.")
   }
 
   private func stopTracking() {
@@ -1823,9 +1824,9 @@ private struct LiveRunView: View {
       }
       .buttonStyle(.plain)
       .disabled(run.isPaused)
-      .accessibilityLabel("Runde markieren")
-      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierter Lauf, neue Runde erst nach dem Weiterlaufen möglich" : (run.isPaused ? "Pausierter Lauf, neue Runde kann erst nach dem Fortsetzen markiert werden" : "Aktiver Lauf, neue Runde kann direkt markiert werden"))
-      .accessibilityHint(gpsTracker.autoPaused ? "Nicht verfügbar, weil eine neue Runde erst nach dem Weiterlaufen deines automatisch pausierten Laufs markiert werden kann" : (run.isPaused ? "Nicht verfügbar, weil eine neue Runde erst nach dem Fortsetzen deines Laufs markiert werden kann" : "Markiert eine neue Runde in deinem laufenden Training"))
+      .accessibilityLabel(run.modality.isCycling ? "Abschnitt markieren" : "Runde markieren")
+      .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierte \(activityNoun(for: run.modality)), neuer Abschnitt erst nach dem Weiterlaufen möglich" : (run.isPaused ? "Pausierte \(activityNoun(for: run.modality)), neuer Abschnitt kann erst nach dem Fortsetzen markiert werden" : "Aktive \(activityNoun(for: run.modality)), neuer Abschnitt kann direkt markiert werden"))
+      .accessibilityHint(gpsTracker.autoPaused ? "Nicht verfügbar, weil ein neuer Abschnitt erst nach dem Weiterlaufen von \(activityAccusative(for: run.modality)) möglich ist" : (run.isPaused ? "Nicht verfügbar, weil ein neuer Abschnitt erst nach dem Fortsetzen von \(activityAccusative(for: run.modality)) möglich ist" : (run.modality.isCycling ? "Markiert einen neuen Abschnitt in deiner aktuellen Fahrt" : "Markiert eine neue Runde in deinem laufenden Training")))
 
       Button(action: onStop) {
         HStack(spacing: GainsSpacing.xs) {
