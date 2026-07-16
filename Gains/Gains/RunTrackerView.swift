@@ -1167,6 +1167,9 @@ private struct PreRunSetupView: View {
           .foregroundStyle(GainsColor.softInk)
         Spacer()
       }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("Indoor-Modus")
+      .accessibilityValue("Distanz wird manuell erfasst, GPS ist nicht erforderlich")
     } else {
       HStack(spacing: GainsSpacing.xs) {
         Circle()
@@ -1178,6 +1181,9 @@ private struct PreRunSetupView: View {
           .foregroundStyle(GainsColor.softInk)
         Spacer()
       }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("GPS-Status")
+      .accessibilityValue(gpsTracker.canStartTracking ? "GPS bereit" : "GPS wird aktiviert")
     }
   }
 
