@@ -824,9 +824,9 @@ private struct PreRunSetupView: View {
           .frame(width: 22, height: 22)
       }
       .buttonStyle(.plain)
-      .accessibilityLabel("Hinweis ausblenden")
-      .accessibilityValue("Hinweis sichtbar")
-      .accessibilityHint("Blendet nur diesen Hinweis aus und lässt deine Laufeinstellungen unverändert")
+      .accessibilityLabel("Hinweis zu Herzfrequenzsensor ausblenden")
+      .accessibilityValue("Hinweis sichtbar, Sensor ist noch nicht verbunden")
+      .accessibilityHint("Blendet nur den Hinweis zum Herzfrequenzsensor aus und lässt deine Laufeinstellungen unverändert")
     }
     .padding(GainsSpacing.s)
     .gainsGlassSurface(corner: GainsRadius.small, material: .thin, tint: GainsColor.accentCool.opacity(0.05), depth: .rest)
