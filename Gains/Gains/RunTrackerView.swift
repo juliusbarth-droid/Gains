@@ -2043,8 +2043,8 @@ private struct StopRunSheet: View {
           }
           .buttonStyle(.plain)
           .accessibilityLabel("Lauf verwerfen")
-          .accessibilityValue("Noch nicht gespeichert, aktiver Lauf kann behalten oder verworfen werden")
-          .accessibilityHint("Öffnet die Bestätigung, in der du deinen aktiven Lauf behalten oder verwerfen kannst")
+          .accessibilityValue(isAutoPaused ? "Noch nicht gespeichert, automatisch pausierter Lauf kann behalten oder verworfen werden" : (run?.isPaused == true ? "Noch nicht gespeichert, pausierter Lauf kann behalten oder verworfen werden" : "Noch nicht gespeichert, aktiver Lauf kann behalten oder verworfen werden"))
+          .accessibilityHint(isAutoPaused ? "Öffnet die Bestätigung, in der du deinen automatisch pausierten Lauf behalten oder verwerfen kannst" : (run?.isPaused == true ? "Öffnet die Bestätigung, in der du deinen pausierten Lauf behalten oder verwerfen kannst" : "Öffnet die Bestätigung, in der du deinen aktiven Lauf behalten oder verwerfen kannst"))
         }
         .padding(.horizontal, GainsSpacing.l)
         .padding(.bottom, GainsSpacing.m)
