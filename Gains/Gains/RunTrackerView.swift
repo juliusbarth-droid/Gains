@@ -1090,11 +1090,15 @@ private struct PreRunSetupView: View {
           .overlay(Circle().strokeBorder(GainsColor.border.opacity(0.7), lineWidth: GainsBorder.hairline))
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("\(label) verringern")
+      .accessibilityHint("Verringert den Wert für \(label)")
 
       Text(valueText)
         .font(.system(size: 18, weight: .semibold, design: .rounded))
         .foregroundStyle(GainsColor.ink)
         .frame(minWidth: 100)
+        .accessibilityLabel(label)
+        .accessibilityValue(valueText)
 
       Button(action: increment) {
         Image(systemName: "plus")
@@ -1105,6 +1109,8 @@ private struct PreRunSetupView: View {
           .overlay(Circle().strokeBorder(GainsColor.border.opacity(0.7), lineWidth: GainsBorder.hairline))
       }
       .buttonStyle(.plain)
+      .accessibilityLabel("\(label) erhöhen")
+      .accessibilityHint("Erhöht den Wert für \(label)")
     }
     .padding(.vertical, GainsSpacing.xxs)
   }
