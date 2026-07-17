@@ -2101,9 +2101,16 @@ private struct LiveRunView: View {
   }
 
   private var displayedRouteCoordinates: [CLLocationCoordinate2D] {
-    return gpsTracker.routeCoordinates.count > run.routeCoordinates.count
-      ? gpsTracker.routeCoordinates
-      : run.routeCoordinates
+    if gpsTracker.routeCoordinates.count > run.routeCoordinates.count {
+      return gpsTracker.routeCoordinates
+    }
+    if gpsTracker.routeCoordinates.count == run.routeCoordinates.count,
+       let trackerLast = gpsTracker.routeCoordinates.last,
+       let storeLast = run.routeCoordinates.last,
+       (trackerLast.latitude != storeLast.latitude || trackerLast.longitude != storeLast.longitude) {
+      return gpsTracker.routeCoordinates
+    }
+    return run.routeCoordinates
   }
 
   private var displayedAnnotationCoordinate: CLLocationCoordinate2D? {
