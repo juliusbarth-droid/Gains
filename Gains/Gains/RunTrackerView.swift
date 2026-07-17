@@ -155,6 +155,8 @@ struct RunTrackerView: View {
           stopTracking()
           if store.activeRun != nil {
             store.discardActiveRun()
+          } else if store.activeStructuredWorkout != nil {
+            store.endStructuredWorkout()
           }
           showsStopSheet = false
           phase = .setup
