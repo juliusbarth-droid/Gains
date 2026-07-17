@@ -1353,6 +1353,9 @@ private struct PreRunSetupView: View {
   // MARK: Apply
 
   private func applyAndStart() {
+    if store.activeRun == nil, store.activeStructuredWorkout != nil {
+      store.endStructuredWorkout()
+    }
     if store.activeRun == nil {
       store.startQuickRun(modality: selectedModality)
     }
