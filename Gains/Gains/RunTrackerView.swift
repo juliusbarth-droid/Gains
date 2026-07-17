@@ -621,13 +621,20 @@ struct RunTrackerView: View {
     }
   }
 
+  private func resetAfterLostActiveRun() {
+    suppressNextAutoPauseSync = false
+    showsStopSheet = false
+    phase = .setup
+    if store.activeStructuredWorkout != nil {
+      store.endStructuredWorkout()
+    }
+    stopTracking()
+  }
+
   private func togglePause(_ run: ActiveRunSession) {
     store.toggleRunPause()
     guard store.activeRun != nil else {
-      suppressNextAutoPauseSync = false
-      showsStopSheet = false
-      phase = .setup
-      stopTracking()
+      resetAfterLostActiveRun()
       return
     }
     // Nach dem Toggle den neuen State aus dem Store lesen (nicht `run` — das ist
@@ -661,10 +668,7 @@ struct RunTrackerView: View {
     if paused, !run.isPaused {
       store.toggleRunPause()
       guard store.activeRun != nil else {
-        suppressNextAutoPauseSync = false
-        showsStopSheet = false
-        phase = .setup
-        stopTracking()
+        resetAfterLostActiveRun()
         return
       }
       gpsTracker.currentHeartRate = 0
@@ -676,10 +680,7 @@ struct RunTrackerView: View {
       suppressNextAutoPauseSync = true
       store.toggleRunPause()
       guard store.activeRun != nil else {
-        suppressNextAutoPauseSync = false
-        showsStopSheet = false
-        phase = .setup
-        stopTracking()
+        resetAfterLostActiveRun()
         return
       }
       HealthKitManager.shared.startHeartRateObserver()
