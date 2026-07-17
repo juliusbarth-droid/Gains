@@ -2703,6 +2703,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
     let preservedRouteCoordinates = routeCoordinates
+    let preservedCurrentHeartRate = currentHeartRate
     let preservedLastLocation = lastLocation
     let preservedLastMovementDate = lastMovementDate
     let preservedAutoPaused = autoPaused
@@ -2716,7 +2717,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     stopTimer()
 
     prepareTrackingState(from: run)
-    currentHeartRate = run.currentHeartRate
+    currentHeartRate = max(run.currentHeartRate, preservedCurrentHeartRate)
     cardioModality = run.modality
     isUsingGPS = false
     isTrackingFallback = false
