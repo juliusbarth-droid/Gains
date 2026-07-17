@@ -624,6 +624,12 @@ struct RunTrackerView: View {
   private func resetAfterLostActiveRun() {
     suppressNextAutoPauseSync = false
     showsStopSheet = false
+    showsWearablePicker = false
+    isConfirmingCountdownAbort = false
+    cancelCountdown()
+    countdownValue = 3
+    lastSpokenKilometer = 0
+    lastSpokenStepIndex = -1
     phase = .setup
     if store.activeStructuredWorkout != nil {
       store.endStructuredWorkout()
