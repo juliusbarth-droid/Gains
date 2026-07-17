@@ -2744,8 +2744,13 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     if preservedRouteCoordinates.count > routeCoordinates.count {
       routeCoordinates = preservedRouteCoordinates
     }
-    lastLocation = preservedLastLocation
-    lastMovementDate = preservedLastMovementDate
+    if isUsingGPS, let currentLocation = manager.location, currentLocation.horizontalAccuracy > 0 {
+      lastLocation = currentLocation
+      lastMovementDate = currentLocation.timestamp
+    } else {
+      lastLocation = preservedLastLocation
+      lastMovementDate = preservedLastMovementDate
+    }
     autoPaused = preservedAutoPaused
     pauseDate = preservedPauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
