@@ -2648,6 +2648,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   func beginIndoorTracking(from run: ActiveRunSession) {
     let preservedElapsedSeconds = elapsedSeconds
     let preservedDurationMinutes = durationMinutes
+    let preservedTrackedDistanceKm = trackedDistanceKm
+    let preservedElevationGain = elevationGain
     let preservedSplitAnchorDurationSeconds = splitAnchorDurationSeconds
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
@@ -2674,6 +2676,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
     }
+    trackedDistanceKm = max(preservedTrackedDistanceKm, trackedDistanceKm)
+    elevationGain = max(preservedElevationGain, elevationGain)
     splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
     manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
     splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
