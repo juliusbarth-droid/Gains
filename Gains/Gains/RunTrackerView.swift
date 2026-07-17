@@ -197,6 +197,17 @@ struct RunTrackerView: View {
               if run.isPaused {
                 suppressNextAutoPauseSync = true
                 store.toggleRunPause()
+                guard store.activeRun != nil else {
+                  suppressNextAutoPauseSync = false
+                  phase = .setup
+                  showsWearablePicker = false
+                  cancelCountdown()
+                  countdownValue = 3
+                  lastSpokenKilometer = 0
+                  lastSpokenStepIndex = -1
+                  stopTracking()
+                  return
+                }
                 HealthKitManager.shared.startHeartRateObserver()
                 gpsTracker.resumeTracking()
                 syncStoreWithTracker()
