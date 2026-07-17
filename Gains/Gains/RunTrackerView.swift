@@ -694,7 +694,11 @@ struct RunTrackerView: View {
 
   private func finishRun(title: String, note: String, feel: RunFeel?) {
     syncStoreWithTracker()
-    let modality = store.activeRun?.modality ?? .run
+    guard let run = store.activeRun else {
+      stopTracking()
+      return
+    }
+    let modality = run.modality
     stopTracking()
     switch modality {
     case .run:         audio.speak("Lauf beendet.")
