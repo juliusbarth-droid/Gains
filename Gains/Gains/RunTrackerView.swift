@@ -515,9 +515,18 @@ struct RunTrackerView: View {
     let syncedDistance = max(activeRun.distanceKm, gpsTracker.trackedDistanceKm)
     let syncedDurationMinutes = max(activeRun.durationMinutes, gpsTracker.durationMinutes)
     let syncedElevation = max(activeRun.elevationGain, gpsTracker.elevationGain)
-    let syncedRouteCoordinates = gpsTracker.routeCoordinates.count > activeRun.routeCoordinates.count
-      ? gpsTracker.routeCoordinates
-      : activeRun.routeCoordinates
+    let syncedRouteCoordinates: [CLLocationCoordinate2D] = {
+      if gpsTracker.routeCoordinates.count > activeRun.routeCoordinates.count {
+        return gpsTracker.routeCoordinates
+      }
+      if gpsTracker.routeCoordinates.count == activeRun.routeCoordinates.count,
+         let trackerLast = gpsTracker.routeCoordinates.last,
+         let storeLast = activeRun.routeCoordinates.last,
+         (trackerLast.latitude != storeLast.latitude || trackerLast.longitude != storeLast.longitude) {
+        return gpsTracker.routeCoordinates
+      }
+      return activeRun.routeCoordinates
+    }()
     let syncedSplits: [RunSplit] = {
       if gpsTracker.splits.count > activeRun.splits.count {
         return gpsTracker.splits
