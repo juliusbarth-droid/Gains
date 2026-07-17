@@ -277,6 +277,11 @@ struct RunTrackerView: View {
       syncStoreWithTracker()
       tickHRZoneAndCues()
     }
+    .onChange(of: gpsTracker.routeCoordinates.count) { _, _ in
+      guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
+      guard let run = store.activeRun, !run.isPaused, run.modality.requiresGPS else { return }
+      syncStoreWithTracker()
+    }
     .onReceive(gpsTracker.$autoPaused) { paused in handleAutoPause(paused) }
     .onReceive(healthKit.$liveHeartRate)    { bpm in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
