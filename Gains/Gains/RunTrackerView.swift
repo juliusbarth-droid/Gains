@@ -2452,6 +2452,13 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
     cardioModality = run.modality
     autoPauseEnabled = run.autoPauseEnabled
+    if let currentLocation = manager.location, currentLocation.horizontalAccuracy > 0 {
+      lastLocation = currentLocation
+      lastMovementDate = currentLocation.timestamp
+    } else {
+      lastLocation = nil
+      lastMovementDate = Date()
+    }
     isUsingGPS = true
     // Hintergrund-Location erst jetzt erlauben — sonst hält iOS die App
     // dauerhaft im Hintergrund am Leben. Beim Stop wird der Flag wieder
