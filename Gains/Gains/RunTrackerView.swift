@@ -2591,6 +2591,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
   func beginFallbackTracking(from run: ActiveRunSession) {
     let preservedElapsedSeconds = elapsedSeconds
     let preservedDurationMinutes = durationMinutes
+    let preservedTrackedDistanceKm = trackedDistanceKm
+    let preservedElevationGain = elevationGain
     let preservedSplitAnchorDurationSeconds = splitAnchorDurationSeconds
     let preservedManualLapAnchorDurationSeconds = manualLapAnchorDurationSeconds
     let preservedSplitAnchorDistance = splitAnchorDistance
