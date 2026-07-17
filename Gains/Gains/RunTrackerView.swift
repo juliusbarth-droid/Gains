@@ -626,6 +626,13 @@ struct RunTrackerView: View {
     guard let run = store.activeRun, run.autoPauseEnabled, run.modality.requiresGPS else { return }
     if paused, !run.isPaused {
       store.toggleRunPause()
+      guard store.activeRun != nil else {
+        suppressNextAutoPauseSync = false
+        showsStopSheet = false
+        phase = .setup
+        stopTracking()
+        return
+      }
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.pauseTracking(clearAutoPause: false, stopLocationUpdates: false)
@@ -634,6 +641,13 @@ struct RunTrackerView: View {
     } else if !paused, run.isPaused {
       suppressNextAutoPauseSync = true
       store.toggleRunPause()
+      guard store.activeRun != nil else {
+        suppressNextAutoPauseSync = false
+        showsStopSheet = false
+        phase = .setup
+        stopTracking()
+        return
+      }
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
       syncStoreWithTracker()
