@@ -518,9 +518,19 @@ struct RunTrackerView: View {
     let syncedRouteCoordinates = gpsTracker.routeCoordinates.count > activeRun.routeCoordinates.count
       ? gpsTracker.routeCoordinates
       : activeRun.routeCoordinates
-    let syncedSplits = gpsTracker.splits.count > activeRun.splits.count
-      ? gpsTracker.splits
-      : activeRun.splits
+    let syncedSplits: [RunSplit] = {
+      if gpsTracker.splits.count > activeRun.splits.count {
+        return gpsTracker.splits
+      }
+      if gpsTracker.splits.count == activeRun.splits.count,
+         let trackerLast = gpsTracker.splits.last,
+         let storeLast = activeRun.splits.last,
+         trackerLast.index == storeLast.index,
+         (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate > storeLast.averageHeartRate) {
+        return gpsTracker.splits
+      }
+      return activeRun.splits
+    }()
     store.syncActiveRunGPS(
       distanceKm: syncedDistance,
       durationMinutes: syncedDurationMinutes,
