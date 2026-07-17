@@ -2718,6 +2718,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       manager.stopUpdatingLocation()
     }
     stopTimer()
+    HealthKitManager.shared.stopHeartRateObserver()
 
     prepareTrackingState(from: run)
     currentHeartRate = 0
