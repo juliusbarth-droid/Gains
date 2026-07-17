@@ -2706,6 +2706,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedCurrentHeartRate = currentHeartRate
     let preservedLastLocation = lastLocation
     let preservedLastMovementDate = lastMovementDate
+    let preservedPausedDuration = pausedDuration
     let preservedAutoPaused = autoPaused
     let preservedPauseDate = pauseDate
     if Self.hasLocationBackgroundMode {
@@ -2757,6 +2758,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       lastLocation = nil
       lastMovementDate = Date()
     }
+    pausedDuration = preservedPausedDuration
     autoPaused = preservedAutoPaused
     pauseDate = preservedPauseDate ?? Date()
     if isUsingGPS, Self.hasLocationBackgroundMode {
