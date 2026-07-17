@@ -284,6 +284,9 @@ struct RunTrackerView: View {
         countdownValue = 3
         lastSpokenKilometer = 0
         lastSpokenStepIndex = -1
+        if store.activeStructuredWorkout != nil {
+          store.endStructuredWorkout()
+        }
         stopTracking()
       } else {
         HealthKitManager.shared.stopHeartRateObserver()
