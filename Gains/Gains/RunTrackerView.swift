@@ -2618,6 +2618,8 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
     }
+    trackedDistanceKm = max(preservedTrackedDistanceKm, trackedDistanceKm)
+    elevationGain = max(preservedElevationGain, elevationGain)
     splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
     manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
     splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
