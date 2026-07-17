@@ -2703,6 +2703,7 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedSplitAnchorDistance = splitAnchorDistance
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
     let preservedRouteCoordinates = routeCoordinates
+    let preservedSplits = splits
     let preservedCurrentHeartRate = currentHeartRate
     let preservedLastLocation = lastLocation
     let preservedLastMovementDate = lastMovementDate
@@ -2747,6 +2748,9 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
     if preservedRouteCoordinates.count > routeCoordinates.count {
       routeCoordinates = preservedRouteCoordinates
+    }
+    if preservedSplits.count > splits.count {
+      splits = preservedSplits
     }
     if isUsingGPS, let currentLocation = manager.location, currentLocation.horizontalAccuracy > 0 {
       lastLocation = currentLocation
