@@ -196,7 +196,9 @@ struct RunTrackerView: View {
             lastSpokenStepIndex = -1
             showsWearablePicker = false
             stopTracking()
-            store.discardActiveRun()
+            if store.activeRun != nil {
+              store.discardActiveRun()
+            }
             phase = .setup
             showsStopSheet = false
             dismiss()
