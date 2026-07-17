@@ -589,6 +589,13 @@ struct RunTrackerView: View {
 
   private func togglePause(_ run: ActiveRunSession) {
     store.toggleRunPause()
+    guard store.activeRun != nil else {
+      suppressNextAutoPauseSync = false
+      showsStopSheet = false
+      phase = .setup
+      stopTracking()
+      return
+    }
     // Nach dem Toggle den neuen State aus dem Store lesen (nicht `run` — das ist
     // eine struct-Kopie mit dem PRE-toggle-Wert und würde die Logik umkehren).
     let nowPaused = store.activeRun?.isPaused ?? false
