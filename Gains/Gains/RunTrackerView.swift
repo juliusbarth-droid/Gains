@@ -2749,9 +2749,12 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     if isUsingGPS, let currentLocation = manager.location, currentLocation.horizontalAccuracy > 0 {
       lastLocation = currentLocation
       lastMovementDate = currentLocation.timestamp
-    } else {
+    } else if isUsingGPS {
       lastLocation = preservedLastLocation
       lastMovementDate = preservedLastMovementDate
+    } else {
+      lastLocation = nil
+      lastMovementDate = Date()
     }
     autoPaused = preservedAutoPaused
     pauseDate = preservedPauseDate ?? Date()
