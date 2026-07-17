@@ -2087,7 +2087,17 @@ private struct LiveRunView: View {
   }
 
   private var displayedSplits: [RunSplit] {
-    return gpsTracker.splits.count > run.splits.count ? gpsTracker.splits : run.splits
+    if gpsTracker.splits.count > run.splits.count {
+      return gpsTracker.splits
+    }
+    if gpsTracker.splits.count == run.splits.count,
+       let trackerLast = gpsTracker.splits.last,
+       let storeLast = run.splits.last,
+       trackerLast.index == storeLast.index,
+       (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate > storeLast.averageHeartRate) {
+      return gpsTracker.splits
+    }
+    return run.splits
   }
 
   private var displayedRouteCoordinates: [CLLocationCoordinate2D] {
