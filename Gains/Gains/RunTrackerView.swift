@@ -287,6 +287,11 @@ struct RunTrackerView: View {
       guard let run = store.activeRun, !run.isPaused else { return }
       syncStoreWithTracker()
     }
+    .onChange(of: gpsTracker.trackedDistanceKm) { _, _ in
+      guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
+      guard let run = store.activeRun, !run.isPaused else { return }
+      syncStoreWithTracker()
+    }
     .onReceive(gpsTracker.$autoPaused) { paused in handleAutoPause(paused) }
     .onReceive(healthKit.$liveHeartRate)    { bpm in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
