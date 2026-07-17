@@ -2118,9 +2118,16 @@ private struct LiveRunView: View {
   }
 
   private var displayedAnnotationLabel: String {
-    isTrackerActive && gpsTracker.currentCoordinate != nil && gpsTracker.routeCoordinates.count >= run.routeCoordinates.count
-      ? "Aktuell"
-      : "Zuletzt"
+    guard
+      isTrackerActive,
+      let current = gpsTracker.currentCoordinate,
+      let displayed = displayedAnnotationCoordinate,
+      current.latitude == displayed.latitude,
+      current.longitude == displayed.longitude
+    else {
+      return "Zuletzt"
+    }
+    return "Aktuell"
   }
 
   private var displayedCameraPosition: MapCameraPosition {
