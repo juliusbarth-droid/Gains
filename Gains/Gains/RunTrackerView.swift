@@ -62,6 +62,12 @@ struct RunTrackerView: View {
                 isConfirmingCountdownAbort = false
                 suppressNextAutoPauseSync = false
                 syncStoreWithTracker()
+                guard store.activeRun != nil else {
+                  showsStopSheet = false
+                  phase = .setup
+                  stopTracking()
+                  return
+                }
                 showsStopSheet = true
               }
             )
@@ -82,6 +88,12 @@ struct RunTrackerView: View {
               isConfirmingCountdownAbort = false
               suppressNextAutoPauseSync = false
               syncStoreWithTracker()
+              guard store.activeRun != nil else {
+                showsStopSheet = false
+                phase = .setup
+                stopTracking()
+                return
+              }
               showsStopSheet = true
             } else {
               switch phase {
