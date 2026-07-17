@@ -431,6 +431,9 @@ struct RunTrackerView: View {
       lastSpokenKilometer = 0
       lastSpokenStepIndex = -1
       gpsTracker.currentHeartRate = 0
+      if store.activeStructuredWorkout != nil {
+        store.endStructuredWorkout()
+      }
       stopTracking()
       return
     }
