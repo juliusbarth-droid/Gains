@@ -213,7 +213,7 @@ struct RunTrackerView: View {
               countdownValue = 3
               lastSpokenKilometer = 0
               lastSpokenStepIndex = -1
-              gpsTracker.currentHeartRate = 0
+              stopTracking()
             }
           }
         )
