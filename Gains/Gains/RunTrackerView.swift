@@ -2541,11 +2541,11 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
       elapsedSeconds = preservedElapsedSeconds
       durationMinutes = max(preservedDurationMinutes, Int(Double(preservedElapsedSeconds) / 60.0))
       startReferenceDate = Date().addingTimeInterval(-TimeInterval(preservedElapsedSeconds))
-      splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
-      manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
-      splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
-      manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
     }
+    splitAnchorDurationSeconds = max(preservedSplitAnchorDurationSeconds, splitAnchorDurationSeconds)
+    manualLapAnchorDurationSeconds = max(preservedManualLapAnchorDurationSeconds, manualLapAnchorDurationSeconds)
+    splitAnchorDistance = max(preservedSplitAnchorDistance, splitAnchorDistance)
+    manualLapAnchorDistance = max(preservedManualLapAnchorDistance, manualLapAnchorDistance)
     if preservedRouteCoordinates.count > routeCoordinates.count {
       routeCoordinates = preservedRouteCoordinates
     }
