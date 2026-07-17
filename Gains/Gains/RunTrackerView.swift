@@ -600,6 +600,7 @@ struct RunTrackerView: View {
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.pauseTracking()
+      syncStoreWithTracker()
       audio.speak(pauseAnnouncement(for: run.modality))
     } else {
       HealthKitManager.shared.startHeartRateObserver()
@@ -621,6 +622,7 @@ struct RunTrackerView: View {
       gpsTracker.currentHeartRate = 0
       store.clearRunHeartRateLive()
       gpsTracker.pauseTracking(clearAutoPause: false, stopLocationUpdates: false)
+      syncStoreWithTracker()
       audio.speak(autoPauseAnnouncement(for: run.modality))
     } else if !paused, run.isPaused {
       suppressNextAutoPauseSync = true
