@@ -528,6 +528,9 @@ struct RunTrackerView: View {
       ? gpsTracker.elevationGain
       : max(activeRun.elevationGain, gpsTracker.elevationGain)
     let syncedRouteCoordinates: [CLLocationCoordinate2D] = {
+      if !activeRun.isPaused && !gpsTracker.autoPaused {
+        return gpsTracker.routeCoordinates
+      }
       if gpsTracker.routeCoordinates.count > activeRun.routeCoordinates.count {
         return gpsTracker.routeCoordinates
       }
