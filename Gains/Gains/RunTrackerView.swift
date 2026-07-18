@@ -470,6 +470,8 @@ struct RunTrackerView: View {
       return
     }
 
+    store.clearRunHeartRateLive()
+
     // 2026-05-03: Indoor-Bike (Heimtrainer/Spinning) bekommt einen eigenen
     // Tracking-Pfad ohne GPS — kein Authorize, kein Map-Updates, nur Timer.
     // Distanz wird vom LiveRunView per Stepper-Tile manuell hochgeschoben.
