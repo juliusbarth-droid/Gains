@@ -2145,6 +2145,9 @@ private struct LiveRunView: View {
   }
 
   private var displayedRouteCoordinates: [CLLocationCoordinate2D] {
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused {
+      return gpsTracker.routeCoordinates
+    }
     if gpsTracker.routeCoordinates.count > run.routeCoordinates.count {
       return gpsTracker.routeCoordinates
     }
