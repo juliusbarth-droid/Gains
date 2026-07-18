@@ -767,13 +767,13 @@ struct RunTrackerView: View {
       stopTracking()
       return
     }
-    if run.distanceKm <= 0, displayedDurationSeconds >= 30, run.durationMinutes == 0 {
+    if displayedDistance <= 0, displayedDurationSeconds >= 30, run.durationMinutes == 0 {
       store.syncActiveRunGPS(
-        distanceKm: run.distanceKm,
+        distanceKm: displayedDistance,
         durationMinutes: 1,
-        elevationGain: run.elevationGain,
-        routeCoordinates: run.routeCoordinates,
-        splits: run.splits
+        elevationGain: displayedElevation,
+        routeCoordinates: displayedRouteCoordinates,
+        splits: displayedSplits
       )
     }
     let modality = run.modality
