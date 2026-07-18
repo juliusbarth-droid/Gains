@@ -2094,7 +2094,10 @@ private struct LiveRunView: View {
   }
 
   private var displayedDurationSeconds: Int {
-    max(run.durationMinutes * 60, gpsTracker.elapsedSeconds)
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused, gpsTracker.elapsedSeconds > 0 {
+      return gpsTracker.elapsedSeconds
+    }
+    return max(run.durationMinutes * 60, gpsTracker.elapsedSeconds)
   }
 
   private var displayedDistance: Double {
