@@ -727,6 +727,7 @@ struct RunTrackerView: View {
         resetAfterLostActiveRun()
         return
       }
+      store.clearRunHeartRateLive()
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
       syncStoreWithTracker()
