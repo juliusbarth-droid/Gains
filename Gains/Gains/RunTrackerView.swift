@@ -518,7 +518,9 @@ struct RunTrackerView: View {
       synchronizeTrackerState()
       return
     }
-    let syncedDistance = max(activeRun.distanceKm, gpsTracker.trackedDistanceKm)
+    let syncedDistance = (!activeRun.isPaused && !gpsTracker.autoPaused && gpsTracker.trackedDistanceKm > 0)
+      ? gpsTracker.trackedDistanceKm
+      : max(activeRun.distanceKm, gpsTracker.trackedDistanceKm)
     let syncedDurationMinutes = max(activeRun.durationMinutes, gpsTracker.durationMinutes)
     let syncedElevation = max(activeRun.elevationGain, gpsTracker.elevationGain)
     let syncedRouteCoordinates: [CLLocationCoordinate2D] = {
