@@ -542,10 +542,7 @@ struct RunTrackerView: View {
         return gpsTracker.splits
       }
       if gpsTracker.splits.count == activeRun.splits.count,
-         let trackerLast = gpsTracker.splits.last,
-         let storeLast = activeRun.splits.last,
-         trackerLast.index == storeLast.index,
-         (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate != storeLast.averageHeartRate) {
+         !splitsMatch(gpsTracker.splits, activeRun.splits) {
         return gpsTracker.splits
       }
       return activeRun.splits
@@ -2130,13 +2127,21 @@ private struct LiveRunView: View {
       return gpsTracker.splits
     }
     if gpsTracker.splits.count == run.splits.count,
-       let trackerLast = gpsTracker.splits.last,
-       let storeLast = run.splits.last,
-       trackerLast.index == storeLast.index,
-       (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate != storeLast.averageHeartRate) {
+       !splitsMatch(gpsTracker.splits, run.splits) {
       return gpsTracker.splits
     }
     return run.splits
+  }
+
+  private func splitsMatch(_ lhs: [RunSplit], _ rhs: [RunSplit]) -> Bool {
+    guard lhs.count == rhs.count else { return false }
+    return zip(lhs, rhs).allSatisfy { left, right in
+      left.index == right.index &&
+      left.distanceKm == right.distanceKm &&
+      left.durationMinutes == right.durationMinutes &&
+      left.averageHeartRate == right.averageHeartRate &&
+      left.isManualLap == right.isManualLap
+    }
   }
 
   private var displayedRouteCoordinates: [CLLocationCoordinate2D] {
