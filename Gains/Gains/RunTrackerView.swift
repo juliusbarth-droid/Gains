@@ -1779,7 +1779,7 @@ private struct LiveRunView: View {
         .runPickerChip(selected: accent, corner: GainsRadius.small)
     }
     .buttonStyle(.plain)
-    .disabled(run.isPaused)
+    .disabled(run.isPaused || gpsTracker.autoPaused)
     .accessibilityLabel(deltaKm > 0
       ? "Distanz um \(label) Kilometer erhöhen"
       : "Distanz um \(label) Kilometer reduzieren")
