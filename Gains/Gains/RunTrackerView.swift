@@ -2197,6 +2197,9 @@ private struct LiveRunView: View {
   }
 
   private var displayedCameraPosition: MapCameraPosition {
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused {
+      return gpsTracker.cameraPosition
+    }
     if let coord = displayedAnnotationCoordinate {
       return .region(
         MKCoordinateRegion(
