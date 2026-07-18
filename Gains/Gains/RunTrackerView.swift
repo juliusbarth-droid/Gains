@@ -551,7 +551,7 @@ struct RunTrackerView: View {
 
   private func tickHRZoneAndCues() {
     guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
-    guard let run = store.activeRun, !run.isPaused else { return }
+    guard let run = store.activeRun, !run.isPaused, !gpsTracker.autoPaused else { return }
     if displayedHeartRate > 0 {
       store.tickRunHeartRateZone(currentBpm: displayedHeartRate)
     }
