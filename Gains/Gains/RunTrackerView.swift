@@ -2134,18 +2134,18 @@ private struct LiveRunView: View {
   }
 
   private var displayedCameraPosition: MapCameraPosition {
-    if let last = displayedRouteCoordinates.last {
-      return .region(
-        MKCoordinateRegion(
-          center: last,
-          span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-        )
-      )
-    }
     if let coord = displayedAnnotationCoordinate {
       return .region(
         MKCoordinateRegion(
           center: coord,
+          span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        )
+      )
+    }
+    if let last = displayedRouteCoordinates.last {
+      return .region(
+        MKCoordinateRegion(
+          center: last,
           span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
         )
       )
