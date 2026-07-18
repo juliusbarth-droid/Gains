@@ -1964,7 +1964,7 @@ private struct LiveRunView: View {
         .gainsGlassSurface(corner: GainsRadius.small, material: .thin, depth: .rest)
       }
       .buttonStyle(.plain)
-      .disabled(run.isPaused)
+      .disabled(run.isPaused || gpsTracker.autoPaused)
       .accessibilityLabel(run.modality.isCycling ? "Abschnitt markieren" : "Runde markieren")
       .accessibilityValue(gpsTracker.autoPaused ? "Automatisch pausierte \(activityNoun(for: run.modality)), neuer Abschnitt erst nach dem Weiterlaufen möglich" : (run.isPaused ? "Pausierte \(activityNoun(for: run.modality)), neuer Abschnitt kann erst nach dem Fortsetzen markiert werden" : "Aktive \(activityNoun(for: run.modality)), neuer Abschnitt kann direkt markiert werden"))
       .accessibilityHint(gpsTracker.autoPaused ? "Nicht verfügbar, weil ein neuer Abschnitt erst nach dem Weiterlaufen von \(activityAccusative(for: run.modality)) möglich ist" : (run.isPaused ? "Nicht verfügbar, weil ein neuer Abschnitt erst nach dem Fortsetzen von \(activityAccusative(for: run.modality)) möglich ist" : (run.modality.isCycling ? "Markiert einen neuen Abschnitt in deiner aktuellen Fahrt" : "Markiert eine neue Runde in deinem laufenden Training")))
