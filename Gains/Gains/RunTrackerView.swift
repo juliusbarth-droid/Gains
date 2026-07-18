@@ -526,9 +526,7 @@ struct RunTrackerView: View {
         return gpsTracker.routeCoordinates
       }
       if gpsTracker.routeCoordinates.count == activeRun.routeCoordinates.count,
-         let trackerLast = gpsTracker.routeCoordinates.last,
-         let storeLast = activeRun.routeCoordinates.last,
-         (trackerLast.latitude != storeLast.latitude || trackerLast.longitude != storeLast.longitude) {
+         !routeCoordinatesMatch(gpsTracker.routeCoordinates, activeRun.routeCoordinates) {
         return gpsTracker.routeCoordinates
       }
       return activeRun.routeCoordinates
@@ -2131,12 +2129,17 @@ private struct LiveRunView: View {
       return gpsTracker.routeCoordinates
     }
     if gpsTracker.routeCoordinates.count == run.routeCoordinates.count,
-       let trackerLast = gpsTracker.routeCoordinates.last,
-       let storeLast = run.routeCoordinates.last,
-       (trackerLast.latitude != storeLast.latitude || trackerLast.longitude != storeLast.longitude) {
+       !routeCoordinatesMatch(gpsTracker.routeCoordinates, run.routeCoordinates) {
       return gpsTracker.routeCoordinates
     }
     return run.routeCoordinates
+  }
+
+  private func routeCoordinatesMatch(_ lhs: [CLLocationCoordinate2D], _ rhs: [CLLocationCoordinate2D]) -> Bool {
+    guard lhs.count == rhs.count else { return false }
+    return zip(lhs, rhs).allSatisfy { left, right in
+      left.latitude == right.latitude && left.longitude == right.longitude
+    }
   }
 
   private var displayedAnnotationCoordinate: CLLocationCoordinate2D? {
