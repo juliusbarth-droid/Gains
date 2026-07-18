@@ -2114,7 +2114,10 @@ private struct LiveRunView: View {
   }
 
   private var displayedAnnotationCoordinate: CLLocationCoordinate2D? {
-    displayedRouteCoordinates.last ?? (isTrackerActive ? gpsTracker.currentCoordinate : nil)
+    if isTrackerActive, let current = gpsTracker.currentCoordinate {
+      return current
+    }
+    return displayedRouteCoordinates.last
   }
 
   private var displayedAnnotationLabel: String {
