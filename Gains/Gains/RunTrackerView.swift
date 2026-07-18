@@ -309,22 +309,22 @@ struct RunTrackerView: View {
     }
     .onChange(of: gpsTracker.routeCoordinates.count) { _, _ in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
-      guard let run = store.activeRun, !run.isPaused, run.modality.requiresGPS else { return }
+      guard let run = store.activeRun, !run.isPaused, !gpsTracker.autoPaused, run.modality.requiresGPS else { return }
       syncStoreWithTracker()
     }
     .onChange(of: gpsTracker.splits.count) { _, _ in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
-      guard let run = store.activeRun, !run.isPaused else { return }
+      guard let run = store.activeRun, !run.isPaused, !gpsTracker.autoPaused else { return }
       syncStoreWithTracker()
     }
     .onChange(of: gpsTracker.trackedDistanceKm) { _, _ in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
-      guard let run = store.activeRun, !run.isPaused else { return }
+      guard let run = store.activeRun, !run.isPaused, !gpsTracker.autoPaused else { return }
       syncStoreWithTracker()
     }
     .onChange(of: gpsTracker.elevationGain) { _, _ in
       guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
-      guard let run = store.activeRun, !run.isPaused else { return }
+      guard let run = store.activeRun, !run.isPaused, !gpsTracker.autoPaused else { return }
       syncStoreWithTracker()
     }
     .onReceive(gpsTracker.$autoPaused) { paused in handleAutoPause(paused) }
