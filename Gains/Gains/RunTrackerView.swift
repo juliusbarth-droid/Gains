@@ -1849,8 +1849,8 @@ private struct LiveRunView: View {
   }
 
   private var displayedHeartRate: Int {
-    if isTrackerActive {
-      return max(run.currentHeartRate, gpsTracker.currentHeartRate)
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused, gpsTracker.currentHeartRate > 0 {
+      return gpsTracker.currentHeartRate
     }
     return run.currentHeartRate
   }
