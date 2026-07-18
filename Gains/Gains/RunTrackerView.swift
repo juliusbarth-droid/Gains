@@ -470,6 +470,7 @@ struct RunTrackerView: View {
       return
     }
 
+    gpsTracker.currentHeartRate = 0
     store.clearRunHeartRateLive()
 
     // 2026-05-03: Indoor-Bike (Heimtrainer/Spinning) bekommt einen eigenen
