@@ -2111,7 +2111,7 @@ private struct LiveRunView: View {
   }
 
   private var displayedElevation: Int {
-    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused, gpsTracker.elevationGain > 0 {
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused {
       return gpsTracker.elevationGain
     }
     return max(run.elevationGain, gpsTracker.elevationGain)
