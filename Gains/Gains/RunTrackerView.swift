@@ -659,6 +659,11 @@ struct RunTrackerView: View {
   }
 
   private func togglePause(_ run: ActiveRunSession) {
+    guard store.activeRun != nil else {
+      resetAfterLostActiveRun()
+      return
+    }
+
     if gpsTracker.autoPaused, !(store.activeRun?.isPaused ?? run.isPaused) {
       suppressNextAutoPauseSync = true
       HealthKitManager.shared.startHeartRateObserver()
