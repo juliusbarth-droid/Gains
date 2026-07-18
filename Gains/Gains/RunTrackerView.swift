@@ -2123,6 +2123,8 @@ private struct LiveRunView: View {
   private var displayedAnnotationLabel: String {
     guard
       isTrackerActive,
+      !run.isPaused,
+      !gpsTracker.autoPaused,
       let current = gpsTracker.currentCoordinate,
       let displayed = displayedAnnotationCoordinate,
       current.latitude == displayed.latitude,
