@@ -2123,6 +2123,9 @@ private struct LiveRunView: View {
   }
 
   private var displayedSplits: [RunSplit] {
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused {
+      return gpsTracker.splits
+    }
     if gpsTracker.splits.count > run.splits.count {
       return gpsTracker.splits
     }
