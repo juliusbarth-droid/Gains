@@ -305,6 +305,8 @@ struct RunTrackerView: View {
     // Timer), der Store-Sync und Cues sequentiell abarbeitet.
     // Der Store-Sync vor finishRun() bleibt separat und deckt die letzte Lücke.
     .onReceive(gpsTracker.$elapsedSeconds) { _ in
+      guard !showsStopSheet, !isConfirmingCountdownAbort else { return }
+      guard let run = store.activeRun, !run.isPaused, !gpsTracker.autoPaused else { return }
       syncStoreWithTracker()
       tickHRZoneAndCues()
     }
