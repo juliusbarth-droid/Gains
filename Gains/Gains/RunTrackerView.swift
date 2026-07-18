@@ -541,7 +541,7 @@ struct RunTrackerView: View {
          let trackerLast = gpsTracker.splits.last,
          let storeLast = activeRun.splits.last,
          trackerLast.index == storeLast.index,
-         (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate > storeLast.averageHeartRate) {
+         (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate != storeLast.averageHeartRate) {
         return gpsTracker.splits
       }
       return activeRun.splits
@@ -2120,7 +2120,7 @@ private struct LiveRunView: View {
        let trackerLast = gpsTracker.splits.last,
        let storeLast = run.splits.last,
        trackerLast.index == storeLast.index,
-       (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate > storeLast.averageHeartRate) {
+       (trackerLast.durationMinutes > storeLast.durationMinutes || trackerLast.averageHeartRate != storeLast.averageHeartRate) {
       return gpsTracker.splits
     }
     return run.splits
