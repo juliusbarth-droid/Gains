@@ -2097,7 +2097,7 @@ private struct LiveRunView: View {
   }
 
   private var displayedDurationSeconds: Int {
-    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused, gpsTracker.elapsedSeconds > 0 {
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused {
       return gpsTracker.elapsedSeconds
     }
     return max(run.durationMinutes * 60, gpsTracker.elapsedSeconds)
