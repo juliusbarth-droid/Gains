@@ -2098,7 +2098,10 @@ private struct LiveRunView: View {
   }
 
   private var displayedDistance: Double {
-    max(run.distanceKm, gpsTracker.trackedDistanceKm)
+    if isTrackerActive, !run.isPaused, !gpsTracker.autoPaused, gpsTracker.trackedDistanceKm > 0 {
+      return gpsTracker.trackedDistanceKm
+    }
+    return max(run.distanceKm, gpsTracker.trackedDistanceKm)
   }
 
   private var displayedElevation: Int {
