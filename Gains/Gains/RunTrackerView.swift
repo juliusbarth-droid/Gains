@@ -666,6 +666,7 @@ struct RunTrackerView: View {
 
     if gpsTracker.autoPaused, !(store.activeRun?.isPaused ?? run.isPaused) {
       suppressNextAutoPauseSync = true
+      store.clearRunHeartRateLive()
       HealthKitManager.shared.startHeartRateObserver()
       gpsTracker.resumeTracking()
       syncStoreWithTracker()
