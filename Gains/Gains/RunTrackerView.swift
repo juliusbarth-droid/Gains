@@ -541,6 +541,9 @@ struct RunTrackerView: View {
       return activeRun.routeCoordinates
     }()
     let syncedSplits: [RunSplit] = {
+      if !activeRun.isPaused && !gpsTracker.autoPaused {
+        return gpsTracker.splits
+      }
       if gpsTracker.splits.count > activeRun.splits.count {
         return gpsTracker.splits
       }
