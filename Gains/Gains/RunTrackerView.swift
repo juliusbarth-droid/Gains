@@ -2602,7 +2602,6 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
     let preservedRouteCoordinates = routeCoordinates
     let preservedSplits = splits
-    let preservedCurrentHeartRate = currentHeartRate
 
     // Falls bereits ein Fallback- oder Indoor-Tracking läuft, fließend auf
     // GPS umschalten. Dabei vorher den alten Modus sauber räumen, damit kein
@@ -2630,9 +2629,6 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
     if preservedSplits.count > splits.count {
       splits = preservedSplits
-    }
-    if preservedCurrentHeartRate > currentHeartRate {
-      currentHeartRate = preservedCurrentHeartRate
     }
     cardioModality = run.modality
     autoPauseEnabled = run.autoPauseEnabled
@@ -2681,7 +2677,6 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
     let preservedRouteCoordinates = routeCoordinates
     let preservedSplits = splits
-    let preservedCurrentHeartRate = currentHeartRate
 
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
@@ -2715,9 +2710,6 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     if preservedSplits.count > splits.count {
       splits = preservedSplits
     }
-    if preservedCurrentHeartRate > currentHeartRate {
-      currentHeartRate = preservedCurrentHeartRate
-    }
     cardioModality = run.modality
     isTrackingFallback = true
     autoPaused = false
@@ -2742,7 +2734,6 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     let preservedManualLapAnchorDistance = manualLapAnchorDistance
     let preservedRouteCoordinates = routeCoordinates
     let preservedSplits = splits
-    let preservedCurrentHeartRate = currentHeartRate
 
     if isUsingGPS {
       if Self.hasLocationBackgroundMode {
@@ -2774,9 +2765,6 @@ final class RunLocationTracker: NSObject, ObservableObject, CLLocationManagerDel
     }
     if preservedSplits.count > splits.count {
       splits = preservedSplits
-    }
-    if preservedCurrentHeartRate > currentHeartRate {
-      currentHeartRate = preservedCurrentHeartRate
     }
     cardioModality = run.modality
     isIndoor = true
