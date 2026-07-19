@@ -1159,7 +1159,7 @@ private struct PreRunSetupView: View {
       parts.append("Zuletzt: \(String(format: "%.1f", run.distanceKm)) km · \(run.routeName)")
     }
     let pace = store.averageRunPaceSeconds
-    if pace > 0 {
+    if pace > 0, !selectedModality.isCycling {
       let m = pace / 60
       let s = pace % 60
       parts.append(String(format: "Ø %d:%02d /km", m, s))
