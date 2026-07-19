@@ -770,7 +770,7 @@ struct RunTrackerView: View {
     if displayedDurationSeconds >= 30, displayedDurationSeconds < 60 {
       store.syncActiveRunGPS(
         distanceKm: displayedDistance,
-        durationMinutes: 1,
+        durationMinutes: max(1, displayedDurationSeconds / 60),
         elevationGain: displayedElevation,
         routeCoordinates: displayedRouteCoordinates,
         splits: displayedSplits
