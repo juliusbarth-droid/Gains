@@ -1261,7 +1261,7 @@ private struct PreRunSetupView: View {
     case .pace:
       if selectedModality.isCycling {
         stepperRow(
-          label: "Speed",
+          label: "Tempo",
           valueText: String(format: "%.0f km/h", targetSpeedKmh),
           decrement: { targetSpeedKmh = max(targetSpeedKmh - 1, 8) },
           increment: { targetSpeedKmh = min(targetSpeedKmh + 1, 60) }
