@@ -1116,7 +1116,7 @@ private struct PreRunSetupView: View {
       .buttonStyle(.plain)
       .accessibilityLabel(showsAdvanced ? "Anpassen ausblenden" : "Anpassen")
       .accessibilityValue(showsAdvanced ? "Erweiterte Einstellungen geöffnet" : "Erweiterte Einstellungen geschlossen")
-      .accessibilityHint(showsAdvanced ? "Blendet Intensität, Ziel und Optionen wieder aus" : "Öffnet Intensität, Ziel und weitere Optionen für deinen Lauf")
+      .accessibilityHint(showsAdvanced ? "Blendet Intensität, Ziel und Optionen wieder aus" : "Öffnet Intensität, Ziel und weitere Optionen für dein Training")
 
       if showsAdvanced {
         VStack(alignment: .leading, spacing: GainsSpacing.xl) {
