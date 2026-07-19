@@ -1061,7 +1061,7 @@ private struct PreRunSetupView: View {
     .buttonStyle(.plain)
     .accessibilityLabel(primaryCTALabel)
     .accessibilityValue(quickStartAccessibilityValue)
-    .accessibilityHint(selectedModality.isCycling ? "Startet sofort eine neue Tour mit den aktuell gewählten Cardio-Einstellungen" : "Startet sofort einen neuen Lauf mit den aktuell gewählten Cardio-Einstellungen")
+    .accessibilityHint(selectedModality.isCycling ? "Startet sofort eine neue Fahrt mit den aktuell gewählten Cardio-Einstellungen" : "Startet sofort einen neuen Lauf mit den aktuell gewählten Cardio-Einstellungen")
   }
 
   private var quickStartAccessibilityValue: String {
