@@ -573,7 +573,8 @@ struct RunTrackerView: View {
     if run.audioCuesEnabled, currentKm > lastSpokenKilometer, currentKm >= 1 {
       lastSpokenKilometer = currentKm
       let pace = displayedPaceLabel(distanceKm: displayedDistance, elapsedSeconds: displayedDurationSeconds, modality: run.modality)
-      audio.speak("Kilometer \(currentKm). Pace \(pace).")
+      let secondaryMetricLabel = run.modality.isCycling ? "Tempo" : "Pace"
+      audio.speak("Kilometer \(currentKm). \(secondaryMetricLabel) \(pace).")
     }
     // Strukturiertes Workout: Step-Wechsel triggern + Audio-Cue beim neuen Step.
     if store.activeStructuredWorkout != nil {
