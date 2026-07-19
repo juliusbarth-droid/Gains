@@ -1150,7 +1150,7 @@ private struct PreRunSetupView: View {
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("Trainingsübersicht")
     .accessibilityValue("\(selectedModality.shortLabel), \(primaryCTALabel), \(summaryLine)")
-    .accessibilityHint("Fasst deinen aktuellen Trainingsmodus und die letzten Laufdaten vor dem Start zusammen")
+    .accessibilityHint("Fasst deinen aktuellen Trainingsmodus und die letzten Trainingsdaten vor dem Start zusammen")
   }
 
   private var summaryLine: String {
