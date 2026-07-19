@@ -2289,6 +2289,10 @@ private struct StopRunSheet: View {
     }
   }
 
+  private var activitySecondaryMetricLabel: String {
+    (run?.modality.isCycling ?? false) ? "Tempo" : "Pace"
+  }
+
   var body: some View {
     NavigationStack {
       ScrollView {
@@ -2405,10 +2409,10 @@ private struct StopRunSheet: View {
         Button("\(activityNoun) behalten", role: .cancel) {}
       } message: {
         Text(isAutoPaused
-          ? "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der automatisch pausierten \(activityNoun) zurück und kannst sie weiterführen oder speichern. Wenn du sie verwirfst, wird die automatisch pausierte \(activityNoun) verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
+          ? "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der automatisch pausierten \(activityNoun) zurück und kannst sie weiterführen oder speichern. Wenn du sie verwirfst, wird die automatisch pausierte \(activityNoun) verworfen und Distanz, \(activitySecondaryMetricLabel) sowie Runden landen nicht im Feed oder in den Routen."
           : (run?.isPaused == true
-              ? "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der pausierten \(activityNoun) zurück und kannst sie fortsetzen oder speichern. Wenn du sie verwirfst, wird die pausierte \(activityNoun) verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."
-              : "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der aktiven \(activityNoun) zurück und kannst sie fortsetzen oder speichern. Wenn du sie verwirfst, wird die aktive \(activityNoun) verworfen und Distanz, Pace sowie Runden landen nicht im Feed oder in den Routen."))
+              ? "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der pausierten \(activityNoun) zurück und kannst sie fortsetzen oder speichern. Wenn du sie verwirfst, wird die pausierte \(activityNoun) verworfen und Distanz, \(activitySecondaryMetricLabel) sowie Runden landen nicht im Feed oder in den Routen."
+              : "Wenn du \(activityAccusative) behältst, kehrst du direkt zu der aktiven \(activityNoun) zurück und kannst sie fortsetzen oder speichern. Wenn du sie verwirfst, wird die aktive \(activityNoun) verworfen und Distanz, \(activitySecondaryMetricLabel) sowie Runden landen nicht im Feed oder in den Routen."))
       }
       .onAppear {
         if title.isEmpty { title = run?.title ?? "" }
