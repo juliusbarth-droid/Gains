@@ -139,7 +139,7 @@ struct RunTrackerView: View {
       // Kontext genau umgekehrt zur User-Erwartung ist (Abbrechen = Dialog
       // schließen, nicht Daten verwerfen). Jetzt klare Labels.
       .confirmationDialog(
-        "Lauf-Vorbereitung verwerfen?",
+        selectedModality.isCycling ? "Training-Vorbereitung verwerfen?" : "Lauf-Vorbereitung verwerfen?",
         isPresented: $isConfirmingCountdownAbort,
         titleVisibility: .visible
       ) {
