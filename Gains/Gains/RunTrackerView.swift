@@ -2439,7 +2439,7 @@ private struct StopRunSheet: View {
       return displayedPaceSeconds > 0 ? String(format: "%d:%02d", displayedPaceSeconds / 60, displayedPaceSeconds % 60) : "–:–"
     }
     if run.modality.isCycling {
-      guard displayedPaceSeconds > 0 else { return "0.0" }
+      guard displayedPaceSeconds > 0 else { return "–" }
       return String(format: "%.1f", 3600.0 / Double(displayedPaceSeconds))
     }
     return displayedPaceSeconds > 0 ? String(format: "%d:%02d", displayedPaceSeconds / 60, displayedPaceSeconds % 60) : "–:–"
