@@ -1354,7 +1354,7 @@ private struct PreRunSetupView: View {
             .font(GainsFont.body(14))
             .foregroundStyle(GainsColor.ink)
           Text(selectedModality.isCycling
-               ? "Sprachausgabe bei jedem Kilometer mit aktueller Geschwindigkeit."
+               ? "Sprachausgabe bei jedem Kilometer mit aktuellem Tempo."
                : "Sprachausgabe bei jedem Kilometer mit aktueller Pace.")
             .font(GainsFont.body(11))
             .foregroundStyle(GainsColor.softInk)
@@ -1364,7 +1364,7 @@ private struct PreRunSetupView: View {
       .accessibilityLabel("Audio-Hinweise")
       .accessibilityValue(audioCuesEnabled ? "Eingeschaltet" : "Ausgeschaltet")
       .accessibilityHint(selectedModality.isCycling
-        ? "Sprachausgabe bei jedem Kilometer mit aktueller Geschwindigkeit"
+        ? "Sprachausgabe bei jedem Kilometer mit aktuellem Tempo"
         : "Sprachausgabe bei jedem Kilometer mit aktueller Pace")
     }
     .padding(GainsSpacing.m)
