@@ -1622,7 +1622,7 @@ private struct LiveRunView: View {
           }
           if let target = step?.target.displayLabel {
             Text(target + ((step?.targetPaceSeconds ?? 0) > 0
-              ? " · Ziel \(formatPace(step?.targetPaceSeconds ?? 0)) /km"
+              ? " · Ziel \(structuredStepTargetSuffix(step: step))"
               : ""))
               .font(GainsFont.body(12))
               .foregroundStyle(GainsColor.ink)
@@ -1707,6 +1707,16 @@ private struct LiveRunView: View {
           .animation(.spring(response: 0.4, dampingFraction: 0.9), value: progress)
       }
     }
+  }
+
+  private func structuredStepTargetSuffix(step: StructuredWorkoutStep?) -> String {
+    let targetPaceSeconds = step?.targetPaceSeconds ?? 0
+    guard targetPaceSeconds > 0 else { return "" }
+    if run.modality.isCycling {
+      let kmh = 3600.0 / Double(targetPaceSeconds)
+      return String(format: "%.0f km/h", kmh)
+    }
+    return "\(formatPace(targetPaceSeconds)) /km"
   }
 
   private var targetLabel: String {
