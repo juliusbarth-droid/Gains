@@ -2423,11 +2423,26 @@ private struct StopRunSheet: View {
     let seconds = elapsedSeconds % 60
     return HStack(alignment: .lastTextBaseline, spacing: GainsSpacing.m) {
       summaryCell(value: String(format: "%.2f", displayedDistanceKm), unit: "km")
-      summaryCell(value: displayedPaceSeconds > 0 ? String(format: "%d:%02d", displayedPaceSeconds / 60, displayedPaceSeconds % 60) : "–:–", unit: "/km")
+      summaryCell(value: summarySecondaryMetricValue, unit: summarySecondaryMetricUnit)
       summaryCell(value: String(format: "%d:%02d", minutes, seconds), unit: "zeit")
     }
     .frame(maxWidth: .infinity)
     .padding(.vertical, GainsSpacing.xxs)
+  }
+
+  private var summarySecondaryMetricValue: String {
+    guard let run else {
+      return displayedPaceSeconds > 0 ? String(format: "%d:%02d", displayedPaceSeconds / 60, displayedPaceSeconds % 60) : "–:–"
+    }
+    if run.modality.isCycling {
+      guard displayedPaceSeconds > 0 else { return "0.0" }
+      return String(format: "%.1f", 3600.0 / Double(displayedPaceSeconds))
+    }
+    return displayedPaceSeconds > 0 ? String(format: "%d:%02d", displayedPaceSeconds / 60, displayedPaceSeconds % 60) : "–:–"
+  }
+
+  private var summarySecondaryMetricUnit: String {
+    (run?.modality.isCycling ?? false) ? "km/h" : "/km"
   }
 
   private func summaryCell(value: String, unit: String) -> some View {
