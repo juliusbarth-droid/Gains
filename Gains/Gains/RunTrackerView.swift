@@ -767,7 +767,7 @@ struct RunTrackerView: View {
       stopTracking()
       return
     }
-    if displayedDistance <= 0, displayedDurationSeconds >= 30, run.durationMinutes == 0 {
+    if displayedDistance <= 0, displayedDurationSeconds >= 30, displayedDurationSeconds < 60 {
       store.syncActiveRunGPS(
         distanceKm: displayedDistance,
         durationMinutes: 1,
